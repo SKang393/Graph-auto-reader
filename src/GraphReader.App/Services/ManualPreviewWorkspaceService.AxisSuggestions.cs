@@ -11,6 +11,13 @@ namespace GraphReader.App.Services;
 public sealed record WorkspaceAxisSuggestion(string TabId, string Binding, RustAxisGeometry Geometry)
 {
     internal object? OriginalImageIdentity { get; init; }
+    public bool IsUserDefined { get; init; }
+}
+
+public interface IManualAxisDraftWorkspace
+{
+    bool CanCreateManualAxisDraft { get; }
+    WorkspaceAxisSuggestion? CreateManualAxisDraft(string tabId, IReadOnlyList<PixelPoint> anchors);
 }
 
 public interface IAxisSuggestionWorkspace
@@ -29,13 +36,40 @@ public interface ICalibrationLabelSuggestionWorkspace
     bool IsCalibrationLabelSuggestionCurrent(WorkspaceCalibrationLabelSuggestion result);
 }
 
-public partial class ManualPreviewWorkspaceService
+public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
 {
     private readonly IAxisProposalService? _axisProposalService;
     private readonly ICalibrationOcrSuggestionService? _calibrationOcrSuggestionService;
     private int _calibrationOcrDisposed;
     public bool CanSuggestAxes => _axisProposalService is not null &&
         RuntimeEnvironment == GraphReader.App.Integration.Workflow.WorkflowRuntimeEnvironment.ManualPreview;
+
+    public bool CanCreateManualAxisDraft =>
+        RuntimeEnvironment == GraphReader.App.Integration.Workflow.WorkflowRuntimeEnvironment.ManualPreview;
+
+    public WorkspaceAxisSuggestion? CreateManualAxisDraft(string tabId, IReadOnlyList<PixelPoint> anchors)
+    {
+        ArgumentNullException.ThrowIfNull(anchors);
+        WorkspaceTabViewModel? tab = _tabs.SingleOrDefault(item => item.TabId == tabId);
+        if (!CanCreateManualAxisDraft || tab is null || anchors.Count != 3 ||
+            !_originalPanelBytesByTab.TryGetValue(tabId, out var image)) return null;
+        PixelPoint[] points = anchors.ToArray();
+        if (points.Any(point => !double.IsFinite(point.X) || !double.IsFinite(point.Y) ||
+                point.X < 0 || point.Y < 0 || point.X > tab.PixelWidth - 1 || point.Y > tab.PixelHeight - 1) ||
+            points[2].X <= Math.Max(points[0].X, points[1].X) ||
+            points[1].Y >= Math.Min(points[0].Y, points[2].Y)) return null;
+        double determinant = (points[1].X - points[0].X) * (points[2].Y - points[0].Y) -
+            (points[1].Y - points[0].Y) * (points[2].X - points[0].X);
+        if (determinant == 0) return null;
+        // This is a user-selected OCR search rectangle, not measured axes or numeric evidence.
+        // Keep the VM's exact fractional anchors; round only the enclosing pixel search bounds.
+        var geometry = new RustAxisGeometry((int)Math.Floor(Math.Min(points[0].X, points[1].X)),
+            (int)Math.Ceiling(Math.Max(points[0].Y, points[2].Y)), (int)Math.Ceiling(points[2].X),
+            (int)Math.Floor(points[1].Y), 0);
+        var draft = new WorkspaceAxisSuggestion(tabId, AxisSuggestionBinding(tab), geometry)
+            { OriginalImageIdentity = image, IsUserDefined = true };
+        return IsAxisSuggestionCurrent(draft) ? draft : null;
+    }
 
     public async Task<WorkspaceAxisSuggestion?> SuggestAxesAsync(string tabId, CancellationToken cancellationToken)
     {

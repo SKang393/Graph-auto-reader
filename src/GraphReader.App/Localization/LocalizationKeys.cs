@@ -87,6 +87,10 @@ public static class LocalizationKeys
     public const string ManualAxisReviewed = "Manual.AxisReviewed";
     public const string ManualAxisApply = "Manual.AxisApply";
     public const string ManualAxisDismiss = "Manual.AxisDismiss";
+    public const string ManualAxisDraftBegin = "Manual.AxisDraft.Begin";
+    public const string ManualAxisDraftPrompt = "Manual.AxisDraft.Prompt";
+    public const string ManualAxisDraftReady = "Manual.AxisDraft.Ready";
+    public const string ManualAxisDraftInvalid = "Manual.AxisDraft.Invalid";
     public const string ManualCalibrationTicksSuggest = "Manual.CalibrationTicks.Suggest";
     public const string ManualCalibrationTicksStatus = "Manual.CalibrationTicks.Status";
     public const string ManualCalibrationTicksComplete = "Manual.CalibrationTicks.Complete";
@@ -498,6 +502,10 @@ public static class LocalizationKeys
         ManualAxisReviewed,
         ManualAxisApply,
         ManualAxisDismiss,
+        ManualAxisDraftBegin,
+        ManualAxisDraftPrompt,
+        ManualAxisDraftReady,
+        ManualAxisDraftInvalid,
         ManualCalibrationTicksSuggest,
         ManualCalibrationTicksStatus,
         ManualCalibrationTicksComplete,

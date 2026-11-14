@@ -78,6 +78,10 @@ public sealed partial class MainWindowViewModel
 
     private void InitializeAxisSuggestionCommands()
     {
+        BeginManualAxisDraftCommand = new RelayCommand(_ => BeginManualAxisDraft(),
+            _ => !IsBusy && SelectedTab is not null && _manualWorkspaceService is not null &&
+                _workspaceService is IManualAxisDraftWorkspace { CanCreateManualAxisDraft: true } &&
+                _workspaceService is ICalibrationLabelSuggestionWorkspace { CanReadCalibrationLabels: true });
         SuggestAxesCommand = new AsyncRelayCommand(SuggestAxesAsync,
             () => !IsBusy && SelectedTab is not null && _workspaceService is IAxisSuggestionWorkspace { CanSuggestAxes: true });
         SuggestCalibrationFromTicksCommand = new AsyncRelayCommand(SuggestCalibrationFromTicksAsync,
@@ -86,7 +90,8 @@ public sealed partial class MainWindowViewModel
         InitializeCalibrationLabelCommands();
         ApplyAxisSuggestionCommand = new AsyncRelayCommand(ApplyAxisSuggestionAsync,
             () => !IsBusy && AxisSuggestionReviewed && TryGetSuggestedValues(out _, out _, out _));
-        DismissAxisSuggestionCommand = new RelayCommand(_ => ClearAxisSuggestion(), _ => HasAxisSuggestion && !IsBusy);
+        DismissAxisSuggestionCommand = new RelayCommand(_ => ClearAxisSuggestion(),
+            _ => (HasAxisSuggestion || IsCollectingManualAxisDraft) && !IsBusy);
     }
 
     public Task SuggestAxesAsync(CancellationToken cancellationToken) => RunBusyAsync(async token =>
@@ -124,6 +129,7 @@ public sealed partial class MainWindowViewModel
         EditorMode = ManualEditorMode.Select;
         UpdateAxisSuggestionOverlay();
         OnPropertyChanged(nameof(HasAxisSuggestion));
+        OnPropertyChanged(nameof(IsManualAxisDraft));
         OnPropertyChanged(nameof(AxisSuggestionSummary));
         OnPropertyChanged(nameof(CalibrationLabelStatusText));
         SetStatus(GetLocalizedString(LocalizationKeys.ManualAxisReview));
@@ -182,6 +188,9 @@ public sealed partial class MainWindowViewModel
 
     private void ClearAxisSuggestion()
     {
+        bool wasCollecting = IsCollectingManualAxisDraft;
+        ClearManualAxisDraftSelection();
+        if (wasCollecting && EditorMode == ManualEditorMode.Calibration) EditorMode = ManualEditorMode.Select;
         _axisSuggestionGeneration++;
         SetEstimatedCalibrationPositions(false);
         ClearCalibrationLabelResults(clearPickedValues: true);
@@ -204,6 +213,7 @@ public sealed partial class MainWindowViewModel
         SuggestedYMaximum = SuggestedFirstSession = SuggestedFinalSession = "";
         AxisSuggestionReviewed = false;
         OnPropertyChanged(nameof(HasAxisSuggestion));
+        OnPropertyChanged(nameof(IsManualAxisDraft));
         OnPropertyChanged(nameof(AxisSuggestionSummary));
         OnPropertyChanged(nameof(CalibrationLabelStatusText));
     }

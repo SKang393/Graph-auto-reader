@@ -308,6 +308,13 @@ values before explicit Apply. Draft creation must not calibrate, invent tick
 evidence or change saved data; preserve source invalidation, cancel/dismiss,
 Undo and export guards. Validate this on owned inputs without using private
 manual answers to supply inference geometry.
+The [manual-axis OCR draft implementation](MANUAL-AXIS-OCR-DRAFT-20261114.md)
+now passes 1,014 App tests. An owned prepared-crop check used actual OCR and
+marker workers with no Rust axis call, then exported and reopened three points
+in 4.844 seconds. Its six label positions remain explicitly estimated, and
+saved calibration remains user-confirmed manual anchors with no tick evidence.
+Internal preview 0.4.48 is prepared for delivery. Native interaction and private
+automatic-calibration accuracy remain unverified by these source checks.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

@@ -17,7 +17,7 @@ internal static class MarkerWorkflowCheck
     private static readonly double[] ExpectedExportX = [1, 2, 3];
 
     internal static async Task<object> RunAsync(Program.ProbeRequest source, string appExe, string assetRoot,
-        string rustExe, string outputRoot, bool preparedCrop, CancellationToken cancellationToken)
+        string rustExe, string outputRoot, bool preparedCrop, CancellationToken cancellationToken, bool manualAxes = false)
     {
         if (source.Scope != "owned-synthetic-review-only" || !Path.IsPathFullyQualified(source.ImagePath) ||
             !Path.IsPathFullyQualified(appExe) || !File.Exists(appExe) || !Path.IsPathFullyQualified(rustExe) || !File.Exists(rustExe) ||
@@ -56,7 +56,7 @@ internal static class MarkerWorkflowCheck
         using (var file = new FileStream(imagePath, FileMode.CreateNew, FileAccess.Write, FileShare.None)) encoder.Save(file);
         string generatedSourceHash = Program.Hash(File.ReadAllBytes(imagePath));
         var elapsed = Stopwatch.StartNew();
-        using var workspace = new ManualPreviewWorkspaceService(axisProposalService: new RustAxisProposalService(rustExe),
+        using var workspace = new ManualPreviewWorkspaceService(axisProposalService: manualAxes ? null : new RustAxisProposalService(rustExe),
             calibrationOcrSuggestionService: new CalibrationOcrWorkerClient(appExe, assetRoot),
             markerExemplarSuggestionService: new MarkerExemplarWorkerClient(appExe));
         var parent = (await workspace.ImportImagesAsync([imagePath], cancellationToken)).Single();
@@ -75,8 +75,15 @@ internal static class MarkerWorkflowCheck
                 workspace.CurrentProject.Sources.Single().Sha256 != generatedSourceHash)
                 throw new InvalidDataException("Preparing a crop changed the original parent.");
         }
-        WorkspaceAxisSuggestion? axis = await workspace.SuggestAxesAsync(tab.TabId, cancellationToken);
+        var beforeDraft = workspace.CurrentProject;
+        bool dirtyBeforeDraft = tab.IsDirty;
+        WorkspaceAxisSuggestion? axis = manualAxes
+            ? workspace.CreateManualAxisDraft(tab.TabId, [new(140, 380), new(140, 80), new(540, 380)])
+            : await workspace.SuggestAxesAsync(tab.TabId, cancellationToken);
         if (axis is null) return new { completed = false, reason = "AXIS_PROPOSAL_UNAVAILABLE", review_only = true };
+        if (manualAxes && (!axis.IsUserDefined || axis.Geometry.XTickPositions.Count != 0 || axis.Geometry.YTickPositions.Count != 0 ||
+            workspace.CanSuggestAxes || !ReferenceEquals(beforeDraft, workspace.CurrentProject) || tab.Calibration is not null || tab.IsDirty != dirtyBeforeDraft))
+            throw new InvalidDataException("Manual draft changed scientific state or supplied measured axis evidence.");
         WorkspaceCalibrationLabelSuggestion? labels = await workspace.ReadCalibrationLabelsAsync(axis, cancellationToken);
         if (labels is null) return new { completed = false, reason = "OCR_UNAVAILABLE_OR_STALE", review_only = true };
         CalibrationTickProposalResult proposal = CalibrationTickProposal.CreateReviewDraft(axis.Geometry, labels.Response);
@@ -168,6 +175,7 @@ internal static class MarkerWorkflowCheck
             }
         }
         return new { completed = true, review_only = true, production_approved = false,
+            geometry_source = manualAxes ? "user_marked_owned_control" : "rust", rust_invoked = !manualAxes,
             source_sha256 = source.ImageSha256, generated_source_sha256 = generatedSourceHash,
             scope = preparedCrop ? "prepared-crop" : "full-panel", crop_milliseconds = cropMilliseconds,
             panel_sha256 = tab.SourceSha256, proposal, position_evidence = positionEvidence,

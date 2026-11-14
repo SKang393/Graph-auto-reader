@@ -113,11 +113,17 @@ denominator and zero sealed budget remain unchanged for the plumbing retry.
 Microsoft documents [parent-relative nested CPU quotas](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_cpu_rate_control_information)
 and the [extended-limit silent-breakaway flag](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_basic_limit_information).
 
-`--marker-workflow-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker> <absolute-empty-output-root> [prepared-crop]`
+`--marker-workflow-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker> <absolute-empty-output-root> [prepared-crop|manual-axes|prepared-crop-manual-axes]`
 checks the owned control through actual geometry, OCR, explicit simulated review,
 marker suggestions, export and save/reopen. The optional `prepared-crop` embeds
 the control in a larger original and verifies its source-coordinate offset and
 unchanged parent. This is headless service evidence, not UI or accuracy approval.
+`manual-axes` supplies the owned fixture's three pixel anchors through the real
+manual-draft API with no Rust proposal service configured. It verifies no
+calibration or project mutation occurs at draft creation, then reads real OCR,
+refits and simulates explicit review before marker/export/reopen checks.
+`prepared-crop-manual-axes` combines that path with the source-offset check.
+These anchors are part of the project-owned fixture, never private answers.
 It follows the review-draft API, reports measured and estimated positions
 separately, and verifies that persisted calibration is user-confirmed manual
 calibration with no tick-measurement evidence IDs. Existing owned coordinate

@@ -1002,7 +1002,24 @@
                     Style="{DynamicResource App.Style.Button}"
                     automation:AutomationProperties.AutomationId="Manual.CalibrationTicks.Suggest"
                     automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationTicks.Suggest}" />
+            <Button Margin="0,0,0,8"
+                    Command="{Binding BeginManualAxisDraftCommand}"
+                    Content="{DynamicResource Manual.AxisDraft.Begin}"
+                    ToolTip="{DynamicResource Manual.AxisDraft.Prompt}"
+                    Style="{DynamicResource App.Style.Button}"
+                    automation:AutomationProperties.AutomationId="Manual.AxisDraft.Begin"
+                    automation:AutomationProperties.Name="{DynamicResource Manual.AxisDraft.Begin}" />
+            <StackPanel Visibility="{Binding IsCollectingManualAxisDraft, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
+              <TextBlock Text="{DynamicResource Manual.AxisDraft.Prompt}" TextWrapping="Wrap" />
+              <Button Margin="0,6,0,0" Command="{Binding DismissAxisSuggestionCommand}"
+                      Content="{DynamicResource Manual.AxisDismiss}"
+                      Style="{DynamicResource App.Style.Button}"
+                      automation:AutomationProperties.AutomationId="Manual.AxisDraft.Dismiss"
+                      automation:AutomationProperties.Name="{DynamicResource Manual.AxisDismiss}" />
+            </StackPanel>
             <StackPanel Visibility="{Binding HasAxisSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
+              <TextBlock Margin="0,0,0,6" Text="{DynamicResource Manual.AxisDraft.Ready}" TextWrapping="Wrap"
+                         Visibility="{Binding IsManualAxisDraft, Converter={StaticResource BooleanToVisibilityConverter}}" />
               <TextBlock Text="{DynamicResource Manual.AxisReview}" TextWrapping="Wrap" />
               <TextBlock Margin="0,4,0,6"
                          Text="{DynamicResource Manual.CalibrationTicks.EstimatedWarning}"

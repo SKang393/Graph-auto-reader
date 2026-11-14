@@ -86,10 +86,14 @@
   <sys:String x:Key="Manual.SuggestAxes">Suggest axes (review only)</sys:String>
   <sys:String x:Key="Manual.AxisReview">Check the anchor pixels. Read tick labels as review-only hints or enter the actual values yourself. Confirm every value before applying; nothing changes until Apply.</sys:String>
   <sys:String x:Key="Manual.AxisPositions">Original pixels: origin ({0}, {1}); Y maximum ({2}, {3}); final session ({4}, {5}).</sys:String>
-  <sys:String x:Key="Manual.AxisUnavailable">No axis proposal is available. Crop one graph including its axis labels and any visible zero, then retry, or use manual three-anchor calibration.</sys:String>
+  <sys:String x:Key="Manual.AxisUnavailable">No axis proposal is available. Mark axes for label reading, or crop one graph including its labels and visible zero before retrying. Manual three-anchor calibration is also available.</sys:String>
   <sys:String x:Key="Manual.AxisReviewed">I checked anchor pixels and actual labels.</sys:String>
   <sys:String x:Key="Manual.AxisApply">Apply</sys:String>
   <sys:String x:Key="Manual.AxisDismiss">Dismiss</sys:String>
+  <sys:String x:Key="Manual.AxisDraft.Begin">Mark axes for label reading</sys:String>
+  <sys:String x:Key="Manual.AxisDraft.Prompt">Click the first X anchor at Y=0, the Y-maximum anchor above it, then the final X anchor at Y=0. These clicks only prepare label reading.</sys:String>
+  <sys:String x:Key="Manual.AxisDraft.Ready">Axes marked by you. Read labels, check the anchor pixels and values, then Apply.</sys:String>
+  <sys:String x:Key="Manual.AxisDraft.Invalid">Choose three different anchor positions inside the image: bottom-left, top-left, then bottom-right.</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.Suggest">Suggest calibration</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.Status">Review-only tick pairing status</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.Complete">{0} tick labels matched. Check the anchors and values, then confirm and apply.</sys:String>

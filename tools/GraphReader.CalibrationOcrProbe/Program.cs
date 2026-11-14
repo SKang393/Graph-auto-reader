@@ -131,15 +131,18 @@ internal static class Program
                 return 0;
             }
             if (markerShapeCheck) throw new InvalidDataException("Usage: --marker-shape-control-check <absolute-App-exe>");
-            if (markerWorkflow && (args.Length == 6 || args.Length == 7 && args[6] == "prepared-crop"))
+            if (markerWorkflow && (args.Length == 6 || args.Length == 7 &&
+                args[6] is "prepared-crop" or "manual-axes" or "prepared-crop-manual-axes"))
             {
                 byte[] input = ReadBounded(args[1], 32_768);
                 ProbeRequest owned = JsonSerializer.Deserialize<ProbeRequest>(input, Json)
                     ?? throw new InvalidDataException("Missing request.");
-                Emit(await MarkerWorkflowCheck.RunAsync(owned, args[2], args[3], args[4], args[5], args.Length == 7, deadline.Token));
+                bool preparedCrop = args.Length == 7 && args[6] is "prepared-crop" or "prepared-crop-manual-axes";
+                bool manualAxes = args.Length == 7 && args[6] is "manual-axes" or "prepared-crop-manual-axes";
+                Emit(await MarkerWorkflowCheck.RunAsync(owned, args[2], args[3], args[4], args[5], preparedCrop, deadline.Token, manualAxes));
                 return 0;
             }
-            if (markerWorkflow) throw new InvalidDataException("Usage: --marker-workflow-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker> <absolute-empty-output-root> [prepared-crop]");
+            if (markerWorkflow) throw new InvalidDataException("Usage: --marker-workflow-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker> <absolute-empty-output-root> [prepared-crop|manual-axes|prepared-crop-manual-axes]");
             if (args is ["--marker-exemplar-check", var markerApp])
             {
                 Emit(await MarkerExemplarCheck.RunAsync(markerApp, deadline.Token));

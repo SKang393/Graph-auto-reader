@@ -192,7 +192,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ExportCommand = new AsyncRelayCommand(
             ExportFromDialogAsync,
             () => !IsBusy && _isWorkflowAvailable && (_manualWorkspaceService is null || SelectedTab is not null));
-        CancelCommand = new RelayCommand(_ => CancelActiveOperation(), _ => IsBusy || IsPanelCropActive);
+        CancelCommand = new RelayCommand(_ => CancelActiveOperation(), _ => IsBusy || IsPanelCropActive || IsCollectingManualAxisDraft);
         AddPointCommand = new RelayCommand(
             parameter => AddPoint((string)parameter!),
             parameter => parameter is string seriesId && FindSeries(seriesId) is not null);
@@ -645,6 +645,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             if (SetProperty(ref _editorMode, value))
             {
+                if (value != ManualEditorMode.Calibration) ClearManualAxisDraftSelection();
                 if (value != ManualEditorMode.PanelCrop && _panelCropContext is not null)
                 {
                     OnPanelCropModeExited();
@@ -658,7 +659,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
-    public string EditorInstruction => EditorMode switch
+    public string EditorInstruction => IsCollectingManualAxisDraft
+        ? GetLocalizedString(LocalizationKeys.ManualAxisDraftPrompt) : EditorMode switch
     {
         ManualEditorMode.Calibration => FormatLocalizedString(
             LocalizationKeys.ManualInstructionCalibration,
@@ -1175,6 +1177,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (SelectedTab is not { } tab || _manualWorkspaceService is null)
         {
+            return;
+        }
+
+        if (IsCollectingManualAxisDraft)
+        {
+            if (cancellationToken.IsCancellationRequested) ClearAxisSuggestion();
+            cancellationToken.ThrowIfCancellationRequested();
+            HandleManualAxisDraftPoint(tab, point);
             return;
         }
 
@@ -2603,6 +2613,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private void CancelActiveOperation()
     {
+        if (IsCollectingManualAxisDraft)
+        {
+            ClearAxisSuggestion();
+            if (IsBusy) _activeOperation?.Cancel();
+            SetStatus(GetLocalizedString(LocalizationKeys.StatusCancelled));
+            return;
+        }
         if (IsPanelCropActive)
         {
             CancelPanelCrop();

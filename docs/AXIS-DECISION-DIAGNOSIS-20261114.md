@@ -96,7 +96,11 @@ approve accuracy, calibration, or production.
 
 The diagnostic run does not change selection behavior when tracing is off;
 owned parity checks show identical ordinary responses on the eight controls.
-No model, dependency, threshold, or package changed. The under-2-MB raw
-diagnostic outputs should be retired after this outcome is pushed and consumers
-finish. No new model selection, training, private image copies, or sealed reads
-are authorized by this record.
+No model, dependency, threshold, or package changed. Source/outcome commit
+`39f454cff1f0fb3574d325f1d4fcee61b7d6fa13` reached `origin/main`. With no scoped
+diagnostic consumers remaining, the raw diagnostic scratch and preceding
+preparation-cleanup receipt were retired at `2026-11-14T18:10:23.2085824Z`:
+12 files / 10,852 bytes. Current build dependencies, the sole 0.4.47 build/ZIP,
+runtime models, original corpus and user Data were preserved. No new model
+selection, training, private image copies, or sealed reads are authorized by
+this record.

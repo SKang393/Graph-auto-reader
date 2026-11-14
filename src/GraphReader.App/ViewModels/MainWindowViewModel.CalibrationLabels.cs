@@ -293,6 +293,27 @@ public sealed partial class MainWindowViewModel
     private void UpdateAxisSuggestionGeometryFromCorrectedAnchors()
     {
         if (_axisSuggestion is not { } suggestion || _suggestedAnchors.Length != 3) return;
+        if (suggestion.IsUserDefined)
+        {
+            if (_workspaceService is not IAxisSuggestionWorkspace axes || !axes.IsAxisSuggestionCurrent(suggestion))
+            {
+                ClearAxisSuggestion();
+                SetStatus(GetLocalizedString(LocalizationKeys.ManualAxisDraftInvalid));
+                return;
+            }
+            WorkspaceAxisSuggestion? corrected = (_workspaceService as IManualAxisDraftWorkspace)?.CreateManualAxisDraft(
+                suggestion.TabId, _suggestedAnchors.Select(point => new GraphReader.Axis.PixelPoint(point.X, point.Y)).ToArray());
+            if (corrected is null)
+            {
+                ClearAxisSuggestion();
+                SetStatus(GetLocalizedString(LocalizationKeys.ManualAxisDraftInvalid));
+                return;
+            }
+            _axisSuggestion = corrected;
+            OnPropertyChanged(nameof(AxisSuggestionSummary));
+            RelayCommand.RaiseCanExecuteChanged();
+            return;
+        }
         Point origin = _suggestedAnchors[0];
         Point top = _suggestedAnchors[1];
         Point final = _suggestedAnchors[2];
@@ -310,6 +331,7 @@ public sealed partial class MainWindowViewModel
 
     private void StartAxisCalibrationCorrection()
     {
+        ClearManualAxisDraftSelection();
         bool preservePartialValues = _calibrationTickProposal is { IsComplete: false } proposal &&
             (proposal.XReviewDraft is not null || proposal.YReviewDraft is not null);
         ClearCalibrationLabelResults(clearPickedValues: !preservePartialValues);
