@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using GraphReader.App.Integration.MarkerExemplar;
 using GraphReader.App.Services;
 using GraphReader.App.ViewModels;
 using GraphReader.Domain;
@@ -212,7 +213,7 @@ public sealed class MarkerExemplarBatchViewModelTests
         {
             token.ThrowIfCancellationRequested();
             return Task.FromResult(new MarkerExemplarResponse(request, Candidates, new(1, 1, 2),
-                new(new(2, 2500, .5, true), 1, "original-panel-user-exemplar-single-scale-v1"), null));
+                new(new(2, 2500, .5, true), 1, MarkerExemplarValidation.Algorithm), null));
         }
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }

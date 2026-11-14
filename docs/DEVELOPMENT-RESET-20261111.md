@@ -129,9 +129,14 @@ and actual geometry/OCR/marker-to-export/reopen in 4.937 s process wall time.
 The same batch record now includes the first/last-session and Y-zero boundary
 fix: original image context may cross the plot, with all candidate centers
 inside it. Thirty focused tests and the actual boundary-marker workflow passed;
-the latter took 4.889 s. Next check the current matcher's utility on two small
-owned controls with horizontal and changing-slope connecting lines. Keep the
-existing threshold fixed and use the result to prioritize a concrete defect.
+the latter took 4.889 s. The subsequent
+[connection-context correction](MARKER-CONNECTION-CONTROLS-20261114.md) improved
+the fixed changing-slope control from 0/4 to 4/4 at the same 0.9 threshold;
+horizontal and hollow controls also returned 4/4 with no false proposals in the
+four controls. Thirty-seven focused tests passed. A near-limit 4.096-megapixel
+worker request took 0.976 s and cancelled in 0.097 s. Deliver one integrated
+0.4.41 internal preview next. These owned checks do not establish representative
+accuracy, native interaction or final production approval.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

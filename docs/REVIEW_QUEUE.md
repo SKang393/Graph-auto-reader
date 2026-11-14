@@ -201,7 +201,8 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   Check devices, Cancel and interruption by foreground work
   and the new Suggest calibration action through confirmation and Apply.
   Verify a placed marker example, visible matches, individual Add/Remove and
-  undo using the next integrated preview
+  undo using the next integrated preview, including the reviewed Add remaining
+  matches action as one Undo operation
 - **Why:** the user stopped Computer Use with physical Escape. Initial native
   CPU/default and adapter-list display was observed; saved-choice verification
   was not completed. The actual worker lifecycle and headless persistence tests
@@ -210,6 +211,8 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   [automatic device-profile outcome](OCR-AUTOMATIC-DEVICE-20261113.md),
   [measured-tick proposal outcome](CALIBRATION-TICK-PROPOSALS-20261113.md),
   [marker example outcome](MARKER-EXEMPLAR-ASSISTANCE-20261113.md),
+  [batch and boundary outcome](MARKER-BATCH-WORKFLOW-20261114.md),
+  [connection-context outcome](MARKER-CONNECTION-CONTROLS-20261114.md),
   [current implementation plan](DEVELOPMENT-RESET-20261111.md)
 - **Unblocks when:** native save, subsequent read, device-change restart and
   fresh-process restoration are observed without claiming unperformed checks

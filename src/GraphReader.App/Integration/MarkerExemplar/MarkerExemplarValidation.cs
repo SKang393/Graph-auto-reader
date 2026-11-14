@@ -9,7 +9,7 @@ internal static class MarkerExemplarValidation
 {
     internal const int MaximumPixels = 4_194_304;
     internal const int MaximumCandidates = 128;
-    internal const string Algorithm = "original-panel-user-exemplar-single-scale-v1";
+    internal const string Algorithm = "original-panel-user-exemplar-gaussian-single-scale-v2";
     internal static bool ValidRequest(MarkerExemplarRequest? request, ReadOnlyMemory<byte> image) =>
         ValidMetadata(request) && image.Length is > 0 and <= MarkerExemplarWire.MaximumImageBytes &&
         string.Equals(Convert.ToHexStringLower(SHA256.HashData(image.Span)), request!.PanelImageSha256,

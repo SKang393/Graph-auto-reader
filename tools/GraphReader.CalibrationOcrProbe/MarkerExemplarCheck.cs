@@ -11,11 +11,12 @@ namespace GraphReader.CalibrationOcrProbe;
 
 internal static class MarkerExemplarCheck
 {
-    internal static async Task<object> RunAsync(string appExe, CancellationToken cancellationToken)
+    internal static async Task<object> RunAsync(string appExe, CancellationToken cancellationToken,
+        bool nearPixelLimit = false)
     {
         if (!Path.IsPathFullyQualified(appExe) || !File.Exists(appExe))
             throw new InvalidDataException("An existing absolute App executable is required.");
-        const int width = 1280, height = 800;
+        int width = nearPixelLimit ? 2560 : 1280, height = nearPixelLimit ? 1600 : 800;
         byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
         for (int x = 200; x <= 1080; x++) pixels[400 * width + x] = 0;
         foreach (int center in new[] { 320, 640, 960 })
@@ -33,7 +34,7 @@ internal static class MarkerExemplarCheck
         byte[] bytes = stream.ToArray();
         string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
         var request = new MarkerExemplarRequest("owned-marker-check", hash, hash, hash, "owned-panel",
-            width, height, new(314, 394, 13, 13), new(80, 80, 1120, 640), "owned-seed", "owned-series", new(320, 400));
+            width, height, new(314, 394, 13, 13), new(80, 80, width - 160, height - 160), "owned-seed", "owned-series", new(320, 400));
         var wall = Stopwatch.StartNew();
         await using var client = new MarkerExemplarWorkerClient(appExe);
         MarkerExemplarResponse response = await client.FindAsync(request, bytes, cancellationToken);
@@ -85,7 +86,7 @@ internal static class MarkerExemplarCheck
             restarted.Runtime is null || restarted.Timings is null)
             throw new InvalidDataException(restarted.FailureCode ?? "Restarted worker returned an invalid response.");
         return new { schema = "graphreader.marker-exemplar-owned-check.v1", review_only = true,
-            production_approved = false, input_sha256 = hash, request.Exemplar, request.Plot,
+            production_approved = false, input_sha256 = hash, request.Width, request.Height, request.Exemplar, request.Plot,
             seed = request.SelectedPoint, wall_milliseconds = wall.Elapsed.TotalMilliseconds,
             response.Timings, response.Runtime, candidate_count = response.Candidates.Count,
             response.Candidates, control_errors = errors,

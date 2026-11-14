@@ -10,6 +10,9 @@ namespace GraphReader.App.Integration.MarkerExemplar;
 /// <summary>Single-scale image similarity with proposal centers confined to the plot.</summary>
 internal static class MarkerExemplarMatcher
 {
+    // Fixed float32 normalization allowance, not a matching-threshold adjustment.
+    // Values farther outside the mathematical [-1,1] range are invalid, never perfect matches.
+    internal const float CorrelationRoundoff = 0.00001f;
     internal static IReadOnlyList<MarkerExemplarCandidate> Find(MarkerExemplarRequest request,
         byte[] grayscale, CancellationToken token)
     {
@@ -31,8 +34,12 @@ internal static class MarkerExemplarMatcher
         if (x1 < x0 || y1 < y0) return Array.Empty<MarkerExemplarCandidate>();
         using var search = new Mat(original, new Rect(x0, y0, x1 - x0 + exemplar.Width, y1 - y0 + exemplar.Height));
         using var correlation = new Mat();
+        float[] weights = CreateWeights(exemplar.Width, exemplar.Height, offsetX, offsetY);
+        using var mask = Mat.FromPixelData(exemplar.Height, exemplar.Width, MatType.CV_32FC1, weights);
         // Native matching cannot cooperatively cancel. The isolated worker has a hard five-second watchdog.
-        Cv2.MatchTemplate(search, template, correlation, TemplateMatchModes.CCoeffNormed);
+        // A float mask retains every background/interior pixel; an 8-bit mask would become binary.
+        // OpenCV uses M for its mean and M squared in product/norm terms. Keep this exact declared formula.
+        Cv2.MatchTemplate(search, template, correlation, TemplateMatchModes.CCoeffNormed, mask);
         token.ThrowIfCancellationRequested();
         correlation.GetArray(out float[] scores);
         int width = correlation.Width, height = correlation.Height;
@@ -45,18 +52,7 @@ internal static class MarkerExemplarMatcher
             token.ThrowIfCancellationRequested();
             for (int x = 0; x < width; x++)
             {
-                int index = y * width + x;
-                float score = scores[index];
-                if (!float.IsFinite(score) || score < ProductionMarkerTemplateRecovery.MinimumSimilarity) continue;
-                bool peak = true;
-                for (int yy = Math.Max(0, y - 1); yy <= Math.Min(height - 1, y + 1) && peak; yy++)
-                    for (int xx = Math.Max(0, x - 1); xx <= Math.Min(width - 1, x + 1); xx++)
-                    {
-                        int other = yy * width + xx;
-                        if (scores[other] > score || scores[other] == score && other < index)
-                        { peak = false; break; }
-                    }
-                if (!peak) continue;
+                if (!IsPeak(scores, width, height, x, y, out float score)) continue;
                 if (peaks.Count >= 4096) throw new MarkerExemplarException(MarkerExemplarReasonCodes.TooManyCandidates);
                 peaks.Add((x, y, score));
             }
@@ -70,9 +66,45 @@ internal static class MarkerExemplarMatcher
                 retained.Any(item => MarkerExemplarValidation.DistanceSquared(center, item.Center) <= suppression * suppression)) continue;
             if (retained.Count == MarkerExemplarValidation.MaximumCandidates)
                 throw new MarkerExemplarException(MarkerExemplarReasonCodes.TooManyCandidates);
-            retained.Add(new(retained.Count.ToString(CultureInfo.InvariantCulture), center, Math.Clamp(peak.Score, 0, 1)));
+            retained.Add(new(retained.Count.ToString(CultureInfo.InvariantCulture), center, peak.Score));
         }
         return retained.AsReadOnly();
+    }
+
+    internal static float[] CreateWeights(int width, int height, double offsetX, double offsetY)
+    {
+        double sigma = width / 6d;
+        var weights = new float[checked(width * height)];
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+            {
+                double dx = x - offsetX, dy = y - offsetY;
+                weights[y * width + x] = (float)Math.Exp(-(dx * dx + dy * dy) / (2 * sigma * sigma));
+            }
+        return weights;
+    }
+
+    internal static bool IsPeak(float[] scores, int width, int height, int x, int y, out float score)
+    {
+        int index = y * width + x;
+        if (!TryReadCorrelation(scores[index], out score) || score < ProductionMarkerTemplateRecovery.MinimumSimilarity) return false;
+        for (int yy = Math.Max(0, y - 1); yy <= Math.Min(height - 1, y + 1); yy++)
+            for (int xx = Math.Max(0, x - 1); xx <= Math.Min(width - 1, x + 1); xx++)
+            {
+                int other = yy * width + xx;
+                // Flat native patches can normalize to NaN/Inf. Invalid neighbors cannot suppress real peaks.
+                if (TryReadCorrelation(scores[other], out float neighbor) &&
+                    (neighbor > score || neighbor == score && other < index)) return false;
+            }
+        return true;
+    }
+
+    private static bool TryReadCorrelation(float raw, out float score)
+    {
+        score = 0;
+        if (!float.IsFinite(raw) || raw < -1 - CorrelationRoundoff || raw > 1 + CorrelationRoundoff) return false;
+        score = Math.Clamp(raw, -1, 1);
+        return true;
     }
 }
 

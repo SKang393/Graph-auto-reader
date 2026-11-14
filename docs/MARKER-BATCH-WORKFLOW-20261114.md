@@ -155,8 +155,17 @@ SHA-256 identities for this follow-up:
 
 The same commands above use scratch `artifacts/marker-boundary-check` and the
 updated control coordinates. Rust, OCR, native DLL and CSV identities are
-unchanged. After this outcome is pushed, retire its 16 files (74,051 bytes).
+unchanged. After outcome `4e371cb0cf092a12fe0f490b3f136d93651c520a` reached
+main, its 16 files (74,051 bytes) were retired with containment and active-worker
+checks. The earlier QA App was preserved.
 The isolated compiler output remains the active input for a two-control check
 of changing connecting-line slopes. That diagnostic will measure utility of
 the existing matcher without changing its threshold or selecting a model.
 Native review remains waiting; this source increment does not allocate a package.
+
+[Windows CI 43548421080](https://github.com/SKang393/Graph-auto-reader/actions/runs/43548421080)
+subsequently passed for the boundary outcome `4e371cb0`: 2,603 .NET tests,
+30 skips across 13 projects (including 921 App tests), ten Rust tests, and
+packaging/evidence/localization validation. Builds reported zero warnings/errors.
+Public build/release jobs were skipped. The earlier `0f449629` CI run was
+superseded by this combined source run, rather than reported as a separate pass.

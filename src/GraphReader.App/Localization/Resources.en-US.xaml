@@ -105,13 +105,13 @@
   <sys:String x:Key="Manual.MarkerExemplar.Remove">Remove</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Row">({0}, {1}), similarity {2}</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Duplicate">A point already exists at this position.</sys:String>
-  <sys:String x:Key="Manual.MarkerExemplar.Ready">Select a calibrated point and series to begin.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.Ready">Select a calibrated point and series. Fit the square around the whole marker with a little background.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.InvalidSize">Enter a whole-pixel size from 5 to 65.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Unavailable">The example must fit inside the panel and its center must be inside the confirmed plot area.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Searching">Searching the original panel for similar markers…</sys:String>
-  <sys:String x:Key="Manual.MarkerExemplar.NoMatches">No similar positions were found.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.NoMatches">No similar positions were found. Try a smaller sample that includes the whole marker, another placed example, or add the point manually.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Count">{0} possible matches found.</sys:String>
-  <sys:String x:Key="Manual.MarkerExemplar.ReviewAdvice">Review the outlines and remove incorrect positions before adding remaining matches. Added points remain editable; use Move Point to adjust one.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.ReviewAdvice">Review outlines and remove incorrect positions before adding. Added points remain editable with Move Point.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.AcceptAll">Add remaining matches ({0})</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.BatchAdded">Added {0} points; skipped {1} existing or overlapping positions.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.BatchFailure">The batch could not be completed. No points were kept; the proposal list was cleared.</sys:String>

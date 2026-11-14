@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using GraphReader.App.Integration.MarkerExemplar;
 using GraphReader.App.Services;
 using GraphReader.App.ViewModels;
 using GraphReader.Axis;
@@ -147,8 +148,7 @@ public sealed class MarkerExemplarViewModelTests
             LastRequest = request;
             var timings = new MarkerExemplarTimings(1, 1, 2);
             var budget = new CalibrationOcrCpuBudget(2, 2500, .5, true) { PriorityClass = "BelowNormal" };
-            var runtime = new MarkerExemplarRuntime(budget, 1,
-                "original-panel-user-exemplar-single-scale-v1");
+            var runtime = new MarkerExemplarRuntime(budget, 1, MarkerExemplarValidation.Algorithm);
             return Task.FromResult(new MarkerExemplarResponse(request, Candidates, timings, runtime, null));
         }
 
