@@ -417,8 +417,10 @@ already retired; active package controls and current dependencies remain.
 
 Full pipeline approval work is paused while these product increments advance.
 The [historical closeout](HISTORICAL-ARTIFACT-CLOSEOUT-20261114.md) retired
-7.93 GB of selected completed output after pushing its record. The larger
-historical inventory remains partial; no claim of a repository-wide 1 GB
-disposable-output total is made.
+40.81 GB of selected completed output after pushing its records, with current
+model hashes preserved. The old `goal22-runs` inventory is complete for its
+1,011 immediate directories, but other worktree storage remains outside that
+inventory. Additional closed trees still require outcome and consumer checks;
+no claim of a repository-wide 1 GB disposable-output total is made.
 No model approval, accuracy claim, package replacement or release is implied by
 this direction change. The final automatic product remains incomplete.

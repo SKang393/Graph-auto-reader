@@ -60,7 +60,7 @@ worktree, current model store, environment or user Data directory was removed.
 The compact inventory and cleanup receipt are disposable once this
 confirmation is pushed.
 
-## Planned second retirement batch: confidence V32–V37 evaluations
+## Completed second retirement batch: confidence V32–V37 evaluations
 
 The bounded inventory also identified these six completed evaluation trees
 under `artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/`:
@@ -82,5 +82,86 @@ No exact current source or package consumer was found. These trees contain
 local replay output; the aggregate outcomes and hashes remain in Git. Current
 V44/V27 and reviewed-parent readiness model keepers are outside these targets.
 
-This is a planned retirement batch, pending the lead's pre-removal process,
-containment, and reparse checks. No deletion is claimed here.
+After retirement record `06d9dc8b` reached `origin/main`, the lead repeated
+literal-path containment, ancestor/descendant reparse, exact file-count/byte
+and active-consumer checks. No old-worktree consumer was running. Removal
+completed at `2026-11-14T19:55:23.6631475Z`: **25,921 files and
+32,874,867,288 path bytes** were retired, and all six directories were absent
+afterward. Free E: space changed from 368,238,456,832 to 401,208,856,576 bytes;
+this is an observed drive change, not exact physical attribution.
+
+Before/after SHA-256 checks matched for the V44 ONNX and detector manifest,
+V27 ONNX, enclosed-support marker manifest, complete-workflow marker notice,
+and reviewed parent ONNX. The retained 0.4.48 executable matched its latest
+pointer, and the original private corpus remained present. The receipt in
+`artifacts/storage-retention-check/cleanup-confidence.json` is disposable
+after this confirmation is pushed. Across these two batches, **40,805,688,342
+path bytes** of completed output were retired. Other historical trees still
+require individual consumer/outcome review; this is not a claim that total
+disposable storage is below 1 GB.
+
+## Planned third retirement batch: 20261001 evaluations
+
+The completed inventory identifies three more generated evaluation trees
+under `artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/`:
+
+| Output directory | Files | Path bytes | Pushed outcome |
+| --- | ---: | ---: | --- |
+| `phase-word-spacing-evaluation-20261001-v1` | 4,315 | 5,454,203,758 | [`GOAL-22-PHASE-WORD-SPACING.json`](GOAL-22-PHASE-WORD-SPACING.json) |
+| `left-axis-role-evaluation-20261001-v1` | 4,315 | 5,453,646,950 | [`GOAL-22-LEFT-AXIS-ROLE.json`](GOAL-22-LEFT-AXIS-ROLE.json) |
+| `two-heading-completion-evaluation-20261001-v1` | 4,308 | 5,440,406,407 | [`GOAL-22-TWO-HEADING-COMPLETION.json`](GOAL-22-TWO-HEADING-COMPLETION.json) |
+| **Total** | **12,938** | **16,348,257,115** | |
+
+The outcomes report repair checks as verified but accuracy incomplete, with
+zero private/sealed reads and production approval false. Exact current source,
+tool, and package consumers were not found. The left-axis path appears in
+closed V32–V37 candidate records, whose evaluation outputs were retired in the
+previous batch. Aggregate outcomes and hashes remain in Git; only local replay
+outputs are proposed for retirement. This batch remains pending the lead's
+pre-removal process, containment, and reparse checks; no deletion is claimed.
+
+## Planned fourth retirement batch: server OCR comparison outputs
+
+The completed inventory measured
+`artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-ocr-comparison-v4`
+at 7,801 files / 10,738,195,179 path bytes. Preserve its one small current
+CenterBinding input, `models/recognizer.json` (453,397 bytes; file SHA-256
+`0da38be8c09e12cd8db243b327805a04950eb9502b48ada4f896ac98aaad3e95`). It
+describes `PP-OCRv5_server_rec` revision
+`b26c3587fda8da3c8ec0ce357214b4d661ff1558`, Apache-2.0, but its accuracy is
+pending comparison and it is not production approved.
+
+The two current CenterBinding tools also bind the conversion model and its
+notices outside this directory. Preserve these exact dependencies:
+
+| Dependency | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `server-ocr-conversion-v2/PP-OCRv5_server_rec/conversion-1.onnx` | 84,483,046 | `0980049401eceb506952f769765a6b95be07cb1197dcbb13c93f107a328f8418` |
+| `server-ocr-intake-v1/PP-OCRv5_server_rec/Apache-2.0.txt` | 11,357 | `c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4` |
+| `server-ocr-intake-v1/PP-OCRv5_server_rec/MODEL_NOTICE.md` | 777 | `ced966a17ac31dca6d58303f27a6e55f65896ffd1f16cf941956f6f4c17c9785` |
+
+The remaining siblings are the partial-tree retirement targets:
+
+| Sibling | Files | Path bytes |
+| --- | ---: | ---: |
+| `baseline/` | 1,975 | 400,383,742 |
+| `server-both/` | 1,949 | 5,037,974,619 |
+| `server-detector/` | 1,874 | 561,997,630 |
+| `server-reader/` | 1,989 | 4,737,351,089 |
+| `models/detector.json` | 1 | 2,123 |
+| Root notifications, definitions, logs, and status files | 12 | 32,579 |
+| **Disposable total** | **7,800** | **10,737,741,782** |
+
+The outcome [`GOAL-22-SERVER-OCR-COMPARISON.json`](GOAL-22-SERVER-OCR-COMPARISON.json)
+records the completed comparison with zero private/sealed reads, zero optimizer
+steps, and production approval false. The only baseline references found are
+in `off_center_context_v9/protocol.json`. Its P1 record closed
+`failed_dev_unconsumed` on 2026-09-30; no current review-queue or goal-sequence
+assignment was found, so this protocol is a historical record, not an active
+consumer. The two CenterBinding tools reference only the recognizer manifest
+here; the notice and conversion dependencies above remain preserved elsewhere.
+The ignored inventory `artifacts/storage-retention-check/server-disposable.json`
+(SHA-256 `2a9d6b427ccb29f4755bcdf949205464fd3a9d70c7e80d13457b43a3a7bebf73`)
+contains exact counts and hashes. This partial-tree retirement is pending the
+lead's pre-removal consumer, process, containment, and reparse checks. No
+deletion is claimed.
