@@ -105,6 +105,7 @@ After this record reached main at `42b0d9e2`, the unused owned reproduction outp
 `E:\Graph-auto-reader\artifacts\ocr-grouping-repro-20261114` was retired at
 2026-11-14T08:35:18Z: 171 files, 102,081,435 path bytes. Exact containment,
 reparse and inventory checks preceded deletion. The active
-`artifacts/axis-evidence-check` inputs remain only until packaged verification
-and its outcome record finish. Original data, current assets, shared validation
+`artifacts/axis-evidence-check` inputs and source/package outputs were retired
+after packaged verification and delivery record `05dd44bb` reached main, in the
+2026-11-14T08:57:44Z cleanup. Original data, current assets, shared validation
 output and user Data were preserved. No private case-level data was used.

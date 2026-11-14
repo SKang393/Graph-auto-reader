@@ -100,6 +100,8 @@ The under-100-KB `artifacts/real-dev-calibration-445-check` scratch contained
 aggregate and metadata only. It was retired in the 0.4.45 cleanup after record
 `c20d0577ed26fd73f1f80633f6896d1033716651` was pushed and active readers
 finished. Cleanup retired 536 files totaling 371,073,104 path bytes. The 0.4.45
-build/ZIP remains the sole retained package; shared `Data`, original corpus,
+build/ZIP was the sole retained package at that checkpoint; it was superseded
+and retired after the 0.4.46 delivery record `05dd44bb` reached main.
+Shared `Data`, original corpus,
 current models/runtime, native QA data and active OCR reproduction were
 preserved.

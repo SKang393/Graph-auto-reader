@@ -8,6 +8,7 @@ param(
     [switch]$LeftAxisContinuation,
     [switch]$NoTickMarks,
     [switch]$DenseXTicks,
+    [switch]$GridLines,
     [ValidateRange(0, 1700)][int]$WhiteMarginPixels = 0
 )
 $ErrorActionPreference = 'Stop'
@@ -30,9 +31,14 @@ try {
     $format.Alignment = [Drawing.StringAlignment]::Center
     $format.LineAlignment = [Drawing.StringAlignment]::Center
     $axisStart = if ($LeftAxisContinuation) { 50 } else { 100 }
+    $xPositions = if ($DenseXTicks) { @(140, 160, 180) } else { @(140, 340, 540) }
+    $yPositions = if ($LeftAxisContinuation) { @(80, 215, 350) } else { @(80, 230, 380) }
+    if ($GridLines) {
+        foreach ($x in $xPositions) { $graphics.DrawLine($pen, $x, 80, $x, 380) }
+        foreach ($y in $yPositions) { $graphics.DrawLine($pen, 100, $y, 580, $y) }
+    }
     $graphics.DrawLine($pen, $axisStart, 380, 580, 380)
     $graphics.DrawLine($pen, 100, 80, 100, 380)
-    $xPositions = if ($DenseXTicks) { @(140, 160, 180) } else { @(140, 340, 540) }
     $xLabels = @('1', '2', '3')
     for ($index = 0; $index -lt $xPositions.Count; $index++) {
         $x = $xPositions[$index]
@@ -41,7 +47,6 @@ try {
         $graphics.DrawString($xLabels[$index], $font, [Drawing.Brushes]::Black,
             [Drawing.PointF]::new($x, 403), $format)
     }
-    $yPositions = if ($LeftAxisContinuation) { @(80, 215, 350) } else { @(80, 230, 380) }
     $yLabels = @('10', '5', '0')
     for ($index = 0; $index -lt $yPositions.Count; $index++) {
         $y = $yPositions[$index]
@@ -78,6 +83,7 @@ finally {
     left_axis_continuation = [bool]$LeftAxisContinuation
     white_margin_pixels = $WhiteMarginPixels
     tick_marks_drawn = -not $NoTickMarks
+    grid_lines = [bool]$GridLines
     x_label_positions = $xPositions
     renderer = 'Windows System.Drawing with installed Segoe UI; no font binary copied'
 } | ConvertTo-Json -Compress

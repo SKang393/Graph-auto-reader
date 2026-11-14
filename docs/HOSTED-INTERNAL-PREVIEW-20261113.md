@@ -487,13 +487,14 @@ Packaged owned controls in `artifacts/axis-evidence-check/packaged-workflow-meta
 
 The packaged tickless full workflow in `artifacts/axis-evidence-check/packaged-full-workflow-metadata.json` completed in `4.8887095 s` process time (`4250.1254 ms` pipeline): CSV export and reopen retained 3 points, the user-confirmed 3 anchors, and 0 tick IDs. Report SHA-256 is `9c47f3e35b69b54dac4df912748e666b1170e048f0d94fbdd0b708bd5074ed47`; CSV SHA-256 is `249b49a16b036e5be69191a4aea4a867e75d4cdbe0ac6fd31fa2568a23b3edee`.
 
-The [fixed real-dev confirmation](REAL-DEV-CALIBRATION-446-CONFIRMATION-20261114.md) completed on the same frozen 120-item assignment: 36 geometry/OCR results, 281 numeric readings, 3 X-only and 2 Y-only review drafts, and 0 complete measured or estimated proposals. This is not an accuracy or click-savings claim. Native UI checks remain pending. Build 445 remains retained until the 0.4.46 delivery record is pushed and the latest pointer is switched. This is an internal portable preview only: no installer, public release, tag, production approval or clean-machine acceptance is claimed.
+The [fixed real-dev confirmation](REAL-DEV-CALIBRATION-446-CONFIRMATION-20261114.md) completed on the same frozen 120-item assignment: 36 geometry/OCR results, 281 numeric readings, 3 X-only and 2 Y-only review drafts, and 0 complete measured or estimated proposals. This is not an accuracy or click-savings claim. Native UI checks remain pending. This is an internal portable preview only: no installer, public release, tag, production approval or clean-machine acceptance is claimed.
 
 The new ledger passed all 62 version-policy checks locally in 57.384 s, exit 0.
-The cleanup inventory covers the superseded 445 build/ZIP and completed hosted,
-owned-axis and real-dev scratch: 547 files, 373,661,170 path bytes. After this
-record reaches main and readers finish, switch the latest pointer to 446 and
-retire those exact outputs plus the pointer backup. Preserve shared user Data,
-original corpus, current models, shared validation output, native QA data and
-the independently active gridline control. No new package is needed for this
-diagnostic and delivery-record update.
+After delivery record `05dd44bbecba264d2aa81d51bf1cd80d1fc98949` reached main,
+the scoped App/probe/Rust process inventory was empty and the latest pointer
+switched to 446. At 2026-11-14T08:57:44Z, guarded cleanup retired the superseded
+445 build/ZIP, completed hosted/owned-axis/real-dev scratch and pointer backup:
+548 files, 373,661,917 path bytes. One 446 directory and ZIP remain. All 12
+shared Data files retained their hashes. Original corpus, current models,
+shared validation output, native QA data and the active gridline control were
+preserved. No new package was needed for this diagnostic and delivery update.

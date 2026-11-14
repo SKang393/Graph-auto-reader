@@ -3,6 +3,8 @@
 use std::io::{self, Read};
 
 const MAX_PIXELS: usize = 16_777_216;
+// Resource budget only: never search a truncated candidate subset.
+const MAX_GRID_PAIR_CHECKS: usize = 128;
 
 #[derive(Debug, PartialEq)]
 struct Proposal {
@@ -230,10 +232,10 @@ fn propose(
     let mut tick_width = width;
     let mut tick_height = height;
     let mut fallback = false;
-    let (bottom, left) = match select(&rows, width * 2 / 5)
+    let selection = match select(&rows, width * 2 / 5)
         .and_then(|bottom| select(&cols, height * 2 / 5).map(|left| (bottom, left)))
     {
-        Ok(axes) => axes,
+        Ok(axes) => Ok(axes),
         Err("NO_AXIS") => {
             // Only a missing primary axis can use content-relative geometry.
             // Reuse projections without copying, cropping or resampling pixels.
@@ -243,12 +245,78 @@ fn propose(
             let last_col = cols.iter().rposition(|&n| n > 0).ok_or("NO_AXIS")?;
             tick_width = last_col - first_col + 1;
             tick_height = last_row - first_row + 1;
-            let axes = (select(&rows, tick_width * 2 / 5)?, select(&cols, tick_height * 2 / 5)?);
             fallback = true;
-            axes
+            select(&rows, tick_width * 2 / 5)
+                .and_then(|bottom| select(&cols, tick_height * 2 / 5).map(|left| (bottom, left)))
         }
-        Err(reason) => return Err(reason),
+        Err(reason) => Err(reason),
     };
+    // Primary success retains canvas-relative limits. Content fallback uses its
+    // own extents; neither path claims universal padding invariance.
+    let x_limit = (tick_height / 20).clamp(3, 32);
+    let y_limit = (tick_width / 20).clamp(3, 32);
+    match selection {
+        Ok((bottom, left)) => measure_axes(width, height, channels, pixels, &rows, &cols,
+            bottom, left, x_limit, y_limit, fallback, false),
+        Err("AMBIGUOUS_AXIS") => resolve_grid(width, height, channels, pixels, &rows, &cols,
+            tick_width * 2 / 5, tick_height * 2 / 5, x_limit, y_limit),
+        Err(reason) => Err(reason),
+    }
+}
+
+fn strong_line_bands(scores: &[usize], minimum: usize) -> Result<Vec<(usize, usize)>, &'static str> {
+    let best = *scores.iter().max().ok_or("AMBIGUOUS_AXIS")?;
+    let strong = |index: usize| scores[index] >= minimum && scores[index] * 10 >= best * 9;
+    let mut bands = Vec::new();
+    let mut index = 0;
+    while index < scores.len() {
+        if !strong(index) { index += 1; continue; }
+        let start = index;
+        while index + 1 < scores.len() && strong(index + 1) { index += 1; }
+        // The existing selector rejects comparable strokes more than 3 pixels
+        // from the first; grid recovery must not admit an excessively thick band.
+        if index - start > 3 || bands.len() >= MAX_GRID_PAIR_CHECKS { return Err("AMBIGUOUS_AXIS"); }
+        bands.push((start, index));
+        index += 1;
+    }
+    Ok(bands)
+}
+
+fn resolve_grid(width: usize, height: usize, channels: usize, pixels: &[u8],
+    rows: &[usize], cols: &[usize], row_minimum: usize, col_minimum: usize,
+    x_limit: usize, y_limit: usize) -> Result<Proposal, &'static str>
+{
+    let row_bands = strong_line_bands(rows, row_minimum)?;
+    let col_bands = strong_line_bands(cols, col_minimum)?;
+    if row_bands.len() * col_bands.len() > MAX_GRID_PAIR_CHECKS { return Err("AMBIGUOUS_AXIS"); }
+    let mut unique = None;
+    for &(bottom, band_bottom) in &row_bands {
+        for &(left, _) in &col_bands {
+            if let Ok(proposal) = measure_axes(width, height, channels, pixels, rows, cols,
+                bottom, left, x_limit, y_limit, true, true)
+            {
+                if unique.is_some() { return Err("AMBIGUOUS_AXIS"); }
+                unique = Some((proposal, band_bottom));
+            }
+        }
+    }
+    let (proposal, band_bottom) = unique.ok_or("AMBIGUOUS_AXIS")?;
+    // Strong unexplained strokes outside this plot may belong to another panel.
+    // Include the selected horizontal band's thickness without shifting pixels.
+    if rows.iter().enumerate().any(|(y, &score)| score >= row_minimum &&
+        (y < proposal.top as usize || y > band_bottom)) ||
+        cols.iter().enumerate().any(|(x, &score)| score >= col_minimum &&
+            (x < proposal.left as usize || x > proposal.right as usize))
+    {
+        return Err("AMBIGUOUS_AXIS");
+    }
+    Ok(proposal)
+}
+
+fn measure_axes(width: usize, height: usize, channels: usize, pixels: &[u8], rows: &[usize], cols: &[usize],
+    bottom: usize, left: usize, x_limit: usize, y_limit: usize, require_ticks: bool, outward_only: bool)
+    -> Result<Proposal, &'static str>
+{
     // Require the two proposals to actually meet; avoid reporting independent text strokes.
     if !is_dark(pixels, (bottom * width + left) * channels, channels) {
         return Err("NO_INTERSECTION");
@@ -265,7 +333,7 @@ fn propose(
     if right <= left || top >= bottom {
         return Err("NO_AXIS");
     }
-    if fallback && (!(left..=right).all(|x| is_dark(pixels, (bottom * width + x) * channels, channels))
+    if require_ticks && (!(left..=right).all(|x| is_dark(pixels, (bottom * width + x) * channels, channels))
         || !(top..=bottom).all(|y| is_dark(pixels, (y * width + left) * channels, channels)))
     {
         return Err("NO_AXIS");
@@ -286,21 +354,16 @@ fn propose(
     }
     // Prefer outward ticks. Inward strokes are considered only if that side
     // has no evidence, never to rescue rejected or conflicting outward marks.
-    // Fallback uses the same content extent for minima and run limits. Primary
-    // success retains its canvas-relative limits, so this is not universal
-    // padding invariance. Bounds and returned coordinates stay in original pixels.
-    let x_limit = (tick_height / 20).clamp(3, 32);
-    let y_limit = (tick_width / 20).clamp(3, 32);
     let x_ticks = match x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, false, x_limit) {
-        TickScan::Absent => x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, true, x_limit).positions(),
+        TickScan::Absent if !outward_only => x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, true, x_limit).positions(),
         scan => scan.positions(),
     };
     let y_ticks = match y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, false, y_limit) {
-        TickScan::Absent => y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, true, y_limit).positions(),
+        TickScan::Absent if !outward_only => y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, true, y_limit).positions(),
         scan => scan.positions(),
     };
-    if fallback && (x_ticks.len() < 3 || y_ticks.len() < 3) { return Err("NO_AXIS"); }
-    let legacy_ticks = if !fallback && x_ticks.is_empty() {
+    if require_ticks && (x_ticks.len() < 3 || y_ticks.len() < 3) { return Err("NO_AXIS"); }
+    let legacy_ticks = if !require_ticks && x_ticks.is_empty() {
         x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, true, false, x_limit).positions()
     } else { Vec::new() };
     let endpoints = if x_ticks.is_empty() { &legacy_ticks } else { &x_ticks };
@@ -889,6 +952,81 @@ mod tests {
             }
         }
         assert_eq!(propose(128, 128, 1, &a).unwrap().ticks, None);
+    }
+    fn grid_pixels() -> Vec<u8> {
+        let mut a = vec![255; 128 * 128];
+        for y in [20, 40, 60, 80, 100] {
+            for x in 20..=115 { a[y * 128 + x] = 0; }
+        }
+        for x in [20, 40, 60, 80, 100] {
+            for y in 10..=100 { a[y * 128 + x] = 0; }
+        }
+        // Only the real bottom and left axes carry short outward tick strokes.
+        for x in [30, 70, 110] {
+            for y in 101..=104 { a[y * 128 + x] = 0; }
+        }
+        for y in [20, 50, 80] {
+            for x in 16..20 { a[y * 128 + x] = 0; }
+        }
+        a
+    }
+    #[test]
+    fn full_grid_recovers_only_uniquely_outward_ticked_axes() {
+        let p = propose(128, 128, 1, &grid_pixels()).unwrap();
+        assert_eq!((p.left, p.bottom, p.right, p.top), (20, 100, 115, 10));
+        assert_eq!(p.x_ticks, vec![30, 70, 110]);
+        assert_eq!(p.y_ticks, vec![20, 50, 80]);
+        assert_eq!(p.ticks, Some((30, 110)));
+    }
+    #[test]
+    fn grid_recovery_requires_strict_ticks_on_both_axes() {
+        for sparse_x in [false, true] {
+            let mut a = grid_pixels();
+            if sparse_x {
+                for y in 101..=104 { a[y * 128 + 110] = 255; }
+            } else {
+                for x in 16..20 { a[80 * 128 + x] = 255; }
+            }
+            assert_eq!(propose(128, 128, 1, &a), Err("AMBIGUOUS_AXIS"));
+        }
+    }
+    #[test]
+    fn grid_recovery_does_not_substitute_inward_or_legacy_evidence() {
+        let mut a = grid_pixels();
+        for x in [30, 70, 110] {
+            for y in 101..=104 { a[y * 128 + x] = 255; }
+            for y in 96..100 { a[y * 128 + x] = 0; }
+        }
+        assert_eq!(propose(128, 128, 1, &a), Err("AMBIGUOUS_AXIS"));
+    }
+    #[test]
+    fn two_tick_supported_panels_remain_ambiguous() {
+        let source = grid_pixels();
+        let mut a = padded_pixels(&source, 256, 0, 0);
+        for y in 0..128 {
+            let start = (y + 128) * 256 + 128;
+            a[start..start + 128].copy_from_slice(&source[y * 128..(y + 1) * 128]);
+        }
+        assert_eq!(propose(256, 256, 1, &a), Err("AMBIGUOUS_AXIS"));
+    }
+    #[test]
+    fn unexplained_strong_band_outside_unique_plot_remains_ambiguous() {
+        let mut a = grid_pixels();
+        for x in 20..=115 { a[110 * 128 + x] = 0; }
+        assert_eq!(propose(128, 128, 1, &a), Err("AMBIGUOUS_AXIS"));
+    }
+    #[test]
+    fn grid_pair_budget_rejects_without_searching_a_truncated_subset() {
+        let mut a = vec![255; 256 * 256];
+        for y in (10..=230).step_by(20) {
+            for x in 10..=230 { a[y * 256 + x] = 0; }
+        }
+        for x in (10..=230).step_by(20) {
+            for y in 10..=230 { a[y * 256 + x] = 0; }
+        }
+        for x in [30, 110, 210] { for y in 231..=234 { a[y * 256 + x] = 0; } }
+        for y in [40, 100, 200] { for x in 6..10 { a[y * 256 + x] = 0; } }
+        assert_eq!(propose(256, 256, 1, &a), Err("AMBIGUOUS_AXIS"));
     }
     #[test]
     fn ambiguous_is_rejected() {

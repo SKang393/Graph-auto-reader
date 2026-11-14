@@ -89,7 +89,8 @@ $build = 'E:\Graph-auto-reader\artifacts\dev-portable\builds\0.4.46-20261114T083
 
 Two adapter/CPU-budget self-tests passed with zero private reads. The 6,650-byte
 aggregate and metadata under `artifacts/real-dev-calibration-446-check` contain
-no per-case output or images. Retire that scratch after this record is pushed
-and active readers finish. Preserve the real-dev source data and the retained
-0.4.46 package. No installer, public release, production approval, or
+no per-case output or images. That scratch was retired after record `05dd44bb`
+reached main and readers finished, in the 2026-11-14T08:57:44Z cleanup. The
+real-dev source data and sole retained 0.4.46 package were preserved.
+No installer, public release, production approval, or
 independent accuracy claim is implied.

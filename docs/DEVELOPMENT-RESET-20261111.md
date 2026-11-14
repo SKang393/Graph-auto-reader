@@ -241,10 +241,12 @@ passed 2,693 .NET tests and 31 Rust tests. The
 still has zero complete measured or estimated calibrations across 120 cases.
 It exposes three X-only and two Y-only drafts, without an accuracy or saved-click
 claim. Reused OCR median is 2.294 s. Automatic calibration remains incomplete.
-The next source batch addresses an independently reproduced owned gridline
-failure using unique outward tick evidence, with bounded search and rejection
-of multiple possible panels. Do not infer that it explains private failures or
-tune thresholds/models against private answers. Native acceptance remains waiting.
+The [gridline source repair](GRIDLINE-AXIS-RECOVERY-20261114.md) now resolves an
+independently reproduced owned failure using unique outward tick evidence,
+bounded search and rejection of multiple possible panels. All 37 Rust tests
+pass; the actual Rust/OCR control returns six measured pairs in 3.193 s.
+It is not yet packaged. Do not infer that it explains private failures or tune
+thresholds/models against private answers. Native acceptance remains waiting.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.
