@@ -195,7 +195,9 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   restoration, calibration proposals and marker example review; headless
   development and validation continue
 - **Effort:** about 5 minutes when the desktop is available
-- **Action:** resume native checks in this chat when convenient. Verify selecting
+- **Action:** open the [latest preview launcher](../packaging/Run-Latest-DevPortable.cmd)
+  in the primary checkout and leave the 0.4.49 window available for Computer Use;
+  its launch calls currently stall without an access prompt. Then verify selecting
   a GPU, reading labels, changing back to CPU and reopening with the saved
   preference in the next integrated source build. Also verify Automatic,
   Check devices, Cancel and interruption by foreground work
@@ -218,7 +220,10 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   tool check found Computer Use through its JavaScript runtime; the earlier
   unavailable-tool statement was incorrect. The 0.4.48 launch then stalled
   for about 479 seconds and the lead interrupted it. No App process or window
-  was established. See the [native attempt](NATIVE-PREVIEW-448-CHECK-20261114.md).
+  was established. The maintainer reported no visible access prompt. A second
+  window-list call worked, but launch stalled for 517.3 seconds and the lead
+  interrupted it; that was not another physical Escape event. No further launch
+  retries are planned. See the [native attempt](NATIVE-PREVIEW-448-CHECK-20261114.md).
   Owned headless package checks passed, but do not replace these visual checks
 - **Files:** [hardware and worker outcome](OCR-HARDWARE-CHECK-20261113.md),
   [automatic device-profile outcome](OCR-AUTOMATIC-DEVICE-20261113.md),

@@ -59,11 +59,18 @@ public sealed partial class MainWindowViewModel
             return;
         int generation = _calibrationLabelGeneration;
         CalibrationOcrProposal[] included = CalibrationLabelRows.Where(row => row.IsIncluded)
-            .Select(row => row.Proposal).ToArray();
+            .Select(row => row.EffectiveProposal).ToArray();
         _refittingCalibrationLabels = true;
         try
         {
             ClearCalibrationLabelComputedValues();
+            if (CalibrationLabelRows.Any(row => row.HasInvalidCorrection))
+            {
+                _calibrationTickProposalStatusText = GetLocalizedString(LocalizationKeys.ManualCalibrationTicksIncomplete);
+                OnPropertyChanged(nameof(CalibrationTickProposalStatusText));
+                OnPropertyChanged(nameof(HasCalibrationTickProposalStatus));
+                return;
+            }
             CalibrationTickProposalResult proposal = CalibrationTickProposal.CreateReviewDraft(suggestion.Geometry,
                 original.Response with { Proposals = Array.AsReadOnly(included) });
             if (generation != _calibrationLabelGeneration || !ReferenceEquals(_calibrationLabelSuggestion, original) ||

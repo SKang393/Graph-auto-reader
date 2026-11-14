@@ -213,7 +213,7 @@ attribution. The receipt is `artifacts/storage-retention-check/cleanup-fifth.jso
 Across all five batches, **94,882,407,975 path bytes** of completed output
 were retired; remaining historical trees still require individual review.
 
-## Planned sixth retirement batch: completed 20260930–20261001 evaluations
+## Completed sixth retirement batch: 20260930–20261001 evaluations
 
 Using the existing complete inventory after excluding absent/retired targets
 and the retained server recognizer, these are the next ten largest completed
@@ -240,6 +240,64 @@ project source, dependencies, or fixed model/license inputs. The V46 context
 candidate was rejected. Exact directory strings were found in outcome or
 diagnosis documents only, not current executable source, tools, or packaging;
 no current model keeper is located in these trees. The active V44/V27/reviewed-
-parent inputs remain outside this batch. These are proposed retired run
-outputs only, pending lead confirmation of active consumers, processes,
-containment, and reparse checks. No deletion is claimed.
+parent inputs remain outside this batch.
+
+After scope `be8c922161bb41b7f498d78d9da50fa094a29249` reached `origin/main`,
+the exact inventory, live CIM consumer, path containment and ancestor/descendant
+reparse checks passed. Cleanup completed at `2026-11-14T20:59:49.2652223Z`:
+all ten targets were absent, **39,955 files / 53,105,123,727 path bytes** retired,
+zero old-worktree consumers, all ten keeper hashes unchanged. The retained
+0.4.49 executable hash matched and original corpus remained present. Observed
+E: free space changed from 455,258,443,776 to 508,511,121,408 bytes, not an exact
+physical-space attribution. The receipt is
+`artifacts/storage-retention-check/cleanup-sixth.json`.
+
+Across all six historical batches, **147,987,531,702 path bytes** of completed
+output have been retired. Other historical trees remain under review; this
+does not establish a repository-wide disposable-output total below 1 GB.
+
+## Candidate seventh batch: completed evaluation and replay outputs
+
+The ignored inventory shortlist is
+`artifacts/storage-retention-check/next-cleanup-candidates.json`. It contains
+the next twenty large present run-output trees with matching pushed outcome
+records, after excluding prior/planned batches, protected model keepers, and
+exact-path references in current `src`, `tools`, `packaging`, and `ml` files.
+The shortlist totals **41,023 files / 27,261,690,944 path bytes**. These are
+review candidates only; no deletion is claimed or authorized by this list.
+
+| Output directory | Files | Path bytes | Pushed outcome | Recorded status |
+| --- | ---: | ---: | --- | --- |
+| `server-rec-head-v44-trained-eval-20261029-v1` | 114 | 2,614,487,068 | [`GOAL-22-SERVER-RECOGNITION-HEAD-OUTCOME.json`](GOAL-22-SERVER-RECOGNITION-HEAD-OUTCOME.json) | completed fixed-budget record; production false |
+| `server-rec-head-v44-baseline-eval-20261029-v1` | 114 | 2,614,448,919 | [`GOAL-22-SERVER-RECOGNITION-HEAD-OUTCOME.json`](GOAL-22-SERVER-RECOGNITION-HEAD-OUTCOME.json) | recorded baseline; production false |
+| `server-rec-head-v44-legend-context-eval-20261029-v1` | 113 | 2,594,452,924 | [`GOAL-22-V44-SERVER-LAYOUT-CONTEXT-OUTCOME.json`](GOAL-22-V44-SERVER-LAYOUT-CONTEXT-OUTCOME.json) | panels completed; production false |
+| `v46-probe-current-main-replay-20261030-v13` | 977 | 2,240,351,084 | [`GOAL-22-PROBE-REPLAY-OUTCOME.json`](GOAL-22-PROBE-REPLAY-OUTCOME.json) | synthetic dev diagnostic incomplete |
+| `v46-probe-current-main-replay-20261030-v10` | 945 | 2,240,254,077 | [`GOAL-22-PROBE-REPLAY-OUTCOME.json`](GOAL-22-PROBE-REPLAY-OUTCOME.json) | synthetic dev diagnostic incomplete |
+| `v46-probe-current-main-replay-20261030-v9-attribution` | 946 | 2,240,218,253 | [`GOAL-22-PROBE-REPLAY-OUTCOME.json`](GOAL-22-PROBE-REPLAY-OUTCOME.json) | synthetic dev attribution diagnostic |
+| `v46-probe-current-main-replay-20261030-v8` | 945 | 2,240,215,998 | [`GOAL-22-PROBE-REPLAY-OUTCOME.json`](GOAL-22-PROBE-REPLAY-OUTCOME.json) | synthetic dev diagnostic incomplete |
+| `participant-row-paired-20261029-v3` | 4,302 | 940,971,543 | [`GOAL-22-PARTICIPANT-ROW-ANCHOR-OUTCOME.md`](GOAL-22-PARTICIPANT-ROW-ANCHOR-OUTCOME.md) | completed experiment; no model approved or packaged |
+| `ocr-multirow-legend-v1` | 1,596 | 926,962,890 | [`GOAL-22-MULTIROW-LEGEND.json`](GOAL-22-MULTIROW-LEGEND.json) | development improvement below acceptance |
+| `ocr-tick-lane-v1` | 1,532 | 838,295,701 | [`GOAL-22-TICK-LANE-RECOVERY.json`](GOAL-22-TICK-LANE-RECOVERY.json) | development improvement below acceptance |
+| `legend-symbol-overhang-evaluation-20260930-v1` | 4,151 | 810,633,026 | [`GOAL-22-LEGEND-SYMBOL-OVERLAP.json`](GOAL-22-LEGEND-SYMBOL-OVERLAP.json) | repair verified; accuracy incomplete |
+| `qualified-heading-evaluation-v1` | 4,131 | 807,262,264 | [`GOAL-22-QUALIFIED-PHASE-HEADINGS.json`](GOAL-22-QUALIFIED-PHASE-HEADINGS.json) | repair verified; accuracy incomplete |
+| `recovery-mask-evaluation-v1` | 4,123 | 806,487,597 | [`GOAL-22-RECOVERY-MASK-ELIGIBILITY.json`](GOAL-22-RECOVERY-MASK-ELIGIBILITY.json) | repair verified; accuracy incomplete |
+| `legend-frame-evaluation-v2` | 4,049 | 803,263,292 | [`GOAL-22-LEGEND-FRAME-EXCLUSION.json`](GOAL-22-LEGEND-FRAME-EXCLUSION.json) | repair verified; accuracy incomplete |
+| `stroke-gap-evaluation-20260930-v3` | 4,157 | 803,205,158 | [`GOAL-22-STROKE-GAP-EXCLUSION.json`](GOAL-22-STROKE-GAP-EXCLUSION.json) | runtime repair verified; production false |
+| `verified-template-evaluation-v1` | 4,083 | 801,511,104 | [`GOAL-22-VERIFIED-TEMPLATE-SEEDS.json`](GOAL-22-VERIFIED-TEMPLATE-SEEDS.json) | synthetic workflow verified; production false |
+| `ocr-legend-completion-v1` | 1,190 | 734,777,292 | [`GOAL-22-LEGEND-CROP-COMPLETION.json`](GOAL-22-LEGEND-CROP-COMPLETION.json) | development diagnostic; not acceptance |
+| `ocr-header-glyph-v1` | 1,187 | 734,647,718 | [`GOAL-22-HEADER-GLYPH.json`](GOAL-22-HEADER-GLYPH.json) | development improvement; not acceptance |
+| `ocr-legend-completion-v2` | 1,184 | 734,645,811 | [`GOAL-22-LEGEND-CROP-COMPLETION.json`](GOAL-22-LEGEND-CROP-COMPLETION.json) | development diagnostic; not acceptance |
+| `ocr-legend-completion-v3` | 1,184 | 734,599,225 | [`GOAL-22-LEGEND-CROP-COMPLETION.json`](GOAL-22-LEGEND-CROP-COMPLETION.json) | development diagnostic; not acceptance |
+| **Total** | **41,023** | **27,261,690,944** | | |
+
+The linked records report no private/sealed corpus access for these runs and no
+production approval. The participant-row record additionally notes an earlier
+consumed sealed-child failure; that history is retained in the linked record.
+License notes report unchanged project/model dependencies or no added external
+payloads. These are completed evaluation/replay outputs, not current runtime
+keepers: exact-path searches found no current references in `src`, `tools`,
+`packaging`, or `ml`; the current named OCR/marker/pretrained model keepers and
+their active cache inputs were excluded. Before retirement, the lead still
+needs to confirm pushed scope, zero live processes, literal-path containment,
+reparse checks, exact counts, and unchanged hashes for the ten established
+keepers and retained package. No cleanup has been run for this candidate batch.

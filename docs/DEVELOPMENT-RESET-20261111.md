@@ -369,12 +369,15 @@ Stop adding geometry heuristics without an owned reproduction or a concrete
 preprocessing defect. Source inspection did not establish that irrelevant
 nonnumeric text invalidates otherwise valid pairs: role filtering already
 excludes it, and explicit row deselection refits from the remaining evidence.
-A concrete review gap remains: rows can be excluded but a misread middle label
-cannot be corrected. The next product slice is explicit per-row correction
-with immutable raw OCR, unchanged consistency checks, review invalidation and
-manual confirmation. This is a workflow correction, not a claimed explanation
-of the private aggregate failures. Native UI and automatic-accuracy acceptance
-remain incomplete. Do not package each small diagnostic or test-only change.
+A concrete review gap was that rows could be excluded but a misread middle
+label could not be corrected. The [per-row correction](TICK-LABEL-CORRECTION-20261114.md)
+is now implemented with immutable raw OCR, unchanged consistency checks,
+inline invalid-edit guidance, review invalidation and manual confirmation.
+All 70 focused tests passed, including corrected Apply, mapped export and
+Undo; localization audit passed. This is a workflow correction, not a claimed
+explanation of the private aggregate failures. It is newer than retained 449.
+Native UI and automatic-accuracy acceptance remain incomplete. Do not package
+each small diagnostic or test-only change.
 
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new
@@ -445,7 +448,7 @@ already retired; active package controls and current dependencies remain.
 
 Full pipeline approval work is paused while these product increments advance.
 The [historical closeout](HISTORICAL-ARTIFACT-CLOSEOUT-20261114.md) retired
-94.88 GB of selected completed output across five guarded batches after their
+147.99 GB of selected completed output across six guarded batches after their
 records were pushed, with current model and OCR keeper hashes preserved. The
 old `goal22-runs` inventory is complete for its
 1,011 immediate directories, but other worktree storage remains outside that

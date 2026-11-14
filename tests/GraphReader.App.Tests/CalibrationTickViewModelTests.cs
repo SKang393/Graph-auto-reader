@@ -327,6 +327,177 @@ public sealed class CalibrationTickViewModelTests
     }
 
     [TestMethod]
+    public void CorrectedTickRefitsCachedRowsWithoutChangingRawEvidenceAndRequiresReview()
+    {
+        WithImage(path =>
+        {
+            CalibrationOcrProposal[] proposals = ValidProposals();
+            proposals[4] = Proposal("y-mid", "8", 8, "YTick", "Y", 60, 2);
+            var reader = new OcrStub(proposals);
+            using var workspace = CreateWorkspace(path, reader, MeasuredGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            CalibrationLabelRowViewModel row = vm.CalibrationLabelRows.Single(item => item.Proposal.RegionId == "y-mid");
+            Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+            row.CorrectedText = "5";
+            Assert.IsTrue(row.HasCorrection);
+            Assert.IsTrue(row.HasValidCorrection);
+            Assert.IsFalse(row.HasInvalidCorrection);
+            vm.RefitSelectedCalibrationLabels();
+            Assert.AreEqual("10", vm.SuggestedYMaximum);
+            Assert.AreEqual("8", row.Proposal.Text);
+            Assert.AreEqual(8d, reader.LastResponse!.Proposals.Single(item => item.RegionId == "y-mid").NumericValue);
+            Assert.AreEqual(1, reader.CallCount);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            row.CorrectedText = "";
+            Assert.IsTrue(row.HasInvalidCorrection);
+            Assert.IsFalse(row.HasValidCorrection);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            vm.RefitSelectedCalibrationLabels();
+            Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            row.ResetCorrectionCommand.Execute(null);
+            Assert.AreEqual("8", row.CorrectedText);
+            Assert.IsFalse(row.HasCorrection);
+            Assert.IsFalse(row.HasInvalidCorrection);
+            Assert.IsFalse(row.HasValidCorrection);
+            vm.RefitSelectedCalibrationLabels();
+            Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+            vm.SelectedTab = null;
+            row.CorrectedText = "5";
+            Assert.AreEqual("8", row.CorrectedText, "Detached evidence cannot be changed.");
+        });
+    }
+
+    [TestMethod]
+    public void NonAxisRowsCannotBeCorrected()
+    {
+        var proposal = Proposal("caption", "title", 0, "Other", "None", 20, 112);
+        var row = new CalibrationLabelRowViewModel(proposal, "title");
+        Assert.IsFalse(row.IsAxisTick);
+        row.CorrectedText = "5";
+        Assert.AreEqual("title", row.CorrectedText);
+        Assert.IsFalse(row.HasCorrection);
+    }
+
+    [TestMethod]
+    public void ExplicitCorrectionPromotesOnlyTheLocalAxisRowAndValueCopyUsesIt()
+    {
+        WithImage(path =>
+        {
+            CalibrationOcrProposal[] proposals = ValidProposals();
+            proposals[0] = Proposal("x-first", "I", 0, "XTick", "X", 20, 112) with
+                { Role = "AxisTitle", NumericValue = null, NormalizedText = null, NumericLiteral = false, FailureCode = "recognition_failed" };
+            proposals[4] = Proposal("y-mid", "S", 0, "Other", "Y", 60, 2) with
+                { NumericValue = null, NormalizedText = null, NumericLiteral = false, FailureCode = "recognition_failed" };
+            var reader = new OcrStub(proposals);
+            using var workspace = CreateWorkspace(path, reader, MeasuredGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            CalibrationLabelRowViewModel x = vm.CalibrationLabelRows.Single(row => row.Proposal.RegionId == "x-first");
+            CalibrationLabelRowViewModel y = vm.CalibrationLabelRows.Single(row => row.Proposal.RegionId == "y-mid");
+            Assert.IsTrue(x.IsAxisTick && y.IsAxisTick);
+            Assert.AreEqual("AxisTitle", x.EffectiveProposal.Role);
+            Assert.AreEqual("Other", y.EffectiveProposal.Role);
+            x.CorrectedText = "1";
+            y.CorrectedText = "5";
+            Assert.AreEqual("XTick", x.EffectiveProposal.Role);
+            Assert.AreEqual("YTick", y.EffectiveProposal.Role);
+            vm.RefitSelectedCalibrationLabels();
+            Assert.AreEqual("1", vm.SuggestedFirstSession);
+            Assert.AreEqual("10", vm.SuggestedYMaximum);
+            Assert.AreEqual("I", x.Proposal.Text);
+            Assert.AreEqual("AxisTitle", x.Proposal.Role);
+            Assert.AreEqual("S", y.Proposal.Text);
+            Assert.AreEqual("Other", y.Proposal.Role);
+            Assert.AreEqual(1, reader.CallCount);
+            vm.SelectedCalibrationLabel = x;
+            Assert.IsTrue(vm.UseCalibrationLabelForFirstSessionCommand.CanExecute(null));
+            x.CorrectedText = "1 2";
+            Assert.IsFalse(vm.UseCalibrationLabelForFirstSessionCommand.CanExecute(null));
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            x.ResetCorrectionCommand.Execute(null);
+            Assert.AreEqual("I", x.CorrectedText);
+            Assert.AreEqual("AxisTitle", x.EffectiveProposal.Role);
+            Assert.AreEqual("recognition_failed", x.EffectiveProposal.FailureCode);
+            Assert.IsFalse(vm.UseCalibrationLabelForFirstSessionCommand.CanExecute(null));
+        });
+    }
+
+    [TestMethod]
+    public void CorrectedTickApplyIsManualConfirmedAndExportsMappedPointThenUndoes()
+    {
+        WithImage(path =>
+        {
+            CalibrationOcrProposal[] proposals = ValidProposals();
+            proposals[4] = Proposal("y-mid", "8", 8, "YTick", "Y", 60, 2);
+            var reader = new OcrStub(proposals);
+            using var workspace = CreateWorkspace(path, reader, MeasuredGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            WorkspaceTabViewModel tab = vm.SelectedTab!;
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            vm.CalibrationLabelRows.Single(row => row.Proposal.RegionId == "y-mid").CorrectedText = "5";
+            vm.RefitSelectedCalibrationLabels();
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+
+            var panel = workspace.CurrentProject.Panels.Single(item => item.PanelId.Value.ToString("D") == tab.PanelId);
+            Assert.IsNotNull(panel.Calibration);
+            Assert.IsTrue(panel.Calibration.UserConfirmed);
+            Assert.AreEqual("manual_three_anchor", panel.Calibration.SessionLattice!.Source);
+            Assert.HasCount(3, panel.Calibration.Anchors);
+            Assert.IsTrue(panel.Calibration.Anchors.All(anchor => anchor.EvidenceRegionId is null));
+            Assert.AreEqual("8", reader.LastResponse!.Proposals.Single(row => row.RegionId == "y-mid").Text);
+            string series = workspace.AddSeries(tab.TabId, new("Owned", "●", GraphReader.Domain.MarkerShape.Circle,
+                GraphReader.Domain.MarkerFill.Filled, GraphReader.Domain.SemanticRole.Intervention)).SeriesId;
+            var point = workspace.AddPoint(tab.TabId, series, 80, 60);
+            Assert.AreEqual(12.5d, point.GraphX, 1e-9);
+            Assert.AreEqual(5d, point.GraphY, 1e-9);
+            string output = Path.Combine(Path.GetDirectoryName(path)!, "export");
+            var exported = Pump(workspace.ExportAsync(tab.TabId, output, CancellationToken.None));
+            Assert.IsTrue(exported.Succeeded);
+            string csv = Directory.EnumerateFiles(output, "*.csv", SearchOption.AllDirectories)
+                .Single(file => !Path.GetFileName(file).Contains("audit", StringComparison.OrdinalIgnoreCase));
+            string[] fields = File.ReadAllLines(csv)[1].Split(',');
+            Assert.AreEqual(1d, double.Parse(fields[0], CultureInfo.InvariantCulture));
+            Assert.AreEqual(5d, double.Parse(fields[1], CultureInfo.InvariantCulture), 1e-9);
+            Assert.IsTrue(vm.UndoCommand.CanExecute(null));
+            vm.UndoCommand.Execute(null);
+            Assert.IsNull(tab.Calibration);
+        });
+    }
+
+    [TestMethod]
+    public void InvalidIncludedCorrectionCannotBeIgnoredWhenOtherPairsAreValid()
+    {
+        WithImage(path =>
+        {
+            CalibrationOcrProposal extra = Proposal("extra", "S", 0, "Other", "Y", 60, 2) with
+                { NumericValue = null, NormalizedText = null, NumericLiteral = false };
+            using var workspace = CreateWorkspace(path, [.. ValidProposals(), extra], MeasuredGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            Assert.AreEqual("10", vm.SuggestedYMaximum);
+            var row = vm.CalibrationLabelRows.Single(item => item.Proposal.RegionId == "extra");
+            row.CorrectedText = "";
+            Assert.IsTrue(row.HasInvalidCorrection);
+            vm.RefitSelectedCalibrationLabels();
+            Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            row.IsIncluded = false;
+            Assert.IsFalse(row.HasInvalidCorrection);
+            vm.RefitSelectedCalibrationLabels();
+            Assert.AreEqual("10", vm.SuggestedYMaximum);
+        });
+    }
+
+    [TestMethod]
     public void ExcludingExtraLabelRefitsCachedEvidenceWithoutRereadingOrRemovingRawRows()
     {
         WithImage(path =>

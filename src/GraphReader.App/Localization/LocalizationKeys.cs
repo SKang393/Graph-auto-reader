@@ -137,6 +137,10 @@ public static class LocalizationKeys
     public const string ManualCalibrationLabelsRead = "Manual.CalibrationLabels.Read";
     public const string ManualCalibrationLabelsList = "Manual.CalibrationLabels.List";
     public const string ManualCalibrationLabelsInclude = "Manual.CalibrationLabels.Include";
+    public const string ManualCalibrationLabelsCorrection = "Manual.CalibrationLabels.Correction";
+    public const string ManualCalibrationLabelsResetCorrection = "Manual.CalibrationLabels.ResetCorrection";
+    public const string ManualCalibrationLabelsUserCorrected = "Manual.CalibrationLabels.UserCorrected";
+    public const string ManualCalibrationLabelsInvalidCorrection = "Manual.CalibrationLabels.InvalidCorrection";
     public const string ManualCalibrationLabelsRefit = "Manual.CalibrationLabels.Refit";
     public const string ManualCalibrationLabelsSelectionChanged = "Manual.CalibrationLabels.SelectionChanged";
     public const string ManualCalibrationLabelsUseYMaximum = "Manual.CalibrationLabels.UseYMaximum";
@@ -524,6 +528,10 @@ public static class LocalizationKeys
         ManualCalibrationTicksAxisX,
         ManualCalibrationTicksAxisY,
         ManualCalibrationLabelsInclude,
+        ManualCalibrationLabelsCorrection,
+        ManualCalibrationLabelsResetCorrection,
+        ManualCalibrationLabelsUserCorrected,
+        ManualCalibrationLabelsInvalidCorrection,
         ManualCalibrationLabelsRefit,
         ManualCalibrationLabelsSelectionChanged,
         ManualMarkerExemplarTitle,

@@ -39,4 +39,8 @@ $build = 'E:/Graph-auto-reader/artifacts/dev-portable/builds/0.4.49-20261114T202
 & $probe --real-dev-calibration-check 'E:/Graph-auto-reader/data/manual data' "$build/GraphReader.App.exe" "$build/review-assistance/ocr" "$build/native/graphreader-engine.exe" --explicit-opt-in
 ```
 
-The aggregate and run metadata under `artifacts/hosted-preview-449` are disposable after this record is pushed and their active consumers finish; preserve the original corpus and current package.
+After this record reached main in `be8c9221` and the package consumers finished,
+the aggregate and run metadata under `artifacts/hosted-preview-449` were retired
+with the [delivery cleanup](HOSTED-INTERNAL-PREVIEW-20261113.md). The original
+corpus and current package remain. The pinned adapter and recorded command
+reproduce the diagnostic; do not rerun merely to replace retired scratch.

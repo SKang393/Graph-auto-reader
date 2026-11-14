@@ -1117,7 +1117,25 @@
                                 ToolTip="{DynamicResource Manual.CalibrationLabels.Include}"
                                 automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.Include"
                                 automation:AutomationProperties.Name="{Binding DisplayText}" />
-                      <TextBlock Grid.Column="1" Text="{Binding DisplayText}" TextWrapping="Wrap" />
+                      <StackPanel Grid.Column="1">
+                        <TextBlock Text="{Binding DisplayText}" TextWrapping="Wrap" />
+                        <StackPanel Visibility="{Binding IsAxisTick, Converter={StaticResource BooleanToVisibilityConverter}}">
+                          <TextBlock Text="{DynamicResource Manual.CalibrationLabels.Correction}" TextWrapping="Wrap" />
+                          <DockPanel>
+                            <Button DockPanel.Dock="Right" Command="{Binding ResetCorrectionCommand}"
+                                    Content="{DynamicResource Manual.CalibrationLabels.ResetCorrection}"
+                                    automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.ResetCorrection}" />
+                            <TextBox Text="{Binding CorrectedText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     IsEnabled="{Binding CanEditCorrection}"
+                                     automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.Correction}" />
+                          </DockPanel>
+                          <TextBlock Text="{DynamicResource Manual.CalibrationLabels.UserCorrected}"
+                                     Visibility="{Binding HasValidCorrection, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                          <TextBlock Text="{DynamicResource Manual.CalibrationLabels.InvalidCorrection}" TextWrapping="Wrap"
+                                     Visibility="{Binding HasInvalidCorrection, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                     automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.InvalidCorrection}" />
+                        </StackPanel>
+                      </StackPanel>
                     </Grid>
                   </DataTemplate>
                 </ListBox.ItemTemplate>

@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using GraphReader.App.Localization;
 using GraphReader.App.Services;
+using GraphReader.Ocr;
 
 namespace GraphReader.App.ViewModels;
 
@@ -178,8 +179,10 @@ public sealed partial class MainWindowViewModel
             _workspaceService is not ICalibrationLabelSuggestionWorkspace workspace ||
             !workspace.IsCalibrationLabelSuggestionCurrent(result) ||
             !ReferenceEquals(_axisSuggestion, result.AxisSuggestion) ||
-            !result.Response.Proposals.Contains(row.Proposal) || row.Proposal.FailureCode is not null ||
-            !row.Proposal.NumericLiteral || row.Proposal.NumericValue is not double parsed || !double.IsFinite(parsed))
+            !result.Response.Proposals.Contains(row.Proposal))
+            return false;
+        CalibrationOcrProposal effective = row.EffectiveProposal;
+        if (effective.FailureCode is not null || !effective.NumericLiteral || effective.NumericValue is not double parsed || !double.IsFinite(parsed))
             return false;
         value = parsed;
         return true;
@@ -344,8 +347,49 @@ public sealed class CalibrationLabelRowViewModel(CalibrationOcrProposal proposal
     Action<CalibrationLabelRowViewModel>? inclusionChanged = null) : ObservableObject
 {
     private bool _isIncluded = true;
+    private string _correctedText = proposal.Text;
     public CalibrationOcrProposal Proposal { get; } = proposal;
     public string DisplayText { get; } = displayText;
+    public bool IsAxisTick => Proposal.SuggestedAxis is "X" or "Y";
+    public bool CanEditCorrection => IsAxisTick && IsIncluded;
+    public bool HasCorrection => !string.Equals(_correctedText, Proposal.Text, StringComparison.Ordinal);
+    public bool HasValidCorrection => HasCorrection && EffectiveProposal is
+        { NumericLiteral: true, FailureCode: null, NumericValue: double value } && double.IsFinite(value);
+    public bool HasInvalidCorrection => IsIncluded && HasCorrection && !HasValidCorrection;
+    public string CorrectedText
+    {
+        get => _correctedText;
+        set
+        {
+            if (!CanEditCorrection || canChangeInclusion?.Invoke(this) == false)
+            {
+                OnPropertyChanged(nameof(CorrectedText));
+                return;
+            }
+            if (SetProperty(ref _correctedText, value ?? string.Empty))
+            {
+                OnPropertyChanged(nameof(HasCorrection));
+                OnPropertyChanged(nameof(HasValidCorrection));
+                OnPropertyChanged(nameof(HasInvalidCorrection));
+                inclusionChanged?.Invoke(this);
+            }
+        }
+    }
+    public ICommand ResetCorrectionCommand => new RelayCommand(_ => CorrectedText = Proposal.Text,
+        _ => CanEditCorrection && HasCorrection && canChangeInclusion?.Invoke(this) != false);
+    internal CalibrationOcrProposal EffectiveProposal
+    {
+        get
+        {
+            if (!HasCorrection) return Proposal;
+            bool literal = CalibrationNumericLiteral.IsLiteral(CorrectedText);
+            NumericParseResult parsed = GraphNumericParser.Parse(CorrectedText);
+            bool valid = literal && parsed.IsSuccess && parsed.Value is double value && double.IsFinite(value);
+            return Proposal with { Text = CorrectedText, NumericLiteral = valid, NumericValue = valid ? parsed.Value : null,
+                NormalizedText = valid ? parsed.NormalizedText : null, FailureCode = valid ? null : Proposal.FailureCode,
+                Role = valid ? Proposal.SuggestedAxis == "X" ? "XTick" : "YTick" : Proposal.Role };
+        }
+    }
     public bool IsIncluded
     {
         get => _isIncluded;
@@ -356,7 +400,12 @@ public sealed class CalibrationLabelRowViewModel(CalibrationOcrProposal proposal
                 OnPropertyChanged(nameof(IsIncluded));
                 return;
             }
-            if (SetProperty(ref _isIncluded, value)) inclusionChanged?.Invoke(this);
+            if (SetProperty(ref _isIncluded, value))
+            {
+                OnPropertyChanged(nameof(CanEditCorrection));
+                OnPropertyChanged(nameof(HasInvalidCorrection));
+                inclusionChanged?.Invoke(this);
+            }
         }
     }
 }

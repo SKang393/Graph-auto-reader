@@ -619,3 +619,21 @@ seconds. The wrapper then incorrectly treated a stale native `$LASTEXITCODE`
 from an expected negative test as the PowerShell script result and exited 1;
 the script completed without an exception and its log contains the pass count.
 This wrapper error did not rerun tests or alter the ledger evidence.
+
+After delivery record `be8c922161bb41b7f498d78d9da50fa094a29249` reached main,
+the latest pointer switched to 449 and completed staging retired at
+`2026-11-14T20:56:28.314192Z`. The superseded 448 archive was in the separate
+`dev-portable/packages` directory rather than its build directory; a follow-up
+inventory found it and hash-verified removal completed at
+`2026-11-14T21:01:14.6127228Z`. Total retirement: **568 files / 373,587,806
+path bytes**. Exactly one extracted build and its ZIP remain. All 12 shared
+Data file hashes and the five checked current package identities remained
+unchanged; live consumer counts were zero. The receipt is
+`artifacts/preview449-retirement.json`. No original corpus, current model,
+training environment or separate native QA data was removed.
+
+Delivery/adapter integration CI [43639953587](https://github.com/SKang393/Graph-auto-reader/actions/runs/43639953587)
+also passed on `be8c9221`, job `132585111140`: 2,727 .NET tests passed,
+30 skipped, zero failed across 13 suites; 49 Rust tests, 62 version-policy,
+5 ledger and 12 portable-packaging checks passed. Public release jobs were
+skipped. This run predates the subsequent per-row correction source change.

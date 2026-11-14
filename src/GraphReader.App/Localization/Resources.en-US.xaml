@@ -140,8 +140,12 @@
   <sys:String x:Key="Manual.CalibrationLabels.Read">Read axis labels (review only)</sys:String>
   <sys:String x:Key="Manual.CalibrationLabels.List">Recognized axis text and source pixel positions</sys:String>
   <sys:String x:Key="Manual.CalibrationLabels.Include">Include this label when refitting calibration</sys:String>
+  <sys:String x:Key="Manual.CalibrationLabels.Correction">Tick value (edit to correct)</sys:String>
+  <sys:String x:Key="Manual.CalibrationLabels.ResetCorrection">Reset to recognized text</sys:String>
+  <sys:String x:Key="Manual.CalibrationLabels.UserCorrected">User-corrected value</sys:String>
+  <sys:String x:Key="Manual.CalibrationLabels.InvalidCorrection">Enter a single valid number, or reset or exclude this label.</sys:String>
   <sys:String x:Key="Manual.CalibrationLabels.Refit">Refit selected labels</sys:String>
-  <sys:String x:Key="Manual.CalibrationLabels.SelectionChanged">Label selection changed. Refit selected labels, then check the anchors and values before applying.</sys:String>
+  <sys:String x:Key="Manual.CalibrationLabels.SelectionChanged">Labels changed. Refit selected labels, then check the anchors and values before applying.</sys:String>
   <sys:String x:Key="Manual.CalibrationLabels.UseYMaximum">Use as Y maximum</sys:String>
   <sys:String x:Key="Manual.CalibrationLabels.UseFirstSession">Use as first session</sys:String>
   <sys:String x:Key="Manual.CalibrationLabels.UseFinalSession">Use as final session</sys:String>
