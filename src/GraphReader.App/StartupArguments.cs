@@ -2,6 +2,8 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.IO;
+using System.Globalization;
+using GraphReader.App.Services;
 
 namespace GraphReader.App;
 
@@ -10,7 +12,8 @@ public sealed record StartupArguments(
     bool ProductionRuntimeSmoke,
     bool RequirePackagedPdfium,
     string? OpenImagePath,
-    string? CalibrationOcrAssetsRoot = null)
+    string? CalibrationOcrAssetsRoot = null,
+    CalibrationOcrDeviceSelection? CalibrationOcrDevice = null)
 {
     public static StartupArguments Parse(IReadOnlyList<string> arguments)
     {
@@ -18,14 +21,24 @@ public sealed record StartupArguments(
 
         if (arguments.Any(argument => string.Equals(argument, "--calibration-ocr-worker", StringComparison.OrdinalIgnoreCase)))
         {
-            if (arguments.Count != 2 ||
+            if ((arguments.Count != 2 && arguments.Count != 6) ||
                 !string.Equals(arguments[0], "--calibration-ocr-worker", StringComparison.OrdinalIgnoreCase) ||
                 string.IsNullOrWhiteSpace(arguments[1]) || !Path.IsPathFullyQualified(arguments[1]))
             {
                 throw new ArgumentException("--calibration-ocr-worker requires exactly one absolute asset directory and no other options.", nameof(arguments));
             }
 
-            return new StartupArguments(false, false, false, null, Path.GetFullPath(arguments[1]));
+            CalibrationOcrDeviceSelection selection = CalibrationOcrDeviceSelection.Cpu;
+            if (arguments.Count == 6)
+            {
+                if (arguments[2] != "--directml" ||
+                    !int.TryParse(arguments[3], NumberStyles.None, CultureInfo.InvariantCulture, out int adapterIndex) || adapterIndex < 0 ||
+                    !long.TryParse(arguments[4], NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out long luid) ||
+                    string.IsNullOrWhiteSpace(arguments[5]) || arguments[5].Length > 256)
+                    throw new ArgumentException("Invalid DirectML adapter identity.", nameof(arguments));
+                selection = new("DirectMl", adapterIndex, luid, arguments[5]);
+            }
+            return new StartupArguments(false, false, false, null, Path.GetFullPath(arguments[1]), selection);
         }
 
         bool portableSmoke = false;

@@ -10,12 +10,27 @@ using GraphReader.App.Integration.CalibrationOcr;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Services;
 using GraphReader.Ocr;
+using GraphReader.Inference;
 
 namespace GraphReader.App.Tests;
 
 [TestClass]
 public sealed class CalibrationOcrWorkerTests
 {
+    [TestMethod]
+    public void ExplicitGpuRequiresMatchingHardwareAndAtLeast256MiBLocalBudgetHeadroom()
+    {
+        var selection = new CalibrationOcrDeviceSelection("DirectMl", 2, 42, "Fixture GPU");
+        DxgiAdapter[] devices = [new(0, "Other", 1, 1, 11, false), new(2, "Fixture GPU", 1, 2, 42, false)];
+        var valid = CalibrationOcrSession.ResolveAdapter(selection, devices, _ => new(600UL * 1024 * 1024, 300UL * 1024 * 1024, 0, 0));
+        Assert.AreEqual(2, valid.Adapter!.Index);
+        Assert.IsNull(valid.Reason);
+        Assert.AreEqual("CALIBRATION_OCR_ADAPTER_UNAVAILABLE", CalibrationOcrSession.ResolveAdapter(selection, [], _ => null).Reason);
+        Assert.AreEqual("CALIBRATION_OCR_GPU_MEMORY_BUDGET_UNAVAILABLE", CalibrationOcrSession.ResolveAdapter(selection, devices, _ => null).Reason);
+        Assert.AreEqual("CALIBRATION_OCR_GPU_MEMORY_HEADROOM_LOW", CalibrationOcrSession.ResolveAdapter(selection, devices, _ => new(500UL * 1024 * 1024, 300UL * 1024 * 1024, 0, 0)).Reason);
+        Assert.AreEqual("CALIBRATION_OCR_GPU_MEMORY_HEADROOM_LOW", CalibrationOcrSession.ResolveAdapter(selection, devices, _ => new(100, 101, 0, 0)).Reason);
+        Assert.AreEqual("CALIBRATION_OCR_ADAPTER_UNAVAILABLE", CalibrationOcrSession.ResolveAdapter(selection with { AdapterLuid = 43 }, devices, _ => null).Reason);
+    }
     [TestMethod]
     public async Task WireRoundTripsMetadataAndRejectsOversizeAndTruncatedFrames()
     {
@@ -49,6 +64,64 @@ public sealed class CalibrationOcrWorkerTests
 
     [TestMethod]
     public void PersistentLoopReusesOneReaderRetainsEveryProposalAndDisposesOnEof() => StaTestHost.Run(() => Pump(RunAsync()));
+
+    [TestMethod]
+    public void FailedGpuAttemptCountsBothSessionsAndPreservesTime() => StaTestHost.Run(() => Pump(FailedGpuAttemptAsync()));
+
+    private static async Task FailedGpuAttemptAsync()
+    {
+        byte[] image = Image();
+        var gpuOwner = new FakeOwner();
+        var cpuOwner = new FakeOwner();
+        var selection = new CalibrationOcrDeviceSelection("DirectMl", 2, 42, "Fixture GPU");
+        await using var session = new CalibrationOcrSession(new(12, 416, .4992, true),
+            _ => Task.FromResult(new CalibrationOcrReader(new ThrowingRecognizer(),
+                new OcrPipelineOptions { CropWidth = 320, CropHeight = 48 }, gpuOwner, [], "DirectMl", new(2, 42), "Fixture GPU")),
+            selection,
+            (reason, _) =>
+            {
+                Assert.IsTrue(gpuOwner.Disposed, "The GPU owner must be disposed before CPU creation.");
+                return Task.FromResult(new CalibrationOcrReader(new FakeRecognizer(),
+                    new OcrPipelineOptions { CropWidth = 320, CropHeight = 48 }, cpuOwner, [], fallbackReason: reason));
+            },
+            () => null);
+        CalibrationOcrResponse result = await session.RecognizeAsync(new(Request(image), image), CancellationToken.None);
+        Assert.AreEqual("Cpu", result.Runtime!.Provider);
+        Assert.AreEqual("DirectMl", result.Runtime.RequestedProvider);
+        Assert.AreEqual("CALIBRATION_OCR_DIRECTML_INFERENCE_FAILED", result.Runtime.FallbackReason);
+        Assert.AreEqual(2, result.Runtime.SessionCreationCount);
+        Assert.IsGreaterThanOrEqualTo(15d, result.Timings!.RecognitionMilliseconds);
+        Assert.IsGreaterThanOrEqualTo(result.Timings.RecognitionMilliseconds, result.Timings.TotalMilliseconds);
+    }
+
+    [TestMethod]
+    public void LaterBudgetFallbackCountsBothSessions() => StaTestHost.Run(() => Pump(LaterBudgetFallbackAsync()));
+
+    private static async Task LaterBudgetFallbackAsync()
+    {
+        byte[] image = Image();
+        var gpuOwner = new FakeOwner();
+        string? unavailable = null;
+        await using var session = new CalibrationOcrSession(new(12, 416, .4992, true),
+            _ => Task.FromResult(new CalibrationOcrReader(new FakeRecognizer(),
+                new OcrPipelineOptions { CropWidth = 320, CropHeight = 48 }, gpuOwner, [], "DirectMl", new(2, 42), "Fixture GPU")),
+            new("DirectMl", 2, 42, "Fixture GPU"),
+            (reason, _) =>
+            {
+                Assert.IsTrue(gpuOwner.Disposed);
+                return Task.FromResult(new CalibrationOcrReader(new FakeRecognizer(),
+                    new OcrPipelineOptions { CropWidth = 320, CropHeight = 48 }, new FakeOwner(), [], fallbackReason: reason));
+            },
+            () => unavailable);
+        CalibrationOcrResponse first = await session.RecognizeAsync(new(Request(image), image), CancellationToken.None);
+        Assert.AreEqual("DirectMl", first.Runtime!.Provider);
+        Assert.AreEqual(1, first.Runtime.SessionCreationCount);
+        unavailable = "CALIBRATION_OCR_GPU_MEMORY_HEADROOM_LOW";
+        CalibrationOcrResponse second = await session.RecognizeAsync(new(Request(image), image), CancellationToken.None);
+        Assert.AreEqual("Cpu", second.Runtime!.Provider);
+        Assert.AreEqual(2, second.Runtime.SessionCreationCount);
+        Assert.AreEqual(unavailable, second.Runtime.FallbackReason);
+    }
 
     private static async Task RunAsync()
     {
@@ -148,7 +221,7 @@ public sealed class CalibrationOcrWorkerTests
         using var input = new MemoryStream();
         using var output = new MemoryStream();
         Assert.AreEqual(2, await CalibrationOcrWorker.RunAsync(Path.GetTempPath(), WorkflowRuntimeEnvironment.Production,
-            input, output, CancellationToken.None));
+            input, output, cancellationToken: CancellationToken.None));
         output.Position = 0;
         CalibrationOcrResponse response = await CalibrationOcrWire.ReadResponseAsync(output, CancellationToken.None);
         Assert.IsNull(response.Request);
@@ -189,6 +262,18 @@ public sealed class CalibrationOcrWorkerTests
                 new OcrRecognition(crop.RegionId, OcrSourceImage.Original,
                     [new(index == 0 ? "Outcome" : "1", .9, OcrSourceImage.Original)], 1,
                     index == 0 ? new("test_failure", "error", "test", "test", true, "review") : null)).ToArray());
+        }
+    }
+
+    private sealed class ThrowingRecognizer : ITextRecognizer
+    {
+        public string ModelId => "fixture";
+        public string ModelVersion => "fixture";
+        public string ModelSha256 => new('a', 64);
+        public async ValueTask<IReadOnlyList<OcrRecognition>> RecognizeBatchAsync(IReadOnlyList<OcrCrop> crops, CancellationToken cancellationToken)
+        {
+            await Task.Delay(20, cancellationToken);
+            throw new InvalidOperationException("Synthetic GPU failure.");
         }
     }
 

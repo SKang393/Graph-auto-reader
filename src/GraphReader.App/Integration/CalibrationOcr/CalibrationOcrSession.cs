@@ -9,27 +9,46 @@ using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Services;
 using GraphReader.Inference;
 using GraphReader.Ocr;
+using Microsoft.ML.OnnxRuntime;
 
 namespace GraphReader.App.Integration.CalibrationOcr;
 
 internal sealed class CalibrationOcrSession : IAsyncDisposable
 {
     internal const string ModelSha256 = "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743";
-    internal const string ManifestSha256 = "17259b3260c0d39b292be70b36e68d53a067992de3afeaf0809d4d981de4327a";
+    internal const string ManifestSha256 = "17d44e8e86fa60183c30531c05c02e8da463ea9632dd494cf039227e3c4b0b2a";
     private readonly CalibrationOcrCpuBudget budget;
     private readonly Func<CancellationToken, Task<CalibrationOcrReader>> readerFactory;
+    private readonly CalibrationOcrDeviceSelection deviceSelection;
+    private readonly Func<string, CancellationToken, Task<CalibrationOcrReader>>? fallbackFactory;
+    private readonly Func<string?>? adapterCheck;
     private readonly SemaphoreSlim gate = new(1, 1);
     private CalibrationOcrReader? reader;
+    private int sessionCreationCount;
     private bool disposed;
 
-    internal CalibrationOcrSession(string assetRoot, CalibrationOcrCpuBudget budget)
-        : this(budget, token => CreateReaderAsync(assetRoot, token)) { }
-
-    internal CalibrationOcrSession(CalibrationOcrCpuBudget budget,
-        Func<CancellationToken, Task<CalibrationOcrReader>> readerFactory)
+    internal CalibrationOcrSession(string assetRoot, CalibrationOcrCpuBudget budget,
+        CalibrationOcrDeviceSelection? deviceSelection = null)
     {
         this.budget = budget;
-        this.readerFactory = readerFactory;
+        this.deviceSelection = deviceSelection ?? CalibrationOcrDeviceSelection.Cpu;
+        readerFactory = token => CreateReaderAsync(assetRoot, this.deviceSelection, null, RecordSessionCreation, token);
+        fallbackFactory = (reason, token) => CreateReaderAsync(assetRoot, CalibrationOcrDeviceSelection.Cpu, reason, RecordSessionCreation, token);
+        adapterCheck = () => CheckAdapter(this.deviceSelection).Reason;
+    }
+
+    internal CalibrationOcrSession(CalibrationOcrCpuBudget budget,
+        Func<CancellationToken, Task<CalibrationOcrReader>> readerFactory,
+        CalibrationOcrDeviceSelection? selection = null,
+        Func<string, CancellationToken, Task<CalibrationOcrReader>>? fallback = null,
+        Func<string?>? checkAdapter = null)
+    {
+        this.budget = budget;
+        this.readerFactory = async token => { CalibrationOcrReader value = await readerFactory(token).ConfigureAwait(false); RecordSessionCreation(); return value; };
+        deviceSelection = selection ?? CalibrationOcrDeviceSelection.Cpu;
+        fallbackFactory = fallback is null ? null : async (reason, token) =>
+        { CalibrationOcrReader value = await fallback(reason, token).ConfigureAwait(false); RecordSessionCreation(); return value; };
+        adapterCheck = checkAdapter;
     }
 
     internal async Task<CalibrationOcrResponse> RecognizeAsync(CalibrationOcrWorkItem item, CancellationToken token)
@@ -56,6 +75,12 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             double component = stage.Elapsed.TotalMilliseconds;
 
             stage.Restart();
+            if (reader is { Provider: "DirectMl" } && fallbackFactory is not null && adapterCheck?.Invoke() is { } unavailable)
+            {
+                await reader.DisposeAsync().ConfigureAwait(false);
+                reader = await fallbackFactory(unavailable, token).ConfigureAwait(false);
+                reused = false;
+            }
             reader ??= await readerFactory(token).ConfigureAwait(false);
             double initialization = reused ? 0 : stage.Elapsed.TotalMilliseconds;
             OcrPipelineOptions options = reader.Options;
@@ -76,11 +101,23 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             stage.Restart();
             IReadOnlyList<IReadOnlyList<OcrCrop>> batches = OcrCropBatcher.CreateBatches(image, candidates, cropOptions, token);
             double crop = stage.Elapsed.TotalMilliseconds;
-            stage.Restart();
-            var readings = new List<OcrRecognition>();
-            foreach (IReadOnlyList<OcrCrop> batch in batches)
-                readings.AddRange(await reader.Recognizer.RecognizeBatchAsync(batch, token).ConfigureAwait(false));
-            double recognition = stage.Elapsed.TotalMilliseconds;
+            List<OcrRecognition> readings;
+            var attemptTiming = new RecognitionAttemptTiming();
+            bool gpuFailed = false;
+            try { readings = await RecognizeBatchesAsync(reader, batches, attemptTiming, token).ConfigureAwait(false); }
+            catch (Exception error) when (reader.Provider == "DirectMl" && fallbackFactory is not null &&
+                error is not OperationCanceledException and not OutOfMemoryException)
+            { readings = []; gpuFailed = true; }
+            if (reader.Provider == "DirectMl" && fallbackFactory is not null && (gpuFailed || readings.Any(row => row.Failure?.Code is
+                    "INFERENCE_FAILED" or "INFERENCE_PROVIDER_UNAVAILABLE" or "INFERENCE_TIMEOUT" or "OCR_INFERENCE_FAILED")))
+            {
+                await reader.DisposeAsync().ConfigureAwait(false);
+                stage.Restart();
+                reader = await fallbackFactory("CALIBRATION_OCR_DIRECTML_INFERENCE_FAILED", token).ConfigureAwait(false);
+                initialization += stage.Elapsed.TotalMilliseconds;
+                reused = false;
+                readings = await RecognizeBatchesAsync(reader, batches, attemptTiming, token).ConfigureAwait(false);
+            }
             token.ThrowIfCancellationRequested();
             if (readings.Count != candidates.Length || readings.Select(row => row.RegionId).Distinct(StringComparer.Ordinal).Count() != candidates.Length)
                 throw new CalibrationOcrException(CalibrationOcrReasonCodes.RecognitionFailed);
@@ -91,8 +128,11 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             var after = MemorySnapshot();
             var memory = new CalibrationOcrProcessMemory(before.Private, after.Private, before.Working, after.Working, before.Managed, after.Managed);
             return new(item.Request, proposals, CheckSequence(proposals, "X"), CheckSequence(proposals, "Y"),
-                new(decode, component, crop, initialization, recognition, total.Elapsed.TotalMilliseconds, reused),
-                new(ModelSha256, ManifestSha256, "Cpu", 1, 1, 1, 1, false, budget, memory, reader.RuntimeFiles), null);
+                new CalibrationOcrTimings(decode, component, crop, initialization, attemptTiming.Recognition, total.Elapsed.TotalMilliseconds, reused)
+                    { PacingMilliseconds = attemptTiming.Pacing },
+                new CalibrationOcrRuntime(ModelSha256, ManifestSha256, reader.Provider, 1, 1, 1, sessionCreationCount, false, budget, memory, reader.RuntimeFiles)
+                { RequestedProvider = deviceSelection.Provider, AdapterIndex = reader.Adapter?.Index, AdapterLuid = reader.Adapter?.Luid,
+                    AdapterName = reader.AdapterName, FallbackReason = reader.FallbackReason, PacingRatio = reader.Provider == "DirectMl" ? 1 : 0 }, null);
         }
         finally { gate.Release(); }
     }
@@ -174,7 +214,64 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             BgrPixels: new(width * 3, color));
     }
 
-    private static async Task<CalibrationOcrReader> CreateReaderAsync(string assetRoot, CancellationToken token)
+    private sealed class RecognitionAttemptTiming
+    {
+        public double Recognition { get; set; }
+        public double Pacing { get; set; }
+    }
+
+    private void RecordSessionCreation() => sessionCreationCount = checked(sessionCreationCount + 1);
+
+    private static async Task<List<OcrRecognition>> RecognizeBatchesAsync(
+        CalibrationOcrReader activeReader, IReadOnlyList<IReadOnlyList<OcrCrop>> batches,
+        RecognitionAttemptTiming timing, CancellationToken token)
+    {
+        var readings = new List<OcrRecognition>();
+        foreach (IReadOnlyList<OcrCrop> batch in batches)
+        {
+            var timer = Stopwatch.StartNew();
+            try { readings.AddRange(await activeReader.Recognizer.RecognizeBatchAsync(batch, token).ConfigureAwait(false)); }
+            finally { timer.Stop(); timing.Recognition += timer.Elapsed.TotalMilliseconds; }
+            if (activeReader.Provider == "DirectMl")
+            {
+                var delay = Stopwatch.StartNew();
+                try { await Task.Delay(TimeSpan.FromMilliseconds(Math.Ceiling(timer.Elapsed.TotalMilliseconds)), token).ConfigureAwait(false); }
+                finally { delay.Stop(); timing.Pacing += delay.Elapsed.TotalMilliseconds; }
+            }
+        }
+        return readings;
+    }
+
+    private static (DxgiAdapter? Adapter, string? Reason) CheckAdapter(CalibrationOcrDeviceSelection selection)
+    {
+        try
+        {
+            if (!CalibrationOcrWorkerClient.ValidSelection(selection) || selection.Provider != "DirectMl")
+                return (null, "CALIBRATION_OCR_ADAPTER_UNAVAILABLE");
+            var inventory = new WindowsDxgiAdapterInventory();
+            return ResolveAdapter(selection, inventory.Enumerate(), WindowsDxgiAdapterInventory.TryReadLocalMemoryBudget);
+        }
+        catch (Exception error) when (error is not OutOfMemoryException and not OperationCanceledException)
+        { return (null, "CALIBRATION_OCR_ADAPTER_UNAVAILABLE"); }
+    }
+
+    internal static (DxgiAdapter? Adapter, string? Reason) ResolveAdapter(CalibrationOcrDeviceSelection selection,
+        IReadOnlyList<DxgiAdapter> adapters, Func<DirectMlAdapterSelection, DxgiLocalMemoryBudget?> getBudget)
+    {
+        if (!CalibrationOcrWorkerClient.ValidSelection(selection) || selection.Provider != "DirectMl")
+            return (null, "CALIBRATION_OCR_ADAPTER_UNAVAILABLE");
+        DxgiAdapter? adapter = adapters.SingleOrDefault(item => item.Index == selection.AdapterIndex &&
+            item.Luid == selection.AdapterLuid && !item.IsSoftware);
+        if (adapter is null) return (null, "CALIBRATION_OCR_ADAPTER_UNAVAILABLE");
+        DxgiLocalMemoryBudget? memory = getBudget(new(adapter.Index, adapter.Luid));
+        if (memory is null) return (null, "CALIBRATION_OCR_GPU_MEMORY_BUDGET_UNAVAILABLE");
+        if (memory.CurrentUsageBytes > memory.BudgetBytes || memory.BudgetBytes - memory.CurrentUsageBytes < 256UL * 1024 * 1024)
+            return (null, "CALIBRATION_OCR_GPU_MEMORY_HEADROOM_LOW");
+        return (adapter, null);
+    }
+
+    private static async Task<CalibrationOcrReader> CreateReaderAsync(string assetRoot,
+        CalibrationOcrDeviceSelection selection, string? fallbackReason, Action sessionCreated, CancellationToken token)
     {
         string root = Path.GetFullPath(assetRoot);
         string modelPath = Path.Combine(root, "en_PP-OCRv5_mobile_rec.onnx");
@@ -187,18 +284,47 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             "8d81f5d0c58547cce471c24f82efe768a9d907d06764f67e90cc680c6d777729", 128 * 1024, token).ConfigureAwait(false);
         var identity = new ModelIdentity("en_PP-OCRv5_mobile_rec", "5.0.0", ModelSha256, modelPath);
         var options = ProductionOcrAdapter.ReadRecognitionOptions(identity, manifestPath);
-        var registry = new OnnxSessionRegistry(new OrtExecutionProviderDiscovery(), new WindowsExecutionProviderPolicy(),
-            new OnnxInferenceSessionFactory(NoUiThreadGuard.Instance, OnnxGraphOptimizationMode.Disabled), CpuThreadConfiguration.Create(1));
-        var runtime = new InferenceRuntime(registry, new BoundedInferenceScheduler(1, 1), new NoCache(), allowedProviders: [InferenceProvider.Cpu]);
+        DxgiAdapter? adapter = null;
+        if (selection.Provider == "DirectMl")
+        {
+            var check = CheckAdapter(selection);
+            adapter = check.Adapter;
+            fallbackReason = check.Reason;
+        }
+        if (adapter is not null)
+        {
+            try { return await CreateRuntimeAsync(identity, manifestPath, options, adapter, null, sessionCreated, token).ConfigureAwait(false); }
+            catch (Exception error) when (error is not OperationCanceledException and not OutOfMemoryException)
+            { fallbackReason = "CALIBRATION_OCR_DIRECTML_SESSION_FAILED"; }
+        }
+        return await CreateRuntimeAsync(identity, manifestPath, options, null, fallbackReason, sessionCreated, token).ConfigureAwait(false);
+    }
+
+    private static async Task<CalibrationOcrReader> CreateRuntimeAsync(ModelIdentity identity, string manifestPath,
+        (LocalOnnxTextRecognizerOptions Recognizer, OcrPipelineOptions Pipeline) options,
+        DxgiAdapter? adapter, string? fallbackReason, Action sessionCreated, CancellationToken token)
+    {
+        var inventory = new WindowsDxgiAdapterInventory();
+        OnnxInferenceSessionFactory factory = adapter is null
+            ? new(NoUiThreadGuard.Instance, OnnxGraphOptimizationMode.Disabled)
+            : new(NoUiThreadGuard.Instance, OnnxGraphOptimizationMode.Disabled, OrtLoggingLevel.ORT_LOGGING_LEVEL_WARNING,
+                new(adapter.Index, adapter.Luid), inventory);
+        IInferenceSessionFactory selectedFactory = adapter is null ? factory : new NoCpuFactory(factory);
+        IReadOnlyList<InferenceProvider> allowed = adapter is null ? [InferenceProvider.Cpu] : [InferenceProvider.DirectMl, InferenceProvider.Cpu];
+        var registry = new OnnxSessionRegistry(new OrtExecutionProviderDiscovery(), new WindowsExecutionProviderPolicy(), selectedFactory, CpuThreadConfiguration.Create(1));
+        var runtime = new InferenceRuntime(registry, new BoundedInferenceScheduler(1, 1), new NoCache(), allowedProviders: allowed);
         try
         {
-            SessionAcquisition acquired = await registry.GetOrCreateAsync(identity, [InferenceProvider.Cpu], token).ConfigureAwait(false);
-            if (!acquired.Succeeded || registry.CreatedSessionCount != 1)
+            SessionAcquisition acquired = await registry.GetOrCreateAsync(identity, allowed, token).ConfigureAwait(false);
+            if (acquired.Succeeded) sessionCreated();
+            if (!acquired.Succeeded || registry.CreatedSessionCount != 1 ||
+                acquired.Session!.Provider != (adapter is null ? InferenceProvider.Cpu : InferenceProvider.DirectMl))
                 throw new CalibrationOcrException(CalibrationOcrReasonCodes.RecognitionFailed);
-            ITextRecognizer recognizer = new LocalOnnxTextRecognizer(runtime, options.Recognizer with { BypassCache = true });
+            ITextRecognizer recognizer = new LocalOnnxTextRecognizer(runtime, options.Recognizer with { BypassCache = true, AllowedProviders = allowed });
             if (ProductionOcrAdapter.UsesOfficialRecognitionSpacingV2Manifest(manifestPath))
                 recognizer = new OfficialRecognitionSpacingV2TextRecognizer(recognizer);
-            return new(recognizer, options.Pipeline, runtime, RuntimeFiles());
+            return new(recognizer, options.Pipeline, runtime, RuntimeFiles(), adapter is null ? "Cpu" : "DirectMl",
+                adapter is null ? null : new DirectMlAdapterSelection(adapter.Index, adapter.Luid), adapter?.Name, fallbackReason);
         }
         catch
         {
@@ -254,14 +380,29 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
         public ValueTask<byte[]?> TryGetAsync(StageCacheKey key, CancellationToken cancellationToken) => ValueTask.FromResult<byte[]?>(null);
         public ValueTask PutAsync(StageCacheKey key, ReadOnlyMemory<byte> value, CancellationToken cancellationToken) => ValueTask.CompletedTask;
     }
+
+    private sealed class NoCpuFactory(OnnxInferenceSessionFactory inner) : IInferenceSessionFactory, IInferenceAdapterSelection
+    {
+        public string? DirectMlSelectionIdentity => inner.DirectMlSelectionIdentity;
+        public void ValidateDirectMlSelection() => inner.ValidateDirectMlSelection();
+        public ValueTask<IInferenceSession> CreateAsync(ModelIdentity model, InferenceProvider provider,
+            CpuThreadConfiguration configuration, CancellationToken token) => provider == InferenceProvider.Cpu
+                ? ValueTask.FromException<IInferenceSession>(new InvalidOperationException("Explicit GPU session failed."))
+                : inner.CreateAsync(model, provider, configuration, token);
+    }
 }
 
 internal sealed class CalibrationOcrReader(ITextRecognizer recognizer, OcrPipelineOptions options,
-    IAsyncDisposable owner, IReadOnlyList<CalibrationOcrRuntimeFile> runtimeFiles) : IAsyncDisposable
+    IAsyncDisposable owner, IReadOnlyList<CalibrationOcrRuntimeFile> runtimeFiles, string provider = "Cpu",
+    DirectMlAdapterSelection? adapter = null, string? adapterName = null, string? fallbackReason = null) : IAsyncDisposable
 {
     internal ITextRecognizer Recognizer { get; } = recognizer;
     internal OcrPipelineOptions Options { get; } = options;
     internal IReadOnlyList<CalibrationOcrRuntimeFile> RuntimeFiles { get; } = runtimeFiles;
+    internal string Provider { get; } = provider;
+    internal DirectMlAdapterSelection? Adapter { get; } = adapter;
+    internal string? AdapterName { get; } = adapterName;
+    internal string? FallbackReason { get; } = fallbackReason;
     public ValueTask DisposeAsync() => owner.DisposeAsync();
 }
 

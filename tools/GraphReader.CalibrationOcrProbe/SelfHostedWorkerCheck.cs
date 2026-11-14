@@ -11,7 +11,8 @@ namespace GraphReader.CalibrationOcrProbe;
 internal static class SelfHostedWorkerCheck
 {
     internal static async Task<object> RunAsync(Program.ProbeRequest source, string requestHash,
-        string executablePath, string assetRoot, CancellationToken cancellationToken)
+        string executablePath, string assetRoot, CalibrationOcrDeviceSelection? device,
+        CancellationToken cancellationToken)
     {
         if (source.Scope != "owned-synthetic-review-only" || source.SourceCropXywh is not { Length: 4 } crop ||
             source.PlotLtrb is not { Length: 4 } plot || !Path.IsPathFullyQualified(source.ImagePath) ||
@@ -42,7 +43,8 @@ internal static class SelfHostedWorkerCheck
             Program.Hash(panel), crop[2], crop[3], new(plot[0], plot[1], plot[2], plot[3]));
         string fullExe = Path.GetFullPath(executablePath);
         HashSet<int> baseline = ProcessIds(fullExe);
-        var client = new CalibrationOcrWorkerClient(fullExe, Path.GetFullPath(assetRoot));
+        CalibrationOcrDeviceSelection selection = device ?? CalibrationOcrDeviceSelection.Cpu;
+        var client = new CalibrationOcrWorkerClient(fullExe, Path.GetFullPath(assetRoot), () => selection);
         CalibrationOcrResponse cold, warm, restarted;
         int coldPid = 0, restartPid = 0;
         bool cancelled = false;
@@ -50,12 +52,12 @@ internal static class SelfHostedWorkerCheck
         try
         {
             cold = await client.SuggestAsync(request, panel, cancellationToken);
-            RequireSuccess(cold, request, false);
+            RequireSuccess(cold, request, false, selection.Provider);
             coldPid = FindOnlyNewProcess(fullExe, baseline);
             coldProcess = Process.GetProcessById(coldPid);
             CalibrationOcrRequest warmRequest = request with { RequestId = Guid.NewGuid().ToString("N") };
             warm = await client.SuggestAsync(warmRequest, panel, cancellationToken);
-            RequireSuccess(warm, warmRequest, true);
+            RequireSuccess(warm, warmRequest, true, selection.Provider);
             if (FindOnlyNewProcess(fullExe, baseline) != coldPid) throw new InvalidDataException("Warm request did not reuse the child.");
             using (var cancelledRequest = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
             {
@@ -67,7 +69,7 @@ internal static class SelfHostedWorkerCheck
             await WaitForExitAsync(coldProcess, cancellationToken);
             CalibrationOcrRequest restartedRequest = request with { RequestId = Guid.NewGuid().ToString("N") };
             restarted = await client.SuggestAsync(restartedRequest, panel, cancellationToken);
-            RequireSuccess(restarted, restartedRequest, false);
+            RequireSuccess(restarted, restartedRequest, false, selection.Provider);
             restartPid = FindOnlyNewProcess(fullExe, baseline);
             if (restartPid == coldPid) throw new InvalidDataException("Restart did not create a distinct child process.");
             restartProcess = Process.GetProcessById(restartPid);
@@ -90,20 +92,20 @@ internal static class SelfHostedWorkerCheck
         finally { coldProcess?.Dispose(); restartProcess?.Dispose(); }
     }
 
-    private static void RequireSuccess(CalibrationOcrResponse response, CalibrationOcrRequest request, bool reused)
+    private static void RequireSuccess(CalibrationOcrResponse response, CalibrationOcrRequest request, bool reused,
+        string expectedProvider)
     {
         if (response.FailureCode is not null || response.Request != request || response.Timings is null ||
             response.Timings.ReusedSession != reused || response.Runtime is null ||
             response.Runtime.ModelSha256 != Program.ModelHash || response.Runtime.ManifestSha256 != Program.ManifestHash ||
-            response.Runtime.Provider != "Cpu" || response.Runtime.SessionCreationCount != 1 ||
+            response.Runtime.Provider != expectedProvider || response.Runtime.SessionCreationCount != 1 ||
             !response.Runtime.CpuBudget.Verified || response.Runtime.CpuBudget.MaximumLogicalCores > .5)
             throw new InvalidDataException("Worker response failed the pinned identity, budget or session check.");
     }
 
     private static object Summarize(CalibrationOcrResponse response) => new
     {
-        response.Timings, memory = response.Runtime!.Memory, cpu_budget = response.Runtime.CpuBudget,
-        response.Runtime.SessionCreationCount, candidate_count = response.Proposals.Count,
+        response.Timings, response.Runtime, candidate_count = response.Proposals.Count,
         rows = response.Proposals.Select(row => new { row.Text, row.Role, row.SuggestedAxis, row.FailureCode, row.RequiresReview }).ToArray(),
         response.XSequence, response.YSequence,
     };

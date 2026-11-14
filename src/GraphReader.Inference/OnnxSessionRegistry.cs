@@ -465,18 +465,18 @@ public sealed class OnnxInferenceSessionFactory : IInferenceSessionFactory, IInf
             options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_DISABLE_ALL;
         }
 
+        options.ExecutionMode = ExecutionMode.ORT_SEQUENTIAL;
+        options.IntraOpNumThreads = cpuConfiguration.IntraOperationThreads;
+        options.InterOpNumThreads = cpuConfiguration.InterOperationThreads;
+
         if (provider == InferenceProvider.DirectMl)
         {
             // Required by the DirectML execution provider contract.
-            options.ExecutionMode = ExecutionMode.ORT_SEQUENTIAL;
             options.EnableMemoryPattern = false;
             options.AppendExecutionProvider_DML(_adapterSelection?.Index ?? 0);
         }
         else
         {
-            options.ExecutionMode = ExecutionMode.ORT_SEQUENTIAL;
-            options.IntraOpNumThreads = cpuConfiguration.IntraOperationThreads;
-            options.InterOpNumThreads = cpuConfiguration.InterOperationThreads;
             options.AppendExecutionProvider_CPU(1);
         }
 

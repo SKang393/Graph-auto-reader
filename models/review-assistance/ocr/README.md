@@ -13,6 +13,9 @@ The original conversion and license identities are recorded in
 [the official archive audit](../../manifest/ocr/PP_OCRV5_OFFICIAL_ARCHIVE_AUDIT.md).
 The current recognition-only observation is recorded in
 [the bounded probe result](../../../docs/CALIBRATION-OCR-PROBE-20261113.md).
+The manifest also declares the explicitly selected DirectML path measured in
+[the bounded hardware check](../../../docs/OCR-HARDWARE-CHECK-20261113.md).
+CPU remains the initial default; GPU sessions retain CPU limits and idle pacing.
 These do not establish full-scene accuracy or automatic calibration approval.
 
 `packaging/Stage-CalibrationReviewAssets.ps1` checks the exact model, manifest,

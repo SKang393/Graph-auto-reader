@@ -29,7 +29,8 @@ public sealed record ApplicationCompositionResult(
     IProductionDetectionMaskComposer? DetectionMaskComposer = null,
     IProductionOcrAdapter? OcrAdapter = null,
     IProductionWorkflowDetectionAdapter? AutomaticDetectionAdapter = null,
-    IProductionArtifactMaskAdapter? ArtifactMaskAdapter = null);
+    IProductionArtifactMaskAdapter? ArtifactMaskAdapter = null,
+    CalibrationOcrDeviceSettings? CalibrationOcrDevices = null);
 
 public static class ApplicationComposition
 {
@@ -272,6 +273,9 @@ public static class ApplicationComposition
                 inference?.Value is not null,
                 adapterAvailability,
                 DescribeEnhancementResolution(enhancementResolution));
+        CalibrationOcrDeviceSettings? calibrationDevices = environment == WorkflowRuntimeEnvironment.ManualPreview
+            ? new CalibrationOcrDeviceSettings(applicationPaths?.SettingsRoot)
+            : null;
         return environment switch
         {
             WorkflowRuntimeEnvironment.Production => CreateProduction(
@@ -300,8 +304,9 @@ public static class ApplicationComposition
                     pdfImportService: pdf.PdfImporter,
                     axisProposalService: new RustAxisProposalService(
                         Path.Combine(applicationRoot, "native", "graphreader-engine.exe")),
-                    calibrationOcrSuggestionService: CreateCalibrationOcrSuggestionService(applicationRoot)),
-                null),
+                    calibrationOcrSuggestionService: CreateCalibrationOcrSuggestionService(applicationRoot, calibrationDevices!)),
+                null,
+                CalibrationOcrDevices: calibrationDevices),
             WorkflowRuntimeEnvironment.RecordedFake => new ApplicationCompositionResult(
                 environment,
                 new FakeWorkspaceService(),
@@ -310,7 +315,8 @@ public static class ApplicationComposition
         };
     }
 
-    private static CalibrationOcrWorkerClient? CreateCalibrationOcrSuggestionService(string applicationRoot)
+    private static CalibrationOcrWorkerClient? CreateCalibrationOcrSuggestionService(string applicationRoot,
+        CalibrationOcrDeviceSettings devices)
     {
         string? requestedRoot = Environment.GetEnvironmentVariable(CalibrationOcrAssetsEnvironmentVariable);
         string assetRoot = string.IsNullOrWhiteSpace(requestedRoot)
@@ -328,7 +334,7 @@ public static class ApplicationComposition
             "PaddlePaddle-PP-OCRv5-Models-Apache-2.0.txt", "PaddlePaddle-PP-OCRv5-Models-Notice.txt",
         ];
         return requiredFiles.All(name => File.Exists(Path.Combine(assetRoot, name)))
-            ? new CalibrationOcrWorkerClient(executablePath, Path.GetFullPath(assetRoot))
+            ? new CalibrationOcrWorkerClient(executablePath, Path.GetFullPath(assetRoot), () => devices.SelectedDevice)
             : null;
     }
 

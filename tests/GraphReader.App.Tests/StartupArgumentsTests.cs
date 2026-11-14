@@ -16,6 +16,14 @@ public sealed class StartupArgumentsTests
         Assert.AreEqual(assetRoot, parsed.CalibrationOcrAssetsRoot);
         Assert.IsFalse(parsed.PortableSmoke);
         Assert.IsNull(parsed.OpenImagePath);
+        Assert.AreEqual("Cpu", parsed.CalibrationOcrDevice!.Provider);
+        StartupArguments gpu = StartupArguments.Parse(["--calibration-ocr-worker", assetRoot, "--directml", "2", "-42", "Fixture GPU"]);
+        Assert.AreEqual("DirectMl", gpu.CalibrationOcrDevice!.Provider);
+        Assert.AreEqual(2, gpu.CalibrationOcrDevice.AdapterIndex);
+        Assert.AreEqual(-42L, gpu.CalibrationOcrDevice.AdapterLuid);
+        Assert.ThrowsExactly<ArgumentException>(() => StartupArguments.Parse(["--calibration-ocr-worker", assetRoot, "--directml", "-1", "2", "GPU"]));
+        Assert.ThrowsExactly<ArgumentException>(() => StartupArguments.Parse(["--calibration-ocr-worker", assetRoot, "--directml", "0", "bad", "GPU"]));
+        Assert.ThrowsExactly<ArgumentException>(() => StartupArguments.Parse(["--calibration-ocr-worker", assetRoot, "--directml", "0", "2", "GPU", "--portable-smoke"]));
         Assert.ThrowsExactly<ArgumentException>(() => StartupArguments.Parse(["--calibration-ocr-worker"]));
         Assert.ThrowsExactly<ArgumentException>(() => StartupArguments.Parse(["--calibration-ocr-worker", "relative/assets"]));
         Assert.ThrowsExactly<ArgumentException>(() => StartupArguments.Parse(["--calibration-ocr-worker", assetRoot, "--portable-smoke"]));

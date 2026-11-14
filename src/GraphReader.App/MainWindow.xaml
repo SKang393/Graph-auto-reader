@@ -228,6 +228,21 @@
                 <ComboBoxItem Tag="{x:Static appearance:ApplicationTheme.Light}" Content="{DynamicResource Theme.Light}" />
                 <ComboBoxItem Tag="{x:Static appearance:ApplicationTheme.Dark}" Content="{DynamicResource Theme.Dark}" />
               </ComboBox>
+              <TextBlock Margin="0,14,0,4" FontWeight="SemiBold" Text="{DynamicResource Settings.AxisLabels.Title}" />
+              <ComboBox ItemsSource="{Binding CalibrationOcrDeviceChoices}"
+                        SelectedItem="{Binding SelectedCalibrationOcrDevice, Mode=TwoWay}"
+                        DisplayMemberPath="Label"
+                        IsEnabled="{Binding CanChangeCalibrationOcrDevice}"
+                        Style="{DynamicResource App.Style.ComboBox}"
+                        automation:AutomationProperties.AutomationId="Settings.AxisLabelDevice"
+                        automation:AutomationProperties.Name="{DynamicResource Settings.AxisLabels.Title}" />
+              <TextBlock Margin="0,6,0,0" Text="{DynamicResource Settings.AxisLabels.Help}" TextWrapping="Wrap"
+                         Foreground="{DynamicResource App.Brush.TextMuted}" />
+              <TextBlock Margin="0,4,0,0" Text="{Binding CalibrationDeviceStatusText}" TextWrapping="Wrap"
+                         automation:AutomationProperties.AutomationId="Settings.AxisLabelDeviceStatus"
+                         automation:AutomationProperties.Name="{Binding CalibrationDeviceStatusText}" />
+              <TextBlock Margin="0,4,0,0" Text="{Binding CalibrationDeviceRuntimeText}" TextWrapping="Wrap"
+                         Visibility="{Binding HasCalibrationDeviceRuntime, Converter={StaticResource BooleanToVisibilityConverter}}" />
               <Separator Margin="0,14,0,10" />
               <TextBlock FontSize="{DynamicResource App.FontSize.Subtitle}" FontWeight="SemiBold" Text="{DynamicResource About.Title}" />
               <TextBlock Margin="0,10,0,0" Text="{DynamicResource About.AppLicense}" TextWrapping="Wrap" />
@@ -988,6 +1003,11 @@
                          TextWrapping="Wrap"
                          automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.Status"
                          automation:AutomationProperties.Name="{Binding CalibrationLabelStatusText}" />
+              <TextBlock Text="{Binding CalibrationDeviceRuntimeText}" TextWrapping="Wrap" Margin="0,0,0,4"
+                         Foreground="{DynamicResource App.Brush.TextMuted}"
+                         Visibility="{Binding HasCalibrationDeviceRuntime, Converter={StaticResource BooleanToVisibilityConverter}}"
+                         automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.DeviceRuntime"
+                         automation:AutomationProperties.Name="{Binding CalibrationDeviceRuntimeText}" />
               <ListBox Margin="0,0,0,6"
                        Height="136"
                        Background="{DynamicResource App.Brush.Surface}"

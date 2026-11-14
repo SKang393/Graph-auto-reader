@@ -13,7 +13,7 @@ $DestinationRoot = [IO.Path]::GetFullPath($DestinationRoot)
 if (Test-Path -LiteralPath $DestinationRoot) { throw 'Review asset destination must be new; existing assets are never overwritten.' }
 $inputs = @(
     @{ Name='en_PP-OCRv5_mobile_rec.onnx'; Path=[IO.Path]::GetFullPath($ModelPath); Hash='7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743' },
-    @{ Name='recognizer.json'; Path=(Join-Path $repositoryRoot 'models/review-assistance/ocr/recognizer.json'); Hash='17259b3260c0d39b292be70b36e68d53a067992de3afeaf0809d4d981de4327a' },
+    @{ Name='recognizer.json'; Path=(Join-Path $repositoryRoot 'models/review-assistance/ocr/recognizer.json'); Hash='17d44e8e86fa60183c30531c05c02e8da463ea9632dd494cf039227e3c4b0b2a' },
     @{ Name='PaddlePaddle-PP-OCRv5-Models-Apache-2.0.txt'; Path=(Join-Path $repositoryRoot 'LICENSES/PaddlePaddle-PP-OCRv5-Models-Apache-2.0.txt'); Hash='c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4' },
     @{ Name='PaddlePaddle-PP-OCRv5-Models-Notice.txt'; Path=(Join-Path $repositoryRoot 'LICENSES/PaddlePaddle-PP-OCRv5-Models-Notice.txt'); Hash='8d81f5d0c58547cce471c24f82efe768a9d907d06764f67e90cc680c6d777729' }
 )

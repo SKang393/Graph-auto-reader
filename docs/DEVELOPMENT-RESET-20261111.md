@@ -92,7 +92,15 @@ cancellation, restart, disposal and explicit native value confirmation were
 checked. These are review-assistance observations, not automatic calibration
 accuracy or production approval. The next execution step is bounded hardware
 measurement and a visible, persisted backend choice; GPU presence alone must
-not change the conservative OCR default.
+not change the conservative OCR default. The subsequent
+[bounded hardware comparison](OCR-HARDWARE-CHECK-20261113.md) measured warm
+recognition including GPU pacing at 1.190 s on CPU, 0.235 s on RX 6600 XT and
+0.537 s on integrated Radeon, with matching outputs on one owned panel. GPU
+cold startup was slower. Saved device overrides, explicit CPU fallback and
+pacing are implemented and checked with the actual GPU worker. Native display
+was inspected; native saved-choice/reopen verification is waiting after the
+user stopped Computer Use (REV-011). Automatic selection on an unmeasured host
+remains pending and is the next independent implementation step.
 
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new

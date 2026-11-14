@@ -68,6 +68,14 @@ public sealed class DxgiAdapterSelectionTests
     }
 
     [TestMethod]
+    public void MissingWindowsAdapterDoesNotProduceEstimatedLocalMemoryBudget()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        Assert.IsNull(WindowsDxgiAdapterInventory.TryReadLocalMemoryBudget(
+            new DirectMlAdapterSelection(int.MaxValue, 0)));
+    }
+
+    [TestMethod]
     public async Task UnsupportedSelectedGpuFallsBackAndDoesNotShareUnscopedCache()
     {
         using var model = TestOnnxModel.CreateIdentity();

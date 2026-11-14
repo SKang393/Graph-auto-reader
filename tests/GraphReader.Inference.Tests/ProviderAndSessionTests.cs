@@ -78,6 +78,38 @@ public sealed class ProviderAndSessionTests
     }
 
     [TestMethod]
+    public void DirectMlFactoryAppliesExplicitThreadCountsWhenDeviceInitializes()
+    {
+        if (!new OrtExecutionProviderDiscovery().GetAvailableProviders()
+                .Contains("DmlExecutionProvider", StringComparer.OrdinalIgnoreCase))
+        {
+            Assert.Inconclusive("The installed ONNX Runtime does not expose DirectML.");
+        }
+
+        var factory = new OnnxInferenceSessionFactory(NoUiThreadGuard.Instance);
+        SessionOptions actual;
+        try
+        {
+            actual = factory.CreateSessionOptions(
+                InferenceProvider.DirectMl,
+                CpuThreadConfiguration.Create(1, new FixedCoreDetector(2)));
+        }
+        catch (OnnxRuntimeException error)
+        {
+            Assert.Inconclusive($"DirectML is packaged, but no usable device initialized: {error.Message}");
+            return;
+        }
+        using (actual)
+        {
+            Assert.AreEqual(ExecutionMode.ORT_SEQUENTIAL, actual.ExecutionMode);
+            Assert.AreEqual(1, actual.IntraOpNumThreads);
+            Assert.AreEqual(1, actual.InterOpNumThreads);
+            Assert.IsFalse(actual.EnableMemoryPattern);
+        }
+
+    }
+
+    [TestMethod]
     public void OnnxFactoryRejectsUnknownLoggingLevel()
     {
         Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>

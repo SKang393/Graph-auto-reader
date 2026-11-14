@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Globalization;
 using GraphReader.App.Integration.CalibrationOcr;
 using GraphReader.Ocr;
 
@@ -16,12 +17,15 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
     private static readonly string[] RuntimeFileNames = ["GraphReader.App", "GraphReader.Inference", "GraphReader.Ocr", "onnxruntime.dll"];
     private readonly string _executablePath;
     private readonly string _assetRoot;
+    private readonly Func<CalibrationOcrDeviceSelection> _deviceSelection;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly object _sync = new();
     private Process? _worker;
+    private CalibrationOcrDeviceSelection? _workerSelection;
     private bool _disposed;
 
-    public CalibrationOcrWorkerClient(string executablePath, string assetRoot)
+    public CalibrationOcrWorkerClient(string executablePath, string assetRoot,
+        Func<CalibrationOcrDeviceSelection>? deviceSelection = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(executablePath);
         ArgumentException.ThrowIfNullOrWhiteSpace(assetRoot);
@@ -29,6 +33,7 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
             throw new ArgumentException("OCR worker and asset paths must be absolute.");
         _executablePath = Path.GetFullPath(executablePath);
         _assetRoot = Path.GetFullPath(assetRoot);
+        _deviceSelection = deviceSelection ?? (() => CalibrationOcrDeviceSelection.Cpu);
     }
 
     public Task<CalibrationOcrResponse> SuggestAsync(CalibrationOcrRequest request,
@@ -47,7 +52,9 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
         {
             await _gate.WaitAsync(deadline.Token).ConfigureAwait(false);
             entered = true;
-            Process process = StartOrGetWorker();
+            CalibrationOcrDeviceSelection selection = _deviceSelection();
+            if (!ValidSelection(selection)) return CalibrationOcrResponse.Failure(request, CalibrationOcrReasonCodes.InvalidInput);
+            Process process = StartOrGetWorker(selection);
             using var stop = deadline.Token.Register(static state => ((CalibrationOcrWorkerClient)state!).StopWorker(), this);
             Task<CalibrationOcrResponse> reading = Task.Run(() => CalibrationOcrWire.ReadResponseAsync(process.StandardOutput.BaseStream, deadline.Token), CancellationToken.None);
             try { await CalibrationOcrWire.WriteRequestAsync(process.StandardInput.BaseStream, request, image, deadline.Token).ConfigureAwait(false); }
@@ -56,7 +63,7 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
             deadline.Token.ThrowIfCancellationRequested();
             if (response.Request is null && IsKnownFailure(response.FailureCode))
                 return CalibrationOcrResponse.Failure(request, response.FailureCode!);
-            if (!IsValidResponse(request, response)) return CalibrationOcrResponse.Failure(request, CalibrationOcrReasonCodes.InvalidFrame);
+            if (!IsValidResponse(request, response, selection)) return CalibrationOcrResponse.Failure(request, CalibrationOcrReasonCodes.InvalidFrame);
             keepWorker = !process.HasExited;
             return response;
         }
@@ -78,12 +85,13 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
         }
     }
 
-    private Process StartOrGetWorker()
+    private Process StartOrGetWorker(CalibrationOcrDeviceSelection selection)
     {
         lock (_sync)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            if (_worker is { HasExited: false }) return _worker;
+            if (_worker is { HasExited: false } && _workerSelection == selection) return _worker;
+            if (_worker is { HasExited: false }) StopWorker();
             _worker?.Dispose();
             var start = new ProcessStartInfo(_executablePath)
             {
@@ -92,10 +100,18 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
             };
             start.ArgumentList.Add("--calibration-ocr-worker");
             start.ArgumentList.Add(_assetRoot);
+            if (selection.Provider == "DirectMl")
+            {
+                start.ArgumentList.Add("--directml");
+                start.ArgumentList.Add(selection.AdapterIndex!.Value.ToString(CultureInfo.InvariantCulture));
+                start.ArgumentList.Add(selection.AdapterLuid!.Value.ToString(CultureInfo.InvariantCulture));
+                start.ArgumentList.Add(selection.AdapterName!);
+            }
             var process = new Process { StartInfo = start };
             try { if (!process.Start()) throw new InvalidOperationException(); }
             catch { process.Dispose(); throw; }
             _worker = process;
+            _workerSelection = selection;
             // Drain and discard stderr in fixed-size chunks so a noisy worker cannot block.
             _ = Task.Run(async () =>
             {
@@ -116,6 +132,7 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
         {
             Process? process = _worker;
             _worker = null;
+            _workerSelection = null;
             if (process is null) return;
             try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
             catch (InvalidOperationException) { }
@@ -141,7 +158,8 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
         plot.Left >= 0 && plot.Top >= 0 && plot.Right < request.Width && plot.Bottom < request.Height &&
         plot.Left < plot.Right && plot.Top < plot.Bottom;
 
-    internal static bool IsValidResponse(CalibrationOcrRequest request, CalibrationOcrResponse? response)
+    internal static bool IsValidResponse(CalibrationOcrRequest request, CalibrationOcrResponse? response,
+        CalibrationOcrDeviceSelection? selection = null)
     {
         if (response is null || response.Request != request || response.Proposals is null) return false;
         if (response.FailureCode is not null)
@@ -173,9 +191,20 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
             }
         }
         CalibrationOcrRuntime runtime = response.Runtime;
-        if (runtime.ModelSha256 != CalibrationOcrSession.ModelSha256 || runtime.ManifestSha256 != CalibrationOcrSession.ManifestSha256 || runtime.Provider != "Cpu" ||
+        if (runtime.ModelSha256 != CalibrationOcrSession.ModelSha256 || runtime.ManifestSha256 != CalibrationOcrSession.ManifestSha256 ||
+            runtime.Provider is not ("Cpu" or "DirectMl") || runtime.RequestedProvider is not ("Cpu" or "DirectMl") ||
+            (selection is not null && runtime.RequestedProvider != selection.Provider) ||
+            (runtime.Provider == "Cpu" && (runtime.AdapterIndex is not null || runtime.AdapterLuid is not null || runtime.AdapterName is not null || runtime.PacingRatio != 0 ||
+                (runtime.RequestedProvider == "Cpu" ? runtime.FallbackReason is not null : runtime.FallbackReason is not
+                    ("CALIBRATION_OCR_ADAPTER_UNAVAILABLE" or "CALIBRATION_OCR_GPU_MEMORY_BUDGET_UNAVAILABLE" or
+                     "CALIBRATION_OCR_GPU_MEMORY_HEADROOM_LOW" or "CALIBRATION_OCR_DIRECTML_SESSION_FAILED" or
+                     "CALIBRATION_OCR_DIRECTML_INFERENCE_FAILED")))) ||
+            (runtime.Provider == "DirectMl" && (runtime.RequestedProvider != "DirectMl" || runtime.AdapterIndex is null or < 0 || runtime.AdapterLuid is null ||
+                string.IsNullOrWhiteSpace(runtime.AdapterName) || runtime.FallbackReason is not null || runtime.PacingRatio != 1 ||
+                (selection is not null && (runtime.AdapterIndex != selection.AdapterIndex || runtime.AdapterLuid != selection.AdapterLuid)))) ||
             runtime.IntraOperationThreads != 1 || runtime.InterOperationThreads != 1 || runtime.WorkerCount != 1 ||
-            runtime.SessionCreationCount != 1 || runtime.PersistentCache || runtime.CpuBudget is not { } budget ||
+            (runtime.SessionCreationCount != 1 && !(runtime.Provider == "Cpu" && runtime.RequestedProvider == "DirectMl" && runtime.SessionCreationCount == 2)) ||
+            runtime.PersistentCache || runtime.CpuBudget is not { } budget ||
             !budget.Verified || budget.PriorityClass != "BelowNormal" || budget.LogicalProcessors == 0 || budget.Rate == 0 || budget.Rate != 5000 / budget.LogicalProcessors ||
             !double.IsFinite(budget.MaximumLogicalCores) || budget.MaximumLogicalCores is <= 0 or > 0.5 ||
             runtime.Files is null || runtime.Files.Count != 4 || runtime.Files.Any(file => file is null || !IsSha(file.Sha256)) ||
@@ -184,7 +213,7 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
             return false;
         return ValidSequence(response.XSequence, response.Proposals.Count) && ValidSequence(response.YSequence, response.Proposals.Count) &&
             new[] { response.Timings.DecodeMilliseconds, response.Timings.ComponentMilliseconds, response.Timings.CropMilliseconds,
-                response.Timings.InitializationMilliseconds, response.Timings.RecognitionMilliseconds, response.Timings.TotalMilliseconds }
+                response.Timings.InitializationMilliseconds, response.Timings.RecognitionMilliseconds, response.Timings.PacingMilliseconds, response.Timings.TotalMilliseconds }
                 .All(value => double.IsFinite(value) && value >= 0);
     }
 
@@ -194,6 +223,10 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
         value.Reasons is not null && value.Reasons.All(reason => !string.IsNullOrWhiteSpace(reason));
 
     private static bool IsSha(string? value) => value is { Length: 64 } && value.All(Uri.IsHexDigit);
+    internal static bool ValidSelection(CalibrationOcrDeviceSelection? selection) => selection is not null &&
+        (selection.Provider == "Cpu" && selection.AdapterIndex is null && selection.AdapterLuid is null && selection.AdapterName is null ||
+         selection.Provider == "DirectMl" && selection.AdapterIndex is >= 0 && selection.AdapterLuid is not null &&
+         !string.IsNullOrWhiteSpace(selection.AdapterName) && selection.AdapterName.Length <= 256);
     private static bool IsKnownFailure(string? value) => value is CalibrationOcrReasonCodes.Unavailable or
         CalibrationOcrReasonCodes.InvalidInput or CalibrationOcrReasonCodes.AssetMismatch or CalibrationOcrReasonCodes.ResourceUnavailable or
         CalibrationOcrReasonCodes.Timeout or CalibrationOcrReasonCodes.InvalidFrame or CalibrationOcrReasonCodes.Cancelled or

@@ -67,7 +67,8 @@ public partial class MainWindow : Window
             application?.LocalizationService,
             application?.StartupErrorMessageKey,
             new WindowsWorkspaceDialogService(application?.LocalizationService),
-            ResolveLayoutPath("recent-projects.txt"));
+            ResolveLayoutPath("recent-projects.txt"),
+            calibrationOcrDevices: application?.CalibrationOcrDevices);
         _autosaveTimer = new DispatcherTimer(DispatcherPriority.Background, Dispatcher)
         {
             Interval = TimeSpan.FromMinutes(1),

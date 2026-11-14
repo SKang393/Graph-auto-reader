@@ -9,6 +9,28 @@ namespace GraphReader.App.Tests;
 public sealed class CalibrationOcrClientTests
 {
     [TestMethod]
+    public void DirectMlResponseMustMatchSelectionOrExposeCpuFallback()
+    {
+        CalibrationOcrRequest request = Request();
+        CalibrationOcrResponse original = Success(request);
+        var selection = new CalibrationOcrDeviceSelection("DirectMl", 2, 42, "Fixture GPU");
+        CalibrationOcrRuntime gpu = original.Runtime! with { RequestedProvider = "DirectMl", Provider = "DirectMl",
+            AdapterIndex = 2, AdapterLuid = 42, AdapterName = "Fixture GPU", PacingRatio = 1 };
+        Assert.IsTrue(CalibrationOcrWorkerClient.IsValidResponse(request, original with { Runtime = gpu }, selection));
+        Assert.IsFalse(CalibrationOcrWorkerClient.IsValidResponse(request, original with { Runtime = gpu with { AdapterLuid = 43 } }, selection));
+        Assert.IsFalse(CalibrationOcrWorkerClient.IsValidResponse(request, original with { Runtime = gpu with { PacingRatio = 0 } }, selection));
+        CalibrationOcrRuntime fallback = original.Runtime! with { RequestedProvider = "DirectMl", FallbackReason = "CALIBRATION_OCR_DIRECTML_SESSION_FAILED" };
+        Assert.IsTrue(CalibrationOcrWorkerClient.IsValidResponse(request, original with { Runtime = fallback }, selection));
+        Assert.IsTrue(CalibrationOcrWorkerClient.IsValidResponse(request, original with { Runtime = fallback with { SessionCreationCount = 2 } }, selection));
+        Assert.IsFalse(CalibrationOcrWorkerClient.IsValidResponse(request, original with { Runtime = fallback with { SessionCreationCount = 3 } }, selection));
+        Assert.IsFalse(CalibrationOcrWorkerClient.IsValidResponse(request, original with { Runtime = gpu with { SessionCreationCount = 2 } }, selection));
+        Assert.IsFalse(CalibrationOcrWorkerClient.IsValidResponse(request, original with { Runtime = fallback with { FallbackReason = null } }, selection));
+        Assert.IsFalse(CalibrationOcrWorkerClient.IsValidResponse(request,
+            original with { Runtime = fallback with { FallbackReason = "unknown_test_reason" } }, selection),
+            "Unknown fallback reasons must be rejected before the UI can claim an actual runtime.");
+        Assert.IsFalse(CalibrationOcrWorkerClient.ValidSelection(new("DirectMl", -1, 42, "GPU")));
+    }
+    [TestMethod]
     public void RejectsChangedIdentityUnreviewedOutOfBoundsAndUnknownRoles()
     {
         CalibrationOcrRequest request = Request();

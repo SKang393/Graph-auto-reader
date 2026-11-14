@@ -32,7 +32,10 @@ public sealed record CalibrationOcrSequenceCheck(bool NeedsReview, int Candidate
     int RejectedCount, IReadOnlyList<string> Reasons);
 public sealed record CalibrationOcrTimings(double DecodeMilliseconds, double ComponentMilliseconds,
     double CropMilliseconds, double InitializationMilliseconds, double RecognitionMilliseconds,
-    double TotalMilliseconds, bool ReusedSession);
+    double TotalMilliseconds, bool ReusedSession)
+{
+    public double PacingMilliseconds { get; init; }
+}
 public sealed record CalibrationOcrCpuBudget(uint LogicalProcessors, uint Rate, double MaximumLogicalCores, bool Verified)
 {
     public string PriorityClass { get; init; } = "BelowNormal";
@@ -43,7 +46,15 @@ public sealed record CalibrationOcrRuntimeFile(string Name, string Sha256);
 public sealed record CalibrationOcrRuntime(string ModelSha256, string ManifestSha256, string Provider,
     int IntraOperationThreads, int InterOperationThreads, int WorkerCount, int SessionCreationCount,
     bool PersistentCache, CalibrationOcrCpuBudget CpuBudget, CalibrationOcrProcessMemory Memory,
-    IReadOnlyList<CalibrationOcrRuntimeFile> Files);
+    IReadOnlyList<CalibrationOcrRuntimeFile> Files)
+{
+    public string RequestedProvider { get; init; } = "Cpu";
+    public int? AdapterIndex { get; init; }
+    public long? AdapterLuid { get; init; }
+    public string? AdapterName { get; init; }
+    public string? FallbackReason { get; init; }
+    public double PacingRatio { get; init; }
+}
 public sealed record CalibrationOcrResponse(CalibrationOcrRequest? Request,
     IReadOnlyList<CalibrationOcrProposal> Proposals, CalibrationOcrSequenceCheck? XSequence,
     CalibrationOcrSequenceCheck? YSequence, CalibrationOcrTimings? Timings,

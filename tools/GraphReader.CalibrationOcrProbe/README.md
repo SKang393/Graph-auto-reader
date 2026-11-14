@@ -60,3 +60,29 @@ verifies its own budget before inference. The combined deadline is 360 seconds,
 with a 365-second hard watchdog. This check does not approve a model or report
 accuracy. Run it only on an explicitly identified owned synthetic source after
 execution has been authorized.
+
+`--hardware-check <absolute-owned-request.json>` runs separate hidden probe
+children sequentially: CPU first, then at most two nonsoftware DXGI adapters
+using their original index and LUID. Each child checks the same pinned source,
+model, manifest and notices and compares candidate identity with CPU. Each
+uses one session, one CPU inference thread and one in-flight request; the
+existing Windows CPU job is applied before work. The GPU diagnostic refuses
+fallback to a separate CPU session; a DirectML session may still execute some
+kernels on CPU. Failed or unsupported providers are recorded as failures.
+
+Each provider runs one cold and three warm recognition rounds. GPU batches
+are followed by a delay at least as long as the measured batch duration; this
+is pacing, not a hard GPU utilization limit. The report includes timings,
+process memory, available DXGI local-memory budget snapshots, and per-round
+text/value/polygon differences against CPU. It is an owned-input consistency
+diagnostic, not an accuracy claim, provider selection, model approval or
+production change. Each child has a 45-second parent deadline and the parent
+has a 150-second hard deadline. No image or model copy is written.
+
+`--gpu-worker-check <owned-request.json> <absolute-App-exe> <asset-root> <DXGI-index> <LUID>`
+runs the same actual-client lifecycle check against an explicitly identified
+hardware adapter. It requires the successful responses to report DirectML;
+CPU fallback is not counted as a GPU check. It records the full runtime identity,
+resource budget and separate pacing timings. Cancellation still must end the
+owned worker, and the restarted worker must initialize a fresh session. It does
+not change saved application settings or run a provider-selection benchmark.

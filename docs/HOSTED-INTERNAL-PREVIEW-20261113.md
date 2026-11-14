@@ -114,8 +114,10 @@ Production smoke exited 2. Source CI `43528642593` passed separately.
 - Artifact expiry: 2027-02-11. No installer, public release or production
   approval was created.
 
-After this ledger reaches main, replace `latest.json`, retain the new ZIP and
-one extracted build, and retire the previous 468-file build (185,973,726 bytes),
-its 79,867,980-byte ZIP, and the incoming outer archive/receipt/QA scratch.
-Preserve the shared user `Data` directory. The replacement record is the
-prerequisite for that routine cleanup; it is not a clean-machine acceptance claim.
+After the ledger reached main in `d93d8f1f`, `latest.json` was switched to
+0.4.38. Exactly one extracted build and one package remain. Cleanup retired
+474 files, 353,027,806 bytes: the prior build and ZIP, incoming outer archive,
+receipt, QA scratch and temporary pointer backup. Shared user `Data` was
+preserved. The first atomic pointer replacement rejected an empty backup path;
+retrying with an explicit temporary backup succeeded before any old build was
+deleted. This delivery record is not a clean-machine acceptance claim.

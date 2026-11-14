@@ -273,6 +273,24 @@
 
   <sys:String x:Key="Theme.Label">Theme</sys:String>
   <sys:String x:Key="Settings.Title">Settings</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.Title">Axis label processing</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.Help">CPU is the default. The first GPU read can take longer while it gets ready. Changes apply to the next label read. CPU use stays limited, and GPU work is paced.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.Cpu">CPU (default)</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.Gpu">GPU: {0}</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.UnnamedGpu">Graphics device {0}</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.Saved">Device saved. It will be used for the next label read.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.SaveFailed">The device choice could not be saved. The previous choice is kept.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.DeviceUnavailable">That graphics device is unavailable. Choose CPU or another listed device.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.EnumerationFailed">Graphics devices could not be checked. CPU remains available.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.SavedChoiceInvalid">The saved choice could not be used. CPU is selected.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.LastCpu">Last completed label read: CPU.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.LastCpuFallback">Last completed label read: CPU. The selected GPU could not be used.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.LastGpu">Last completed label read: GPU, {0}.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.FallbackAdapter">The selected GPU is unavailable. CPU completed this read.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.FallbackMemoryCheck">GPU memory could not be checked. CPU completed this read.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.FallbackMemoryLow">The GPU did not have enough free memory. CPU completed this read.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.FallbackStartup">The GPU could not get ready. CPU completed this read.</sys:String>
+  <sys:String x:Key="Settings.AxisLabels.FallbackReading">The GPU could not finish reading labels. CPU completed this read.</sys:String>
   <sys:String x:Key="Theme.System">System</sys:String>
   <sys:String x:Key="Theme.Light">Light</sys:String>
   <sys:String x:Key="Theme.Dark">Dark</sys:String>

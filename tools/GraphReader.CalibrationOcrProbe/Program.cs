@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -9,6 +10,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GraphReader.App.Integration.Workflow;
+using GraphReader.App.Services;
 using GraphReader.Inference;
 using GraphReader.Ocr;
 
@@ -17,7 +19,7 @@ namespace GraphReader.CalibrationOcrProbe;
 internal static class Program
 {
     internal const string ModelHash = "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743";
-    internal const string ManifestHash = "17259b3260c0d39b292be70b36e68d53a067992de3afeaf0809d4d981de4327a";
+    internal const string ManifestHash = "17d44e8e86fa60183c30531c05c02e8da463ea9632dd494cf039227e3c4b0b2a";
     private const int MaximumOutputBytes = 1_000_000;
     internal static readonly JsonSerializerOptions Json = new()
     {
@@ -29,23 +31,53 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
-        bool workerCheck = args.Length > 0 && args[0] == "--worker-check";
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(workerCheck ? 360 : 170));
+        bool workerCheck = args.Length > 0 && args[0] is "--worker-check" or "--gpu-worker-check";
+        bool hardwareCheck = args.Length > 0 && args[0] == "--hardware-check";
+        bool hardwareChild = args.Length > 0 && args[0] == "--hardware-child";
+        int seconds = workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--hardware-check", var hardwareRequest])
+            {
+                Emit(await HardwareCheck.RunParentAsync(hardwareRequest, deadline.Token));
+                return 0;
+            }
+            if (hardwareCheck) throw new InvalidDataException("Usage: --hardware-check <absolute-owned-request.json>");
+            if (args is ["--hardware-child", var childRequest, var childProvider, var childIndex, var childLuid])
+            {
+                using CpuBudgetJob childBudget = CpuBudgetJob.Apply();
+                Emit(await HardwareCheck.RunChildAsync(childRequest, childProvider, childIndex, childLuid, childBudget, deadline.Token));
+                return 0;
+            }
+            if (hardwareChild) throw new InvalidDataException("Invalid hardware child arguments.");
             if (args is ["--worker-check", var workerRequest, var appExe, var assetRoot])
             {
                 byte[] input = ReadBounded(workerRequest, 32_768);
                 ProbeRequest ownedRequest = JsonSerializer.Deserialize<ProbeRequest>(input, Json)
                     ?? throw new InvalidDataException("Missing request.");
-                Emit(await SelfHostedWorkerCheck.RunAsync(ownedRequest, Hash(input), appExe, assetRoot, deadline.Token));
+                Emit(await SelfHostedWorkerCheck.RunAsync(ownedRequest, Hash(input), appExe, assetRoot, null, deadline.Token));
+                return 0;
+            }
+            if (args is ["--gpu-worker-check", var gpuRequest, var gpuApp, var gpuAssets, var gpuIndex, var gpuLuid])
+            {
+                if (!int.TryParse(gpuIndex, NumberStyles.None, CultureInfo.InvariantCulture, out int index) || index < 0 ||
+                    !long.TryParse(gpuLuid, NumberStyles.Integer, CultureInfo.InvariantCulture, out long luid))
+                    throw new InvalidDataException("Explicit DXGI index and LUID required.");
+                byte[] input = ReadBounded(gpuRequest, 32_768);
+                ProbeRequest ownedRequest = JsonSerializer.Deserialize<ProbeRequest>(input, Json)
+                    ?? throw new InvalidDataException("Missing request.");
+                DxgiAdapter adapter = new WindowsDxgiAdapterInventory().Enumerate()
+                    .Single(candidate => candidate.Index == index && candidate.Luid == luid && !candidate.IsSoftware);
+                Emit(await SelfHostedWorkerCheck.RunAsync(ownedRequest, Hash(input), gpuApp, gpuAssets,
+                    new CalibrationOcrDeviceSelection("DirectMl", index, luid, adapter.Name), deadline.Token));
                 return 0;
             }
             if (workerCheck) throw new InvalidDataException("Usage: --worker-check <request.json> <absolute-App-exe> <asset-root>");
@@ -181,7 +213,7 @@ internal static class Program
         };
     }
 
-    private static (OcrImage Image, int Width, int Height) Decode(byte[] encoded, int[] crop)
+    internal static (OcrImage Image, int Width, int Height) Decode(byte[] encoded, int[] crop)
     {
         using var stream = new MemoryStream(encoded, writable: false);
         BitmapFrame frame = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad).Frames[0];
@@ -225,7 +257,7 @@ internal static class Program
         }
     }
 
-    private sealed class NoCache : IStageCache
+    internal sealed class NoCache : IStageCache
     {
         public ValueTask<byte[]?> TryGetAsync(StageCacheKey key, CancellationToken cancellationToken) => ValueTask.FromResult<byte[]?>(null);
         public ValueTask PutAsync(StageCacheKey key, ReadOnlyMemory<byte> value, CancellationToken cancellationToken) => ValueTask.CompletedTask;

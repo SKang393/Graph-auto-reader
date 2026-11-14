@@ -20,13 +20,20 @@
   "commercial_use": true,
   "redistribution": true,
   "providers": [
-    "cpu"
+    "cpu",
+    "directml"
   ],
   "benchmarks": [
     {
       "scope": "local-synthetic-seed-diagnostic",
       "production_approved": false,
       "accuracy_status": "not-evaluated-by-this-tool"
+    },
+    {
+      "scope": "bounded-owned-input-hardware-diagnostic",
+      "reference": "docs/OCR-HARDWARE-CHECK-20261113.md",
+      "production_approved": false,
+      "accuracy_status": "not-evaluated"
     }
   ],
   "inputs": [

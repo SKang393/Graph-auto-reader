@@ -10,7 +10,8 @@ namespace GraphReader.App.Integration.CalibrationOcr;
 internal static class CalibrationOcrWorker
 {
     internal static async Task<int> RunAsync(string assetRoot, WorkflowRuntimeEnvironment environment,
-        Stream input, Stream output, CancellationToken cancellationToken = default)
+        Stream input, Stream output, CalibrationOcrDeviceSelection? deviceSelection = null,
+        CancellationToken cancellationToken = default)
     {
         if (environment != WorkflowRuntimeEnvironment.ManualPreview ||
             string.IsNullOrWhiteSpace(assetRoot) || !Path.IsPathFullyQualified(assetRoot) || !Directory.Exists(assetRoot))
@@ -32,7 +33,7 @@ internal static class CalibrationOcrWorker
         using (job)
         {
             // The reader factory is lazy: no OCR or ONNX initialization precedes the verified Job.
-            return await RunLoopAsync(input, output, new CalibrationOcrSession(assetRoot, job.Budget), cancellationToken).ConfigureAwait(false);
+            return await RunLoopAsync(input, output, new CalibrationOcrSession(assetRoot, job.Budget, deviceSelection), cancellationToken).ConfigureAwait(false);
         }
     }
 

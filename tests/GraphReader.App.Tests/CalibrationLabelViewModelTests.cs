@@ -17,6 +17,49 @@ namespace GraphReader.App.Tests;
 public sealed class CalibrationLabelViewModelTests
 {
     [TestMethod]
+    [DataRow("Cpu", null, LocalizationKeys.SettingsAxisLabelsLastCpu)]
+    [DataRow("DirectMl", null, LocalizationKeys.SettingsAxisLabelsLastGpu)]
+    [DataRow("Cpu", "CALIBRATION_OCR_ADAPTER_UNAVAILABLE", LocalizationKeys.SettingsAxisLabelsFallbackAdapter)]
+    [DataRow("Cpu", "CALIBRATION_OCR_GPU_MEMORY_BUDGET_UNAVAILABLE", LocalizationKeys.SettingsAxisLabelsFallbackMemoryCheck)]
+    [DataRow("Cpu", "CALIBRATION_OCR_GPU_MEMORY_HEADROOM_LOW", LocalizationKeys.SettingsAxisLabelsFallbackMemoryLow)]
+    [DataRow("Cpu", "CALIBRATION_OCR_DIRECTML_SESSION_FAILED", LocalizationKeys.SettingsAxisLabelsFallbackStartup)]
+    [DataRow("Cpu", "CALIBRATION_OCR_DIRECTML_INFERENCE_FAILED", LocalizationKeys.SettingsAxisLabelsFallbackReading)]
+    public void LastRuntimeShowsActualDeviceAndCpuFallback(string provider, string? fallbackCode, string expectedKey) => WithImage(path =>
+    {
+        var reader = new CalibrationOcrStub(request =>
+        {
+            CalibrationOcrResponse response = ResponseFor(DefaultProposals(), request);
+            return Task.FromResult(response with
+            {
+                Runtime = response.Runtime! with
+                {
+                    Provider = provider,
+                    RequestedProvider = provider == "DirectMl" || fallbackCode is not null ? "DirectMl" : "Cpu",
+                    AdapterIndex = provider == "DirectMl" ? 1 : null,
+                    AdapterLuid = provider == "DirectMl" ? 200 : null,
+                    AdapterName = provider == "DirectMl" ? "Test graphics" : null,
+                    PacingRatio = provider == "DirectMl" ? 1 : 0,
+                    FallbackReason = fallbackCode,
+                },
+            });
+        });
+        using var workspace = new ManualPreviewWorkspaceService(
+            axisProposalService: new AxisProposalStub(), calibrationOcrSuggestionService: reader);
+        Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
+        Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+        var localization = new LocalizationService(new ResourceDictionary());
+        using var vm = new MainWindowViewModel(workspace, localization);
+        Assert.IsFalse(vm.HasCalibrationDeviceRuntime);
+        Pump(vm.SuggestAxesAsync(CancellationToken.None));
+        Pump(vm.ReadCalibrationLabelsAsync(CancellationToken.None));
+        Assert.IsTrue(vm.HasCalibrationDeviceRuntime);
+        Assert.AreEqual(string.Format(CultureInfo.CurrentCulture, localization.GetString(expectedKey), "Test graphics"),
+            vm.CalibrationDeviceRuntimeText);
+        vm.DismissAxisSuggestionCommand.Execute(null);
+        Assert.IsTrue(vm.HasCalibrationDeviceRuntime, "The last completed read remains identifiable after dismissing a proposal.");
+    });
+
+    [TestMethod]
     public void LabelsAreReviewOnlyUntilAUserSelectsAndConfirmsValues() => WithImage(path =>
     {
         var reader = new CalibrationOcrStub();

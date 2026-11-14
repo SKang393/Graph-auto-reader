@@ -266,6 +266,24 @@ public static class LocalizationKeys
     public const string SeriesSplitLabel = "Series.Split.Label";
     public const string ThemeLabel = "Theme.Label";
     public const string SettingsTitle = "Settings.Title";
+    public const string SettingsAxisLabelsTitle = "Settings.AxisLabels.Title";
+    public const string SettingsAxisLabelsHelp = "Settings.AxisLabels.Help";
+    public const string SettingsAxisLabelsCpu = "Settings.AxisLabels.Cpu";
+    public const string SettingsAxisLabelsGpu = "Settings.AxisLabels.Gpu";
+    public const string SettingsAxisLabelsUnnamedGpu = "Settings.AxisLabels.UnnamedGpu";
+    public const string SettingsAxisLabelsSaved = "Settings.AxisLabels.Saved";
+    public const string SettingsAxisLabelsSaveFailed = "Settings.AxisLabels.SaveFailed";
+    public const string SettingsAxisLabelsDeviceUnavailable = "Settings.AxisLabels.DeviceUnavailable";
+    public const string SettingsAxisLabelsEnumerationFailed = "Settings.AxisLabels.EnumerationFailed";
+    public const string SettingsAxisLabelsSavedChoiceInvalid = "Settings.AxisLabels.SavedChoiceInvalid";
+    public const string SettingsAxisLabelsLastCpu = "Settings.AxisLabels.LastCpu";
+    public const string SettingsAxisLabelsLastCpuFallback = "Settings.AxisLabels.LastCpuFallback";
+    public const string SettingsAxisLabelsLastGpu = "Settings.AxisLabels.LastGpu";
+    public const string SettingsAxisLabelsFallbackAdapter = "Settings.AxisLabels.FallbackAdapter";
+    public const string SettingsAxisLabelsFallbackMemoryCheck = "Settings.AxisLabels.FallbackMemoryCheck";
+    public const string SettingsAxisLabelsFallbackMemoryLow = "Settings.AxisLabels.FallbackMemoryLow";
+    public const string SettingsAxisLabelsFallbackStartup = "Settings.AxisLabels.FallbackStartup";
+    public const string SettingsAxisLabelsFallbackReading = "Settings.AxisLabels.FallbackReading";
     public const string ThemeSystem = "Theme.System";
     public const string ThemeLight = "Theme.Light";
     public const string ThemeDark = "Theme.Dark";
@@ -556,6 +574,24 @@ public static class LocalizationKeys
         SeriesSplitLabel,
         ThemeLabel,
         SettingsTitle,
+        SettingsAxisLabelsTitle,
+        SettingsAxisLabelsHelp,
+        SettingsAxisLabelsCpu,
+        SettingsAxisLabelsGpu,
+        SettingsAxisLabelsUnnamedGpu,
+        SettingsAxisLabelsSaved,
+        SettingsAxisLabelsSaveFailed,
+        SettingsAxisLabelsDeviceUnavailable,
+        SettingsAxisLabelsEnumerationFailed,
+        SettingsAxisLabelsSavedChoiceInvalid,
+        SettingsAxisLabelsLastCpu,
+        SettingsAxisLabelsLastCpuFallback,
+        SettingsAxisLabelsLastGpu,
+        SettingsAxisLabelsFallbackAdapter,
+        SettingsAxisLabelsFallbackMemoryCheck,
+        SettingsAxisLabelsFallbackMemoryLow,
+        SettingsAxisLabelsFallbackStartup,
+        SettingsAxisLabelsFallbackReading,
         ThemeSystem,
         ThemeLight,
         ThemeDark,

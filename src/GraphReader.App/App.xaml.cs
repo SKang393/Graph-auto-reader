@@ -35,6 +35,8 @@ public partial class App : Application, IDisposable
 
     public IWorkspaceService WorkspaceService { get; private set; } = new UnavailableWorkspaceService();
 
+    public CalibrationOcrDeviceSettings? CalibrationOcrDevices { get; private set; }
+
     public WorkflowRuntimeEnvironment RuntimeEnvironment { get; private set; }
 
     protected override async void OnStartup(StartupEventArgs e)
@@ -49,7 +51,8 @@ public partial class App : Application, IDisposable
                 string assetRoot = workerArguments.CalibrationOcrAssetsRoot!;
                 int exitCode = await Task.Run(() => CalibrationOcrWorker.RunAsync(
                     assetRoot, RuntimeModeSelector.SelectBuildDefault(),
-                    Console.OpenStandardInput(), Console.OpenStandardOutput()));
+                    Console.OpenStandardInput(), Console.OpenStandardOutput(),
+                    deviceSelection: workerArguments.CalibrationOcrDevice));
                 Shutdown(exitCode);
             }
             catch (Exception)
@@ -89,6 +92,7 @@ public partial class App : Application, IDisposable
             ApplicationPaths,
             cancellationToken: CancellationToken.None);
         WorkspaceService = composition.WorkspaceService;
+        CalibrationOcrDevices = composition.CalibrationOcrDevices;
         _inferenceRuntimeHost = composition.InferenceRuntimeHost;
         WorkflowStartupError = composition.StartupError;
         StartupErrorMessageKey = StartupError?.UserMessageKey ?? WorkflowStartupError?.UserMessageKey;
