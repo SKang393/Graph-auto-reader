@@ -108,7 +108,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         IWorkspaceDialogService? dialogService = null,
         string? recentProjectsPath = null,
         Func<WorkspaceTabViewModel, IReadOnlyList<PipelineWarningPresentation>>? pipelineWarningsProvider = null,
-        CalibrationOcrDeviceSettings? calibrationOcrDevices = null)
+        CalibrationOcrDeviceSettings? calibrationOcrDevices = null,
+        CalibrationOcrDeviceOptimizer? calibrationDeviceOptimizer = null)
     {
         _workspaceService = workspaceService ?? throw new ArgumentNullException(nameof(workspaceService));
         _localizationService = localizationService;
@@ -323,7 +324,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 : GetLocalizedString(LocalizationKeys.WorkflowEnhanceUnavailable);
         RestoreManualCalibrationForm(_selectedTab);
         RefreshWorkspaceProjection();
-        InitializeCalibrationDevices(calibrationOcrDevices);
+        InitializeCalibrationDevices(calibrationOcrDevices, calibrationDeviceOptimizer);
     }
 
     public ObservableCollection<WorkspaceTabViewModel> Tabs { get; }

@@ -3,6 +3,13 @@
 
 # Calibration OCR probe
 
+`--automatic-device-check <absolute-App-exe> <absolute-assets> <absolute-empty-settings-root>`
+uses the real in-memory owned benchmark and checks automatic profile persistence,
+identity invalidation and an explicit CPU override. The supplied settings directory
+must already exist and be empty; it receives the test settings file. The parent has
+a 100-second hard deadline. No image is written. This is a review-only execution
+and consistency check, not an accuracy result or production approval.
+
 Diagnostic only. One explicitly identified owned synthetic source is cropped in
 memory. Component polygons in the existing axis-role geometry are recognized by
 the pinned English reader. Every result requires review. No calibration, numeric

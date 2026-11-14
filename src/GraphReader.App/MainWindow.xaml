@@ -236,6 +236,18 @@
                         Style="{DynamicResource App.Style.ComboBox}"
                         automation:AutomationProperties.AutomationId="Settings.AxisLabelDevice"
                         automation:AutomationProperties.Name="{DynamicResource Settings.AxisLabels.Title}" />
+              <WrapPanel Margin="0,6,0,0">
+                <Button Command="{Binding CheckCalibrationDevicesCommand}" IsEnabled="{Binding CanCheckCalibrationDevices}"
+                        Content="{DynamicResource Settings.AxisLabels.Check}" Margin="0,0,6,0"
+                        Style="{DynamicResource App.Style.Button}"
+                        automation:AutomationProperties.AutomationId="Settings.AxisLabelCheck"
+                        automation:AutomationProperties.Name="{DynamicResource Settings.AxisLabels.Check}" />
+                <Button Command="{Binding CancelCalibrationDeviceCheckCommand}" IsEnabled="{Binding CanCancelCalibrationDeviceCheck}"
+                        Content="{DynamicResource Settings.AxisLabels.CancelCheck}"
+                        Style="{DynamicResource App.Style.Button}"
+                        automation:AutomationProperties.AutomationId="Settings.AxisLabelCancelCheck"
+                        automation:AutomationProperties.Name="{DynamicResource Settings.AxisLabels.CancelCheck}" />
+              </WrapPanel>
               <TextBlock Margin="0,6,0,0" Text="{DynamicResource Settings.AxisLabels.Help}" TextWrapping="Wrap"
                          Foreground="{DynamicResource App.Brush.TextMuted}" />
               <TextBlock Margin="0,4,0,0" Text="{Binding CalibrationDeviceStatusText}" TextWrapping="Wrap"

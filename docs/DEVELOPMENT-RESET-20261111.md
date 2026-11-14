@@ -99,8 +99,13 @@ recognition including GPU pacing at 1.190 s on CPU, 0.235 s on RX 6600 XT and
 cold startup was slower. Saved device overrides, explicit CPU fallback and
 pacing are implemented and checked with the actual GPU worker. Native display
 was inspected; native saved-choice/reopen verification is waiting after the
-user stopped Computer Use (REV-011). Automatic selection on an unmeasured host
-remains pending and is the next independent implementation step.
+user stopped Computer Use (REV-011). The subsequent
+[automatic device-profile batch](OCR-AUTOMATIC-DEVICE-20261113.md) adds a
+cancellable idle comparison using an in-memory owned fixture, identity-bound
+profiles and explicit overrides. Its actual CPU/GPU comparison and headless
+profile persistence passed on this host. The next independent step is measured
+Rust tick positions paired with OCR labels for a reviewed calibration proposal;
+label centers alone must not become calibration anchors.
 
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new

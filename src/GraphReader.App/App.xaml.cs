@@ -36,6 +36,7 @@ public partial class App : Application, IDisposable
     public IWorkspaceService WorkspaceService { get; private set; } = new UnavailableWorkspaceService();
 
     public CalibrationOcrDeviceSettings? CalibrationOcrDevices { get; private set; }
+    public CalibrationOcrDeviceOptimizer? CalibrationDeviceOptimizer { get; private set; }
 
     public WorkflowRuntimeEnvironment RuntimeEnvironment { get; private set; }
 
@@ -93,6 +94,7 @@ public partial class App : Application, IDisposable
             cancellationToken: CancellationToken.None);
         WorkspaceService = composition.WorkspaceService;
         CalibrationOcrDevices = composition.CalibrationOcrDevices;
+        CalibrationDeviceOptimizer = composition.CalibrationDeviceOptimizer;
         _inferenceRuntimeHost = composition.InferenceRuntimeHost;
         WorkflowStartupError = composition.StartupError;
         StartupErrorMessageKey = StartupError?.UserMessageKey ?? WorkflowStartupError?.UserMessageKey;
@@ -146,6 +148,8 @@ public partial class App : Application, IDisposable
 
     public void Dispose()
     {
+        CalibrationDeviceOptimizer?.Dispose();
+        CalibrationDeviceOptimizer = null;
         if (WorkspaceService is IDisposable disposableWorkspace)
         {
             disposableWorkspace.Dispose();

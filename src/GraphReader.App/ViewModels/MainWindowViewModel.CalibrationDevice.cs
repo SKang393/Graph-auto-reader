@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 using System.ComponentModel;
+using System.Windows.Input;
 using GraphReader.App.Localization;
 using GraphReader.App.Services;
 
@@ -15,6 +16,16 @@ public sealed partial class MainWindowViewModel
     private string? _calibrationDeviceWarningCode;
     private bool _calibrationDeviceSaved;
     private CalibrationOcrRuntime? _lastCalibrationDeviceRuntime;
+    private CalibrationOcrDeviceOptimizer? _calibrationDeviceOptimizer;
+    private SynchronizationContext? _calibrationDeviceUiContext;
+    private int _calibrationDeviceUiThread;
+    private bool _calibrationDevicesDisposed;
+
+    public ICommand CheckCalibrationDevicesCommand { get; private set; } = null!;
+    public ICommand CancelCalibrationDeviceCheckCommand { get; private set; } = null!;
+    public bool CanCheckCalibrationDevices => !IsBusy && _calibrationDeviceOptimizer is { IsChecking: false };
+    public bool CanCancelCalibrationDeviceCheck => _calibrationDeviceOptimizer is { } optimizer &&
+        (optimizer.IsChecking || optimizer.State == CalibrationOcrDeviceOptimizerState.Waiting);
 
     public IReadOnlyList<CalibrationOcrDeviceChoice> CalibrationOcrDeviceChoices { get; private set; } = [];
     public bool CanChangeCalibrationOcrDevice => !IsBusy && _calibrationOcrDevices is not null;
@@ -52,15 +63,41 @@ public sealed partial class MainWindowViewModel
     {
         get
         {
+            if (_calibrationDeviceOptimizer is { IsChecking: true })
+                return GetLocalizedString(LocalizationKeys.SettingsAxisLabelsChecking);
             string? key = _calibrationDeviceWarningCode switch
             {
                 CalibrationOcrDeviceSettings.SettingsWriteFailed => LocalizationKeys.SettingsAxisLabelsSaveFailed,
                 CalibrationOcrDeviceSettings.AdapterUnavailableWarning => LocalizationKeys.SettingsAxisLabelsDeviceUnavailable,
                 CalibrationOcrDeviceSettings.AdapterEnumerationFailedWarning => LocalizationKeys.SettingsAxisLabelsEnumerationFailed,
                 CalibrationOcrDeviceSettings.SettingsInvalidWarning => LocalizationKeys.SettingsAxisLabelsSavedChoiceInvalid,
-                _ => _calibrationDeviceSaved ? LocalizationKeys.SettingsAxisLabelsSaved : null,
+                _ => null,
             };
-            return key is null ? string.Empty : GetLocalizedString(key);
+            if (key is not null) return GetLocalizedString(key);
+            if (_calibrationDeviceOptimizer is { } optimizer)
+            {
+                if (optimizer.IsChecking) return GetLocalizedString(LocalizationKeys.SettingsAxisLabelsChecking);
+                if (optimizer.State == CalibrationOcrDeviceOptimizerState.Failed)
+                    return GetLocalizedString(optimizer.ErrorCode switch
+                    {
+                        CalibrationOcrDeviceOptimizer.BaselineFailed => LocalizationKeys.SettingsAxisLabelsBaselineFailed,
+                        CalibrationOcrDeviceOptimizer.IdentityChanged => LocalizationKeys.SettingsAxisLabelsProfileStale,
+                        CalibrationOcrDeviceOptimizer.CheckTimedOut => LocalizationKeys.SettingsAxisLabelsCheckTimedOut,
+                        CalibrationOcrDeviceSettings.SettingsWriteFailed => LocalizationKeys.SettingsAxisLabelsSaveFailed,
+                        _ => LocalizationKeys.SettingsAxisLabelsCheckFailed,
+                    });
+                if (optimizer.State == CalibrationOcrDeviceOptimizerState.Cancelled)
+                    return GetLocalizedString(LocalizationKeys.SettingsAxisLabelsCheckCancelled);
+                if (_calibrationOcrDevices?.Preference.Provider != "Auto" && optimizer.State == CalibrationOcrDeviceOptimizerState.Ready)
+                    return GetLocalizedString(LocalizationKeys.SettingsAxisLabelsCheckedOverride);
+                if (optimizer.ErrorCode == CalibrationOcrDeviceOptimizer.GpuFallback)
+                    return GetLocalizedString(LocalizationKeys.SettingsAxisLabelsCheckGpuFallback);
+            }
+            if (_calibrationOcrDevices is { Preference.Provider: "Auto" } settings)
+                return settings.NeedsAutomaticProfile
+                    ? GetLocalizedString(LocalizationKeys.SettingsAxisLabelsAutomaticPending)
+                    : FormatLocalizedString(LocalizationKeys.SettingsAxisLabelsAutomaticSelected, DeviceLabel(settings.SelectedDevice));
+            return _calibrationDeviceSaved ? GetLocalizedString(LocalizationKeys.SettingsAxisLabelsSaved) : string.Empty;
         }
     }
 
@@ -84,26 +121,34 @@ public sealed partial class MainWindowViewModel
         _ => LocalizationKeys.SettingsAxisLabelsLastCpuFallback,
     };
 
-    private void InitializeCalibrationDevices(CalibrationOcrDeviceSettings? settings)
+    private void InitializeCalibrationDevices(CalibrationOcrDeviceSettings? settings, CalibrationOcrDeviceOptimizer? optimizer)
     {
         _calibrationOcrDevices = settings;
+        _calibrationDeviceOptimizer = optimizer;
+        _calibrationDeviceUiContext = SynchronizationContext.Current;
+        _calibrationDeviceUiThread = Environment.CurrentManagedThreadId;
         _calibrationDeviceWarningCode = settings?.LoadWarningCode;
+        CheckCalibrationDevicesCommand = new AsyncRelayCommand(CheckCalibrationDevicesAsync, () => CanCheckCalibrationDevices);
+        CancelCalibrationDeviceCheckCommand = new RelayCommand(_ => optimizer?.Cancel(), _ => CanCancelCalibrationDeviceCheck);
         RefreshCalibrationDeviceChoices();
+        if (settings is not null) settings.Changed += OnCalibrationDeviceExternalChanged;
+        if (optimizer is not null) optimizer.Changed += OnCalibrationDeviceExternalChanged;
         PropertyChanged += OnCalibrationDeviceStateChanged;
+        optimizer?.SetForegroundBusy(IsBusy);
+        optimizer?.Start();
     }
 
     private void RefreshCalibrationDeviceChoices()
     {
         IReadOnlyList<CalibrationOcrDeviceSelection> devices = _calibrationOcrDevices?.AvailableDevices ?? [CalibrationOcrDeviceSelection.Cpu];
-        CalibrationOcrDeviceSelection selected = _calibrationOcrDevices?.SelectedDevice ?? CalibrationOcrDeviceSelection.Cpu;
+        CalibrationOcrDeviceSelection selected = _calibrationOcrDevices?.Preference ?? CalibrationOcrDeviceSelection.Cpu;
         CalibrationOcrDeviceChoices = devices.Select(device => new CalibrationOcrDeviceChoice(device,
-            device.Provider == "Cpu"
-                ? GetLocalizedString(LocalizationKeys.SettingsAxisLabelsCpu)
-                : FormatLocalizedString(LocalizationKeys.SettingsAxisLabelsGpu,
-                    string.IsNullOrWhiteSpace(device.AdapterName)
-                        ? FormatLocalizedString(LocalizationKeys.SettingsAxisLabelsUnnamedGpu,
-                            device.AdapterIndex?.ToString(System.Globalization.CultureInfo.CurrentCulture) ?? string.Empty).Trim()
-                        : device.AdapterName))).ToArray();
+            device.Provider == "Auto"
+                ? _calibrationOcrDevices?.NeedsAutomaticProfile == true
+                    ? GetLocalizedString(LocalizationKeys.SettingsAxisLabelsAutomaticPending)
+                    : FormatLocalizedString(LocalizationKeys.SettingsAxisLabelsAutomaticSelected,
+                        DeviceLabel(_calibrationOcrDevices?.SelectedDevice ?? CalibrationOcrDeviceSelection.Cpu))
+                : DeviceLabel(device))).ToArray();
         _selectedCalibrationOcrDevice = CalibrationOcrDeviceChoices.FirstOrDefault(choice => choice.Device == selected);
         OnPropertyChanged(nameof(CalibrationOcrDeviceChoices));
         OnPropertyChanged(nameof(SelectedCalibrationOcrDevice));
@@ -111,7 +156,12 @@ public sealed partial class MainWindowViewModel
 
     private void OnCalibrationDeviceStateChanged(object? sender, PropertyChangedEventArgs args)
     {
-        if (args.PropertyName == nameof(IsBusy)) OnPropertyChanged(nameof(CanChangeCalibrationOcrDevice));
+        if (args.PropertyName == nameof(IsBusy))
+        {
+            _calibrationDeviceOptimizer?.SetForegroundBusy(IsBusy);
+            OnPropertyChanged(nameof(CanChangeCalibrationOcrDevice));
+            NotifyCalibrationDeviceCheckState();
+        }
         if (args.PropertyName == nameof(CalibrationLabelStatusText) &&
             _calibrationLabelSuggestion?.Response.Runtime is { } runtime)
         {
@@ -121,5 +171,55 @@ public sealed partial class MainWindowViewModel
         }
     }
 
-    private void DisposeCalibrationDevices() => PropertyChanged -= OnCalibrationDeviceStateChanged;
+    private string DeviceLabel(CalibrationOcrDeviceSelection device) => device.Provider == "Cpu"
+        ? GetLocalizedString(LocalizationKeys.SettingsAxisLabelsCpu)
+        : FormatLocalizedString(LocalizationKeys.SettingsAxisLabelsGpu,
+            string.IsNullOrWhiteSpace(device.AdapterName)
+                ? FormatLocalizedString(LocalizationKeys.SettingsAxisLabelsUnnamedGpu,
+                    device.AdapterIndex?.ToString(System.Globalization.CultureInfo.CurrentCulture) ?? string.Empty).Trim()
+                : device.AdapterName);
+
+    private async Task CheckCalibrationDevicesAsync(CancellationToken token)
+    {
+        if (!CanCheckCalibrationDevices || _calibrationDeviceOptimizer is null) return;
+        _calibrationDeviceSaved = false;
+        try { await _calibrationDeviceOptimizer.CheckAsync(token); }
+        catch (OperationCanceledException) { }
+        NotifyCalibrationDeviceCheckState();
+    }
+
+    private void OnCalibrationDeviceExternalChanged(object? sender, EventArgs args)
+    {
+        void Refresh()
+        {
+            if (_calibrationDevicesDisposed) return;
+            _calibrationDeviceWarningCode = _calibrationOcrDevices?.LoadWarningCode;
+            RefreshCalibrationDeviceChoices();
+            NotifyCalibrationDeviceCheckState();
+        }
+        if (_calibrationDeviceUiContext is not null && Environment.CurrentManagedThreadId != _calibrationDeviceUiThread)
+            _calibrationDeviceUiContext.Post(_ => Refresh(), null);
+        else Refresh();
+    }
+
+    private void NotifyCalibrationDeviceCheckState()
+    {
+        OnPropertyChanged(nameof(CanCheckCalibrationDevices));
+        OnPropertyChanged(nameof(CanCancelCalibrationDeviceCheck));
+        OnPropertyChanged(nameof(CalibrationDeviceStatusText));
+        AsyncRelayCommand.RaiseCanExecuteChanged();
+        RelayCommand.RaiseCanExecuteChanged();
+    }
+
+    private void DisposeCalibrationDevices()
+    {
+        _calibrationDevicesDisposed = true;
+        PropertyChanged -= OnCalibrationDeviceStateChanged;
+        if (_calibrationOcrDevices is not null) _calibrationOcrDevices.Changed -= OnCalibrationDeviceExternalChanged;
+        if (_calibrationDeviceOptimizer is not null)
+        {
+            _calibrationDeviceOptimizer.Changed -= OnCalibrationDeviceExternalChanged;
+            _calibrationDeviceOptimizer.Dispose();
+        }
+    }
 }

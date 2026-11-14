@@ -194,3 +194,19 @@ initial CPU default; they are not a stable cross-provider speed claim.
 The isolated compiler output and current metadata assets are the input for the
 next headless integration step. Retire them when that consumer ends; they do
 not authorize another packaged version or duplicate runtime environment.
+
+After source/outcome commit `7f141c6698cdd2f503130da0182e0508576abe55`
+was confirmed on `origin/main`, the contained, reparse-free
+`artifacts/hardware-check` directory was retired: 26 files, 1,452,502 bytes.
+The open native QA App, its old metadata assets and user-data directory remain
+untouched. Current headless compiler output and metadata serve the automatic
+device-profile integration next.
+
+Hosted source CI for that exact commit completed successfully:
+[run 43536309616](https://github.com/SKang393/Graph-auto-reader/actions/runs/43536309616),
+job 132266039015. Build: zero warnings/errors. The .NET suite reported 2,538
+passes and 30 skips across 13 projects, including App 857/857. GPU-dependent
+checks were appropriately skipped on the hosted runner; the local worker
+checks above remain the device evidence. Rust, localization, packaging and
+artifact-policy checks passed. Release jobs were skipped; no package or public
+release was produced by this source CI.

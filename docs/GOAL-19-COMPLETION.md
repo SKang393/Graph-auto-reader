@@ -477,8 +477,10 @@ clean-machine, production, and release approval remain false.
 - `artifacts/dev-portable/latest.json`
 - `artifacts/dev-portable/builds/0.0.21-20260804T193412554Z-ad1bb62b/`
 - `artifacts/dev-portable/Data/`
-- `artifacts/dev-portable/evidence/manual-preview-empty.png`, nontransparent
-  output from the clean portable build
+- `artifacts/dev-portable/evidence/manual-preview-empty.png`, historical
+  nontransparent output from the clean portable build. The disposable capture
+  is retired after the 2026-11-13 hardware outcome; regenerate with the current
+  screenshot smoke test instead of treating this path as retained evidence.
 - `artifacts/evidence/goal19-track-a/manual-preview-track-a.trx`
 - `artifacts/evidence/goal19-wpf-root/manual-preview-wpf-composition-root.trx`
 - `.omo/evidence/goal-19-track-a-code-review.md`

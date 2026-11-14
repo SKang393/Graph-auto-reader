@@ -19,10 +19,10 @@ public sealed class CalibrationDeviceViewModelTests
         var inventory = new TestInventory();
         var settings = new CalibrationOcrDeviceSettings(root, inventory);
         using var vm = new MainWindowViewModel(new FakeWorkspaceService(), Localizer(), calibrationOcrDevices: settings);
-        Assert.AreEqual(CalibrationOcrDeviceSelection.Cpu, vm.SelectedCalibrationOcrDevice!.Device);
-        Assert.AreEqual("CPU (default)", vm.SelectedCalibrationOcrDevice.Label);
-        Assert.AreEqual(string.Empty, vm.CalibrationDeviceStatusText, "First-run CPU is not an error.");
-        Assert.HasCount(3, vm.CalibrationOcrDeviceChoices);
+        Assert.AreEqual(CalibrationOcrDeviceSelection.Automatic, vm.SelectedCalibrationOcrDevice!.Device);
+        Assert.AreEqual("Automatic (CPU until checked)", vm.SelectedCalibrationOcrDevice.Label);
+        Assert.AreEqual("Automatic (CPU until checked)", vm.CalibrationDeviceStatusText, "First-run CPU is not an error.");
+        Assert.HasCount(4, vm.CalibrationOcrDeviceChoices);
         CalibrationOcrDeviceChoice gpu = vm.CalibrationOcrDeviceChoices.Single(choice => choice.Device.AdapterIndex == 1);
         StringAssert.Contains(gpu.Label, "Discrete test GPU");
         vm.SelectedCalibrationOcrDevice = gpu;
@@ -51,7 +51,7 @@ public sealed class CalibrationDeviceViewModelTests
         Assert.IsFalse(vm.CanChangeCalibrationOcrDevice);
         vm.SelectedCalibrationOcrDevice = vm.CalibrationOcrDeviceChoices.Single(choice => choice.Device.AdapterIndex == 1);
         Assert.AreEqual(CalibrationOcrDeviceSelection.Cpu, settings.SelectedDevice);
-        Assert.AreEqual(CalibrationOcrDeviceSelection.Cpu, vm.SelectedCalibrationOcrDevice!.Device);
+        Assert.AreEqual(CalibrationOcrDeviceSelection.Automatic, vm.SelectedCalibrationOcrDevice!.Device);
         workspace.Completed.SetResult();
         Pump(idle.Task);
         Assert.IsTrue(vm.CanChangeCalibrationOcrDevice);
@@ -68,7 +68,7 @@ public sealed class CalibrationDeviceViewModelTests
         using var vm = new MainWindowViewModel(new FakeWorkspaceService(), localization, calibrationOcrDevices: settings);
         vm.SelectedCalibrationOcrDevice = vm.CalibrationOcrDeviceChoices.Single(choice => choice.Device.AdapterIndex == 1);
         Assert.AreEqual(CalibrationOcrDeviceSelection.Cpu, settings.SelectedDevice);
-        Assert.AreEqual(CalibrationOcrDeviceSelection.Cpu, vm.SelectedCalibrationOcrDevice!.Device);
+        Assert.AreEqual(CalibrationOcrDeviceSelection.Automatic, vm.SelectedCalibrationOcrDevice!.Device);
         Assert.AreEqual(localization.GetString(LocalizationKeys.SettingsAxisLabelsSaveFailed), vm.CalibrationDeviceStatusText);
     });
 
@@ -77,6 +77,35 @@ public sealed class CalibrationDeviceViewModelTests
         Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
         return new(new ResourceDictionary());
     }
+
+    [TestMethod]
+    public void BackgroundProfileChangesRefreshTheViewModelOnItsStaContext() => WithSettings(root =>
+    {
+        var settings = new CalibrationOcrDeviceSettings(root, new TestInventory());
+        CalibrationOcrDeviceSelection gpu = settings.AvailableDevices.Single(device => device.AdapterIndex == 1);
+        using var optimizer = new CalibrationOcrDeviceOptimizer(settings,
+            (_, _) => Task.FromResult(CalibrationOcrDeviceOptimizerTests.Success(gpu)),
+            _ => Task.FromResult(new string('a', 64)), token => Task.Delay(Timeout.Infinite, token));
+        using var vm = new MainWindowViewModel(new FakeWorkspaceService(), Localizer(),
+            calibrationOcrDevices: settings, calibrationDeviceOptimizer: optimizer);
+        int uiThread = Environment.CurrentManagedThreadId;
+        int notificationThread = 0;
+        var refreshed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        vm.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(MainWindowViewModel.CalibrationDeviceStatusText) && settings.ProfileIsCurrent)
+            {
+                notificationThread = Environment.CurrentManagedThreadId;
+                refreshed.TrySetResult();
+            }
+        };
+        Pump(Task.WhenAll(optimizer.CheckAsync(CancellationToken.None), refreshed.Task.WaitAsync(TimeSpan.FromSeconds(5))));
+        Assert.AreEqual(uiThread, notificationThread);
+        Assert.AreEqual(CalibrationOcrDeviceSelection.Automatic, vm.SelectedCalibrationOcrDevice!.Device);
+        StringAssert.Contains(vm.SelectedCalibrationOcrDevice.Label, "Discrete test GPU");
+        Assert.AreEqual(gpu, settings.SelectedDevice);
+        Assert.IsTrue(vm.CheckCalibrationDevicesCommand.CanExecute(null));
+    });
 
     private static void WithSettings(Action<string> action)
     {

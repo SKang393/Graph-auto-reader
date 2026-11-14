@@ -34,17 +34,24 @@ internal static class Program
         bool workerCheck = args.Length > 0 && args[0] is "--worker-check" or "--gpu-worker-check";
         bool hardwareCheck = args.Length > 0 && args[0] == "--hardware-check";
         bool hardwareChild = args.Length > 0 && args[0] == "--hardware-child";
-        int seconds = workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        bool automaticCheck = args.Length > 0 && args[0] == "--automatic-device-check";
+        int seconds = automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--automatic-device-check", var autoApp, var autoAssets, var settingsRoot])
+            {
+                Emit(await AutomaticDeviceCheck.RunAsync(autoApp, autoAssets, settingsRoot, deadline.Token));
+                return 0;
+            }
+            if (automaticCheck) throw new InvalidDataException("Usage: --automatic-device-check <absolute-App-exe> <absolute-assets> <absolute-empty-settings-root>");
             if (args is ["--hardware-check", var hardwareRequest])
             {
                 Emit(await HardwareCheck.RunParentAsync(hardwareRequest, deadline.Token));

@@ -267,6 +267,18 @@ public static class LocalizationKeys
     public const string ThemeLabel = "Theme.Label";
     public const string SettingsTitle = "Settings.Title";
     public const string SettingsAxisLabelsTitle = "Settings.AxisLabels.Title";
+    public const string SettingsAxisLabelsAutomaticPending = "Settings.AxisLabels.AutomaticPending";
+    public const string SettingsAxisLabelsAutomaticSelected = "Settings.AxisLabels.AutomaticSelected";
+    public const string SettingsAxisLabelsCheck = "Settings.AxisLabels.Check";
+    public const string SettingsAxisLabelsCancelCheck = "Settings.AxisLabels.CancelCheck";
+    public const string SettingsAxisLabelsChecking = "Settings.AxisLabels.Checking";
+    public const string SettingsAxisLabelsCheckCancelled = "Settings.AxisLabels.CheckCancelled";
+    public const string SettingsAxisLabelsBaselineFailed = "Settings.AxisLabels.BaselineFailed";
+    public const string SettingsAxisLabelsProfileStale = "Settings.AxisLabels.ProfileStale";
+    public const string SettingsAxisLabelsCheckTimedOut = "Settings.AxisLabels.CheckTimedOut";
+    public const string SettingsAxisLabelsCheckFailed = "Settings.AxisLabels.CheckFailed";
+    public const string SettingsAxisLabelsCheckedOverride = "Settings.AxisLabels.CheckedOverride";
+    public const string SettingsAxisLabelsCheckGpuFallback = "Settings.AxisLabels.CheckGpuFallback";
     public const string SettingsAxisLabelsHelp = "Settings.AxisLabels.Help";
     public const string SettingsAxisLabelsCpu = "Settings.AxisLabels.Cpu";
     public const string SettingsAxisLabelsGpu = "Settings.AxisLabels.Gpu";
@@ -575,6 +587,18 @@ public static class LocalizationKeys
         ThemeLabel,
         SettingsTitle,
         SettingsAxisLabelsTitle,
+        SettingsAxisLabelsAutomaticPending,
+        SettingsAxisLabelsAutomaticSelected,
+        SettingsAxisLabelsCheck,
+        SettingsAxisLabelsCancelCheck,
+        SettingsAxisLabelsChecking,
+        SettingsAxisLabelsCheckCancelled,
+        SettingsAxisLabelsBaselineFailed,
+        SettingsAxisLabelsProfileStale,
+        SettingsAxisLabelsCheckTimedOut,
+        SettingsAxisLabelsCheckFailed,
+        SettingsAxisLabelsCheckedOverride,
+        SettingsAxisLabelsCheckGpuFallback,
         SettingsAxisLabelsHelp,
         SettingsAxisLabelsCpu,
         SettingsAxisLabelsGpu,
