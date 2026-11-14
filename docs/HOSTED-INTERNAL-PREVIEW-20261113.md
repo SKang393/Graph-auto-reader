@@ -555,3 +555,67 @@ The appended 448 ledger passed all 62 version-policy checks on the normal host
 in `45.0442603 s`, exit 0. The initial sandbox attempt failed during temporary
 Git initialization before tests ran; the successful host run is the validation
 result. No package rebuild was needed for this ledger update.
+
+## Verified build 449 delivery
+
+Internal ManualPreview `0.4.49` was built from clean source
+`2aea386bf24300416aa773a4cbf874717cf12752` at
+`2026-11-14T20:26:31.5481703+00:00`. Hosted preview run
+[43637104857](https://github.com/SKang393/Graph-auto-reader/actions/runs/43637104857),
+job `132576204507`, succeeded with 1,200 tests passed, 7 skipped, 0 failed.
+
+- [Artifact 14130369397](https://github.com/SKang393/Graph-auto-reader/actions/runs/43637104857/artifacts/14130369397): 87,296,898 bytes, SHA-256 `1c95395fe83c017f2217a03b6621ded2111c0c86e69c1803d8ff4ed5b90d62d9`. Created `2026-11-14T20:26:54Z`; expires `2027-02-12T20:21:59Z`.
+- Inner `GraphAutoReader-0.4.49-win-x64-internal-preview.zip`: 87,554,492 bytes, SHA-256 `422eb96e35a7c4d73ae87c13a1a5079450f4d6d42f5ccd161a26c8b2b514d1c6`.
+- Extraction verified all 477 files, totaling 196,149,383 bytes. App EXE SHA-256 `f95dc00c01166c67656b8bfd165c7b6d92ca15bf489b874e85cdd36824b2f2fa`; App DLL `7fe1cee8c1b1f37a0e457d7b90af9e204ac5c3bdaf39b2e33272516cb4ee00c5`; Rust worker `e98e3ff2d8edd77141b85c096fd63d6cd670db82c9f745e6d8bac2c6daf1f4cc`.
+
+Exact-source CI run [43637074678](https://github.com/SKang393/Graph-auto-reader/actions/runs/43637074678),
+job `132576163770`, succeeded: 2,727 .NET tests passed, 30 skipped across
+13 suites; 49 Rust tests, 62 version-policy checks, 12 portable-packaging
+checks, 5 ledger checks and 9 localization self-tests passed. Packaging audit
+passed. Release jobs were skipped. These counts do not claim binary identity
+between the separate CI build and packaged build.
+
+The exact downloaded package passed isolated portable smoke (exit 0,
+1,055.1834 ms); production-runtime smoke exited 2 (425.7691 ms), as expected
+for this unapproved preview. The six owned native-axis controls and lifecycle
+checks passed in 25,242.3051 ms including the intentional idle watchdog.
+Startup cancellation left no worker child when its task completed; a subsequent
+request restarted successfully. Report SHA-256:
+`e6e47da9c39d399f2ed94b8bab852c8ea4ce2e1cdd60c8cb023bdfaa7e7367c7`.
+This is not cancellation coverage during active OpenCV computation.
+
+The padded native-axis/OCR control returned six estimated pairs, zero measured
+pairs and a complete, unapplied review draft. The Y geometry remained partial
+and visibly uncertain. Process/pipeline time was 6,731.2513/6,159.9169 ms;
+report SHA-256 `1e61a18235772cc4b8e157098f283873da81b99a20522553bdf2a35b59caf398`.
+The prepared-crop workflow used manually marked geometry, actual OCR and marker
+processing, simulated explicit confirmation, CSV export and fresh reopen.
+It retained three points and a user-confirmed manual three-anchor calibration
+with zero tick IDs. Process/pipeline time was 7,057.9692/6,361.8485 ms;
+report SHA-256 `c676fcc66b580739614f45834b774db91482a6a87f4efd5d8496314db3c357fd`;
+CSV SHA-256 `249b49a16b036e5be69191a4aea4a867e75d4cdbe0ac6fd31fa2568a23b3edee`.
+These are owned workflow checks and single-run timings, not accuracy or
+controlled speed comparisons. The model, runtime licenses and notices are unchanged.
+
+The [fixed real-dev confirmation](REAL-DEV-CALIBRATION-449-CONFIRMATION-20261114.md)
+completed 120 sources in 179.868 seconds: 38 geometry/OCR results, 319 numeric
+readings, four X-only and two Y-only review drafts, and zero complete measured
+or estimated calibrations. Three native fallback attempts returned no geometry.
+Automatic calibration readiness remains failed. Native UI, clean-machine and
+installer acceptance remain unverified. No public release, tag or production
+approval is claimed. The sole retained pointer is switched only after this
+delivery and build-ledger record reaches `origin/main`.
+
+After that push and consumer checks, retire the superseded 448 build/ZIP,
+hosted 449 download and temporary controls, completed connected-ink,
+unlabelled-tick, irregular-X, observed-pairs, axis-backend and native-axis
+scratch. Their commands, identities and outcomes are recorded in the linked
+source/outcome commits. Preserve current runtime libraries and probe output
+while the next bounded calibration diagnosis consumes them, shared user Data,
+original private corpus, active model dependencies and native QA data.
+
+The existing version-policy suite reported all 62 checks passed in 73.370258
+seconds. The wrapper then incorrectly treated a stale native `$LASTEXITCODE`
+from an expected negative test as the PowerShell script result and exited 1;
+the script completed without an exception and its log contains the pass count.
+This wrapper error did not rerun tests or alter the ledger evidence.

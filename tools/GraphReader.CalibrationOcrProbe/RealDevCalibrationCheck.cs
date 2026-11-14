@@ -16,24 +16,24 @@ namespace GraphReader.CalibrationOcrProbe;
 internal static partial class RealDevCalibrationCheck
 {
     private const int Denominator = 120;
-    private const string AppDllHash = "939a76b3f0ce08ea76b63006c97dc2bfe073570adc6772c1cecbfd5385f3fffd";
-    private const string AppExeHash = "45551d71a4e79d0e67d8a5c15df2e41af9b798d45dda8dedc1f60921c46a84b4";
-    private const string RustHash = "46e6dcf885760e4ce61c956ef93802b53e2dd51ddb0118ac0c84691e3dda94a0";
-    // Exact frozen 0.4.48 source-build libraries, not delivered-package or caller-selected identities.
-    private static readonly FrozenDictionary<string, string> SourceRuntimeLibraries = new Dictionary<string, string>(StringComparer.Ordinal)
+    private const string AppDllHash = "7fe1cee8c1b1f37a0e457d7b90af9e204ac5c3bdaf39b2e33272516cb4ee00c5";
+    private const string AppExeHash = "f95dc00c01166c67656b8bfd165c7b6d92ca15bf489b874e85cdd36824b2f2fa";
+    private const string RustHash = "e98e3ff2d8edd77141b85c096fd63d6cd670db82c9f745e6d8bac2c6daf1f4cc";
+    // Exact verified delivered 0.4.49 libraries, never caller-selected identities.
+    private static readonly FrozenDictionary<string, string> DeliveredRuntimeLibraries = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["GraphReader.App.dll"] = AppDllHash,
-        ["GraphReader.Axis.dll"] = "083d3243461cecaedffca37735b3adc2e9c14f60a4fac9d880f3b62689d62336",
-        ["GraphReader.Domain.dll"] = "3e2e3b474d1e215198ac9f5a079da9bb069f089d44bf5bcf2ef6fdc61412ee35",
-        ["GraphReader.Export.dll"] = "380c845f640489623fdf86a2addf34d144200c0f2e8efd87250578b81b1d4368",
-        ["GraphReader.Imaging.dll"] = "1410ce0ffbf0146d7f6704e50c17d40961d1c7355581cb1ce38acc548e8522da",
-        ["GraphReader.Inference.dll"] = "ce96d287ce30a240fee86dc60bccde605d2c9452d7975507e973789fdd0593cf",
-        ["GraphReader.Legends.dll"] = "787482fa073c8c6057f6b942a4fccd6c767c90b8bb356ac9622a1b9791168060",
-        ["GraphReader.Markers.dll"] = "87b35f4f099e3edbc45cdf25a61eeedf0e36808019685b4caa4ea2f6bc2cb250",
-        ["GraphReader.Ocr.dll"] = "1e23d76dda52293c82c0f3b91f52bdbb8e821452ae531d8a7237a4268107c4b1",
-        ["GraphReader.Pdf.dll"] = "66b2ca6e5ebe23090c0098b5ef0a2a81ceb8b5dfe48f7cbcf362605d72abd0cd",
-        ["GraphReader.Phases.dll"] = "d83e764ad0ce54acfb619ed4c74ac0eecbb10e552b3c1cb2c14909cc73ccf3c1",
-        ["GraphReader.SuperResolution.dll"] = "0c06646b7c65b8a47a30bb05bc5fb031af4074b17bfbe7761fbe99f4df805272",
+        ["GraphReader.Axis.dll"] = "95201f3d895c55f1f0d85ba43cd49043855daf55f86d6a96b591764a6ede4757",
+        ["GraphReader.Domain.dll"] = "74765d281b13681c83dfb2ee0dfd253bd3ad5ecae572520831d325d5a0afbffb",
+        ["GraphReader.Export.dll"] = "9335aaf46700e395c4ab0df189d586bee75db059ccaa202b60ffdc2038d3a1bb",
+        ["GraphReader.Imaging.dll"] = "f67e0362f4cc8933c946c5e027c0e2bf7c9760402c67a4de5e5ea43777eea097",
+        ["GraphReader.Inference.dll"] = "6216de460b1e98900d97e2ecd22697bf66388d8bab4110d121d29095520f91c1",
+        ["GraphReader.Legends.dll"] = "5c5ebce5a52544ebf81dff95434f86e2877339ba145d199030a29532b9be7783",
+        ["GraphReader.Markers.dll"] = "ffab89a2d295ea583e2719a756508f6c4f96fc60d8fce14e63cba337f6bd1f20",
+        ["GraphReader.Ocr.dll"] = "23def3b412663022de9f87fdf63d7be4079c03f0795faea5d469f62baa10788d",
+        ["GraphReader.Pdf.dll"] = "8f4f35ae9f5e93ca67d707ac6569f630ecd25b7c28eb5bffa09f28694bc6ce29",
+        ["GraphReader.Phases.dll"] = "5355d913f6d0a11b462ef0c10d46a5a2eba869ffab749c0f81ab771be81a84a0",
+        ["GraphReader.SuperResolution.dll"] = "5294d4251d2e6cea1e65710f72585e047fcf46cf1a6f1139f8bcc57011dbb5af",
         ["Microsoft.ML.OnnxRuntime.dll"] = "5e83437cb5c97d17fc959f35982ce1f0e90281515dafbacbc158b27bc2e972a3",
         ["onnxruntime.dll"] = "e7eedec6a6f26dc39dc948276a75ef6d2bee3fff944d874ceed0bbd3b97bff40",
         ["onnxruntime_providers_shared.dll"] = "265c8daf29637cb259cac8be9f08f2cd45f3883f0f0e4949cbfddd5b4cbec3b6",
@@ -53,6 +53,8 @@ internal static partial class RealDevCalibrationCheck
         if (!parentBudget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(appExe) ||
             !Path.IsPathFullyQualified(assetRoot) || !Path.IsPathFullyQualified(rustExe)) throw new InvalidDataException();
         using Candidate candidate = Candidate.Verify(appExe, assetRoot, rustExe, token);
+        IAxisProposalService axisService = new RustFirstAxisProposalService(new RustAxisProposalService(rustExe),
+            new OpenCvAxisProposalService(appExe));
         FrozenDevTrainingSelector selector = FrozenDevTrainingSelector.Load(corpusRoot, token);
         FrozenDevTrainingMetadata metadata = selector.Describe();
         FrozenRealCorpusProject[] selected = selector.EnumerateSelectedProjects(token)
@@ -82,7 +84,7 @@ internal static partial class RealDevCalibrationCheck
                 { totals.Reason("UNSUPPORTED_IMAGE_DIMENSIONS"); continue; }
                 // This helper has no manual anchors or values in its signature.
                 var (proposal, draft) = await InferAsync(payload.Image, payload.Width, payload.Height,
-                    payload.ProjectHash, payload.ImageHash, rustExe, ocr, candidate, totals, deadline.Token).ConfigureAwait(false);
+                    payload.ProjectHash, payload.ImageHash, axisService, ocr, candidate, totals, deadline.Token).ConfigureAwait(false);
                 // Manual calibration is evaluator-only and first used AFTER inference proposals exist.
                 if (proposal is { IsComplete: true })
                 {
@@ -179,7 +181,8 @@ internal static partial class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-geometry-properties-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { version = "0.4.48", runtime_scope = "source_build", delivered_package = false,
+        protocol = new { version = "0.4.49", runtime_scope = "delivered_package", delivered_package = true,
+            geometry_path = "direct_rust_geometry_only_diagnostic",
             scope = "all_frozen_real_dev", sealed_payload_reads = 0,
             ocr_calls = 0, model_selection = false, review_only = true, production_approved = false,
             per_case_output = false, image_writes = false, persistent_cache = false,
@@ -233,17 +236,15 @@ internal static partial class RealDevCalibrationCheck
     }
 
     private static async Task<(CalibrationTickProposalResult? Measured, CalibrationTickProposalResult? Draft)> InferAsync(byte[] encoded, int width, int height,
-        string projectHash, string imageHash, string rustExe, CalibrationOcrWorkerClient ocr,
+        string projectHash, string imageHash, IAxisProposalService axisService, CalibrationOcrWorkerClient ocr,
         Candidate candidate, Totals totals, CancellationToken token)
     {
         var stage = Stopwatch.StartNew();
-        var (image, _, _) = Program.Decode(encoded, [0, 0, width, height], token);
-        totals.DecodeMilliseconds.Add(stage.Elapsed.TotalMilliseconds);
         SampleMemory(totals, 0);
         stage.Restart();
-        RustAxisProposalResult axis = await RustAxisProposal.RunAsync(rustExe, width, height, image.Pixels,
-            cancellationToken: token).ConfigureAwait(false);
+        RustAxisProposalResult axis = await axisService.SuggestAsync(encoded, token).ConfigureAwait(false);
         totals.GeometryMilliseconds.Add(stage.Elapsed.TotalMilliseconds);
+        CountGeometryProvider(totals, axis);
         if (axis.Geometry is not { } geometry)
         { totals.Reason(AxisReason(axis.ErrorCode)); return (null, null); }
         totals.GeometryReturned++;
@@ -268,6 +269,7 @@ internal static partial class RealDevCalibrationCheck
         CalibrationTickProposalResult result = CalibrationTickProposal.Create(geometry, response);
         CalibrationTickProposalResult draft = CalibrationTickProposal.CreateReviewDraft(geometry, response);
         CountPartialAxes(totals, draft.XReviewDraft is not null, draft.YReviewDraft is not null);
+        CountAxisFunnel(totals, response, result, draft);
         totals.PairingMilliseconds.Add(stage.Elapsed.TotalMilliseconds);
         if (!result.IsComplete)
         {
@@ -287,6 +289,8 @@ internal static partial class RealDevCalibrationCheck
     {
         "NO_AXIS" => "AXIS_NOT_FOUND", "AMBIGUOUS_AXIS" => "AXIS_AMBIGUOUS", "NO_INTERSECTION" => "AXIS_NO_INTERSECTION",
         "WORKER_TIMEOUT" => "AXIS_TIMEOUT", "CPU_BUDGET_UNAVAILABLE" => "AXIS_CPU_BUDGET_UNAVAILABLE",
+        "OPENCV_AXIS_AMBIGUOUS" => "AXIS_NATIVE_AMBIGUOUS", "OPENCV_AXIS_UNAVAILABLE" => "AXIS_NATIVE_UNAVAILABLE",
+        "OPENCV_AXIS_TIMEOUT" => "AXIS_NATIVE_TIMEOUT",
         _ => "AXIS_FAILED",
     };
 
@@ -350,6 +354,10 @@ internal static partial class RealDevCalibrationCheck
         internal long PeakSampledParentBytes, PeakParentWorkingSetBytes, PeakSampledCombinedBytes;
         internal Dictionary<string, int> Reasons { get; } = new(StringComparer.Ordinal);
         internal Dictionary<string, int> DraftReasons { get; } = new(StringComparer.Ordinal);
+        internal int RustProviderResults, NativeFallbackAttempts, NativeFallbackGeometry;
+        internal AxisStageCounts LiteralAxisRows { get; } = new();
+        internal AxisStageCounts MeasuredAssociatedPairs { get; } = new();
+        internal AxisStageCounts ReviewAssociatedPairs { get; } = new();
         internal List<double> CaseMilliseconds { get; } = [];
         internal List<double> DecodeMilliseconds { get; } = [];
         internal List<double> GeometryMilliseconds { get; } = [];
@@ -374,6 +382,47 @@ internal static partial class RealDevCalibrationCheck
         else totals.PartialNeither++;
     }
 
+    private static void CountGeometryProvider(Totals totals, RustAxisProposalResult result)
+    {
+        if (result.Provider == "rust") totals.RustProviderResults++;
+        else if (result.Provider == "opencv-review")
+        {
+            totals.NativeFallbackAttempts++;
+            if (result.Geometry is not null) totals.NativeFallbackGeometry++;
+        }
+        else throw new InvalidDataException();
+    }
+
+    private sealed class AxisStageCounts
+    {
+        internal int X, Y, Both, Neither;
+
+        internal void Count(bool x, bool y)
+        {
+            if (x) X++;
+            if (y) Y++;
+            if (x && y) Both++;
+            if (!x && !y) Neither++;
+        }
+
+        internal object Report() => new { x = X, y = Y, both = Both, x_only = X - Both, y_only = Y - Both, neither = Neither };
+    }
+
+    private static void CountAxisFunnel(Totals totals, CalibrationOcrResponse response,
+        CalibrationTickProposalResult measured, CalibrationTickProposalResult draft)
+    {
+        bool HasLiteralRows(string axis) => response.Proposals.Count(row => row.Role == (axis == "X" ? "XTick" : "YTick") &&
+            row.SuggestedAxis == axis && row.FailureCode is null && row.NumericLiteral &&
+            row.NumericValue is { } value && double.IsFinite(value)) >= 3;
+        // Failure results retain associations before sequence/fit/range rejection.
+        // Distinct region/pixel pairs do not imply distinct values or a valid fit.
+        static bool HasPairs(CalibrationTickProposalResult result, string axis) => result.PairedTicks
+            .Where(pair => pair.Axis == axis).Select(pair => (pair.Label.RegionId, pair.PixelPosition)).Distinct().Count() >= 3;
+        totals.LiteralAxisRows.Count(HasLiteralRows("X"), HasLiteralRows("Y"));
+        totals.MeasuredAssociatedPairs.Count(HasPairs(measured, "X"), HasPairs(measured, "Y"));
+        totals.ReviewAssociatedPairs.Count(HasPairs(draft, "X"), HasPairs(draft, "Y"));
+    }
+
     private static object Stats(List<double> values)
     {
         double[] sorted = values.Order().ToArray();
@@ -390,7 +439,7 @@ internal static partial class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-calibration-assistance-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { fixed_candidate = true, version = "0.4.48", runtime_scope = "source_build", delivered_package = false,
+        protocol = new { fixed_candidate = true, version = "0.4.49", runtime_scope = "delivered_package", delivered_package = true,
             denominator = Denominator,
             scope = "all_frozen_real_dev", sealed_payload_reads = 0, train_optimizer_steps = 0, model_selection = false,
             independent_accuracy = false, production_approved = false, review_only = true, applied = false,
@@ -408,11 +457,27 @@ internal static partial class RealDevCalibrationCheck
             budget.SilentBreakawayVerified, priority = "BelowNormal", scope = "parent_preprocessing_only_children_independently_capped" },
         denominator = Denominator, attempted = totals.Attempted, payloads_hashed = totals.PayloadsHashed,
         embedded_images_bound = totals.ImagesBound, geometry_returned = totals.GeometryReturned, ocr_returned = totals.OcrReturned,
+        geometry_path = new { service = "shipped_rust_first_with_eligible_native_review_fallback",
+            rust_provider_results = totals.RustProviderResults, native_fallback_attempts = totals.NativeFallbackAttempts,
+            native_fallback_geometry_returned = totals.NativeFallbackGeometry,
+            native_fallback_without_geometry = totals.NativeFallbackAttempts - totals.NativeFallbackGeometry,
+            timing_includes_service_decode_rust_and_fallback = true, decode_timing_separately_measured = false,
+            counts_scope = "returned_service_results_canceled_or_faulted_calls_not_counted" },
         numeric_reading_count = totals.NumericRows, complete_proposal_count = totals.Complete,
         complete_proposal_fraction = totals.Complete / (double)Denominator, incomplete_pairings = totals.Incomplete,
         scored_complete_proposals = totals.Scored, failure_or_incomplete_count = Denominator - totals.Complete,
         reason_counts = totals.Reasons.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToDictionary(pair => pair.Key, pair => pair.Value),
         normalized_x_residual = Stats(totals.XResiduals), normalized_y_residual = Stats(totals.YResiduals),
+        axis_evidence_funnel = new { denominator = Denominator, ocr_response_count = totals.OcrReturned,
+            evaluated_count = totals.AxisEvaluated, unevaluated_ocr_responses = totals.OcrReturned - totals.AxisEvaluated,
+            scope = "source_counts_at_each_independent_stage_not_accuracy_or_cumulative_passes",
+            literal_axis_rows_at_least_three = totals.LiteralAxisRows.Report(),
+            measured_distinct_associated_pairs_at_least_three = totals.MeasuredAssociatedPairs.Report(),
+            review_distinct_associated_pairs_at_least_three = totals.ReviewAssociatedPairs.Report(),
+            association_definition = "distinct_region_and_pixel_pairs_before_fit_checks_not_distinct_values_or_validated_calibration",
+            review_associations_may_use_estimated_positions = true,
+            validated_review_drafts = new { x = totals.PartialX + totals.PartialBoth, y = totals.PartialY + totals.PartialBoth,
+                both = totals.PartialBoth, x_only = totals.PartialX, y_only = totals.PartialY, neither = totals.PartialNeither } },
         axis_review_availability = new { scope = "ocr_responses_with_review_draft_evaluated_including_complete_proposals",
             denominator = Denominator, ocr_response_count = totals.OcrReturned, evaluated_count = totals.AxisEvaluated,
             unevaluated_ocr_responses = totals.OcrReturned - totals.AxisEvaluated,
@@ -463,7 +528,7 @@ internal static partial class RealDevCalibrationCheck
                 result.Pin(Path.Combine(assets, "recognizer.json"), Program.ManifestHash, token);
                 result.Pin(Path.Combine(assets, "PaddlePaddle-PP-OCRv5-Models-Apache-2.0.txt"), "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4", token);
                 result.Pin(Path.Combine(assets, "PaddlePaddle-PP-OCRv5-Models-Notice.txt"), "8d81f5d0c58547cce471c24f82efe768a9d907d06764f67e90cc680c6d777729", token);
-                foreach (var library in SourceRuntimeLibraries.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+                foreach (var library in DeliveredRuntimeLibraries.OrderBy(pair => pair.Key, StringComparer.Ordinal))
                 {
                     result.Pin(Path.Combine(directory, library.Key), library.Value, token);
                     bool managed = library.Key.StartsWith("GraphReader.", StringComparison.Ordinal) ||
@@ -586,9 +651,66 @@ internal static partial class RealDevCalibrationCheck
         if (geometryJson.GetProperty("denominator").GetInt32() != Denominator ||
             geometryJson.GetProperty("tick_counts").GetProperty("x").GetProperty("one").GetInt32() != 1 ||
             JsonSerializer.SerializeToUtf8Bytes(geometry, Program.Json).Length >= 1_000_000) throw new InvalidDataException();
+        int funnelCases = AxisFunnelSelfTest();
         var output = new { schema = "graphreader.real-dev-calibration-assistance-self-test.v1", source_payload_reads = 0,
-            affine_residual_checks = 2, forbidden_output_rejected = rejected, missing_capability_rejected_before_selection = capabilityRejected, fixed_denominator = Denominator };
+            affine_residual_checks = 2, axis_funnel_owned_response_checks = funnelCases,
+            forbidden_output_rejected = rejected, missing_capability_rejected_before_selection = capabilityRejected, fixed_denominator = Denominator };
         EnsureAggregateOnly(JsonSerializer.SerializeToElement(output, Program.Json));
         return output;
+    }
+
+    private static int AxisFunnelSelfTest()
+    {
+        var geometry = new RustAxisGeometry(70, 280, 350, 20, .9)
+        { XTickPositions = [100, 200, 300], YTickPositions = [50, 150, 250] };
+        static CalibrationOcrProposal Label(string axis, int position, double value)
+        {
+            double x = axis == "X" ? position : 40, y = axis == "X" ? 291 : position;
+            string literal = value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return new($"owned-{axis}-{position}", [new(x - 6, y - 5), new(x + 6, y - 5), new(x + 6, y + 5), new(x - 6, y + 5)],
+                literal, .9, value, literal, true, axis == "X" ? "XTick" : "YTick", axis, null);
+        }
+        CalibrationOcrProposal[] labels = [Label("X", 100, 1), Label("X", 200, 4), Label("X", 300, 7),
+            Label("Y", 50, 10), Label("Y", 150, 5), Label("Y", 250, 0)];
+        CalibrationOcrProposal[] missing = labels.Where((_, index) => index != 2).ToArray();
+        CalibrationOcrProposal[] displaced = labels.ToArray();
+        displaced[1] = displaced[1] with { Polygon = displaced[1].Polygon.Select(point => point with { X = point.X + 40 }).ToArray() };
+        CalibrationOcrProposal[] inconsistent = labels.ToArray();
+        inconsistent[1] = inconsistent[1] with { Text = "8", NormalizedText = "8", NumericValue = 8 };
+        CalibrationOcrProposal[][] cases = [labels, missing, displaced, inconsistent];
+        var totals = new Totals { Attempted = Denominator, OcrReturned = cases.Length };
+        for (int index = 0; index < cases.Length; index++)
+        {
+            var response = new CalibrationOcrResponse(new("owned-funnel", "owned-binding", new string('a', 64), new string('b', 64),
+                450, 340, new(70, 20, 350, 280)), cases[index], null, null, null, null, null);
+            CalibrationTickProposalResult measured = CalibrationTickProposal.Create(geometry, response);
+            CalibrationTickProposalResult draft = CalibrationTickProposal.CreateReviewDraft(geometry, response);
+            if (draft.IsComplete != (index == 0) || (draft.XReviewDraft is not null) != (index == 0) || draft.YReviewDraft is null ||
+                measured.PairedTicks.Count != (index is 1 or 2 ? 5 : 6) ||
+                (index == 3 && !measured.Reasons.Contains(CalibrationTickProposalReasons.Nonmonotonic))) throw new InvalidDataException();
+            CountPartialAxes(totals, draft.XReviewDraft is not null, draft.YReviewDraft is not null);
+            CountAxisFunnel(totals, response, measured, draft);
+        }
+        object aggregate = Report(totals, new string('0', 64), new(new string('1', 64), new string('2', 64), [], false, false),
+            new Dictionary<string, string>(StringComparer.Ordinal), new(2, 2500, .5), 1);
+        JsonElement serialized = JsonSerializer.SerializeToElement(aggregate, Program.Json);
+        EnsureAggregateOnly(serialized);
+        JsonElement funnel = serialized.GetProperty("axis_evidence_funnel");
+        if (funnel.GetProperty("denominator").GetInt32() != Denominator || funnel.GetProperty("ocr_response_count").GetInt32() != 4 ||
+            funnel.GetProperty("evaluated_count").GetInt32() != 4 || funnel.GetProperty("unevaluated_ocr_responses").GetInt32() != 0)
+            throw new InvalidDataException();
+        foreach ((string name, int expectedX) in new[]
+        {
+            ("literal_axis_rows_at_least_three", 3), ("measured_distinct_associated_pairs_at_least_three", 2),
+            ("review_distinct_associated_pairs_at_least_three", 2), ("validated_review_drafts", 1),
+        })
+        {
+            JsonElement stage = funnel.GetProperty(name);
+            if (stage.GetProperty("x").GetInt32() != expectedX || stage.GetProperty("y").GetInt32() != 4 ||
+                stage.GetProperty("both").GetInt32() != expectedX || stage.GetProperty("x_only").GetInt32() != 0 ||
+                stage.GetProperty("y_only").GetInt32() != 4 - expectedX || stage.GetProperty("neither").GetInt32() != 0)
+                throw new InvalidDataException();
+        }
+        return cases.Length;
     }
 }

@@ -181,7 +181,7 @@ preserved. Free E: space changed from 401,206,902,784 to 428,369,891,328 bytes;
 this is an observed drive change, not exact physical attribution. Across all
 four batches, **67,891,687,239 path bytes** of completed output were retired.
 
-## Planned fifth retirement batch: 20261001 evaluation outputs
+## Completed fifth retirement batch: 20261001 evaluation outputs
 
 The complete inventory identifies five more completed evaluation trees under
 `artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/`:
@@ -200,7 +200,46 @@ zero private/sealed reads, and production approval false. License reviews say
 no dependency, model, or license changes; fixed payloads, manifests, and license
 inputs were checksum verified. Exact directory references were found only in
 tracked outcome/diagnosis documents and plan context, not current executable
-source, tools, or packaging. No active model keeper is located in these trees;
-the current V44/V27/reviewed-parent inputs remain outside them. This batch is
-planned only, pending the lead's active-consumer, process, containment, and
-reparse checks. No deletion is claimed.
+source, tools, or packaging. No active model keeper was located in these trees;
+the current V44/V27/reviewed-parent inputs remained outside them.
+
+After record `6399fe7c` reached `origin/main`, the lead completed guarded
+cleanup at `2026-11-14T20:23:07.6164987Z`. All five paths were absent afterward;
+**21,312 files / 26,990,720,736 path bytes** were retired. Ten protected keeper
+hashes were unchanged, the retained 0.4.48 hash matched, and the original
+corpus remained present. Free E: space changed from 428,374,274,048 to
+455,443,701,760 bytes; this is an observed drive change, not exact physical
+attribution. The receipt is `artifacts/storage-retention-check/cleanup-fifth.json`.
+Across all five batches, **94,882,407,975 path bytes** of completed output
+were retired; remaining historical trees still require individual review.
+
+## Planned sixth retirement batch: completed 20260930–20261001 evaluations
+
+Using the existing complete inventory after excluding absent/retired targets
+and the retained server recognizer, these are the next ten largest completed
+trees that still exist under
+`artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/`:
+
+| Output directory | Files | Path bytes | Pushed outcome | Outcome status |
+| --- | ---: | ---: | --- | --- |
+| `session-run-pitch-evaluation-20261001-v1` | 4,236 | 5,392,240,325 | [`GOAL-22-SESSION-RUN-PITCH-REPAIR.json`](GOAL-22-SESSION-RUN-PITCH-REPAIR.json) | `runtime_repair_verified` |
+| `separated-header-glyph-evaluation-20260930-v2` | 4,231 | 5,392,233,125 | [`GOAL-22-SEPARATED-HEADER-GLYPH-RECOVERY.json`](GOAL-22-SEPARATED-HEADER-GLYPH-RECOVERY.json) | `runtime_repair_verified` |
+| `marker-glyph-disambiguation-evaluation-20260930-v2` | 4,224 | 5,380,324,885 | [`GOAL-22-MARKER-GLYPH-DISAMBIGUATION.json`](GOAL-22-MARKER-GLYPH-DISAMBIGUATION.json) | `runtime_repair_verified` |
+| `bracket-caption-glyph-evaluation-20260930-v1` | 4,219 | 5,378,534,861 | [`GOAL-22-BRACKET-CAPTION-GLYPH-RECOVERY.json`](GOAL-22-BRACKET-CAPTION-GLYPH-RECOVERY.json) | `runtime_repair_verified` |
+| `header-fragment-word-evaluation-20260930-v4` | 4,212 | 5,372,718,923 | [`GOAL-22-HEADER-FRAGMENT-WORD-RECOVERY.json`](GOAL-22-HEADER-FRAGMENT-WORD-RECOVERY.json) | `runtime_repair_verified` |
+| `bound-header-word-evaluation-20260930-v1` | 4,214 | 5,372,617,906 | [`GOAL-22-BOUND-HEADER-WORD-RECOVERY.json`](GOAL-22-BOUND-HEADER-WORD-RECOVERY.json) | `runtime_repair_verified` |
+| `header-glyph-evaluation-20260930-v3` | 4,206 | 5,368,418,775 | [`GOAL-22-HEADER-GLYPH-CROP-COMPLETION.json`](GOAL-22-HEADER-GLYPH-CROP-COMPLETION.json) | `runtime_repair_verified` |
+| `symbol-run-mask-evaluation-20260930-v2` | 4,156 | 5,286,771,268 | [`GOAL-22-SYMBOL-RUN-MASK-REVIEW.json`](GOAL-22-SYMBOL-RUN-MASK-REVIEW.json) | `repair_verified_accuracy_incomplete` |
+| `legend-pixel-separation-evaluation-20260930-v1` | 4,158 | 5,268,333,151 | [`GOAL-22-LEGEND-PIXEL-SEPARATION.json`](GOAL-22-LEGEND-PIXEL-SEPARATION.json) | `repair_verified_accuracy_incomplete` |
+| `server-reader-v46-context-evaluation-20260930-v1` | 2,099 | 4,892,930,508 | [`GOAL-22-V46-SERVER-READER-CONTEXT-OUTCOME.json`](GOAL-22-V46-SERVER-READER-CONTEXT-OUTCOME.json) | `diagnostic_candidate_rejected` |
+| **Total** | **39,955** | **53,105,123,727** | | |
+
+All ten pushed outcomes report zero private/sealed reads. The nine repair records
+do not approve production; their license reviews report unchanged Apache-2.0
+project source, dependencies, or fixed model/license inputs. The V46 context
+candidate was rejected. Exact directory strings were found in outcome or
+diagnosis documents only, not current executable source, tools, or packaging;
+no current model keeper is located in these trees. The active V44/V27/reviewed-
+parent inputs remain outside this batch. These are proposed retired run
+outputs only, pending lead confirmation of active consumers, processes,
+containment, and reparse checks. No deletion is claimed.

@@ -355,12 +355,26 @@ pairs in 6.016 seconds, with no automatic Apply. Rust ambiguity stays refused.
 The full App suite passed 1,034 tests and Axis passed 131 with two existing
 skips. After review found a child-exit race, the fix passed 16 focused tests
 and actual cancellation/restart checks. No new dependency or model was added.
-Prepare internal 0.4.49 with this fallback and the already verified connected-ink,
-unlabelled-tick and strict X-tick repairs. Preserve native UI and real-data
-acceptance gaps; the last fixed 120-case confirmation still has zero complete
-calibrations. Stop adding geometry heuristics without an owned reproduction or
-a concrete preprocessing defect. The next priority remains explaining the
-complete-calibration failure while keeping the usable manual review path.
+Internal [0.4.49 delivery](HOSTED-INTERNAL-PREVIEW-20261113.md) now includes this
+fallback and the connected-ink, unlabelled-tick and strict X-tick repairs. Its
+[fixed diagnostic](REAL-DEV-CALIBRATION-449-CONFIRMATION-20261114.md) returned
+38 geometry/OCR results and 319 numeric readings across 120 sources, with no
+complete measured or estimated calibration. Three native attempts returned no
+geometry. Of the 38 OCR responses, 16 had at least three review-associated X
+pairs and 29 had Y pairs; only four X drafts and two Y drafts passed validation.
+These aggregate counts locate rejection stages but do not establish accuracy
+or justify weakening safety checks.
+
+Stop adding geometry heuristics without an owned reproduction or a concrete
+preprocessing defect. Source inspection did not establish that irrelevant
+nonnumeric text invalidates otherwise valid pairs: role filtering already
+excludes it, and explicit row deselection refits from the remaining evidence.
+A concrete review gap remains: rows can be excluded but a misread middle label
+cannot be corrected. The next product slice is explicit per-row correction
+with immutable raw OCR, unchanged consistency checks, review invalidation and
+manual confirmation. This is a workflow correction, not a claimed explanation
+of the private aggregate failures. Native UI and automatic-accuracy acceptance
+remain incomplete. Do not package each small diagnostic or test-only change.
 
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new
@@ -431,7 +445,7 @@ already retired; active package controls and current dependencies remain.
 
 Full pipeline approval work is paused while these product increments advance.
 The [historical closeout](HISTORICAL-ARTIFACT-CLOSEOUT-20261114.md) retired
-67.89 GB of selected completed output across four guarded batches after their
+94.88 GB of selected completed output across five guarded batches after their
 records were pushed, with current model and OCR keeper hashes preserved. The
 old `goal22-runs` inventory is complete for its
 1,011 immediate directories, but other worktree storage remains outside that
