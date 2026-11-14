@@ -100,9 +100,13 @@ settings. Generated glyph code is project-owned Apache-2.0. Existing OCR weights
 and runtime notices are unchanged; no license or production approval changed.
 
 Expected temporary output is below 2 MB for logs/profile records. Reuse
-`artifacts/hardware-final-build` for routine compilation and
-`artifacts/hardware-device-assets` for current metadata and hard-linked model
-bytes. E: had 360,323,801,088 bytes free before this batch. Do not duplicate
+`artifacts/hardware-final-build` for routine compilation. The historical
+`artifacts/hardware-device-assets` staging is no longer a current input:
+current probes load the verified 0.4.46 package's `review-assistance/ocr` assets.
+All four staged files (7,867,699 path bytes) match that keeper, including the
+reader, recognizer manifest and notices. Retire this staging after the new
+source/outcome record is pushed and the scoped process check is empty.
+E: had 360,323,801,088 bytes free before this batch. Do not duplicate
 models or environments. Retire completed logs after this source/outcome is
 pushed; retain active QA App dependencies until that App is closed by the user.
 Retire the three regenerable App smoke screenshots under

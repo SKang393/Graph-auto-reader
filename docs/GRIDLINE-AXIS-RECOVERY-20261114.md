@@ -32,6 +32,11 @@ ticks on either axis, inward-only evidence, two tick-supported panels,
 outside strong bands and the 144-pair resource rejection. The earlier axis,
 continuation, white-margin and numerical guards remain covered.
 
+Source CI [43578459880](https://github.com/SKang393/Graph-auto-reader/actions/runs/43578459880)
+passed at `e696802e`: 2,693 .NET tests, 30 skips, 37 Rust tests, 68 packaging
+checks and 62 version-policy checks. App compilation had zero warnings/errors;
+release jobs were skipped.
+
 ```powershell
 $env:CARGO_TARGET_DIR = "$PWD\artifacts\native-engine"
 cargo test --manifest-path native/graphreader-engine/Cargo.toml --locked --offline --jobs 1
@@ -109,9 +114,9 @@ multi-panel or padding-invariance guarantee is made. No model, license,
 dependency, threshold constant or scientific-value default changed.
 
 `artifacts/grid-recovery-check` contains eight disposable owned files totaling
-13,649 bytes. Retain this under-100-KB scratch only until the integrated source
-and record are pushed and any assigned package consumer finishes. Then retire
-it under [ARTIFACT-RETENTION.md](ARTIFACT-RETENTION.md); do not commit the PNG,
+13,649 bytes. Retain this under-100-KB scratch for the assigned 0.4.47 packaged
+control, then retire it after that consumer and its pushed outcome finish,
+under [ARTIFACT-RETENTION.md](ARTIFACT-RETENTION.md). Do not commit the PNG,
 requests or raw reports. Current runtime/model inputs and the active Rust target
 cache remain available to their consumers. No original or private data was read
 or modified for this batch.

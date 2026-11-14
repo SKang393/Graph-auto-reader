@@ -326,6 +326,199 @@ public sealed class CalibrationTickViewModelTests
         });
     }
 
+    [TestMethod]
+    public void ExcludingExtraLabelRefitsCachedEvidenceWithoutRereadingOrRemovingRawRows()
+    {
+        WithImage(path =>
+        {
+            var reader = new OcrStub(ProposalsWithExtraRow());
+            var axis = new AxisStub(MeasuredGeometry());
+            using var workspace = CreateWorkspace(path, reader, axis: axis);
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            Assert.IsTrue(vm.CalibrationLabelRows.All(row => row.IsIncluded));
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession, "Conflicting evidence must not be salvaged automatically.");
+            CalibrationOcrResponse raw = reader.LastResponse!;
+            CalibrationLabelRowViewModel extra = vm.CalibrationLabelRows.Single(row => row.Proposal.RegionId == "noise");
+
+            extra.IsIncluded = false;
+            vm.RefitSelectedCalibrationLabelsCommand.Execute(null);
+
+            Assert.AreEqual("10", vm.SuggestedYMaximum);
+            Assert.AreEqual("1", vm.SuggestedFirstSession);
+            Assert.AreEqual("24", vm.SuggestedFinalSession);
+            Assert.AreEqual(6, vm.CalibrationPairedTickRows.Count);
+            Assert.AreEqual(7, vm.CalibrationLabelRows.Count);
+            Assert.IsFalse(extra.IsIncluded);
+            Assert.AreEqual(7, raw.Proposals.Count);
+            Assert.AreEqual(4, raw.XSequence!.CandidateCount);
+            Assert.AreSame(raw, reader.LastResponse);
+            Assert.AreEqual(1, reader.CallCount);
+            Assert.AreEqual(1, axis.CallCount);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(vm.SelectedTab!.Calibration);
+        });
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void InvalidOrInsufficientIncludedRowsCannotCompleteCalibration(bool retainInvalidMiddle)
+    {
+        WithImage(path =>
+        {
+            using var workspace = CreateWorkspace(path, ProposalsWithExtraRow());
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            vm.CalibrationLabelRows.Single(row => row.Proposal.RegionId == "x-mid").IsIncluded = false;
+            if (!retainInvalidMiddle)
+                vm.CalibrationLabelRows.Single(row => row.Proposal.RegionId == "noise").IsIncluded = false;
+
+            vm.RefitSelectedCalibrationLabelsCommand.Execute(null);
+
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+            Assert.AreEqual(string.Empty, vm.SuggestedFinalSession);
+            Assert.AreEqual("10", vm.SuggestedYMaximum, "Independent valid Y evidence remains usable.");
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.IsNull(vm.SelectedTab!.Calibration);
+        });
+    }
+
+    [TestMethod]
+    public void ChangingInclusionClearsReviewedValuesAndFitPositionsImmediately()
+    {
+        WithImage(path =>
+        {
+            using var workspace = CreateWorkspace(path, ValidProposals(), EstimatedGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestAxesAsync(CancellationToken.None));
+            string originalAnchors = vm.AxisSuggestionSummary;
+            Pump(vm.ReadCalibrationLabelsAsync(CancellationToken.None));
+            vm.RefitSelectedCalibrationLabelsCommand.Execute(null);
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+
+            vm.CalibrationLabelRows[0].IsIncluded = false;
+
+            Assert.IsFalse(vm.HasCalibrationTickProposal);
+            Assert.AreEqual(0, vm.CalibrationPairedTickRows.Count);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+            Assert.AreEqual(string.Empty, vm.SuggestedFinalSession);
+            Assert.AreEqual(originalAnchors, vm.AxisSuggestionSummary);
+            Assert.IsTrue(vm.HasEstimatedCalibrationPositions, "Position guidance persists until Apply or Dismiss.");
+            vm.AxisSuggestionReviewed = true;
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.IsNull(vm.SelectedTab!.Calibration);
+        });
+    }
+
+    [TestMethod]
+    public void NewReadResetsInclusionsWithoutKeepingPreviouslyRefittedValues()
+    {
+        WithImage(path =>
+        {
+            var reader = new OcrStub(ProposalsWithExtraRow());
+            using var workspace = CreateWorkspace(path, reader);
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            CalibrationLabelRowViewModel old = vm.CalibrationLabelRows.Single(row => row.Proposal.RegionId == "noise");
+            old.IsIncluded = false;
+            vm.RefitSelectedCalibrationLabelsCommand.Execute(null);
+            vm.AxisSuggestionReviewed = true;
+
+            Pump(vm.ReadCalibrationLabelsAsync(CancellationToken.None));
+
+            Assert.AreEqual(2, reader.CallCount);
+            Assert.IsTrue(vm.CalibrationLabelRows.All(row => row.IsIncluded));
+            Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+            Assert.AreEqual(string.Empty, vm.SuggestedFinalSession);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            old.IsIncluded = true;
+            Assert.IsFalse(old.IsIncluded, "Detached rows cannot change current evidence.");
+            vm.RefitSelectedCalibrationLabelsCommand.Execute(null);
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+        });
+    }
+
+    [TestMethod]
+    public void StaleBindingTabChangeAndDismissDisableCachedRefit()
+    {
+        WithImage(path =>
+        {
+            using var workspace = CreateWorkspace(path, ValidProposals());
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            WorkspaceTabViewModel tab = vm.SelectedTab!;
+            CalibrationLabelRowViewModel old = vm.CalibrationLabelRows[0];
+            workspace.Calibrate(tab.TabId, new(new(10, 100), new(10, 20), new(150, 100), 20, 30, 1));
+            var changed = tab.Calibration;
+
+            Assert.IsFalse(vm.RefitSelectedCalibrationLabelsCommand.CanExecute(null));
+            int rejectedSelectionNotifications = 0;
+            old.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(old.IsIncluded)) rejectedSelectionNotifications++;
+            };
+            old.IsIncluded = false;
+            Assert.IsTrue(old.IsIncluded);
+            Assert.AreEqual(1, rejectedSelectionNotifications, "Two-way controls must redraw rejected selection changes.");
+            vm.RefitSelectedCalibrationLabels();
+            vm.AxisSuggestionReviewed = true;
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.AreSame(changed, tab.Calibration);
+            vm.SelectedTab = null;
+            vm.SelectedTab = tab;
+            Assert.AreEqual(0, vm.CalibrationLabelRows.Count);
+            Assert.IsFalse(vm.RefitSelectedCalibrationLabelsCommand.CanExecute(null));
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            Assert.IsTrue(vm.CalibrationLabelRows.All(row => row.IsIncluded));
+            vm.DismissAxisSuggestionCommand.Execute(null);
+            Assert.AreEqual(0, vm.CalibrationLabelRows.Count);
+            Assert.IsFalse(vm.RefitSelectedCalibrationLabelsCommand.CanExecute(null));
+        });
+    }
+
+    [TestMethod]
+    public void PendingReadRejectsRefitAndOldRowChanges()
+    {
+        WithImage(path =>
+        {
+            var reader = new OcrStub(ValidProposals());
+            using var workspace = CreateWorkspace(path, reader);
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            CalibrationLabelRowViewModel old = vm.CalibrationLabelRows[0];
+            reader.Pending = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            Task pending = vm.ReadCalibrationLabelsAsync(CancellationToken.None);
+
+            Assert.IsTrue(vm.IsBusy);
+            Assert.IsFalse(vm.RefitSelectedCalibrationLabelsCommand.CanExecute(null));
+            old.IsIncluded = false;
+            Assert.IsTrue(old.IsIncluded);
+            vm.RefitSelectedCalibrationLabels();
+            Assert.IsFalse(vm.HasCalibrationTickProposal);
+            reader.Pending.SetResult(Response(reader.LastRequest!, ValidProposals()));
+            Pump(pending);
+            Assert.IsTrue(vm.CalibrationLabelRows.All(row => row.IsIncluded));
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+        });
+    }
+
+    private static CalibrationOcrProposal[] ProposalsWithExtraRow() =>
+        [.. ValidProposals(), Proposal("noise", "99", 99, "XTick", "X", 80, 112)];
+
+    private static RustAxisGeometry MeasuredGeometry() => new(8, 110, 155, 5, .9)
+        { XTickPositions = [20, 80, 140], YTickPositions = [20, 60, 100] };
+
     private static ManualPreviewWorkspaceService CreateWorkspace(string path, IReadOnlyList<CalibrationOcrProposal> proposals,
         RustAxisGeometry? geometry = null) => CreateWorkspace(path, new OcrStub(proposals), geometry);
 
@@ -335,11 +528,12 @@ public sealed class CalibrationTickViewModelTests
         YTickPositions = estimateY ? [] : [20, 60, 100],
     };
 
-    private static ManualPreviewWorkspaceService CreateWorkspace(string path, OcrStub reader, RustAxisGeometry? geometry = null)
+    private static ManualPreviewWorkspaceService CreateWorkspace(string path, OcrStub reader, RustAxisGeometry? geometry = null,
+        AxisStub? axis = null)
     {
         geometry ??= new RustAxisGeometry(8, 110, 155, 5, .9)
             { XTickPositions = [20, 80, 140], YTickPositions = [20, 60, 100] };
-        var workspace = new ManualPreviewWorkspaceService(axisProposalService: new AxisStub(geometry),
+        var workspace = new ManualPreviewWorkspaceService(axisProposalService: axis ?? new AxisStub(geometry),
             calibrationOcrSuggestionService: reader);
         Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
         return workspace;
@@ -410,20 +604,29 @@ public sealed class CalibrationTickViewModelTests
 
     private sealed class AxisStub(RustAxisGeometry geometry) : IAxisProposalService
     {
-        public Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken) =>
-            Task.FromResult(new RustAxisProposalResult(geometry, null));
+        public int CallCount { get; private set; }
+        public Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken)
+        {
+            CallCount++;
+            return Task.FromResult(new RustAxisProposalResult(geometry, null));
+        }
     }
 
     private sealed class OcrStub(IReadOnlyList<CalibrationOcrProposal> proposals) : ICalibrationOcrSuggestionService
     {
         public TaskCompletionSource<CalibrationOcrResponse>? Pending { get; set; }
         public CalibrationOcrRequest? LastRequest { get; private set; }
+        public CalibrationOcrResponse? LastResponse { get; private set; }
+        public int CallCount { get; private set; }
 
         public Task<CalibrationOcrResponse> SuggestAsync(CalibrationOcrRequest request,
             ReadOnlyMemory<byte> encodedOriginalPanel, CancellationToken cancellationToken)
         {
             LastRequest = request;
-            return Pending?.Task ?? Task.FromResult(Response(request, proposals));
+            CallCount++;
+            CalibrationOcrResponse response = Response(request, proposals);
+            LastResponse = response;
+            return Pending?.Task ?? Task.FromResult(response);
         }
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;

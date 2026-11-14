@@ -13,8 +13,10 @@ public sealed partial class MainWindowViewModel
     private CalibrationTickProposalResult? _calibrationTickProposal;
     private string _calibrationTickProposalStatusText = string.Empty;
     private bool _hasEstimatedCalibrationPositions;
+    private bool _refittingCalibrationLabels;
 
     public ICommand SuggestCalibrationFromTicksCommand { get; private set; } = null!;
+    public ICommand RefitSelectedCalibrationLabelsCommand { get; private set; } = null!;
     public ObservableCollection<string> CalibrationPairedTickRows { get; } = [];
     public bool HasCalibrationTickProposal => _calibrationTickProposal is not null;
     public bool HasCalibrationTickProposalStatus => _calibrationTickProposalStatusText.Length > 0;
@@ -46,16 +48,49 @@ public sealed partial class MainWindowViewModel
             return;
         }
 
-        CalibrationTickProposalResult proposal = CalibrationTickProposal.CreateReviewDraft(suggestion.Geometry, labelsResult.Response);
-        if (!axes.IsAxisSuggestionCurrent(suggestion) || !labels.IsCalibrationLabelSuggestionCurrent(labelsResult))
-        {
-            _calibrationTickProposalStatusText = GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsUnavailable);
-            OnPropertyChanged(nameof(CalibrationTickProposalStatusText));
-            OnPropertyChanged(nameof(HasCalibrationTickProposalStatus));
-            return;
-        }
+        RefitSelectedCalibrationLabels();
+    }
 
-        SetEstimatedCalibrationPositions(proposal.UsesEstimatedPositions);
+    public void RefitSelectedCalibrationLabels()
+    {
+        if (IsBusy || _refittingCalibrationLabels || !CanRefitCalibrationLabelsCore() ||
+            _calibrationLabelSuggestion is not { } original || _axisSuggestion is not { } suggestion ||
+            _workspaceService is not ICalibrationLabelSuggestionWorkspace labels)
+            return;
+        int generation = _calibrationLabelGeneration;
+        CalibrationOcrProposal[] included = CalibrationLabelRows.Where(row => row.IsIncluded)
+            .Select(row => row.Proposal).ToArray();
+        _refittingCalibrationLabels = true;
+        try
+        {
+            ClearCalibrationLabelComputedValues();
+            CalibrationTickProposalResult proposal = CalibrationTickProposal.CreateReviewDraft(suggestion.Geometry,
+                original.Response with { Proposals = Array.AsReadOnly(included) });
+            if (generation != _calibrationLabelGeneration || !ReferenceEquals(_calibrationLabelSuggestion, original) ||
+                !ReferenceEquals(_axisSuggestion, suggestion) || !labels.IsCalibrationLabelSuggestionCurrent(original) ||
+                !CanRefitCalibrationLabelsCore())
+                return;
+            PublishCalibrationTickProposal(proposal);
+        }
+        finally { _refittingCalibrationLabels = false; RelayCommand.RaiseCanExecuteChanged(); }
+    }
+
+    private void ClearCalibrationLabelComputedValues()
+    {
+        ClearCalibrationTickProposal();
+        SuggestedYMaximum = SuggestedFirstSession = SuggestedFinalSession = string.Empty;
+        AxisSuggestionReviewed = false;
+        if (_calibrationLabelReadAnchors.Length == 3)
+        {
+            _suggestedAnchors = _calibrationLabelReadAnchors.ToArray();
+            UpdateAxisSuggestionOverlay();
+            OnPropertyChanged(nameof(AxisSuggestionSummary));
+        }
+    }
+
+    private void PublishCalibrationTickProposal(CalibrationTickProposalResult proposal)
+    {
+        SetEstimatedCalibrationPositions(_hasEstimatedCalibrationPositions || proposal.UsesEstimatedPositions);
         if (!proposal.IsComplete)
         {
             PopulatePartialCalibrationAxes(proposal);

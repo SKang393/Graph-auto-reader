@@ -200,6 +200,8 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   preference in the next integrated source build. Also verify Automatic,
   Check devices, Cancel and interruption by foreground work
   and the new Suggest calibration action through confirmation and Apply.
+  Check separate row selection and inclusion checkboxes, cached refitting,
+  retained raw labels, and review invalidation after changing the included rows.
   Verify a placed marker example, visible matches, individual Add/Remove and
   undo using the next integrated preview, including the reviewed Add remaining
   matches action as one Undo operation. Include the new Crop panel preview,

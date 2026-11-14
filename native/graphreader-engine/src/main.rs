@@ -260,8 +260,38 @@ fn propose(
             bottom, left, x_limit, y_limit, fallback, false),
         Err("AMBIGUOUS_AXIS") => resolve_grid(width, height, channels, pixels, &rows, &cols,
             tick_width * 2 / 5, tick_height * 2 / 5, x_limit, y_limit),
+        Err("NO_AXIS") => resolve_connected_runs(width, height, channels, pixels),
         Err(reason) => Err(reason),
     }
+}
+
+// Disconnected caption glyphs do not increase an axis run. This runs only
+// after the existing content-extent selection returned NO_AXIS.
+fn resolve_connected_runs(width: usize, height: usize, channels: usize, pixels: &[u8])
+    -> Result<Proposal, &'static str>
+{
+    let mut rows = vec![0usize; height];
+    let mut cols = vec![0usize; width];
+    for y in 0..height {
+        let mut run = 0;
+        for x in 0..width {
+            if is_dark(pixels, (y * width + x) * channels, channels) { run += 1; rows[y] = rows[y].max(run); }
+            else { run = 0; }
+        }
+    }
+    for x in 0..width {
+        let mut run = 0;
+        for y in 0..height {
+            if is_dark(pixels, (y * width + x) * channels, channels) { run += 1; cols[x] = cols[x].max(run); }
+            else { run = 0; }
+        }
+    }
+    let row_max = *rows.iter().max().ok_or("NO_AXIS")?;
+    let col_max = *cols.iter().max().ok_or("NO_AXIS")?;
+    if row_max == 0 || col_max == 0 { return Err("NO_AXIS"); }
+    resolve_grid(width, height, channels, pixels, &rows, &cols,
+        row_max * 2 / 5, col_max * 2 / 5,
+        (col_max / 20).clamp(3, 32), (row_max / 20).clamp(3, 32))
 }
 
 fn strong_line_bands(scores: &[usize], minimum: usize) -> Result<Vec<(usize, usize)>, &'static str> {
@@ -952,6 +982,52 @@ mod tests {
             }
         }
         assert_eq!(propose(128, 128, 1, &a).unwrap().ticks, None);
+    }
+    fn small_plot_with_dotted_caption() -> Vec<u8> {
+        let mut image = vec![255; 512 * 512];
+        for x in 100..=195 { image[190 * 512 + x] = 0; }
+        for y in 100..=190 { image[y * 512 + 100] = 0; }
+        for x in [110, 140, 180] { for y in 191..=194 { image[y * 512 + x] = 0; } }
+        for y in [110, 140, 180] { for x in 96..100 { image[y * 512 + x] = 0; } }
+        for x in (0..512).step_by(2) { image[400 * 512 + x] = 0; }
+        image
+    }
+    #[test]
+    fn dotted_caption_small_plot_recovers_original_pixels() {
+        let image = small_plot_with_dotted_caption();
+        let p = propose(512, 512, 1, &image).unwrap();
+        assert_eq!((p.left, p.bottom, p.right, p.top), (100, 190, 195, 100));
+        assert_eq!(p.x_ticks, vec![110, 140, 180]);
+        assert_eq!(p.y_ticks, vec![110, 140, 180]);
+    }
+    #[test]
+    fn connected_run_recovery_requires_ticks_and_rejects_crossing_caption() {
+        let mut image = small_plot_with_dotted_caption();
+        for x in [110, 140, 180] { for y in 191..=194 { image[y * 512 + x] = 255; } }
+        assert!(propose(512, 512, 1, &image).is_err());
+        let mut image = small_plot_with_dotted_caption();
+        // A long continuous caption-like rule is competing geometry, not ignorable ink.
+        for x in 0..512 { image[400 * 512 + x] = 0; }
+        assert!(propose(512, 512, 1, &image).is_err());
+    }
+    #[test]
+    fn connected_run_recovery_rejects_caption_only_and_two_plots() {
+        let mut caption = vec![255; 512 * 512];
+        for x in (0..512).step_by(2) { caption[400 * 512 + x] = 0; }
+        assert!(propose(512, 512, 1, &caption).is_err());
+        let mut image = small_plot_with_dotted_caption();
+        for x in 300..=395 { image[190 * 512 + x] = 0; }
+        for y in 100..=190 { image[y * 512 + 300] = 0; }
+        for x in [310, 340, 380] { for y in 191..=194 { image[y * 512 + x] = 0; } }
+        for y in [110, 140, 180] { for x in 296..300 { image[y * 512 + x] = 0; } }
+        assert!(propose(512, 512, 1, &image).is_err());
+    }
+    #[test]
+    fn connected_run_recovery_rejects_beyond_pair_budget() {
+        let mut image = vec![255; 512 * 512];
+        for y in (20..=240).step_by(20) { for x in 20..=240 { image[y * 512 + x] = 0; } }
+        for x in (20..=240).step_by(20) { for y in 20..=240 { image[y * 512 + x] = 0; } }
+        assert!(resolve_connected_runs(512, 512, 1, &image).is_err());
     }
     fn grid_pixels() -> Vec<u8> {
         let mut a = vec![255; 128 * 128];

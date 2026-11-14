@@ -15,6 +15,7 @@ public sealed partial class MainWindowViewModel
     private CalibrationLabelRowViewModel? _selectedCalibrationLabel;
     private string _calibrationLabelStatusOverride = string.Empty;
     private int _calibrationLabelGeneration;
+    private Point[] _calibrationLabelReadAnchors = [];
 
     public ObservableCollection<CalibrationLabelRowViewModel> CalibrationLabelRows { get; } = [];
     public ICommand ReadCalibrationLabelsCommand { get; private set; } = null!;
@@ -70,6 +71,8 @@ public sealed partial class MainWindowViewModel
     {
         ReadCalibrationLabelsCommand = new AsyncRelayCommand(ReadCalibrationLabelsAsync,
             () => !IsBusy && CanReadCalibrationLabelsCore());
+        RefitSelectedCalibrationLabelsCommand = new RelayCommand(_ => RefitSelectedCalibrationLabels(),
+            _ => !IsBusy && !_refittingCalibrationLabels && CanRefitCalibrationLabelsCore());
         UseCalibrationLabelForYMaximumCommand = new RelayCommand(_ => UseSelectedCalibrationLabelForYMaximum(), _ => CanUseSelectedCalibrationLabelForYMaximum());
         UseCalibrationLabelForFirstSessionCommand = new RelayCommand(_ => UseSelectedCalibrationLabelForFirstSession(), _ => CanUseSelectedCalibrationLabelForFirstSession());
         UseCalibrationLabelForFinalSessionCommand = new RelayCommand(_ => UseSelectedCalibrationLabelForFinalSession(), _ => CanUseSelectedCalibrationLabelForFinalSession());
@@ -81,6 +84,8 @@ public sealed partial class MainWindowViewModel
             _axisSuggestion is not { } suggestion || _workspaceService is not ICalibrationLabelSuggestionWorkspace workspace)
             return;
 
+        bool hadComputedSelection = _calibrationTickProposal is not null || CalibrationLabelRows.Any(row => !row.IsIncluded);
+        if (hadComputedSelection) ClearCalibrationLabelComputedValues();
         ClearCalibrationLabelResults(clearPickedValues: false);
         ResetAxisSuggestionReview();
         int generation = _calibrationLabelGeneration;
@@ -127,9 +132,11 @@ public sealed partial class MainWindowViewModel
         }
 
         _calibrationLabelSuggestion = result;
+        _calibrationLabelReadAnchors = anchors;
         CalibrationLabelRows.Clear();
         foreach (CalibrationOcrProposal proposal in result.Response.Proposals)
-            CalibrationLabelRows.Add(new CalibrationLabelRowViewModel(proposal, FormatCalibrationLabelRow(proposal)));
+            CalibrationLabelRows.Add(new CalibrationLabelRowViewModel(proposal, FormatCalibrationLabelRow(proposal),
+                CanChangeCalibrationLabelInclusion, OnCalibrationLabelInclusionChanged));
         SelectedCalibrationLabel = null;
         OnPropertyChanged(nameof(HasCalibrationLabelSuggestion));
         OnPropertyChanged(nameof(HasCalibrationLabelWarning));
@@ -143,6 +150,26 @@ public sealed partial class MainWindowViewModel
         _suggestedAnchors.Length == 3 && SelectedTab.TabId == suggestion.TabId &&
         _workspaceService is IAxisSuggestionWorkspace axes && axes.IsAxisSuggestionCurrent(suggestion) &&
         _workspaceService is ICalibrationLabelSuggestionWorkspace labels && labels.CanReadCalibrationLabels;
+
+    private bool CanRefitCalibrationLabelsCore() => CanReadCalibrationLabelsCore() &&
+        _calibrationLabelSuggestion is { Response.FailureCode: null } result &&
+        ReferenceEquals(_axisSuggestion, result.AxisSuggestion) &&
+        _workspaceService is ICalibrationLabelSuggestionWorkspace workspace && workspace.IsCalibrationLabelSuggestionCurrent(result) &&
+        CalibrationLabelRows.Count == result.Response.Proposals.Count &&
+        CalibrationLabelRows.Zip(result.Response.Proposals).All(pair => ReferenceEquals(pair.First.Proposal, pair.Second));
+
+    private bool CanChangeCalibrationLabelInclusion(CalibrationLabelRowViewModel row) =>
+        !IsBusy && !_refittingCalibrationLabels && CalibrationLabelRows.Contains(row) && CanRefitCalibrationLabelsCore();
+
+    private void OnCalibrationLabelInclusionChanged(CalibrationLabelRowViewModel row)
+    {
+        _ = row;
+        ClearCalibrationLabelComputedValues();
+        _calibrationTickProposalStatusText = GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsSelectionChanged);
+        OnPropertyChanged(nameof(CalibrationTickProposalStatusText));
+        OnPropertyChanged(nameof(HasCalibrationTickProposalStatus));
+        RelayCommand.RaiseCanExecuteChanged();
+    }
 
     private bool TryGetSelectedNumericCalibrationLabel(out double value)
     {
@@ -200,6 +227,7 @@ public sealed partial class MainWindowViewModel
         ClearCalibrationTickProposal();
         _calibrationLabelGeneration++;
         _calibrationLabelSuggestion = null;
+        _calibrationLabelReadAnchors = [];
         _calibrationLabelStatusOverride = string.Empty;
         CalibrationLabelRows.Clear();
         SelectedCalibrationLabel = null;
@@ -289,8 +317,24 @@ public sealed partial class MainWindowViewModel
     }
 }
 
-public sealed class CalibrationLabelRowViewModel(CalibrationOcrProposal proposal, string displayText)
+public sealed class CalibrationLabelRowViewModel(CalibrationOcrProposal proposal, string displayText,
+    Func<CalibrationLabelRowViewModel, bool>? canChangeInclusion = null,
+    Action<CalibrationLabelRowViewModel>? inclusionChanged = null) : ObservableObject
 {
+    private bool _isIncluded = true;
     public CalibrationOcrProposal Proposal { get; } = proposal;
     public string DisplayText { get; } = displayText;
+    public bool IsIncluded
+    {
+        get => _isIncluded;
+        set
+        {
+            if (canChangeInclusion?.Invoke(this) == false)
+            {
+                OnPropertyChanged(nameof(IsIncluded));
+                return;
+            }
+            if (SetProperty(ref _isIncluded, value)) inclusionChanged?.Invoke(this);
+        }
+    }
 }

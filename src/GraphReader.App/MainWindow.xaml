@@ -1076,14 +1076,36 @@
                 <ListBox.ItemContainerStyle>
                   <Style TargetType="ListBoxItem" BasedOn="{StaticResource App.Style.ListBoxItem}">
                     <Setter Property="AutomationProperties.Name" Value="{Binding DisplayText}" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding DataContext.IsBusy, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}" Value="True">
+                        <Setter Property="IsEnabled" Value="False" />
+                      </DataTrigger>
+                    </Style.Triggers>
                   </Style>
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                   <DataTemplate>
-                    <TextBlock Text="{Binding DisplayText}" TextWrapping="Wrap" />
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                      </Grid.ColumnDefinitions>
+                      <CheckBox Margin="0,0,8,0" VerticalAlignment="Top"
+                                IsChecked="{Binding IsIncluded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                ToolTip="{DynamicResource Manual.CalibrationLabels.Include}"
+                                automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.Include"
+                                automation:AutomationProperties.Name="{Binding DisplayText}" />
+                      <TextBlock Grid.Column="1" Text="{Binding DisplayText}" TextWrapping="Wrap" />
+                    </Grid>
                   </DataTemplate>
                 </ListBox.ItemTemplate>
               </ListBox>
+              <Button Margin="0,0,0,8" Command="{Binding RefitSelectedCalibrationLabelsCommand}"
+                      Content="{DynamicResource Manual.CalibrationLabels.Refit}"
+                      Style="{DynamicResource App.Style.Button}"
+                      Visibility="{Binding HasCalibrationLabelSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}"
+                      automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.Refit"
+                      automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.Refit}" />
               <WrapPanel Margin="0,0,0,8">
                 <Button Margin="0,0,4,4"
                         Command="{Binding UseCalibrationLabelForYMaximumCommand}"

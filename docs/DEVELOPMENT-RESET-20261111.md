@@ -247,6 +247,18 @@ bounded search and rejection of multiple possible panels. All 37 Rust tests
 pass; the actual Rust/OCR control returns six measured pairs in 3.193 s.
 It is not yet packaged. Do not infer that it explains private failures or tune
 thresholds/models against private answers. Native acceptance remains waiting.
+The [small-plot caption repair](CAPTION-AXIS-RECOVERY-20261114.md) also passes
+41 Rust tests and an actual six-pair owned OCR control in 3.338 s. The
+[label-selection refit](CALIBRATION-LABEL-SELECTION-REFIT-20261114.md) lets the
+reviewer exclude a spurious row and refit cached evidence without another OCR
+run. Raw readings remain visible; changing selection invalidates the old fit
+and review. The initial local App run passed 1,006 checks and timed out in two
+off-screen screenshot hosts; both passed in an isolated process with the same
+binary. No test or timeout was weakened. The actual prepared-crop workflow
+exported and reopened three points in 4.889 s. Version 0.4.47 is prepared for
+this combined batch; require fresh hosted validation and downloaded-byte
+verification before replacing 0.4.46. No further feature work starts before
+that delivery and storage closeout.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.
@@ -304,6 +316,12 @@ for every experiment. Before generating new data, state the expected bytes,
 active consumer and cleanup condition. Keep completed disposable results below
 1 GB in total; crossing that allowance requires immediate closeout, not another
 copy on a different drive.
+
+A bounded 2026-11-14 inventory measured about 448 MB across the active
+worktree's validation/runtime folders and the sole retained 0.4.46 build/ZIP,
+with about 360 GB free on E:. This was not an inventory of other worktrees,
+private originals or tool environments. Completed 0.4.45 delivery output was
+already retired; active package controls and current dependencies remain.
 
 Full pipeline approval work is paused while these product increments advance.
 No model approval, accuracy claim, package replacement or release is implied by
