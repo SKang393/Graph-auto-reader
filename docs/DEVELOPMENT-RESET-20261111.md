@@ -392,6 +392,24 @@ availability diagnostics, not independent accuracy or native review acceptance.
 Do not rerun the private set to choose thresholds or models. Prioritize the
 reported launcher failure and native review before another algorithm change.
 
+The launcher failure is repaired in `53c6e45d`: its retained ledger omitted
+the required directory, so double-clicking exited before process creation.
+The actual launcher passed headless smoke after correction. Existing trusted
+Flex5Laptop access was recovered and the exact 449 package passed startup on
+that second host, with production activation still blocked as intended.
+Native interaction remains waiting for the maintainer to reopen the app.
+
+An independent owned-input defect in [thin-line coverage](RUST-RASTER-COVERAGE-20261114.md)
+is fixed: standard one-pixel antialiased black strokes were discarded by the
+old Rust contrast cutoff. The fixed majority-coverage boundary preserves
+original coordinates and actual tick centers; all 52 Rust tests pass,
+including competing gray plots and long-stroke rejection. No private result
+was used to select that change. The next meaningful internal preview, 0.4.50,
+combines this fix with explicit OCR-label correction and the launcher guard.
+Do not change the 95% per-item acceptance bars or the structural zero-silent-
+invalid-export rule. Required model approval, native production workflow
+evidence and clean-machine installer/portable parity remain separate blockers.
+
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new
 model accuracy thresholds or run expensive training to compensate for a UI,
