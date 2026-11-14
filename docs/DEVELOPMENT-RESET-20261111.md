@@ -316,7 +316,9 @@ saved calibration remains user-confirmed manual anchors with no tick evidence.
 Internal preview 0.4.48 is uploaded and verified: its packaged prepared-crop
 workflow exported and reopened three points in 5.154 seconds, with six estimated
 labels and no Rust axis call. Exact-source CI passed 2,706 .NET tests and 44 Rust
-tests. Delivery closeout records the pointer switch and cleanup separately.
+tests. After delivery record `172a4bf7` reached main, the latest pointer switched
+to 0.4.48 and 534 superseded/generated files (372,429,338 path bytes) were
+retired. One build/ZIP remains, with all 12 shared Data hashes preserved.
 Native interaction and private automatic-calibration accuracy remain unverified.
 The next bounded repair addresses observed ink connecting a marker outline
 across an axis stroke. Owned positive and empty-gap negative controls reproduce

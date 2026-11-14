@@ -549,7 +549,7 @@ Exact-source CI run [43626750029](https://github.com/SKang393/Graph-auto-reader/
 
 The packaged owned prepared-crop workflow used manual geometry, did not invoke the Rust axis worker, and returned 6 estimated label pairs with 0 measured pairs. Simulated explicit review saved and reopened a user-confirmed manual three-anchor calibration with 0 tick IDs; 3 points exported and reopened. The run exited 0 with empty stderr in `5.1540688 s` process time (`4410.2178 ms` pipeline). Report SHA-256 `164d86e51a394463dd38a3321548fbde284c5eadc8147a6caf9595dbfd1c6e76`; CSV SHA-256 `249b49a16b036e5be69191a4aea4a867e75d4cdbe0ac6fd31fa2568a23b3edee`.
 
-This is an internal portable preview, with no public-release or production-approval claim. The record does not claim latest-pointer activation or cleanup.
+This is an internal portable preview, with no public-release or production-approval claim. After delivery record `172a4bf7b46c2ed3ae17ac2397bacc38fe84c65d` was pushed, the latest pointer was switched to 0.4.48 and guarded cleanup completed at `2026-11-14T18:50:16.1118088Z`. Cleanup retired 534 files totaling 372,429,338 path bytes, including the superseded 0.4.47 build/ZIP and hosted-preview-448 and manual-axis-draft-check scratch. There were zero active consumers; exactly one build and package remain. All 12 shared `Data` file hashes were preserved. Original corpus, current models, and native QA data were not affected. Retired scratch can be regenerated from the pushed source. The cleanup journal is `artifacts/preview448-retirement.json`.
 
 The appended 448 ledger passed all 62 version-policy checks on the normal host
 in `45.0442603 s`, exit 0. The initial sandbox attempt failed during temporary

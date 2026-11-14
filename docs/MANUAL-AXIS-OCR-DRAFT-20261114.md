@@ -79,9 +79,9 @@ The source App DLL was
 `34e1e4a89a8b71386c9acecc86c691e41c0ddc5c6c51cd614db70bda8e393eae`; the probe
 was `568bdb140d1163e614364009405d9929ce17faf293401d3cdf6d5bfb91bc4462`.
 Nine third-party runtime libraries were checked at 14 destinations. These are
-source-check identities, not a packaged-build claim. Temporary outputs remain
-through package verification and should be retired after it finishes, this
-outcome is pushed, and active consumers finish.
+source-check identities, not a packaged-build claim. The source-check outputs
+were retired after the 0.4.48 record was pushed and package consumers finished;
+they can be regenerated from the pushed source.
 
 ## Packaged 0.4.48 workflow check
 
@@ -106,6 +106,5 @@ interaction, or production approval. Visual acceptance remains unchecked.
 The feature supplies user-positioned geometry to the review path; draft creation
 does not invent numeric values or guarantee that OCR can complete calibration.
 No private-data accuracy or click-savings claim is made. Version `0.4.48` is
-prepared for the integrated internal preview; `0.4.47` remains the retained
-package until its replacement is verified and recorded. No public release or
-production approval is implied.
+the verified retained internal preview after activation and cleanup. No public
+release or production approval is implied.
