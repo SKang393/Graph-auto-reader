@@ -197,6 +197,7 @@ public sealed partial class MainWindowViewModel
 
     private void ClearCalibrationLabelResults(bool clearPickedValues)
     {
+        ClearCalibrationTickProposal();
         _calibrationLabelGeneration++;
         _calibrationLabelSuggestion = null;
         _calibrationLabelStatusOverride = string.Empty;
@@ -214,6 +215,7 @@ public sealed partial class MainWindowViewModel
 
     private void ResetAxisSuggestionReview()
     {
+        ClearCalibrationTickProposal();
         AxisSuggestionReviewed = false;
         RelayCommand.RaiseCanExecuteChanged();
     }

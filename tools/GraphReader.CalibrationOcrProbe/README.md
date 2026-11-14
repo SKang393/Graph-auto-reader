@@ -3,6 +3,14 @@
 
 # Calibration OCR probe
 
+`--tick-proposal-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker>`
+runs the Rust geometry worker and the actual OCR child against the same owned
+crop, then reports tick-label pairing and a review-only calibration proposal.
+It uses detected geometry rather than the request's diagnostic plot. Nothing is
+applied, saved as scientific data or exported. The parent has an 80-second hard
+deadline and writes no image. An incomplete proposal is a reported outcome,
+not an automatic-calibration accuracy pass.
+
 `--automatic-device-check <absolute-App-exe> <absolute-assets> <absolute-empty-settings-root>`
 uses the real in-memory owned benchmark and checks automatic profile persistence,
 identity invalidation and an explicit CPU override. The supplied settings directory

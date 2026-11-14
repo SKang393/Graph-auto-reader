@@ -105,7 +105,14 @@ cancellable idle comparison using an in-memory owned fixture, identity-bound
 profiles and explicit overrides. Its actual CPU/GPU comparison and headless
 profile persistence passed on this host. The next independent step is measured
 Rust tick positions paired with OCR labels for a reviewed calibration proposal;
-label centers alone must not become calibration anchors.
+label centers alone must not become calibration anchors. The
+[measured-tick proposal batch](CALIBRATION-TICK-PROPOSALS-20261113.md) now
+combines both workers through one Suggest calibration action with explicit
+review. Its complete-label control returned a proposal in 3.10 s; an incomplete
+owned panel remained uncalibrated in 3.90 s. Native display/interaction remains
+queued. The next deliverable is one integrated internal preview containing
+device profiles and reviewed calibration proposals, followed by editable marker
+assistance without reviving rejected model training runs.
 
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new

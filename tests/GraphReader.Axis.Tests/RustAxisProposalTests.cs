@@ -8,6 +8,33 @@ namespace GraphReader.Axis.Tests;
 [TestClass]
 public sealed class RustAxisProposalTests
 {
+    private static readonly int[] ParsedTicks = [20, 40, 60, 80, 100];
+    private static readonly int[] FixtureTicks = [20, 40, 60, 80, 96];
+    [TestMethod]
+    public void ParserAcceptsLegacyAndValidTickListsButRejectsInvalidLists()
+    {
+        RustAxisProposalResult Parse(string text) => (RustAxisProposalResult)typeof(RustAxisProposal)
+            .GetMethod("ParseResponse", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+            .Invoke(null, [text, 0, 128, 128])!;
+        Assert.IsNotNull(Parse("OK 20 100 115 10 0.7 - -").Geometry);
+        RustAxisProposalResult fallback = Parse("OK 20 100 115 10 0.7 30 110 - -");
+        Assert.IsNotNull(fallback.Geometry);
+        Assert.AreEqual(30, fallback.Geometry.FirstTickX);
+        Assert.AreEqual(110, fallback.Geometry.LastTickX);
+        Assert.AreEqual(0, fallback.Geometry.XTickPositions.Count);
+        RustAxisProposalResult valid = Parse("OK 20 100 115 10 0.7 20 100 20,40,60,80,100 20,40,60,80,100");
+        Assert.IsNotNull(valid.Geometry);
+        CollectionAssert.AreEqual(ParsedTicks, valid.Geometry.XTickPositions.ToArray());
+        CollectionAssert.AreEqual(ParsedTicks, valid.Geometry.YTickPositions.ToArray());
+        foreach (string line in new[] {
+            "OK 20 100 115 10 0.7 20 100 20,40,40,100 -",
+            "OK 20 100 115 10 0.7 20 100 20,40,101 -",
+            "OK 20 100 115 10 0.7 20 100 20,40,100 9,40,100",
+            "OK 20 100 115 10 0.7 - - 20,40,100 -",
+            "OK 20 100 115 10 0.7 - - - " + string.Join(',', Enumerable.Range(0, 129)),
+            new string('x', 2049) })
+            Assert.AreEqual("INVALID_RESPONSE", Parse(line).ErrorCode);
+    }
     [TestMethod]
     public async Task InvalidFrameFailsBeforeLaunchingWorker()
     {
@@ -57,6 +84,7 @@ public sealed class RustAxisProposalTests
         Assert.AreEqual(115, result.Geometry.Right);
         Assert.AreEqual(20, result.Geometry.FirstTickX);
         Assert.AreEqual(96, result.Geometry.LastTickX);
+        CollectionAssert.AreEqual(FixtureTicks, result.Geometry.XTickPositions.ToArray());
         pixels = new byte[64 * 64];
         Array.Fill(pixels, (byte)255);
         result = await RustAxisProposal.RunAsync(worker, 64, 64, pixels);

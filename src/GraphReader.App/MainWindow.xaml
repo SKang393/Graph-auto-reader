@@ -983,8 +983,30 @@
                     automation:AutomationProperties.AutomationId="Manual.SuggestAxes"
                     automation:AutomationProperties.Name="{DynamicResource Manual.SuggestAxes}"
                     Style="{DynamicResource App.Style.Button}" Margin="0,0,0,8" />
+            <Button Margin="0,0,0,8"
+                    Command="{Binding SuggestCalibrationFromTicksCommand}"
+                    Content="{DynamicResource Manual.CalibrationTicks.Suggest}"
+                    Style="{DynamicResource App.Style.Button}"
+                    automation:AutomationProperties.AutomationId="Manual.CalibrationTicks.Suggest"
+                    automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationTicks.Suggest}" />
             <StackPanel Visibility="{Binding HasAxisSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
               <TextBlock Text="{DynamicResource Manual.AxisReview}" TextWrapping="Wrap" />
+              <TextBlock Margin="0,0,0,6"
+                         Text="{Binding CalibrationTickProposalStatusText}"
+                         TextWrapping="Wrap"
+                         Visibility="{Binding HasCalibrationTickProposalStatus, Converter={StaticResource BooleanToVisibilityConverter}}"
+                         automation:AutomationProperties.AutomationId="Manual.CalibrationTicks.Status"
+                         automation:AutomationProperties.Name="{Binding CalibrationTickProposalStatusText}" />
+              <ItemsControl ItemsSource="{Binding CalibrationPairedTickRows}"
+                            Visibility="{Binding HasCalibrationTickProposal, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            automation:AutomationProperties.AutomationId="Manual.CalibrationTicks.PairedRows"
+                            automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationTicks.PairedRows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
               <TextBlock Text="{Binding AxisSuggestionSummary}" TextWrapping="Wrap" Margin="0,4" />
               <TextBlock Margin="0,0,0,4"
                          FontWeight="SemiBold"

@@ -80,6 +80,9 @@ public sealed partial class MainWindowViewModel
     {
         SuggestAxesCommand = new AsyncRelayCommand(SuggestAxesAsync,
             () => !IsBusy && SelectedTab is not null && _workspaceService is IAxisSuggestionWorkspace { CanSuggestAxes: true });
+        SuggestCalibrationFromTicksCommand = new AsyncRelayCommand(SuggestCalibrationFromTicksAsync,
+            () => !IsBusy && SelectedTab is not null && _workspaceService is IAxisSuggestionWorkspace { CanSuggestAxes: true } &&
+                _workspaceService is ICalibrationLabelSuggestionWorkspace { CanReadCalibrationLabels: true });
         InitializeCalibrationLabelCommands();
         ApplyAxisSuggestionCommand = new AsyncRelayCommand(ApplyAxisSuggestionAsync,
             () => !IsBusy && AxisSuggestionReviewed && TryGetSuggestedValues(out _, out _, out _));

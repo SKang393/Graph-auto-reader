@@ -87,6 +87,14 @@ public static class LocalizationKeys
     public const string ManualAxisReviewed = "Manual.AxisReviewed";
     public const string ManualAxisApply = "Manual.AxisApply";
     public const string ManualAxisDismiss = "Manual.AxisDismiss";
+    public const string ManualCalibrationTicksSuggest = "Manual.CalibrationTicks.Suggest";
+    public const string ManualCalibrationTicksStatus = "Manual.CalibrationTicks.Status";
+    public const string ManualCalibrationTicksComplete = "Manual.CalibrationTicks.Complete";
+    public const string ManualCalibrationTicksIncomplete = "Manual.CalibrationTicks.Incomplete";
+    public const string ManualCalibrationTicksPairedRows = "Manual.CalibrationTicks.PairedRows";
+    public const string ManualCalibrationTicksPairedRow = "Manual.CalibrationTicks.PairedRow";
+    public const string ManualCalibrationTicksAxisX = "Manual.CalibrationTicks.AxisX";
+    public const string ManualCalibrationTicksAxisY = "Manual.CalibrationTicks.AxisY";
     public const string ManualCalibrationLabelsTitle = "Manual.CalibrationLabels.Title";
     public const string ManualCalibrationLabelsRead = "Manual.CalibrationLabels.Read";
     public const string ManualCalibrationLabelsList = "Manual.CalibrationLabels.List";
@@ -444,6 +452,14 @@ public static class LocalizationKeys
         ManualAxisReviewed,
         ManualAxisApply,
         ManualAxisDismiss,
+        ManualCalibrationTicksSuggest,
+        ManualCalibrationTicksStatus,
+        ManualCalibrationTicksComplete,
+        ManualCalibrationTicksIncomplete,
+        ManualCalibrationTicksPairedRows,
+        ManualCalibrationTicksPairedRow,
+        ManualCalibrationTicksAxisX,
+        ManualCalibrationTicksAxisY,
         ManualModeSelect,
         ManualModeCalibrate,
         ManualModePoints,

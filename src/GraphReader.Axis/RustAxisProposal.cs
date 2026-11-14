@@ -8,7 +8,11 @@ namespace GraphReader.Axis;
 
 /// <summary>Unapproved pixel geometry for review, never calibrated values.</summary>
 public sealed record RustAxisGeometry(int Left, int Bottom, int Right, int Top, double Confidence,
-    int? FirstTickX = null, int? LastTickX = null);
+    int? FirstTickX = null, int? LastTickX = null)
+{
+    public IReadOnlyList<int> XTickPositions { get; init; } = Array.Empty<int>();
+    public IReadOnlyList<int> YTickPositions { get; init; } = Array.Empty<int>();
+}
 public sealed record RustAxisProposalResult(RustAxisGeometry? Geometry, string? ErrorCode);
 
 public static class RustAxisProposal
@@ -64,11 +68,27 @@ public static class RustAxisProposal
             await process.WaitForExitAsync(deadline.Token).ConfigureAwait(false);
             deadline.Token.ThrowIfCancellationRequested();
             if (line is null) return new(null, "INVALID_RESPONSE");
+            return ParseResponse(line, process.ExitCode, width, height);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) { return new(null, "WORKER_TIMEOUT"); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        { cancellationToken.ThrowIfCancellationRequested(); return new(null, "WORKER_START_OR_IO_FAILED"); }
+        finally
+        {
+            try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
+            catch (InvalidOperationException) { }
+            catch (System.ComponentModel.Win32Exception) { }
+        }
+    }
+
+    private static RustAxisProposalResult ParseResponse(string line, int exitCode, int width, int height)
+    {
+            if (line.Length > 2048) return new(null, "INVALID_RESPONSE");
             string[] fields = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (fields.Length == 2 && fields[0] == "ERR" && fields[1] is
                 "CPU_BUDGET_UNAVAILABLE" or "INVALID_INPUT" or "INVALID_PROTOCOL" or "NO_AXIS" or "AMBIGUOUS_AXIS" or "NO_INTERSECTION")
                 return new(null, fields[1]);
-            if (process.ExitCode != 0 || fields.Length != 8 || fields[0] != "OK" ||
+            if (exitCode != 0 || fields.Length is not (8 or 10) || fields[0] != "OK" ||
                 !int.TryParse(fields[1], NumberStyles.None, CultureInfo.InvariantCulture, out int left) ||
                 !int.TryParse(fields[2], NumberStyles.None, CultureInfo.InvariantCulture, out int bottom) ||
                 !int.TryParse(fields[3], NumberStyles.None, CultureInfo.InvariantCulture, out int right) ||
@@ -87,22 +107,33 @@ public static class RustAxisProposal
                 firstTick = first;
                 lastTick = last;
             }
-            return new(new(left, bottom, right, top, confidence, firstTick, lastTick), null);
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) { return new(null, "WORKER_TIMEOUT"); }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
-        { cancellationToken.ThrowIfCancellationRequested(); return new(null, "WORKER_START_OR_IO_FAILED"); }
-        finally
-        {
-            try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
-            catch (InvalidOperationException) { }
-            catch (System.ComponentModel.Win32Exception) { }
-        }
+            if (fields.Length == 8) return new(new(left, bottom, right, top, confidence, firstTick, lastTick), null);
+            if (!TryParseTicks(fields[8], left, right, out int[] xTicks) ||
+                !TryParseTicks(fields[9], top, bottom, out int[] yTicks) ||
+                (xTicks.Length > 0 && (firstTick != xTicks[0] || lastTick != xTicks[^1])))
+                return new(null, "INVALID_RESPONSE");
+            return new(new RustAxisGeometry(left, bottom, right, top, confidence, firstTick, lastTick)
+                { XTickPositions = xTicks, YTickPositions = yTicks }, null);
+    }
+
+    private static bool TryParseTicks(string text, int minimum, int maximum, out int[] ticks)
+    {
+        ticks = Array.Empty<int>();
+        if (text == "-") return true;
+        string[] parts = text.Split(',');
+        if (parts.Length is < 3 or > 128) return false;
+        var parsed = new int[parts.Length];
+        for (int i = 0; i < parts.Length; i++)
+            if (!int.TryParse(parts[i], NumberStyles.None, CultureInfo.InvariantCulture, out parsed[i]) ||
+                parsed[i] < minimum || parsed[i] > maximum || (i > 0 && parsed[i] <= parsed[i - 1])) return false;
+        ticks = parsed;
+        return true;
     }
 
     private static async Task<string?> ReadBoundedLineAsync(StreamReader reader, CancellationToken token)
     {
-        var chars = new char[257];
+        // Two lists of at most 128 coordinates in a 4096-pixel frame fit below 2048 chars.
+        var chars = new char[2049];
         for (int i = 0; i < chars.Length; i++)
         {
             if (await reader.ReadAsync(chars.AsMemory(i, 1), token).ConfigureAwait(false) == 0) return null;

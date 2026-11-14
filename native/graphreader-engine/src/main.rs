@@ -12,9 +12,11 @@ struct Proposal {
     top: u32,
     confidence: f64,
     ticks: Option<(u32, u32)>,
+    x_ticks: Vec<u32>,
+    y_ticks: Vec<u32>,
 }
 
-fn tick_endpoints(
+fn x_tick_positions(
     pixels: &[u8],
     width: usize,
     height: usize,
@@ -23,17 +25,18 @@ fn tick_endpoints(
     right: usize,
     bottom: usize,
     rows: &[usize],
-) -> Option<(u32, u32)> {
+    legacy: bool,
+) -> Vec<u32> {
     let mut edge = bottom;
     while edge + 1 < height && rows[edge + 1] * 5 >= rows[bottom] * 4 {
         edge += 1;
     }
     let limit = (height / 20).clamp(3, 32);
     if edge + 2 >= height {
-        return None;
+        return Vec::new();
     }
     let mut positions = Vec::new();
-    let mut x = left.saturating_add(3);
+    let mut x = if legacy { left.saturating_add(3) } else { left };
     while x <= right {
         let length = (1..=limit + 1)
             .take_while(|&dy| {
@@ -41,7 +44,11 @@ fn tick_endpoints(
                     && is_dark(pixels, ((edge + dy) * width + x) * channels, channels)
             })
             .count();
-        if length < 2 || length > limit {
+        if length > limit {
+            if legacy { x += 1; continue; }
+            return Vec::new();
+        }
+        if length < 2 {
             x += 1;
             continue;
         }
@@ -53,12 +60,16 @@ fn tick_endpoints(
             x += 1;
         }
         if x - start > 6 {
-            return None;
+            return Vec::new();
         }
         positions.push((start + x - 1) / 2);
     }
-    if positions.len() < 3 {
-        return None;
+    validate_positions(positions)
+}
+
+fn validate_positions(positions: Vec<usize>) -> Vec<u32> {
+    if positions.len() < 3 || positions.len() > 128 {
+        return Vec::new();
     }
     let gaps: Vec<usize> = positions.windows(2).map(|p| p[1] - p[0]).collect();
     let mut sorted = gaps.clone();
@@ -69,9 +80,40 @@ fn tick_endpoints(
             .iter()
             .any(|&gap| gap * 2 < typical || gap * 2 > typical * 3)
     {
-        return None;
+        return Vec::new();
     }
-    Some((*positions.first()? as u32, *positions.last()? as u32))
+    positions.into_iter().map(|p| p as u32).collect()
+}
+
+fn y_tick_positions(
+    pixels: &[u8], width: usize, channels: usize,
+    left: usize, top: usize, bottom: usize, cols: &[usize],
+) -> Vec<u32> {
+    let mut edge = left;
+    while edge > 0 && cols[edge - 1] * 5 >= cols[left] * 4 {
+        edge -= 1;
+    }
+    let limit = (width / 20).clamp(3, 32);
+    if edge < 2 { return Vec::new(); }
+    let mut positions = Vec::new();
+    let mut y = top;
+    while y <= bottom {
+        let length = (1..=limit + 1).take_while(|&dx| dx <= edge &&
+            is_dark(pixels, (y * width + edge - dx) * channels, channels)).count();
+        if length > limit { return Vec::new(); }
+        if length < 2 { y += 1; continue; }
+        let start = y;
+        y += 1;
+        while y <= bottom && (1..=2).all(|dx|
+            is_dark(pixels, (y * width + edge - dx) * channels, channels)) { y += 1; }
+        if y - start > 6 { return Vec::new(); }
+        positions.push((start + y - 1) / 2);
+    }
+    if positions.len() < 3 || positions.len() > 128 ||
+        positions.windows(2).any(|pair| pair[1] - pair[0] < 4) {
+        return Vec::new();
+    }
+    positions.into_iter().map(|position| position as u32).collect()
 }
 
 fn is_dark(pixels: &[u8], i: usize, channels: usize) -> bool {
@@ -145,13 +187,22 @@ fn propose(
     if right <= left || top >= bottom {
         return Err("NO_AXIS");
     }
+    let x_ticks = x_tick_positions(pixels, width, height, channels, left, right, bottom, &rows, false);
+    let y_ticks = y_tick_positions(pixels, width, channels, left, top, bottom, &cols);
+    let legacy_ticks = if x_ticks.is_empty() {
+        x_tick_positions(pixels, width, height, channels, left, right, bottom, &rows, true)
+    } else { Vec::new() };
+    let endpoints = if x_ticks.is_empty() { &legacy_ticks } else { &x_ticks };
+    let ticks = endpoints.first().zip(endpoints.last()).map(|(&a, &b)| (a, b));
     Ok(Proposal {
         left: left as u32,
         bottom: bottom as u32,
         right: right as u32,
         top: top as u32,
         confidence: row_strength.min(col_strength),
-        ticks: tick_endpoints(pixels, width, height, channels, left, right, bottom, &rows),
+        ticks,
+        x_ticks,
+        y_ticks,
     })
 }
 
@@ -257,10 +308,11 @@ fn main() {
                 .ticks
                 .map(|(a, b)| (a.to_string(), b.to_string()))
                 .unwrap_or_else(|| ("-".to_string(), "-".to_string()));
-            println!(
-                "OK {} {} {} {} {:.6} {} {}",
-                p.left, p.bottom, p.right, p.top, p.confidence, first, last
-            );
+            let list = |values: &[u32]| if values.is_empty() { "-".to_string() }
+                else { values.iter().map(u32::to_string).collect::<Vec<_>>().join(",") };
+            println!("OK {} {} {} {} {:.6} {} {} {} {}",
+                p.left, p.bottom, p.right, p.top, p.confidence, first, last,
+                list(&p.x_ticks), list(&p.y_ticks));
         }
         Err(e) => {
             println!("ERR {e}");
@@ -309,6 +361,49 @@ mod tests {
         }
         let p = propose(128, 128, 1, &a).unwrap();
         assert_eq!((p.left, p.right, p.ticks), (8, 115, Some((20, 96))));
+        assert_eq!(p.x_ticks, vec![20, 40, 60, 80, 96]);
+        assert!(p.y_ticks.is_empty());
+    }
+    #[test]
+    fn measured_ticks_include_axis_intersection_and_reject_wide_strokes() {
+        let mut a = vec![255; 128 * 128];
+        for x in 20..=115 { a[100 * 128 + x] = 0; }
+        for y in 10..=100 { a[y * 128 + 20] = 0; }
+        for x in [20, 40, 60, 80, 100] {
+            for y in 101..=104 { a[y * 128 + x] = 0; }
+        }
+        for y in [20, 40, 60, 80, 100] {
+            for x in 16..20 { a[y * 128 + x] = 0; }
+        }
+        let p = propose(128, 128, 1, &a).unwrap();
+        assert_eq!(p.x_ticks, vec![20, 40, 60, 80, 100]);
+        assert_eq!(p.y_ticks, vec![20, 40, 60, 80, 100]);
+        for y in 50..58 { for x in 16..20 { a[y * 128 + x] = 0; } }
+        assert!(propose(128, 128, 1, &a).unwrap().y_ticks.is_empty());
+    }
+    #[test]
+    fn irregularly_spaced_observed_y_ticks_remain_pixel_proposals() {
+        let mut a = vec![255; 128 * 128];
+        for x in 20..=115 { a[100 * 128 + x] = 0; }
+        for y in 10..=100 { a[y * 128 + 20] = 0; }
+        for y in [12, 28, 62] {
+            for x in 16..20 { a[y * 128 + x] = 0; }
+        }
+        let p = propose(128, 128, 1, &a).unwrap();
+        assert_eq!(p.y_ticks, vec![12, 28, 62]);
+        assert!(!p.y_ticks.contains(&100));
+    }
+    #[test]
+    fn downward_y_axis_preserves_legacy_endpoints_without_claiming_full_ticks() {
+        let mut a = vec![255; 128 * 128];
+        for x in 20..=115 { a[100 * 128 + x] = 0; }
+        for y in 10..=110 { a[y * 128 + 20] = 0; }
+        for x in [30, 50, 70, 90, 110] {
+            for y in 101..=104 { a[y * 128 + x] = 0; }
+        }
+        let p = propose(128, 128, 1, &a).unwrap();
+        assert!(p.x_ticks.is_empty());
+        assert_eq!(p.ticks, Some((30, 110)));
     }
     #[test]
     fn sparse_and_irregular_strokes_do_not_become_tick_endpoints() {
@@ -340,6 +435,13 @@ mod tests {
             a[56 * 64 + x] = 0;
         }
         assert_eq!(propose(64, 64, 1, &a), Err("AMBIGUOUS_AXIS"));
+    }
+    #[test]
+    fn excessively_thick_axis_is_ambiguous() {
+        let mut a = vec![255; 128 * 128];
+        for x in 20..=115 { for y in 96..=100 { a[y * 128 + x] = 0; } }
+        for y in 10..=100 { for x in 20..=24 { a[y * 128 + x] = 0; } }
+        assert_eq!(propose(128, 128, 1, &a), Err("AMBIGUOUS_AXIS"));
     }
     #[test]
     fn invalid_protocol_is_rejected() {
