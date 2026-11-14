@@ -235,3 +235,21 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   [current implementation plan](DEVELOPMENT-RESET-20261111.md)
 - **Unblocks when:** native save, subsequent read, device-change restart and
   fresh-process restoration are observed without claiming unperformed checks
+
+## REV-012 - identify the existing Windows test laptop
+
+- **Status:** open; remote host diagnostic waiting
+- **Blocks:** current reachability check and exact-package smoke on the previously
+  authorized Windows test laptop; source work and local validation continue
+- **Effort:** about 1 minute
+- **Action:** provide the existing laptop's SSH host alias or address, or state
+  that it is unavailable. Do not send passwords or private keys
+- **Why:** the earlier host/guest preparation is documented, but scoped project
+  metadata and SSH configuration do not identify the connection target. Reuse
+  existing infrastructure before installing or downloading another VM setup
+- **Files:** [current resume record](WINDOWS-VALIDATION-RESUME-20261114.md),
+  [historical host preparation](CLEAN-WINDOWS-HOST-PREPARATION-20261030.md),
+  [guest requirements](../packaging/clean-machine/README.md)
+- **Unblocks when:** a known authorized host can be addressed and its existing
+  authentication works. An existing-host smoke is diagnostic only and does not
+  establish clean-guest or installer release acceptance

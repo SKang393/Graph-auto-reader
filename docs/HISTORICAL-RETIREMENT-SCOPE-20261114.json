@@ -1,0 +1,414 @@
+{
+  "schemaVersion": 1,
+  "scopeStatus": "lead_reviewed_disposable_scope_pending_runtime_guards",
+  "inventory": "artifacts/storage-retention-check/remaining-runs.json",
+  "sourceRoot": "E:/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs",
+  "selection": "Largest present completed run outputs with tracked outcome JSON; excludes known current model/validation keepers, previous scopes and exact-name current source/protocol consumers.",
+  "consumerSearch": {
+    "checkouts": [
+      "E:/Graph-auto-reader",
+      "E:/Graph-auto-reader/artifacts/goal22-worktrees/resume-20261111-phase2"
+    ],
+    "paths": [
+      "src",
+      "tools",
+      "packaging",
+      "ml"
+    ],
+    "extensions": [
+      ".cs",
+      ".py",
+      ".ps1",
+      ".json",
+      ".yml",
+      ".yaml"
+    ],
+    "excluded": [
+      "bin",
+      "obj",
+      "venv",
+      ".venv",
+      "node_modules",
+      "__pycache__",
+      "NuGet",
+      "nuget",
+      "tmp",
+      "temp",
+      "cache",
+      "caches"
+    ],
+    "exactNameMatches": 0
+  },
+  "privacy": "Selected tracked outcomes report zero private/sealed reads or data-access flags; production status is captured per entry. Historical aggregates only were inspected.",
+  "license": "License/dependency notes are captured per outcome. Current model inputs and named retainers were excluded; no current source/protocol exact-path consumer was found.",
+  "noDeletionPerformed": true,
+  "entries": [
+    {
+      "sealedEvidence": 0,
+      "name": "zero-confidence-native-v3",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-ZERO-CONFIDENCE-CALIBRATION-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "verified",
+      "licenseNote": "Existing Apache-2.0 project source; no new dependency or model.",
+      "files": 527,
+      "bytes": 710988353
+    },
+    {
+      "sealedEvidence": false,
+      "name": "ocr-header-words-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-HEADER-WORDS.json",
+      "privateEvidence": false,
+      "status": "development_improvement_with_recorded_training_geometry_regression",
+      "licenseNote": "Apache-2.0; no new dependency, model, font or external input.",
+      "files": 960,
+      "bytes": 636771214
+    },
+    {
+      "sealedEvidence": false,
+      "name": "ocr-margin-role-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-MARGIN-ROLE.json",
+      "privateEvidence": false,
+      "status": "development_improvement_below_acceptance",
+      "licenseNote": "Apache-2.0; no new dependency, model or external input.",
+      "files": 931,
+      "bytes": 634535419
+    },
+    {
+      "sealedEvidence": false,
+      "name": "ocr-header-participant-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-HEADER-PARTICIPANT.json",
+      "privateEvidence": false,
+      "status": "development_improvement_below_acceptance",
+      "licenseNote": "Apache-2.0; no new dependency, model or external input.",
+      "files": 929,
+      "bytes": 634420883
+    },
+    {
+      "sealedEvidence": false,
+      "name": "peripheral-text-ocr-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-PERIPHERAL-TEXT-CLEARANCE.json",
+      "privateEvidence": false,
+      "status": "development_diagnostic",
+      "licenseNote": "Apache-2.0 source; existing reviewed model/native payloads unchanged; no new dependency.",
+      "files": 766,
+      "bytes": 535611228
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "ocr-pixel-bounds-runtime-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-OCR-PIXEL-BOUNDS-APPLICATION.json",
+      "privateEvidence": 0,
+      "status": "development_improvement_below_acceptance",
+      "licenseNote": "No new dependency, model, or runtime payload. Detector, recognizer, native runtime, manifests, and license inputs are byte-identical to the existing reviewed trial. New project source is Apache-2.0.",
+      "files": 985,
+      "bytes": 518150801
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "ocr-legend-context-runtime-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-OCR-LEGEND-CONTEXT.json",
+      "privateEvidence": 0,
+      "status": "development_improvement_below_acceptance",
+      "licenseNote": "No dependency, font, model, or native payload added. Existing reviewed models, manifests, runtime and license identities are unchanged. New code is Apache-2.0.",
+      "files": 991,
+      "bytes": 517799913
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "ocr-header-context-runtime-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-OCR-HEADER-CONTEXT.json",
+      "privateEvidence": 0,
+      "status": "development_improvement_below_acceptance",
+      "licenseNote": "Existing reviewed detector, recognizer, native runtime, manifests, and license inputs are byte-identical. No dependency or payload is added.",
+      "files": 990,
+      "bytes": 517636092
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "workflow-sparse-tick-checks-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-SPARSE-TICK-RECOVERY.json",
+      "privateEvidence": 0,
+      "status": "missing_literal_label_recovered_with_visible_tick_support_origin_safety_preserved",
+      "licenseNote": "Original Apache-2.0 code using unchanged audited dependencies and frozen licensed model weights; no external assets or dependency added.",
+      "files": 920,
+      "bytes": 504620425
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "axis-divider-bounds-repair-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-AXIS-DIVIDER-BOUNDS.json",
+      "privateEvidence": 0,
+      "status": "Source-bound bounds repair and workflow evidence recorded; production_approved=false.",
+      "licenseNote": "Outcome reports zero private/sealed reads, unchanged runtime weights and production false; no separate license review field.",
+      "files": 923,
+      "bytes": 465265804
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "unchanged-tick-anchors-v2",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-NUMERIC-TICK-REVIEW.json",
+      "privateEvidence": 0,
+      "status": "Controlled unchanged-anchor check recorded; production_approved=false.",
+      "licenseNote": "Outcome reports license_change=false and all_model_weights_unchanged=true.",
+      "files": 929,
+      "bytes": 458048544
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "unchanged-tick-anchors-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-NUMERIC-TICK-REVIEW.json",
+      "privateEvidence": 0,
+      "status": "Controlled unchanged-anchor check recorded; production_approved=false.",
+      "licenseNote": "Outcome reports license_change=false and all_model_weights_unchanged=true.",
+      "files": 930,
+      "bytes": 458037770
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "framed-legend-assembly-v2",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-FRAMED-LEGEND-ASSEMBLY.json",
+      "privateEvidence": 0,
+      "status": "Repair/test evidence recorded; all_goal22_outcomes_complete=false; production_approved=false.",
+      "licenseNote": "Outcome reports weights_or_thresholds_changed=false; no separate license review field.",
+      "files": 935,
+      "bytes": 457752302
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "header-bracket-context-v2",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-HEADER-BRACKET-CONTEXT.json",
+      "privateEvidence": 0,
+      "status": "Repair/test evidence recorded; all_goal22_outcomes_complete=false; production_approved=false.",
+      "licenseNote": "Outcome reports weights_or_thresholds_changed=false; no separate license review field.",
+      "files": 934,
+      "bytes": 457735095
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "ocr-combined-assembly-runtime-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-OCR-COMBINED-ASSEMBLY.json",
+      "privateEvidence": 0,
+      "status": "development_improvement_below_acceptance",
+      "licenseNote": "Existing reviewed detector, recognizer, native runtime, manifests, and license inputs are byte-identical. No dependency or payload is added.",
+      "files": 923,
+      "bytes": 452369750
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "axis-corner-checks-v3",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-NATIVE-MARKER-INPUT-AND-CORNER-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "verified_development_repair_not_product_acceptance",
+      "licenseNote": "Project-owned Apache-2.0 code and synthetic scenes, with existing reviewed dependencies and model payloads only.",
+      "files": 1034,
+      "bytes": 445541007
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "native-open-marker-context-v2",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-NATIVE-MARKER-INPUT-AND-CORNER-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "verified_development_repair_not_product_acceptance",
+      "licenseNote": "Project-owned Apache-2.0 code and synthetic scenes, with existing reviewed dependencies and model payloads only.",
+      "files": 1294,
+      "bytes": 442755138
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "header-word-suffix-checks-v3",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-HEADER-WORD-SUFFIX-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "evaluated_accuracy_still_fails",
+      "licenseNote": "Apache-2.0 project source and existing reviewed dependencies; no new dependency or model import.",
+      "files": 856,
+      "bytes": 442195590
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "header-word-suffix-checks-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-HEADER-WORD-SUFFIX-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "evaluated_accuracy_still_fails",
+      "licenseNote": "Apache-2.0 project source and existing reviewed dependencies; no new dependency or model import.",
+      "files": 856,
+      "bytes": 442178551
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "single-glyph-mask-checks-v2",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-SINGLE-GLYPH-MASK-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "evaluated_accuracy_still_fails",
+      "licenseNote": "Apache-2.0 project source and existing reviewed dependencies/models only.",
+      "files": 856,
+      "bytes": 442048306
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "contained-fragment-checks-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-CONTAINED-TEXT-FRAGMENT-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "source_repair_verified_accuracy_still_fails",
+      "licenseNote": "Apache-2.0 project code and existing reviewed dependencies only; no new model or dependency.",
+      "files": 856,
+      "bytes": 441945992
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "header-bracket-checks-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-CAPTION-BRACKET-ASSEMBLY-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "source_repair_verified_accuracy_still_fails",
+      "licenseNote": "Apache-2.0 project code and existing reviewed dependencies only; no new model or dependency.",
+      "files": 857,
+      "bytes": 441855722
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "tick-alignment-checks-v2",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-TICK-ALIGNMENT-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "source_repair_verified_accuracy_still_fails",
+      "licenseNote": "Apache-2.0 project code; no new dependency or model.",
+      "files": 855,
+      "bytes": 441758832
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "ctc-confidence-checks-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-CTC-CONFIDENCE-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "source_repair_verified_product_accuracy_still_fails",
+      "licenseNote": "Apache-2.0 project implementation; no new dependency or weights",
+      "files": 856,
+      "bytes": 441598043
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "ctc-confidence-checks-v2",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-CTC-CONFIDENCE-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "source_repair_verified_product_accuracy_still_fails",
+      "licenseNote": "Apache-2.0 project implementation; no new dependency or weights",
+      "files": 852,
+      "bytes": 441546355
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "partial-row-checks-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-PARTIAL-LEGEND-ROW-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "implemented_and_verified_with_recorded_output_differences",
+      "licenseNote": "Outcome reports models_and_thresholds_unchanged=true and no model inference runs; no separate license review field.",
+      "files": 853,
+      "bytes": 441510063
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "shared-frame-checks-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-SHARED-LEGEND-FRAME-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "implemented_and_verified_on_open_synthetic_inputs",
+      "licenseNote": "Outcome reports models_and_thresholds_unchanged=true and no model inference runs; no separate license review field.",
+      "files": 853,
+      "bytes": 441442105
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "legend-overlap-checks-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-OVERLAPPING-LEGEND-WORD-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "implemented_and_verified_with_retained_numeric_role_change",
+      "licenseNote": "Outcome reports models_and_thresholds_unchanged=true; no separate license review field.",
+      "files": 853,
+      "bytes": 441361774
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "crop-width-cache-checks-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-CROP-WIDTH-CACHE-REPAIR.json",
+      "privateEvidence": 0,
+      "status": "source_repair_verified_accuracy_work_remaining",
+      "licenseNote": "Apache-2.0 project code and existing dependencies only; no dependency or model import.",
+      "files": 915,
+      "bytes": 431658353
+    },
+    {
+      "sealedEvidence": 0,
+      "name": "raster-column-context-v1",
+      "productionApproval": false,
+      "outcome": "docs/GOAL-22-ALIGNED-RASTER-CONTEXT.json",
+      "privateEvidence": 0,
+      "status": "Standalone raster-column repair and tests recorded; all_goal22_outcomes_complete=false; production_approved=false.",
+      "licenseNote": "Outcome reports all_model_weights_unchanged=true; no separate license review field.",
+      "files": 928,
+      "bytes": 414636577
+    }
+  ],
+  "totals": {
+    "files": 27147,
+    "bytes": 14553776001
+  },
+  "leadChecks": [
+    "Confirm scope and outcome records are pushed.",
+    "Repeat exact inventory and source-consumer checks before any retirement.",
+    "Use normal-host CIM, literal-path containment and ancestor/descendant reparse guards.",
+    "Compare all ten protected keeper hashes and retained package identity.",
+    "Preserve original data, current models and active validation inputs."
+  ],
+  "excludedFromScope": [
+    {
+      "reason": "Active path dependency in ml/ocr/official_bakeoff/gpu_head_evaluation.py original-case inventory.",
+      "name": "layout-clearance-ocr-v1"
+    },
+    {
+      "reason": "Referenced by current ProductionProposalMarkerCenterAdapter and current ML protocols as a runtime/model input.",
+      "name": "marker-v25-plot-domain"
+    },
+    {
+      "reason": "Current generator/cache code in ml/markers/center/shape_coverage_cache.py.",
+      "name": "center-shape-coverage-cache-v1"
+    },
+    {
+      "reason": "Preserved as model-feasibility evidence/input pending separate keeper review.",
+      "name": "recognition-head-feasibility-20260930-v1"
+    },
+    {
+      "reason": "Preserved as workflow-validation output/input.",
+      "name": "raster-import-workflow-v3"
+    },
+    {
+      "reason": "Preserved as OCR scale-coverage input output.",
+      "name": "ocr-scale-coverage-inputs-v1"
+    }
+  ]
+}

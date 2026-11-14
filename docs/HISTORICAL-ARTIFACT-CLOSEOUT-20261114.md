@@ -256,7 +256,7 @@ Across all six historical batches, **147,987,531,702 path bytes** of completed
 output have been retired. Other historical trees remain under review; this
 does not establish a repository-wide disposable-output total below 1 GB.
 
-## Candidate seventh batch: completed evaluation and replay outputs
+## Completed seventh batch: evaluation and replay outputs
 
 The ignored inventory shortlist is
 `artifacts/storage-retention-check/next-cleanup-candidates.json`. It contains
@@ -300,4 +300,33 @@ keepers: exact-path searches found no current references in `src`, `tools`,
 their active cache inputs were excluded. Before retirement, the lead still
 needs to confirm pushed scope, zero live processes, literal-path containment,
 reparse checks, exact counts, and unchanged hashes for the ten established
-keepers and retained package. No cleanup has been run for this candidate batch.
+keepers and retained package.
+
+After scope `98a8f6ad30c8371e794f83a6e0173eb3028b874c` reached main, the
+same exact-name search also found no source/protocol consumers in the primary
+checkout's `src`, `tools`, `packaging` and `ml` paths. Generated environments
+and caches were excluded from that source search. The final reviewed manifest
+SHA-256 was `053e4c240a9624ac9ce1f4d1d8c270f371980effe31c01d79c4a6f30f843f67d`.
+The guarded script checked every tracked outcome and scope-table row against
+that manifest, then verified live consumers, exact inventory, path containment,
+reparse points and protected identities.
+
+Cleanup completed at `2026-11-14T21:17:52.0669639Z`: **41,023 files /
+27,261,690,944 path bytes** retired, all twenty paths absent, zero old-worktree
+consumers. All ten protected keeper hashes and the retained 449 App hash
+remained unchanged; original corpus remained present. Observed E: free space
+changed from 508,698,312,704 to 536,101,527,552 bytes. The receipt is
+`artifacts/storage-retention-check/cleanup-seventh.json`.
+Total across seven historical batches is **175,249,222,646 path bytes**;
+remaining output still requires consumer and outcome review.
+
+## Reviewed eighth scope
+
+The [tracked scope manifest](HISTORICAL-RETIREMENT-SCOPE-20261114.json) records
+the next 30 completed run-output directories, their exact inventory and pushed
+outcomes: **27,147 files / 14,553,776,001 path bytes**. Both checkouts' current
+source/protocol searches found no exact-name consumer. Named model and
+validation dependencies were excluded and are listed explicitly in the
+manifest. This scope still requires a pushed-record check, fresh exact-count,
+normal-host process, containment/reparse and keeper-hash validation before
+removal. No eighth cleanup is claimed here.

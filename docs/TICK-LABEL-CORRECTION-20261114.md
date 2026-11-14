@@ -74,7 +74,17 @@ was made.
 No dependency, model, frozen contract, training run or license changed. Source
 remains Apache-2.0. No private input was used for this implementation or its
 owned tests. The retained 0.4.49 package predates this source change. Native
-acceptance remains waiting under REV-011. Retire `tick-correction-check`,
-`tick-correction-build` and `tick-label-hypothesis-check` once this outcome is
-pushed and the corrected-Apply validation consumer has finished; preserve
-originals, current dependencies and the delivered package.
+acceptance remains waiting under REV-011. Source and outcome reached main in
+`98a8f6ad30c8371e794f83a6e0173eb3028b874c`. After validation consumers finished,
+guarded cleanup retired `tick-correction-check`, `tick-correction-build` and
+`tick-label-hypothesis-check` at `2026-11-14T21:16:30.6354353Z`: **225 files /
+99,848,891 path bytes**, zero active consumers, all targets absent. Receipt:
+`artifacts/tick-correction-retirement.json`. Originals, current dependencies
+and the delivered package were preserved. The tests regenerate these outputs.
+
+Full Windows CI [43641587267](https://github.com/SKang393/Graph-auto-reader/actions/runs/43641587267)
+passed on `98a8f6ad`, job `132590117826`: **2,732 .NET tests passed, 30 skipped,
+zero failed** across 13 suites, including all 1,039 App tests. All 49 Rust tests,
+62 version-policy checks, 5 ledger checks and 12 portable-packaging checks
+passed. Public-release jobs were skipped; this does not add native visual
+acceptance or package the correction into the retained 449 build.
