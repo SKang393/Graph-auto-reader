@@ -43,17 +43,19 @@ internal static class Program
         bool ocrPadding = args.Length > 0 && args[0] == "--ocr-padding-check";
         bool ocrPaddingGpu = args.Length > 0 && args[0] == "--ocr-padding-gpu-check";
         bool ocrPaddingAdapters = args.Length > 0 && args[0] == "--ocr-padding-adapters";
+        bool realDevGeometry = args.Length > 0 && args[0] == "--real-dev-geometry-properties-check";
         bool realDevCalibration = args.Length > 0 && args[0] == "--real-dev-calibration-check";
+        bool realDevPrivate = realDevCalibration || realDevGeometry;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
-        int seconds = ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevCalibration ? 900 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        int seconds = ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevCalibration ? 905 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
@@ -76,7 +78,7 @@ internal static class Program
                 Emit(RealDevCalibrationCheck.SelfTest());
                 return 0;
             }
-            if (realDevCalibration)
+            if (realDevPrivate)
             {
                 // Every failure in this private mode is sanitized here, before the owned-mode handler.
                 try
@@ -84,12 +86,14 @@ internal static class Program
                     if (args.Length != 6 || args[5] != "--explicit-opt-in")
                         throw new InvalidDataException();
                     using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
-                    Emit(await RealDevCalibrationCheck.RunAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
+                    Emit(realDevGeometry
+                        ? await RealDevCalibrationCheck.RunGeometryAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token)
+                        : await RealDevCalibrationCheck.RunAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
                     return 0;
                 }
                 catch (Exception)
                 {
-                    Emit(new { schema = "graphreader.real-dev-calibration-assistance-diagnostic.v1",
+                    Emit(new { schema = realDevGeometry ? "graphreader.real-dev-geometry-properties-diagnostic.v1" : "graphreader.real-dev-calibration-assistance-diagnostic.v1",
                         status = "blocked_preflight_or_runtime", error = "REAL_DEV_CALIBRATION_CHECK_FAILED",
                         denominator = 120, sealed_payload_reads = 0, review_only = true, production_approved = false });
                     return 1;
@@ -223,7 +227,7 @@ internal static class Program
         }
         catch (Exception error)
         {
-            if (realDevCalibration)
+            if (realDevPrivate)
             {
                 Emit(new { error = "REAL_DEV_CALIBRATION_CHECK_FAILED", review_only = true });
                 return 1;

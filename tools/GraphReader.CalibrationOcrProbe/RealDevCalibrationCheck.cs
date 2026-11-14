@@ -16,24 +16,24 @@ namespace GraphReader.CalibrationOcrProbe;
 internal static class RealDevCalibrationCheck
 {
     private const int Denominator = 120;
-    private const string AppDllHash = "0878c2a5e9ee3fcd9261fd0757240374d55d50df643b001be91fa3c852aea26a";
-    private const string AppExeHash = "da6618656fc0f9f2c02f91c241f42e45081c49b277b9fb9a9d22572354f4e142";
-    private const string RustHash = "2f72bdaeb1454e1b2b6558e36fc2793e21f2be104a2fcd51c031e1d12754043f";
-    // Exact delivered 0.4.42 libraries from the ZIP-entry-verified package, not caller-selected identities.
+    private const string AppDllHash = "86bb16ae0d89c0b12230d009a657120d5430a81992f710aa881ac3d18dc5bd6c";
+    private const string AppExeHash = "8c012440a7a433aff98e5df3cab33a760544b024d920f92cc326ac07d45f7778";
+    private const string RustHash = "4dfab71143dc8d448f8daf4cd6c537c4d98de7573b1faa3139bd8abb85c6cbe4";
+    // Exact delivered 0.4.43 libraries from the ZIP-entry-verified package, not caller-selected identities.
     private static readonly FrozenDictionary<string, string> DeliveredLibraries = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["GraphReader.App.dll"] = AppDllHash,
-        ["GraphReader.Axis.dll"] = "5df748d978fccbeb1dc6bb774449b23f7cef8b4ba583ba1cd6614a41b894f29c",
-        ["GraphReader.Domain.dll"] = "c03d24c570b198737173782c745c0fa8e99a28e999ad79d44d7cca1b341cb9dd",
-        ["GraphReader.Export.dll"] = "f21efa101d705a436f57730ff0a1a5b2bc8cdd903bd66a09de3a42ed0df1576f",
-        ["GraphReader.Imaging.dll"] = "3a05c1fa64754bd55f24099e349952872bab905d6ef158b142c61f3b051ea2c0",
-        ["GraphReader.Inference.dll"] = "b47ec763be0a02a67063361ec6aec2404f72646af60a98fa8c944a3784ed395a",
-        ["GraphReader.Legends.dll"] = "b4393b0ce1de3f760c2e70c5060745a5abe8a7bc35a5f13c255e6edfc530c5b9",
-        ["GraphReader.Markers.dll"] = "e823be0b6ddbd3445d8a5fdc98c0bd85ee0f9ea3ad437b30845ff1569e4f7f27",
-        ["GraphReader.Ocr.dll"] = "88547bf5643e6faeb243882898f523343466b2604ae7d2a60b9faa510badb831",
-        ["GraphReader.Pdf.dll"] = "5ff89e3d7bd98f3e853211ac8f361ab0b97741eea7c643d0e7dee4c7c1ef689c",
-        ["GraphReader.Phases.dll"] = "e8cfc59a4f185b72a649e7849770f581a8a50d5339f683d01ee60746c5ed02c2",
-        ["GraphReader.SuperResolution.dll"] = "beca49956e908cd8f0fa2b22800aaca08cfa26dab56fa7170e189cbaa976d961",
+        ["GraphReader.Axis.dll"] = "393bf269ef388120fde3b467beefa49373788fdf11bd8f5aa8d3f557fbdac423",
+        ["GraphReader.Domain.dll"] = "06b1de80d3c084de6697c28fc332f52179b6ece5cdc9396e4b77ca8f38f51012",
+        ["GraphReader.Export.dll"] = "f000a58a7e0fa56491abe15334fcbdb0552a0b9e9a4acef4e217e90dd81bb6db",
+        ["GraphReader.Imaging.dll"] = "f1bb2306cbe30a207a0d42133646eb7d0184a35231a01eb03ce28ed8a48d9b66",
+        ["GraphReader.Inference.dll"] = "de55a281070252965e52f8ad5035286bc9647a6c9041f92d6f67b0c604215f14",
+        ["GraphReader.Legends.dll"] = "49ba751839209b07b3adceb7778e5bcf85fdd9d99d7e57be616086a3857fb701",
+        ["GraphReader.Markers.dll"] = "d5440c3cac32b9d8562521f4c209c2637b044ef31254b370158c145d48161932",
+        ["GraphReader.Ocr.dll"] = "8ec36eb2d7a6d5a5dd5bc7370f45689dccb62b11087c98833c13d3ab8edea261",
+        ["GraphReader.Pdf.dll"] = "795889877370fb1349ffe75b4c9d7815f9301607d2c295c592322f1fd521b979",
+        ["GraphReader.Phases.dll"] = "bad5a68fe69c646dfe78c29c29e850fa6b3dcfeef8bee7b29f87d78e52faca16",
+        ["GraphReader.SuperResolution.dll"] = "b1151d6e4c46913e1dae453e51bada219bd79cd1e9b9cfad1499f65116796458",
         ["Microsoft.ML.OnnxRuntime.dll"] = "5e83437cb5c97d17fc959f35982ce1f0e90281515dafbacbc158b27bc2e972a3",
         ["onnxruntime.dll"] = "e7eedec6a6f26dc39dc948276a75ef6d2bee3fff944d874ceed0bbd3b97bff40",
         ["onnxruntime_providers_shared.dll"] = "265c8daf29637cb259cac8be9f08f2cd45f3883f0f0e4949cbfddd5b4cbec3b6",
@@ -108,6 +108,88 @@ internal static class RealDevCalibrationCheck
         EnsureAggregateOnly(JsonSerializer.SerializeToElement(report, Program.Json));
         return report;
     }
+
+    internal static async Task<object> RunGeometryAsync(string corpusRoot, string appExe, string assetRoot, string rustExe,
+        CpuBudgetJob parentBudget, CancellationToken token)
+    {
+        if (!parentBudget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(appExe) ||
+            !Path.IsPathFullyQualified(assetRoot) || !Path.IsPathFullyQualified(rustExe)) throw new InvalidDataException();
+        using Candidate candidate = Candidate.Verify(appExe, assetRoot, rustExe, token);
+        FrozenDevTrainingSelector selector = FrozenDevTrainingSelector.Load(corpusRoot, token);
+        FrozenDevTrainingMetadata metadata = selector.Describe();
+        FrozenRealCorpusProject[] selected = selector.EnumerateSelectedProjects(token)
+            .OrderBy(project => project.AnonymizedCaseId, StringComparer.Ordinal).ToArray();
+        if (selected.Length != Denominator || selected.Any(project => project.Split != FrozenRealCorpusInventory.RealDev))
+            throw new InvalidDataException();
+        using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        var totals = new Totals();
+        var widths = new List<double>(); var heights = new List<double>();
+        var plotWidths = new List<double>(); var plotHeights = new List<double>();
+        int[] xTicks = new int[4], yTicks = new int[4];
+        var wall = Stopwatch.StartNew();
+        foreach (FrozenRealCorpusProject project in selected)
+        {
+            if (token.IsCancellationRequested)
+            { totals.Reason("OVERALL_DEADLINE_UNATTEMPTED", Denominator - totals.Attempted); break; }
+            totals.Attempted++;
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
+            deadline.CancelAfter(TimeSpan.FromSeconds(45));
+            try
+            {
+                Payload payload = ReadLocked(selector, project, digest, totals, deadline.Token);
+                widths.Add(payload.Width); heights.Add(payload.Height);
+                if (payload.Width is < 32 or > 4096 || payload.Height is < 32 or > 4096 ||
+                    (long)payload.Width * payload.Height > 16_777_216)
+                { totals.Reason("UNSUPPORTED_IMAGE_DIMENSIONS"); continue; }
+                var (image, _, _) = Program.Decode(payload.Image, [0, 0, payload.Width, payload.Height]);
+                RustAxisProposalResult axis = await RustAxisProposal.RunAsync(rustExe, payload.Width, payload.Height, image.Pixels,
+                    cancellationToken: deadline.Token).ConfigureAwait(false);
+                if (axis.Geometry is not { } geometry)
+                { totals.Reason(AxisReason(axis.ErrorCode)); continue; }
+                totals.GeometryReturned++;
+                plotWidths.Add(geometry.Right - geometry.Left); plotHeights.Add(geometry.Bottom - geometry.Top);
+                xTicks[Math.Min(3, geometry.XTickPositions.Count)]++;
+                yTicks[Math.Min(3, geometry.YTickPositions.Count)]++;
+            }
+            catch (OperationCanceledException)
+            { totals.Reason(token.IsCancellationRequested ? "OVERALL_DEADLINE_CASE" : "CASE_TIMEOUT"); }
+            catch (EngaugeDigTruthException) { totals.Reason("DIG_PARSE_FAILED"); }
+            catch (InvalidDataException) { totals.Reason("INPUT_OR_RUNTIME_IDENTITY_FAILED"); }
+            catch (Exception) { totals.Reason("CASE_PROCESSING_FAILED"); }
+        }
+        _ = selector.EnumerateSelectedProjects(CancellationToken.None);
+        object report = GeometryReport(totals, Convert.ToHexStringLower(digest.GetHashAndReset()), metadata, candidate.Files,
+            new(parentBudget.LogicalProcessors, parentBudget.Rate, parentBudget.MaximumLogicalCores, parentBudget.SilentBreakawayVerified),
+            widths, heights, plotWidths, plotHeights, xTicks, yTicks, wall.Elapsed.TotalMilliseconds);
+        EnsureAggregateOnly(JsonSerializer.SerializeToElement(report, Program.Json));
+        return report;
+    }
+
+    private static object GeometryReport(Totals totals, string digest, FrozenDevTrainingMetadata metadata,
+        Dictionary<string, string> files, ParentBudget budget, List<double> widths, List<double> heights,
+        List<double> plotWidths, List<double> plotHeights, int[] xTicks, int[] yTicks, double wall) => new
+    {
+        schema = "graphreader.real-dev-geometry-properties-diagnostic.v1",
+        status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
+        protocol = new { version = "0.4.43", scope = "all_frozen_real_dev", sealed_payload_reads = 0,
+            ocr_calls = 0, model_selection = false, review_only = true, production_approved = false,
+            per_case_output = false, image_writes = false, persistent_cache = false,
+            empty_ticks_mean = "unavailable_or_ambiguous_not_absence", case_deadline_seconds = 45, overall_deadline_seconds = 900 },
+        candidate = new { app_exe_sha256 = AppExeHash, app_dll_sha256 = AppDllHash, rust_sha256 = RustHash, runtime_files = files },
+        metadata.AssignmentSha256, metadata.SelectedInventorySha256, source_identity_digest = digest,
+        source_identity_digest_complete = totals.PayloadsHashed == Denominator && totals.ImagesBound == Denominator,
+        parent_cpu_budget = new { budget.LogicalProcessors, budget.Rate, budget.MaximumLogicalCores,
+            budget.SilentBreakawayVerified, priority = "BelowNormal", scope = "parent_preprocessing_only_children_independently_capped" },
+        denominator = Denominator, attempted = totals.Attempted, payloads_hashed = totals.PayloadsHashed,
+        embedded_images_bound = totals.ImagesBound, geometry_returned = totals.GeometryReturned,
+        geometry_not_returned = Denominator - totals.GeometryReturned,
+        reason_counts = totals.Reasons.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToDictionary(pair => pair.Key, pair => pair.Value),
+        dimensions = new { image_width = Stats(widths), image_height = Stats(heights), plot_width = Stats(plotWidths), plot_height = Stats(plotHeights) },
+        tick_counts = new { denominator = totals.GeometryReturned,
+            x = new { zero = xTicks[0], one = xTicks[1], two = xTicks[2], three_or_more = xTicks[3] },
+            y = new { zero = yTicks[0], one = yTicks[1], two = yTicks[2], three_or_more = yTicks[3] } },
+        total_wall_milliseconds = wall,
+    };
 
     private sealed record Payload(byte[] Image, int Width, int Height, string ProjectHash, string ImageHash,
         IReadOnlyList<EngaugeDigAxisAnchor> Anchors);
@@ -278,7 +360,7 @@ internal static class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-calibration-assistance-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { fixed_candidate = true, version = "0.4.42", denominator = Denominator,
+        protocol = new { fixed_candidate = true, version = "0.4.43", denominator = Denominator,
             scope = "all_frozen_real_dev", sealed_payload_reads = 0, train_optimizer_steps = 0, model_selection = false,
             independent_accuracy = false, production_approved = false, review_only = true, applied = false,
             manual_truth_used_for_inference = false, case_deadline_seconds = 45, overall_deadline_seconds = 900,
@@ -399,6 +481,14 @@ internal static class RealDevCalibrationCheck
             serialized.GetProperty("complete_proposal_count").GetInt32() != 1 ||
             serialized.GetProperty("normalized_x_residual").GetProperty("count").GetInt32() != 3 ||
             JsonSerializer.SerializeToUtf8Bytes(aggregate, Program.Json).Length >= 1_000_000) throw new InvalidDataException();
+        var geometryTotals = new Totals { Attempted = Denominator, PayloadsHashed = Denominator, ImagesBound = Denominator, GeometryReturned = 1 };
+        object geometry = GeometryReport(geometryTotals, new string('0', 64), new(new string('1', 64), new string('2', 64), [], false, false),
+            new Dictionary<string, string>(StringComparer.Ordinal), new(2, 2500, .5), [320], [200], [230], [130], [0, 1, 0, 0], [1, 0, 0, 0], 1);
+        JsonElement geometryJson = JsonSerializer.SerializeToElement(geometry, Program.Json);
+        EnsureAggregateOnly(geometryJson);
+        if (geometryJson.GetProperty("denominator").GetInt32() != Denominator ||
+            geometryJson.GetProperty("tick_counts").GetProperty("x").GetProperty("one").GetInt32() != 1 ||
+            JsonSerializer.SerializeToUtf8Bytes(geometry, Program.Json).Length >= 1_000_000) throw new InvalidDataException();
         var output = new { schema = "graphreader.real-dev-calibration-assistance-self-test.v1", source_payload_reads = 0,
             affine_residual_checks = 2, forbidden_output_rejected = rejected, fixed_denominator = Denominator };
         EnsureAggregateOnly(JsonSerializer.SerializeToElement(output, Program.Json));

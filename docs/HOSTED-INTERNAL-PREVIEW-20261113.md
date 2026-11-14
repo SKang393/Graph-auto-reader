@@ -370,3 +370,58 @@ The new 442 ledger entry passed the existing 62 version-policy checks in
 52.128 seconds. Its public and cadence eligibility are both false, derived
 directly from `VersionPolicy.ps1`. Future hosted builds now consume the verified
 442 artifact identity.
+
+## Hosted delivery 0.4.43
+
+The calibration performance and geometry increment is packaged from
+`bf0d0a56946abc01e889605fbaaecabb4db5d177`. It includes the source-bound export
+receipt correction, preserved-sampling OCR padding reduction, measured-axis
+continuation repair, varied Auto device workloads and crop recovery guidance.
+See the [owned source checks](OCR-PADDING-AND-AXIS-CONTINUATION-20261114.md).
+
+- [Hosted run 43563434224](https://github.com/SKang393/Graph-auto-reader/actions/runs/43563434224),
+  job `132351960986`, succeeded: App 957, Domain 23, Integration 143,
+  **1,123 passed, seven skipped, zero failed**.
+- [Source CI 43563433567](https://github.com/SKang393/Graph-auto-reader/actions/runs/43563433567),
+  job `132351955194`, succeeded on the exact package source: **2,644 .NET tests
+  passed, 30 skipped**, Rust 12/12, 68 packaging checks and 62 version-policy
+  checks. Application compilation had zero warnings/errors. Release jobs were
+  skipped.
+- [Artifact 14101760460](https://github.com/SKang393/Graph-auto-reader/actions/runs/43563434224/artifacts/14101760460)
+  is 87,270,127 bytes, SHA-256
+  `f96b67237afd1a54146e6b983de678890a06c250e0c266ebe7ebbff55fddc2b1`.
+  Created 2026-11-14T05:54:38Z; expiry 2027-02-12T05:50:19Z.
+- The downloaded inner ZIP is 87,527,242 bytes, SHA-256
+  `77ca2f1207d6430b9fe600dbe1cfe5143fee8ee5e549865391362da52198c6a8`.
+  All 477 safe archive entries matched extraction, totaling 196,076,167 bytes.
+  Receipt SHA-256: `ed39976c29d70cd60dd75958022a078dcaad0249b4f1ecd5f86e3b5891d612d7`.
+- Build time: 2026-11-14T05:54:22.3594443Z. Build-info SHA-256:
+  `c24df00cf10ac968717637d14f2b58f853a8a66be48371120a86a6bc0f7b86af`.
+  EXE: `8c012440a7a433aff98e5df3cab33a760544b024d920f92cc326ac07d45f7778`;
+  App DLL: `86bb16ae0d89c0b12230d009a657120d5430a81992f710aa881ac3d18dc5bd6c`.
+- Rust: `4dfab71143dc8d448f8daf4cd6c537c4d98de7573b1faa3139bd8abb85c6cbe4`.
+  Its toolchain metadata/notice, reviewed OpenCV and unchanged OCR reader,
+  manifest, license and notice identities were verified. Isolated ManualPreview
+  smoke exited 0 and unavailable Production smoke exited 2.
+
+After all 21 package libraries were restaged and hash-checked in the existing
+probe output, the packaged continued-axis control returned six paired ticks and
+the expected 1-to-3 session / 0-to-10 value calibration. It took **3.9091576 s**
+process wall time, 3.3844652 s pipeline time, with empty stderr and exit 0.
+No calibration was applied. Result SHA-256:
+`5df87cd5ce0e4dc04b8cee84c56ba5fa521921f5840c952cd0a4f7220c9d8a78`.
+This is one owned execution control, not representative accuracy or native UI
+acceptance. Native interaction remains waiting under REV-011. No installer,
+public release, tag, clean-machine pass or production activation is claimed.
+
+The ledger makes 443 the sole retained identity and the next hosted workflow
+uses this verified artifact. After this delivery record is pushed, switch the
+latest pointer to `0.4.43-20261114T055422359Z-bf0d0a56`, then retire the old
+442 build/ZIP and completed `artifacts/hosted-443-check` and
+`artifacts/ocr-padding-check` scratch after their current verification readers
+finish. Preserve shared user Data, current runtime/model dependencies and the
+separate active native QA App. No replacement package is needed for diagnostic
+pin or documentation updates.
+The new 443 ledger entry also passed the existing 62 version-policy checks
+locally, with both public and cadence eligibility derived from the policy and
+false. Temporary policy repositories stayed inside the delivery scratch.

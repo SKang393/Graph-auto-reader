@@ -175,6 +175,17 @@ tests and the actual CPU/two-GPU comparison passed. CPU remained selected:
 8.804 s total versus 8.447 s on RX 6600 XT, below the unchanged 15% switch
 margin. Startup, worker IPC and pacing are included. Geometry-failure guidance
 now points to cropping with labels and visible zero or manual calibration.
+The integrated [0.4.43 preview](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0443)
+is uploaded and verified; its packaged continued-axis control took 3.909 s
+process wall time. Source CI passed 2,644 .NET tests, 12 Rust tests and 68
+packaging checks. The [fixed delivered confirmation](REAL-DEV-CALIBRATION-443-CONFIRMATION-20261114.md)
+completed the same 120 real-dev inputs in 122.567 s with a 2.705 s reused OCR
+median, but still zero complete proposals. Geometry returned on 36; a separate
+geometry-only diagnosis found 23 without usable X tick arrays and 13 without
+usable Y arrays. Those counts overlap and do not prove printed ticks are absent.
+Prioritize source-reproduced geometry gaps, with owned regression controls,
+instead of further reader optimization or training. Preserve the frozen reader,
+scientific cross-checks, explicit review and manual fallback.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

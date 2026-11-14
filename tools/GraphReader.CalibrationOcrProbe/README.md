@@ -23,7 +23,7 @@ CPU kernels, and pacing is not a GPU utilization cap. CPU mode is unchanged.
 
 `--real-dev-calibration-check <absolute-corpus-root> <absolute-packaged-App-exe> <absolute-assets-root> <absolute-Rust-worker> --explicit-opt-in`
 is one fixed diagnostic of all **120 frozen real-dev projects**, with no sealed
-payload reads. Its denominator is fixed before results. The App 0.4.42 DLL,
+payload reads. Its denominator is fixed before results. The App 0.4.43 DLL,
 packaged executable, Rust worker and existing reader/manifest/license hashes are
 checked before payload reads. All 21 supporting libraries have fixed delivered
 hashes; all 14 managed libraries must also match at their actual loaded paths.
@@ -62,6 +62,8 @@ model selection, an automatic calibration application or production promotion.
 behavior without opening any corpus payload or invoking inference. The real
 mode requires explicit root review and execution authorization; it is not a
 routine test or an automatic part of the build.
+
+`--real-dev-geometry-properties-check` takes the same six arguments and explicit opt-in as the calibration check. It uses the same locked 120 real-dev inputs and delivered identity checks, but calls only the Rust geometry worker, never OCR. Its aggregate report gives image and detected plot dimension statistics, geometry failures and measured X/Y tick-count buckets. Empty tick lists mean unavailable or ambiguous, not that printed ticks are absent. The same privacy guard, child budget and deadlines apply; no per-case output or images are written. The owned calibration self-test also exercises its aggregate report without corpus reads.
 
 `--cpu-budget-self-test` starts one owned child without images, corpus or models.
 It queries the parent's breakaway flag, verifies the live child is outside that
