@@ -123,9 +123,12 @@ kernel and keeps rejected model training paused. The integrated
 [0.4.40 preview](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0440)
 is uploaded, downloaded and verified; its actual packaged marker request took
 0.572 s and cancellation took 0.097 s. Native interaction remains queued.
-The next independent product slice is one explicit action to add the remaining
-reviewed matches, preserving one Undo action, autosave and atomic rollback.
-Follow with one owned-input calibration-to-marker-to-export/reopen check.
+The [reviewed batch action and complete owned workflow](MARKER-BATCH-WORKFLOW-20261114.md)
+now pass: 24 focused tests, 64 additions in 13.876 ms with one Undo/autosave,
+and actual geometry/OCR/marker-to-export/reopen in 4.937 s process wall time.
+The next independent fix allows first/last-session and Y-zero marker examples:
+use original image context outside the plot, with all accepted centers still
+inside the confirmed plot. Do not pad pixels or change matching thresholds.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

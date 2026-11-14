@@ -1162,6 +1162,11 @@
               <TextBlock Margin="0,0,0,4" Text="{DynamicResource Manual.MarkerExemplar.ReviewAdvice}" TextWrapping="Wrap"
                          Foreground="{DynamicResource App.Brush.TextMuted}"
                          Visibility="{Binding HasMarkerExemplarCandidates, Converter={StaticResource BooleanToVisibilityConverter}}" />
+              <Button Margin="0,0,0,4" Command="{Binding AcceptAllMarkerExemplarCandidatesCommand}"
+                      Content="{Binding AcceptAllMarkerExemplarsText}" Style="{DynamicResource App.Style.Button}"
+                      Visibility="{Binding HasMarkerExemplarCandidates, Converter={StaticResource BooleanToVisibilityConverter}}"
+                      automation:AutomationProperties.AutomationId="Manual.MarkerExemplar.AddRemaining"
+                      automation:AutomationProperties.Name="{Binding AcceptAllMarkerExemplarsText}" />
               <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto"
                             Visibility="{Binding HasMarkerExemplarCandidates, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <ItemsControl ItemsSource="{Binding MarkerExemplarCandidates}"

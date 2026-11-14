@@ -109,6 +109,9 @@ public static class LocalizationKeys
     public const string ManualMarkerExemplarNoMatches = "Manual.MarkerExemplar.NoMatches";
     public const string ManualMarkerExemplarCount = "Manual.MarkerExemplar.Count";
     public const string ManualMarkerExemplarReviewAdvice = "Manual.MarkerExemplar.ReviewAdvice";
+    public const string ManualMarkerExemplarAcceptAll = "Manual.MarkerExemplar.AcceptAll";
+    public const string ManualMarkerExemplarBatchAdded = "Manual.MarkerExemplar.BatchAdded";
+    public const string ManualMarkerExemplarBatchFailure = "Manual.MarkerExemplar.BatchFailure";
     public const string ManualMarkerExemplarFailure = "Manual.MarkerExemplar.Failure";
     public const string ManualMarkerExemplarFailureInvalidInput = "Manual.MarkerExemplar.Failure.InvalidInput";
     public const string ManualMarkerExemplarFailureInvalidFrame = "Manual.MarkerExemplar.Failure.InvalidFrame";
@@ -497,6 +500,9 @@ public static class LocalizationKeys
         ManualMarkerExemplarNoMatches,
         ManualMarkerExemplarCount,
         ManualMarkerExemplarReviewAdvice,
+        ManualMarkerExemplarAcceptAll,
+        ManualMarkerExemplarBatchAdded,
+        ManualMarkerExemplarBatchFailure,
         ManualMarkerExemplarFailure,
         ManualMarkerExemplarFailureInvalidInput,
         ManualMarkerExemplarFailureInvalidFrame,

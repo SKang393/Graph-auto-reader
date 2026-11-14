@@ -37,17 +37,27 @@ internal static class Program
         bool automaticCheck = args.Length > 0 && args[0] == "--automatic-device-check";
         bool tickCheck = args.Length > 0 && args[0] == "--tick-proposal-check";
         bool markerCheck = args.Length > 0 && args[0] == "--marker-exemplar-check";
-        int seconds = markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        bool markerWorkflow = args.Length > 0 && args[0] == "--marker-workflow-check";
+        int seconds = markerWorkflow ? 95 : markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(markerWorkflow ? 100 : markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--marker-workflow-check", var workflowRequest, var workflowApp, var workflowAssets, var workflowRust, var workflowOutput])
+            {
+                byte[] input = ReadBounded(workflowRequest, 32_768);
+                ProbeRequest owned = JsonSerializer.Deserialize<ProbeRequest>(input, Json)
+                    ?? throw new InvalidDataException("Missing request.");
+                Emit(await MarkerWorkflowCheck.RunAsync(owned, workflowApp, workflowAssets, workflowRust, workflowOutput, deadline.Token));
+                return 0;
+            }
+            if (markerWorkflow) throw new InvalidDataException("Usage: --marker-workflow-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker> <absolute-empty-output-root>");
             if (args is ["--marker-exemplar-check", var markerApp])
             {
                 Emit(await MarkerExemplarCheck.RunAsync(markerApp, deadline.Token));

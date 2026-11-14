@@ -25,6 +25,7 @@ public sealed partial class MainWindowViewModel
     public ObservableCollection<MarkerExemplarCandidateViewModel> MarkerExemplarCandidates { get; } = [];
     public ICommand FindMarkerExemplarsCommand { get; private set; } = null!;
     public ICommand AcceptMarkerExemplarCandidateCommand { get; private set; } = null!;
+    public ICommand AcceptAllMarkerExemplarCandidatesCommand { get; private set; } = null!;
     public ICommand RemoveMarkerExemplarCandidateCommand { get; private set; } = null!;
 
     public string MarkerExemplarExampleSizeText
@@ -43,6 +44,8 @@ public sealed partial class MainWindowViewModel
     public bool CanShowMarkerExemplar => SelectedTab?.Calibration is not null && _manualWorkspaceService is not null;
     public bool HasMarkerExemplarCandidates => MarkerExemplarCandidates.Count > 0;
     public bool HasMarkerExemplarStatus => CanShowMarkerExemplar && !string.IsNullOrEmpty(MarkerExemplarStatusText);
+    public string AcceptAllMarkerExemplarsText => FormatLocalizedString(
+        LocalizationKeys.ManualMarkerExemplarAcceptAll, GetMarkerExemplarBatchCandidates().Candidates.Count);
     public string MarkerExemplarStatusText
     {
         get
@@ -66,6 +69,8 @@ public sealed partial class MainWindowViewModel
         FindMarkerExemplarsCommand = new AsyncRelayCommand(FindMarkerExemplarsAsync, CanFindMarkerExemplars);
         AcceptMarkerExemplarCandidateCommand = new RelayCommand(AcceptMarkerExemplarCandidate,
             CanAcceptMarkerExemplarCandidate);
+        AcceptAllMarkerExemplarCandidatesCommand = new RelayCommand(_ => AcceptAllMarkerExemplarCandidates(),
+            _ => GetMarkerExemplarBatchCandidates().Candidates.Count > 0);
         RemoveMarkerExemplarCandidateCommand = new RelayCommand(RemoveMarkerExemplarCandidate,
             parameter => parameter is MarkerExemplarCandidateViewModel row && MarkerExemplarCandidates.Contains(row));
     }
@@ -139,6 +144,7 @@ public sealed partial class MainWindowViewModel
                 : FormatLocalizedString(LocalizationKeys.ManualMarkerExemplarCount, MarkerExemplarCandidates.Count));
             UpdateMarkerExemplarOverlay();
             OnPropertyChanged(nameof(HasMarkerExemplarCandidates));
+            OnPropertyChanged(nameof(AcceptAllMarkerExemplarsText));
             RelayCommand.RaiseCanExecuteChanged();
         }
         catch (OperationCanceledException) when (requestCancellation.IsCancellationRequested && !token.IsCancellationRequested)
@@ -232,12 +238,94 @@ public sealed partial class MainWindowViewModel
                 : FormatLocalizedString(LocalizationKeys.ManualMarkerExemplarCount, MarkerExemplarCandidates.Count));
             UpdateMarkerExemplarOverlay();
             OnPropertyChanged(nameof(HasMarkerExemplarCandidates));
+            OnPropertyChanged(nameof(AcceptAllMarkerExemplarsText));
             RelayCommand.RaiseCanExecuteChanged();
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)
         {
             SetOperationFailure(exception, LocalizationKeys.ManualEditRejected,
                 "MARKER_EXEMPLAR_ADD_REJECTED", "review-inputs");
+        }
+    }
+
+    private (WorkspaceTabViewModel? Tab, WorkspaceMarkerExemplarSuggestion? Suggestion,
+        List<MarkerExemplarCandidateViewModel> Candidates, int Skipped) GetMarkerExemplarBatchCandidates()
+    {
+        var candidates = new List<MarkerExemplarCandidateViewModel>();
+        if (IsBusy || _markerExemplarSuggestion is not { } suggestion ||
+            _workspaceService is not IMarkerExemplarWorkspace workspace || _manualWorkspaceService is null ||
+            SelectedTab is not { } tab || tab.TabId != suggestion.TabId ||
+            SelectedPointId != suggestion.Request.SelectedPointId || SelectedSeriesId != suggestion.Request.SelectedSeriesId ||
+            !TryGetMarkerExemplarSize(out int size) || size != suggestion.Request.Exemplar.Width ||
+            !workspace.IsMarkerExemplarSuggestionCurrent(suggestion) ||
+            !TryGetMarkerExemplarContext(out _, out WorkspaceTabViewModel contextTab, out GraphPoint seed,
+                out string seriesId, out _) || !ReferenceEquals(contextTab, tab) ||
+            seed.PointId != suggestion.Request.SelectedPointId || seriesId != suggestion.Request.SelectedSeriesId)
+            return (null, null, candidates, MarkerExemplarCandidates.Count);
+
+        MarkerExemplarCandidateViewModel[] validRows = MarkerExemplarCandidates
+            .Where(row => IsValidMarkerCandidate(row.Candidate, suggestion.Request)).ToArray();
+        foreach (MarkerExemplarCandidateViewModel row in validRows)
+        {
+            bool overlapsExisting = IsDuplicateMarkerPosition(row.Candidate.Center, seriesId, tab);
+            bool overlapsAnother = validRows.Any(other => !ReferenceEquals(other, row) &&
+                IsSameMarkerPosition(other.Candidate.Center, row.Candidate.Center));
+            if (row.IsDuplicate || overlapsExisting || overlapsAnother) continue;
+            candidates.Add(row);
+        }
+        return (tab, suggestion, candidates, MarkerExemplarCandidates.Count - candidates.Count);
+    }
+
+    private void AcceptAllMarkerExemplarCandidates()
+    {
+        var batch = GetMarkerExemplarBatchCandidates();
+        if (batch.Tab is not { } tab || batch.Suggestion is not { } suggestion || batch.Candidates.Count == 0 ||
+            _manualWorkspaceService is null) return;
+
+        string? selectedPointId = SelectedPointId;
+        string? selectedSeriesId = SelectedSeriesId;
+        WorkspaceTabSnapshot before = CaptureTabSnapshot(tab);
+        string lastAddedPointId = string.Empty;
+        try
+        {
+            foreach (MarkerExemplarCandidateViewModel row in batch.Candidates)
+            {
+                GraphPoint added = _manualWorkspaceService.AddPoint(tab.TabId, suggestion.Request.SelectedSeriesId,
+                    row.Candidate.Center.X, row.Candidate.Center.Y);
+                lastAddedPointId = added.PointId;
+            }
+
+            RecordManualEdit(tab, LocalizationKeys.EditAddPoint, before);
+            QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, lastAddedPointId);
+            foreach (MarkerExemplarCandidateViewModel row in batch.Candidates) MarkerExemplarCandidates.Remove(row);
+            RefreshMarkerExemplarDuplicates(tab, suggestion.Request.SelectedSeriesId);
+            SetMarkerExemplarStatus(FormatLocalizedString(LocalizationKeys.ManualMarkerExemplarBatchAdded,
+                batch.Candidates.Count, batch.Skipped));
+            UpdateMarkerExemplarOverlay();
+            OnPropertyChanged(nameof(HasMarkerExemplarCandidates));
+            OnPropertyChanged(nameof(AcceptAllMarkerExemplarsText));
+            RelayCommand.RaiseCanExecuteChanged();
+        }
+        catch (Exception)
+        {
+            try
+            {
+                RestoreTabSnapshot(tab, before);
+            }
+            catch (Exception restoreException)
+            {
+                ClearMarkerExemplarProposals(updateSample: true);
+                SetOperationFailure(restoreException, LocalizationKeys.ManualEditRejected,
+                    "MARKER_EXEMPLAR_BATCH_ROLLBACK_FAILED", "review-inputs");
+                return;
+            }
+            if (selectedPointId is not null && tab.Points.Any(point => point.PointId == selectedPointId))
+                SelectedPointId = selectedPointId;
+            if (selectedSeriesId is not null && tab.SeriesCards.Any(series => series.SeriesId == selectedSeriesId))
+                SelectedSeriesId = selectedSeriesId;
+            ClearMarkerExemplarProposals(updateSample: true);
+            QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "marker-exemplar-batch-rollback");
+            SetMarkerExemplarStatus(GetLocalizedString(LocalizationKeys.ManualMarkerExemplarBatchFailure));
         }
     }
 
@@ -257,8 +345,11 @@ public sealed partial class MainWindowViewModel
     private void RemoveMarkerExemplarCandidate(object? parameter)
     {
         if (parameter is not MarkerExemplarCandidateViewModel row || !MarkerExemplarCandidates.Remove(row)) return;
+        if (_markerExemplarSuggestion is { } suggestion && SelectedTab is { } tab && tab.TabId == suggestion.TabId)
+            RefreshMarkerExemplarDuplicates(tab, suggestion.Request.SelectedSeriesId);
         UpdateMarkerExemplarOverlay();
         OnPropertyChanged(nameof(HasMarkerExemplarCandidates));
+        OnPropertyChanged(nameof(AcceptAllMarkerExemplarsText));
         RelayCommand.RaiseCanExecuteChanged();
     }
 
@@ -308,6 +399,7 @@ public sealed partial class MainWindowViewModel
             overlay.SetMarkerExemplar(rectangle, []);
         }
         OnPropertyChanged(nameof(HasMarkerExemplarCandidates));
+        OnPropertyChanged(nameof(AcceptAllMarkerExemplarsText));
         OnPropertyChanged(nameof(MarkerExemplarStatusText));
         OnPropertyChanged(nameof(HasMarkerExemplarStatus));
         OnPropertyChanged(nameof(CanShowMarkerExemplar));

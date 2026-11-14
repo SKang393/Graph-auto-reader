@@ -110,8 +110,11 @@
   <sys:String x:Key="Manual.MarkerExemplar.Unavailable">The example must fit inside the confirmed plot area.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Searching">Searching the original panel for similar markers…</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.NoMatches">No similar positions were found.</sys:String>
-  <sys:String x:Key="Manual.MarkerExemplar.Count">{0} possible matches found. Review each position and add points individually.</sys:String>
-  <sys:String x:Key="Manual.MarkerExemplar.ReviewAdvice">Added points remain editable. Use Move Point to adjust one after adding.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.Count">{0} possible matches found.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.ReviewAdvice">Review the outlines and remove incorrect positions before adding remaining matches. Added points remain editable; use Move Point to adjust one.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.AcceptAll">Add remaining matches ({0})</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.BatchAdded">Added {0} points; skipped {1} existing or overlapping positions.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.BatchFailure">The batch could not be completed. No points were kept; the proposal list was cleared.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Failure">Marker search failed: {0}</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Failure.InvalidInput">the point, image, or plot area is invalid</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Failure.InvalidFrame">the worker returned an invalid response</sys:String>

@@ -228,10 +228,13 @@ Result JSON SHA-256 is
 `b1c31615931bcda1c7655ac65a735a20cfe6a5fe4e01acc3c4f59249b406f40f`.
 These are controlled execution/lifecycle observations, not accuracy evidence.
 
-After this record is pushed, atomically replace the latest pointer, then retire
-the superseded 0.4.39 extraction/ZIP and the 0.4.40 outer archive, receipt,
-smoke/probe scratch and pointer backup. Shared user Data and the earlier open
-QA App remain protected. Native device, calibration and marker interaction
+After this record reached main at `b2b378d9cf51ecdbec2c910ce95d26555f2d692b`,
+the latest pointer was atomically switched to 0.4.40. Contained, reparse-free
+cleanup retired 485 files totaling 370,662,879 path bytes: the superseded
+0.4.39 extraction/ZIP and the 0.4.40 outer archive, receipt, smoke/probe scratch
+and pointer backup. One extracted build and one ZIP remain. Shared user Data,
+the current hard-linked OCR input (hash rechecked), and the earlier open QA App
+and its dependencies were preserved. Native device, calibration and marker interaction
 remain waiting under REV-011 after the user stopped Computer Use. This is an
 internal ZIP, with no installer, public release, clean-machine pass or
 production approval.
