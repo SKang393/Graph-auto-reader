@@ -7517,7 +7517,7 @@
                      "openCvRuntimeSha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
                      "releaseEligible": false,
                      "releaseStatus": "internal",
-                     "retained": true,
+                     "retained": false,
                      "recordIncomplete": false,
                      "missingMetadata": [],
                      "purpose": "Internal ManualPreview with Rust axis suggestions and source-bound, explicitly reviewed OCR calibration labels under a half-core worker budget.",
@@ -7560,6 +7560,66 @@
                        "rustWorkerSha256": "e1f22fb457564267250bf41d804b954a0f9e08dd44bcd14f7db0a60e9e1459cb",
                        "reviewOcrSha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743"
                      }
-                   }
+                   },
+{
+  "buildNumber": 439,
+  "version": "0.4.39",
+  "directory": "0.4.39-20261114T013632352Z-62a1862e",
+  "stampedVersion": "0.4.39",
+  "commit": "62a1862ece524bcd07cb8ee7028848936e03b53e",
+  "buildTimeUtc": "2026-11-14T01:36:32.3525459+00:00",
+  "executableSha256": "a73614cc97d797a8024f96f4faa64d8cbe4907a656f2aa474d7dfdf3fa1b931d",
+  "openCvRuntimeSha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+  "releaseEligible": false,
+  "releaseStatus": "internal",
+  "retained": true,
+  "recordIncomplete": false,
+  "missingMetadata": [],
+  "purpose": "Internal ManualPreview with saved and measured CPU/GPU device choice plus source-bound calibration proposals from Rust tick positions and reviewed OCR labels.",
+  "packages": [
+    {
+      "name": "GraphAutoReader-0.4.39-win-x64-internal-preview.zip",
+      "sizeBytes": 87483858,
+      "sha256": "8c40467d720c418b7656eb0b7d0d977e97571e04809440c3dad439f470469175",
+      "verificationStatus": "verified-hosted-and-downloaded"
+    }
+  ],
+  "artifactStorage": {
+    "provider": "github-actions",
+    "artifactId": 14091868242,
+    "name": "GraphAutoReader-0.4.39-internal-preview-43541187921",
+    "url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/43541187921/artifacts/14091868242",
+    "workflowRunId": 43541187921,
+    "workflowCommit": "62a1862ece524bcd07cb8ee7028848936e03b53e",
+    "sizeInBytes": 87226981,
+    "digest": "sha256:6aab594b5dd6974d8f7f413ff1de1edf788ec1f2a30bf9eb62c20970eeea6a99",
+    "createdUtc": "2026-11-14T01:36:54Z",
+    "expiresUtc": "2027-02-12T01:32:22Z",
+    "downloadedPackageVerifiedUtc": "2026-11-14T01:46:06.3120110+00:00"
+  },
+  "verification": {
+    "buildExitCode": 0,
+    "hostedTestsPassed": 1065,
+    "hostedTestsSkipped": 7,
+    "portableSmokeExitCode": 0,
+    "productionRuntimeSmokeExitCode": 2,
+    "nativeProvenanceReview": "passed",
+    "sourceCiRunId": 43541187420,
+    "sourceCiConclusion": "success",
+    "sourceCiTestsPassed": 2581,
+    "sourceCiTestsSkipped": 30,
+    "packageUploadRunConclusion": "success",
+    "visualWorkflowChecked": false,
+    "visualWorkflowScope": "Native saved-device and Suggest calibration interaction remain waiting after the user stopped Computer Use (REV-011).",
+    "bundledReviewOcrChecked": true,
+    "bundledTickProposalChecked": true,
+    "completeControlWallSeconds": 3.8332354,
+    "incompleteControlWallSeconds": 4.1033563,
+    "cleanWindowsVmChecked": false,
+    "productionApproved": false,
+    "rustWorkerSha256": "2f72bdaeb1454e1b2b6558e36fc2793e21f2be104a2fcd51c031e1d12754043f",
+    "reviewOcrSha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743"
+  }
+}
                ]
 }

@@ -104,10 +104,12 @@ managed source and model bytes were unchanged.
 After these source checks, `Prepare-CheckpointVersion.ps1 -PrepareNext`
 prepared 0.4.39 for one meaningful integrated internal preview containing the
 saved/automatic device controls and reviewed tick-based calibration. The local
-compiler identities above precede that version-only change. Hosted CI and
-package verification must bind the stamped 0.4.39 artifact before replacing
-0.4.38. No installer, public release, production approval or native UI pass is
-claimed by this preparation.
+compiler identities above precede that version-only change. The subsequent
+[hosted 0.4.39 delivery](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0439)
+passed source CI and package verification. Its packaged workers returned the
+complete control proposal in 3.833 s and refused the incomplete panel in
+4.103 s. Neither applied values. No installer, public release, production
+approval or native UI pass is claimed.
 
 Temporary request, result and test logs are bounded below 2 MB under
 `artifacts/calibration-ticks-check`; no new dataset or model copy. Reuse
@@ -116,6 +118,12 @@ After the outcome/source push, retire completed logs. Keep only the small owned
 control PNG and the two request files until the 0.4.39 packaged-worker checks
 finish, then retire them too. Preserve the user's still-open QA App, its compiler
 directory, old metadata and user data.
+
+After `62a1862ece524bcd07cb8ee7028848936e03b53e` reached main, 12 completed
+tick-check logs/temporary files (96,955 bytes) were retired. The remaining
+4,046-byte control PNG and two small requests served the successful 0.4.39
+packaged-worker checks and are now disposable after that delivery record is
+pushed.
 
 ## Previous batch cleanup
 

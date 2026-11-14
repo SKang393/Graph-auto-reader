@@ -88,7 +88,7 @@ checks, bounded OCR host self-tests, Rust/application tests and all packaging
 validation. Release build/publish jobs were correctly skipped. This CI run did
 not dispatch the separate hosted internal-preview packaging workflow.
 
-GitHub artifacts expire. The current workflow pins the verified 0.4.38 input;
+GitHub artifacts expire. The current workflow pins the verified 0.4.39 input;
 future deliveries must update that pin before the artifact expires. Build numbers
 still advance once per actual packaged build, and public release cadence and
 final product approval remain governed by VERSIONING.md.
@@ -121,3 +121,61 @@ receipt, QA scratch and temporary pointer backup. Shared user `Data` was
 preserved. The first atomic pointer replacement rejected an empty backup path;
 retrying with an explicit temporary backup succeeded before any old build was
 deleted. This delivery record is not a clean-machine acceptance claim.
+
+## Hosted delivery 0.4.39
+
+[Build 43541187921](https://github.com/SKang393/Graph-auto-reader/actions/runs/43541187921)
+completed from `62a1862ece524bcd07cb8ee7028848936e03b53e`. This integrated preview
+adds saved CPU/GPU choice, a cancellable measured automatic profile, and one
+Suggest calibration action pairing Rust tick positions with OCR labels. Values
+and anchors require review before Apply. App, Domain and integration checks
+passed 1,065 tests with seven opt-in skips. The separate
+[source CI 43541187420](https://github.com/SKang393/Graph-auto-reader/actions/runs/43541187420)
+passed 2,581 .NET tests with 30 skips across 13 projects, ten Rust tests and
+packaging/localization checks; builds reported zero warnings and errors.
+
+- [Artifact 14091868242](https://github.com/SKang393/Graph-auto-reader/actions/runs/43541187921/artifacts/14091868242):
+  87,226,981 bytes, SHA-256
+  `6aab594b5dd6974d8f7f413ff1de1edf788ec1f2a30bf9eb62c20970eeea6a99`.
+- Inner ZIP `GraphAutoReader-0.4.39-win-x64-internal-preview.zip`:
+  87,483,858 bytes, SHA-256
+  `8c40467d720c418b7656eb0b7d0d977e97571e04809440c3dad439f470469175`.
+- Extracted build `0.4.39-20261114T013632352Z-62a1862e`: 477 files,
+  195,923,591 bytes. Safe entry checks and every extracted-file hash matched.
+- Receipt SHA-256: `ffdebcb46a6e9588803acb02acb0e81136440cd3bf4f6dd044849761d8ea837c`.
+  Build-info SHA-256: `8be5fae8c97355425b90605ef090c96e48b3afd374050d6af39791548d255553`.
+  Executable SHA-256: `a73614cc97d797a8024f96f4faa64d8cbe4907a656f2aa474d7dfdf3fa1b931d`.
+- Rust SHA-256: `2f72bdaeb1454e1b2b6558e36fc2793e21f2be104a2fcd51c031e1d12754043f`.
+  The Rust notice and six required OpenCV/Microsoft/Paddle notices/licenses
+  matched. OpenCV and OCR model bytes remain the identities above; current
+  review manifest is `17d44e8e86fa60183c30531c05c02e8da463ea9632dd494cf039227e3c4b0b2a`.
+- Isolated local ManualPreview smoke exited 0; unavailable Production smoke
+  exited 2. No normal window was opened. Artifact expiry is 2027-02-12.
+
+The existing `--tick-proposal-check` probe was run against the downloaded
+package's own App, Rust executable and `review-assistance/ocr` directory on the
+two explicitly owned inputs in [the calibration record](CALIBRATION-TICK-PROPOSALS-20261113.md).
+The complete control returned all six pairs and the expected three anchors in
+3.833 s wall time (149.850 ms geometry, 2,598.096 ms OCR, 41.704 ms pairing).
+The incomplete panel returned seven pairs, `CALIBRATION_TICKS_INSUFFICIENT_PAIRS`
+and null calibration values/anchors in 4.103 s (60.340 ms geometry,
+2,988.362 ms OCR, 46.260 ms pairing). Neither run applied or exported values.
+Both reported CPU, one inference thread and worker, BelowNormal priority and
+the verified 416/10000 job budget on 12 logical processors (0.4992 core).
+These are two execution controls, not representative accuracy measurements.
+Packaged App DLL SHA-256 is
+`00d6c628e0df75c49033aaf9351cbbe64f7460c3690932f841eebb7852f6cb0f`.
+Control and incomplete JSON hashes were respectively
+`0ba4ec63a35f845dcf7c2d279a43bcc46551d7db948f140707555072984ad05d`
+and `5cd43b6066d95b23155285dce1eecaa469568eadef819f6b5e8ba4e2961c5b5f`.
+
+After this ledger/outcome reaches main, switch the latest pointer and retire
+the superseded 0.4.38 extracted build/ZIP, the outer download, receipt, smoke
+scratch and tick-check request/control/results. Shared user Data, the original
+owned source image and the still-open earlier QA App and its dependencies are
+preserved. The current hardware-assets model is a hard link, so removing the old
+build path must not remove that active input. Future hosted builds now use the
+verified 0.4.39 artifact as their reviewed runtime input. This is an internal
+ZIP only. Native saved-choice and Suggest calibration interaction remain waiting
+after the user stopped Computer Use (REV-011); no installer, public release,
+clean-machine pass or production approval is claimed.
