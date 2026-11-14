@@ -339,3 +339,24 @@ remained present. Observed free E: space changed from 536,101,224,448 to
 
 Total across eight historical batches: **189,802,998,647 path bytes**. This
 does not claim all remaining historical outputs are closed or below 1 GB.
+
+## Completed ninth scope
+
+The [ninth scope](HISTORICAL-RETIREMENT-SCOPE-9-20261114.json) identified nine
+completed output trees, with exact pushed outcome blobs and no current
+executable/config consumer in either checkout. Seventeen paths in the crowded-
+center v30 result are historical outcome references, explicitly distinguished
+from active consumers. Scope commit `f7d916761d54e816c1778b4838e4eee369b3fb34`
+was pushed before execution. Its original manifest SHA-256 was
+`19b554196749eb16d2a21deaa8da898409bcf32257a6291e83bc876cdcf556bb`;
+Git blob `fec39e0d108591a41ca8912a3c6757e689664d78`.
+
+After successful separate preflight, guarded cleanup completed at
+`2026-11-14T22:29:32.4056476Z`: **14,982 files / 3,629,151,428 path bytes**.
+All nine targets were absent, zero old-worktree consumers were found, all ten
+protected keeper hashes and the retained 449 App were unchanged, and the
+original corpus remained present. E: free bytes changed from 550,714,167,296
+to 554,394,681,344. Receipt: `artifacts/storage-retention-check/cleanup-ninth.json`.
+The scope now records retirement. Total across nine historical batches is
+**193,432,150,075 path bytes**; this is not a physical-space or remaining-under-
+1-GB claim.

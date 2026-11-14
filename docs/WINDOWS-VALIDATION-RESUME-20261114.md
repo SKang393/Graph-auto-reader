@@ -123,3 +123,15 @@ worker check is complete; its isolated remote package copy, generated owned
 image and local result subtree can be retired after this record reaches main
 and live-consumer/path guards pass. Original projects, SSH trust/identity and
 the primary retained package are outside that cleanup scope.
+
+## Remote task-copy retirement
+
+After the owned outcome reached `origin/main` in `841db52e`, guarded cleanup
+removed the exact remote calibration-review task directory on FLEX5LAPTOP.
+The receipt was received at `2026-11-14T22:37:24.9529541Z`: 503 files and
+284,071,480 path bytes retired, target absent, no active consumers or reparse
+points, and the primary retained 449 executable hash unchanged. The existing
+SSH identity/trust and all unrelated remote data remain intact. One small
+task-created retirement helper remains outside the removed directory pending
+its final cleanup. Local owned inputs remain temporarily active for the
+[native workflow and fresh-process reopening check](NATIVE-PREVIEW-449-CHECK-20261114.md).

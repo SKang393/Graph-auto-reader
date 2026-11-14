@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "scopeStatus": "lead_reviewed_disposable_scope_pending_runtime_guards",
+  "scopeStatus": "retired_after_pushed_scope_and_runtime_guards",
   "inventory": "artifacts/storage-retention-check/ninth-candidates.json",
   "sourceRoot": "E:/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs",
   "selection": "Nine completed historical outputs with pushed aggregate outcomes; excludes current runtime and model inputs.",
@@ -20,7 +20,7 @@
   },
   "privacy": "Tracked outcomes report zero private and sealed reads; no private payloads are included.",
   "license": "Local retirement only; no redistribution or license grant is implied.",
-  "noDeletionPerformed": true,
+  "noDeletionPerformed": false,
   "entries": [
     {
       "name": "raster-connected-context-v1",
@@ -147,5 +147,20 @@
   "leadChecks": [
     "Push this exact reviewed scope before executing.",
     "Recheck exact inventories, process consumers, reparse points, protected keepers, retained package and original data."
-  ]
+  ],
+  "retirement": {
+    "scopeCommit": "f7d916761d54e816c1778b4838e4eee369b3fb34",
+    "completedUtc": "2026-11-14T22:29:32.4056476Z",
+    "files": 14982,
+    "pathBytes": 3629151428,
+    "oldConsumers": 0,
+    "allTargetsAbsent": true,
+    "protectedKeepersUnchanged": 10,
+    "retainedVersion": "0.4.49",
+    "retainedAppSha256": "f95dc00c01166c67656b8bfd165c7b6d92ca15bf489b874e85cdd36824b2f2fa",
+    "originalCorpusPreserved": true,
+    "freeBytesBefore": 550714167296,
+    "freeBytesAfter": 554394681344,
+    "receipt": "artifacts/storage-retention-check/cleanup-ninth.json"
+  }
 }
