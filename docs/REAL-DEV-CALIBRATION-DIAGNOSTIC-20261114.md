@@ -158,7 +158,10 @@ native UI acceptance, installer acceptance or production approval. Proposed
 values still require visible review and explicit acceptance in the application.
 
 Only concise aggregate outcomes are eligible for Git. The bounded scratch
-directory is `artifacts/real-dev-calibration-check`; remove its completed raw
-outputs after this outcome and source are pushed and active consumers finish.
+directory was `artifacts/real-dev-calibration-check`. After source and outcome
+reached `origin/main` at `11771f6e0d70972951fd511b640f1a799c8ee009`, guarded
+cleanup removed its 12 files totaling 10,572 path bytes. That includes one
+additional compiler log created after the 9,393-byte run-time inventory above.
+The target was confirmed absent and the current package/shared Data present.
 Retain the single verified 0.4.42 package, current runtime assets, original
 private data and the separately active native QA dependencies.

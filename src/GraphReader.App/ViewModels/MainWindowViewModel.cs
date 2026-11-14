@@ -298,7 +298,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             _ => SelectedTab is not null && !IsBusy);
         ConfirmExportCommand = new AsyncRelayCommand(
             ExportFromDialogAsync,
-            () => ExportSummary?.CanExport == true && !IsBusy);
+            () => ExportSummary is { CanExport: true, OutputDirectory: null } && !IsBusy);
         SelectReviewIssueCommand = new RelayCommand(
             parameter => SelectReviewIssue(parameter as ReviewIssueViewModel),
             parameter => parameter is ReviewIssueViewModel);
@@ -1598,6 +1598,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        ExportSummarySnapshot summarySnapshot = CaptureExportSummary(tab);
+
         await RunBusyAsync(async token =>
         {
             GraphReader.Export.ExportResult exported =
@@ -1611,6 +1613,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             CurrentStage = WorkflowStage.Export;
             SurfaceState = WorkspaceSurfaceState.ExportPreview;
             ExportSummary = CreateExportSummary(
+                summarySnapshot,
                 directory,
                 exported.MinimalArtifacts.Select(static artifact => artifact.FileName)
                     .Concat(exported.AuditArtifacts.Select(static artifact => artifact.FileName)));
@@ -2906,13 +2909,18 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             row.PointId,
             selectedPointId,
             StringComparison.Ordinal)), synchronizeWorkspace: false);
-        if (SurfaceState == WorkspaceSurfaceState.ExportPreview)
+        // A written summary is a receipt for the tab that produced those files.
+        // Keep its snapshot intact across tab/projection refreshes; only an
+        // explicit new preview should bind the summary to the current tab.
+        if (SurfaceState == WorkspaceSurfaceState.ExportPreview && ExportSummary?.OutputDirectory is null)
         {
             bool warningsAcknowledged = ExportSummary?.WarningsAcknowledged == true;
+            ReviewIssueViewModel[] previousWarnings = ExportSummary?.WarningIssues.ToArray() ?? [];
             ExportSummaryViewModel refreshed = CreateExportSummary(
-                ExportSummary?.OutputDirectory,
-                ExportSummary?.OutputFileNames);
-            refreshed.WarningsAcknowledged = warningsAcknowledged;
+                outputDirectory: null,
+                outputFileNames: null);
+            refreshed.WarningsAcknowledged = warningsAcknowledged &&
+                previousWarnings.SequenceEqual(refreshed.WarningIssues);
             ExportSummary = refreshed;
         }
         NotifyReviewStateChanged();
@@ -3020,7 +3028,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         string? outputDirectory,
         IEnumerable<string>? outputFileNames)
     {
-        WorkspaceTabViewModel? tab = SelectedTab;
+        return CreateExportSummary(CaptureExportSummary(SelectedTab), outputDirectory, outputFileNames);
+    }
+
+    private ExportSummarySnapshot CaptureExportSummary(WorkspaceTabViewModel? tab)
+    {
         PanelRecord? panel = tab is not null && Guid.TryParse(tab.PanelId, out Guid panelId)
             ? _manualWorkspaceService?.CurrentProject.Panels.FirstOrDefault(
                 candidate => candidate.PanelId.Value == panelId)
@@ -3034,26 +3046,49 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ReviewIssueViewModel[] warningIssues = ReviewIssues
             .Where(static issue => issue.Severity == ReviewIssueSeverity.Warning)
             .ToArray();
-        string[] expectedFileNames = outputFileNames?.ToArray()
-            ?? CreateExpectedExportFileNames(tab, panel);
-        return new ExportSummaryViewModel(
+        string provenance = FormatLocalizedString(
+            LocalizationKeys.ExportPreviewProvenanceFormat,
+            Path.GetFileName(tab?.SourcePath) ?? GetLocalizedString(LocalizationKeys.PreviewUnknown));
+        return new ExportSummarySnapshot(
             tab?.Points.Count ?? 0,
             tab?.SeriesCards.Count ?? 0,
             phaseCount,
-            blockingIssues.Length,
-            warningIssues.Length,
-            outputDirectory,
-            expectedFileNames,
-            FormatLocalizedString(
-                LocalizationKeys.ExportPreviewProvenanceFormat,
-                Path.GetFileName(tab?.SourcePath) ?? GetLocalizedString(LocalizationKeys.PreviewUnknown)),
-            GetLocalizedString(LocalizationKeys.ExportPreviewDestinationPending),
             blockingIssues,
             warningIssues,
+            provenance,
+            CreateExpectedExportFileNames(tab, panel));
+    }
+
+    private ExportSummaryViewModel CreateExportSummary(
+        ExportSummarySnapshot snapshot,
+        string? outputDirectory,
+        IEnumerable<string>? outputFileNames)
+    {
+        return new ExportSummaryViewModel(
+            snapshot.PointCount,
+            snapshot.SeriesCount,
+            snapshot.PhaseCount,
+            snapshot.BlockingIssues.Length,
+            snapshot.WarningIssues.Length,
+            outputDirectory,
+            outputFileNames?.ToArray() ?? snapshot.ExpectedFileNames,
+            snapshot.ProvenanceSummary,
+            GetLocalizedString(LocalizationKeys.ExportPreviewDestinationPending),
+            snapshot.BlockingIssues,
+            snapshot.WarningIssues,
             outputDirectory is null
                 ? ExportDestinationStatus.PendingSelection
                 : ExportDestinationStatus.Written);
     }
+
+    private sealed record ExportSummarySnapshot(
+        int PointCount,
+        int SeriesCount,
+        int PhaseCount,
+        ReviewIssueViewModel[] BlockingIssues,
+        ReviewIssueViewModel[] WarningIssues,
+        string ProvenanceSummary,
+        string[] ExpectedFileNames);
 
     private static string[] CreateExpectedExportFileNames(
         WorkspaceTabViewModel? tab,
