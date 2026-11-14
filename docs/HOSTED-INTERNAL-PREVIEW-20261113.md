@@ -293,3 +293,14 @@ tree. Although 441 is a release-eligible ordinal, this is an internal ZIP only:
 no tag, installer, public release, clean-machine pass or production activation.
 Native device, calibration and marker/batch interactions remain waiting under
 REV-011 after the user stopped Computer Use.
+
+Subsequent source CI `43554110711`, job `132322948894`, stopped in
+`Test-VersionPolicy.Tests.ps1` before building: the 441 ledger incorrectly set
+`releaseEligible: true`. The current policy distinguishes cadence eligibility
+from public eligibility before 2.0.0. Corrected that metadata to
+`releaseEligible: false, cadenceEligible: true`; application bytes and release
+policy are unchanged. The existing version-policy suite then passed all 62
+checks in 30.806 seconds using contained disposable test repositories. The
+temporary log under `artifacts/version-policy-check` can be retired after this
+record is pushed. No failed application tests are inferred from that early CI
+failure.
