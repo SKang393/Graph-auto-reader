@@ -190,14 +190,15 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 
 ## REV-011 - resume native device preference verification
 
-- **Status:** open; native phase waiting
+- **Status:** access resolved; remaining native checks in progress
 - **Blocks:** native acceptance of saved OCR device choice, fresh-process
   restoration, calibration proposals and marker example review; headless
   development and validation continue
 - **Effort:** about 5 minutes when the desktop is available
-- **Action:** open the [latest preview launcher](../packaging/Run-Latest-DevPortable.cmd)
-  in the primary checkout and leave the 0.4.49 window available for Computer Use;
-  its launch calls currently stall without an access prompt. Then verify selecting
+- **Action:** no maintainer action is currently needed. The corrected
+  [latest preview launcher](../packaging/Run-Latest-DevPortable.cmd) opened and
+  native testing resumed. Continue the remaining checks after the replacement
+  package is activated, including selecting
   a GPU, reading labels, changing back to CPU and reopening with the saved
   preference in the next integrated source build. Also verify Automatic,
   Check devices, Cancel and interruption by foreground work
@@ -227,7 +228,12 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   449 launcher produced no response. A missing retained-ledger `directory`
   prevented process creation; it is corrected in `53c6e45d`, with a passing
   actual-launcher headless smoke and a new ledger regression check. The
-  maintainer has been asked to reopen the corrected launcher. See the
+  maintainer confirmed that the corrected launcher opens the app. Native GPU
+  selection and label reading, reviewed calibration Apply/Undo, individual
+  marker acceptance/Undo/Redo, save and export have now been observed. No further
+  access approval is currently needed. Fresh-process restoration, corrected
+  label UI, bulk acceptance, device-check interruption and crop checks remain.
+  See the [native workflow result](NATIVE-PREVIEW-449-CHECK-20261114.md) and the
   [native attempt](NATIVE-PREVIEW-448-CHECK-20261114.md).
   Owned headless package checks passed, but do not replace these visual checks
 - **Files:** [hardware and worker outcome](OCR-HARDWARE-CHECK-20261113.md),

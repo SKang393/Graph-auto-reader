@@ -397,18 +397,35 @@ the required directory, so double-clicking exited before process creation.
 The actual launcher passed headless smoke after correction. Existing trusted
 Flex5Laptop access was recovered and the exact 449 package passed startup on
 that second host, with production activation still blocked as intended.
-Native interaction remains waiting for the maintainer to reopen the app.
+The maintainer confirmed that the repaired launcher opens. Native 449 GPU label
+reading, reviewed calibration Apply/Undo, marker acceptance/Undo/Redo, save and
+CSV/audit export are now observed on owned inputs. Fresh-process restoration and
+the remaining controls continue under REV-011 without another access request.
 
 An independent owned-input defect in [thin-line coverage](RUST-RASTER-COVERAGE-20261114.md)
 is fixed: standard one-pixel antialiased black strokes were discarded by the
 old Rust contrast cutoff. The fixed majority-coverage boundary preserves
 original coordinates and actual tick centers; all 52 Rust tests pass,
 including competing gray plots and long-stroke rejection. No private result
-was used to select that change. The next meaningful internal preview, 0.4.50,
-combines this fix with explicit OCR-label correction and the launcher guard.
+was used to select that change. The verified hosted internal preview, 0.4.50,
+combines this fix with explicit OCR-label correction and the launcher guard;
+its [delivery record](INTERNAL-PREVIEW-450-VERIFICATION-20261114.md) distinguishes
+packaged checks from pending native correction-UI acceptance.
 Do not change the 95% per-item acceptance bars or the structural zero-silent-
 invalid-export rule. Required model approval, native production workflow
 evidence and clean-machine installer/portable parity remain separate blockers.
+
+The [fixed 450 prepared diagnostic](PREPARED-CALIBRATION-450-DIAGNOSTIC-20261114.md)
+completed all 120 projects and all 127 effective panels in 164.806 seconds.
+Fifty panels returned geometry/OCR and 367 numeric readings, but zero complete
+calibrations. These aggregate counts do not establish the cause of each failure
+or an accuracy improvement. Automatic readiness remains incomplete. The next
+source batch addresses [native review defects](NATIVE-REVIEW-CORRECTIONS-20261114.md)
+and an owned-reproducible inability to refit a failed, zero-confidence OCR row
+after an explicit human correction. Preserve raw recognition evidence and every
+scientific consistency check. Do not rerun the private corpus for packaging or
+UI-only changes; require a distinct owned-tested processing correction before
+another fixed confirmation. Keep the independent native workflow checks moving.
 
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new
@@ -479,7 +496,7 @@ already retired; active package controls and current dependencies remain.
 
 Full pipeline approval work is paused while these product increments advance.
 The [historical closeout](HISTORICAL-ARTIFACT-CLOSEOUT-20261114.md) retired
-189.80 GB of selected completed output across eight guarded batches after their
+193.43 GB of selected completed output across nine guarded batches after their
 records were pushed, with current model and OCR keeper hashes preserved. The
 old `goal22-runs` inventory is complete for its
 1,011 immediate directories, but other worktree storage remains outside that

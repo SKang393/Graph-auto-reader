@@ -511,24 +511,31 @@ internal static partial class RealDevCalibrationCheck
     {
         private readonly List<FileStream> held = [];
         internal Dictionary<string, string> Files { get; } = new(StringComparer.Ordinal);
-        internal static Candidate Verify(string app, string assets, string rust, CancellationToken token)
+        internal static Candidate Verify(string app, string assets, string rust, CancellationToken token) =>
+            VerifyPinned(app, assets, rust, AppExeHash, AppDllHash, RustHash, DeliveredRuntimeLibraries, token);
+
+        internal static Candidate Verify450(string app, string assets, string rust, CancellationToken token) =>
+            VerifyPinned(app, assets, rust, App450ExeHash, App450DllHash, Rust450Hash, Delivered450RuntimeLibraries, token);
+
+        private static Candidate VerifyPinned(string app, string assets, string rust, string expectedExe, string expectedDll,
+            string expectedRust, FrozenDictionary<string, string> libraries, CancellationToken token)
         {
             var result = new Candidate();
             try
             {
-                result.Pin(app, AppExeHash, token);
+                result.Pin(app, expectedExe, token);
                 string directory = Path.GetDirectoryName(app)!;
-                result.Pin(typeof(CalibrationTickProposal).Assembly.Location, AppDllHash, token);
+                result.Pin(typeof(CalibrationTickProposal).Assembly.Location, expectedDll, token);
                 // This adapter requires the verified white-background helper. Older DLLs
                 // must fail before private payload selection, even if pins are rebound.
                 RequireRasterCapability(typeof(CalibrationTickProposal).Assembly);
                 RequireReviewDraftCapability(typeof(CalibrationTickProposal).Assembly);
-                result.Pin(rust, RustHash, token);
+                result.Pin(rust, expectedRust, token);
                 result.Pin(Path.Combine(assets, "en_PP-OCRv5_mobile_rec.onnx"), Program.ModelHash, token);
                 result.Pin(Path.Combine(assets, "recognizer.json"), Program.ManifestHash, token);
                 result.Pin(Path.Combine(assets, "PaddlePaddle-PP-OCRv5-Models-Apache-2.0.txt"), "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4", token);
                 result.Pin(Path.Combine(assets, "PaddlePaddle-PP-OCRv5-Models-Notice.txt"), "8d81f5d0c58547cce471c24f82efe768a9d907d06764f67e90cc680c6d777729", token);
-                foreach (var library in DeliveredRuntimeLibraries.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+                foreach (var library in libraries.OrderBy(pair => pair.Key, StringComparer.Ordinal))
                 {
                     result.Pin(Path.Combine(directory, library.Key), library.Value, token);
                     bool managed = library.Key.StartsWith("GraphReader.", StringComparison.Ordinal) ||

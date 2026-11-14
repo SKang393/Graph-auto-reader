@@ -137,10 +137,10 @@ internal static partial class RealDevCalibrationCheck
     }
 
     internal static async Task<object> PreparedCalibrationOwnedCheckAsync(string appExe, string assetRoot, string rustExe,
-        CpuBudgetJob budget, CancellationToken token)
+        CpuBudgetJob budget, CancellationToken token, bool candidate450 = false)
     {
         if (!budget.SilentBreakawayVerified) throw new InvalidDataException();
-        using Candidate candidate = Candidate.Verify(appExe, assetRoot, rustExe, token);
+        using Candidate candidate = candidate450 ? Candidate.Verify450(appExe, assetRoot, rustExe, token) : Candidate.Verify(appExe, assetRoot, rustExe, token);
         var panelizer = ResolvePanelizer(typeof(CalibrationTickProposal).Assembly);
         IAxisProposalService axis = new RustFirstAxisProposalService(new RustAxisProposalService(rustExe), new OpenCvAxisProposalService(appExe));
         await using var ocr = new CalibrationOcrWorkerClient(appExe, assetRoot, () => CalibrationOcrDeviceSelection.Cpu);
@@ -214,11 +214,11 @@ internal static partial class RealDevCalibrationCheck
     }
 
     internal static async Task<object> RunPreparedCalibrationAsync(string corpusRoot, string appExe, string assetRoot,
-        string rustExe, CpuBudgetJob budget, CancellationToken token)
+        string rustExe, CpuBudgetJob budget, CancellationToken token, bool candidate450 = false)
     {
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(appExe) ||
             !Path.IsPathFullyQualified(assetRoot) || !Path.IsPathFullyQualified(rustExe)) throw new InvalidDataException();
-        using Candidate candidate = Candidate.Verify(appExe, assetRoot, rustExe, token);
+        using Candidate candidate = candidate450 ? Candidate.Verify450(appExe, assetRoot, rustExe, token) : Candidate.Verify(appExe, assetRoot, rustExe, token);
         var panelizer = ResolvePanelizer(typeof(CalibrationTickProposal).Assembly);
         FrozenDevTrainingSelector selector = FrozenDevTrainingSelector.Load(corpusRoot, token);
         FrozenDevTrainingMetadata metadata = selector.Describe();
@@ -286,12 +286,13 @@ internal static partial class RealDevCalibrationCheck
         _ = selector.EnumerateSelectedProjects(CancellationToken.None);
         var report = new { schema = "graphreader.real-dev-prepared-calibration-diagnostic.v1",
             status = totals.Attempted == Denominator && stats.ProjectsIncomplete == 0 ? "completed" : "incomplete",
-            protocol = new { version = "0.4.49", scope = "fixed_real_dev_prepared_panels", denominator = Denominator,
+            protocol = new { version = candidate450 ? "0.4.50" : "0.4.49", scope = "fixed_real_dev_prepared_panels", denominator = Denominator,
                 selection = "every_panel_no_truth_selection", manual_truth_used_for_inference = false, scored_accuracy = false,
                 sealed_payload_reads = 0, train_optimizer_steps = 0, image_writes = false, per_case_output = false,
                 review_only = true, applied = false, production_approved = false,
                 panel_to_source_mapping = "add_encoded_crop_offset_once", case_deadline_seconds = 45, overall_deadline_seconds = 900 },
-            candidate = new { app_exe_sha256 = AppExeHash, app_dll_sha256 = AppDllHash, rust_sha256 = RustHash, runtime_files = candidate.Files },
+            candidate = new { app_exe_sha256 = candidate450 ? App450ExeHash : AppExeHash,
+                app_dll_sha256 = candidate450 ? App450DllHash : AppDllHash, rust_sha256 = candidate450 ? Rust450Hash : RustHash, runtime_files = candidate.Files },
             metadata.AssignmentSha256, metadata.SelectedInventorySha256,
             source_identity_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
             source_identity_digest_complete = totals.PayloadsHashed == Denominator && totals.ImagesBound == Denominator,

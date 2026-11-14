@@ -276,3 +276,20 @@ CPU fallback is not counted as a GPU check. It records the full runtime identity
 resource budget and separate pacing timings. Cancellation still must end the
 owned worker, and the restarted worker must initialize a fresh session. It does
 not change saved application settings or run a provider-selection benchmark.
+
+## Explicit 0.4.50 prepared-panel confirmation
+
+The historical commands retain their exact 0.4.49 pins. The separate
+`--owned-prepared-calibration-450-check <absolute-App-exe> <asset-root> <absolute-Rust-worker>`
+uses the unchanged antialiased single/stacked owned fixture with fixed hosted
+0.4.50 identities in `RealDevPrepared450CalibrationCheck.cs`.
+
+Only after that owned proof and explicit authorization,
+`--real-dev-prepared-calibration-450-check <corpus-root> <absolute-App-exe> <asset-root> <absolute-Rust-worker> --explicit-opt-in`
+confirms all 120 frozen real-dev projects through the same packaged panelizer,
+genuine no-panel fallback and Rust-first/OCR path. Every returned panel remains
+in the accounting. It performs no truth-based panel selection, residual scoring,
+calibration Apply, sealed access, training or private case output. The existing
+45-second source and 900-second overall deadlines and independent half-core
+parent/child budgets remain. This is fixed implementation coverage evidence,
+not model selection, accuracy acceptance or production approval.

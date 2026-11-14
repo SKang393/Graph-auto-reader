@@ -49,7 +49,8 @@ internal static class Program
         bool realDevPreparation = args.Length > 0 && args[0] == "--real-dev-preparation-check";
         bool realDevAxisDecision = args.Length > 0 && args[0] == "--real-dev-axis-decision-check";
         bool realDevPreparedCalibration = args.Length > 0 && args[0] == "--real-dev-prepared-calibration-check";
-        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration;
+        bool realDevPreparedCalibration450 = args.Length > 0 && args[0] == "--real-dev-prepared-calibration-450-check";
+        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -64,6 +65,13 @@ internal static class Program
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--owned-prepared-calibration-450-check", var prepared450App, var prepared450Assets, var prepared450Rust])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await RealDevCalibrationCheck.PreparedCalibrationOwnedCheckAsync(prepared450App, prepared450Assets, prepared450Rust,
+                    parentBudget, deadline.Token, candidate450: true));
+                return 0;
+            }
             if (args is ["--owned-prepared-known-check", var knownApp, var knownAssets, var knownRust])
             {
                 using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
@@ -136,8 +144,9 @@ internal static class Program
                     if (args.Length != requiredArguments || args[^1] != "--explicit-opt-in")
                         throw new InvalidDataException();
                     using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
-                    Emit(realDevPreparedCalibration
-                        ? await RealDevCalibrationCheck.RunPreparedCalibrationAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token)
+                    Emit(realDevPreparedCalibration || realDevPreparedCalibration450
+                        ? await RealDevCalibrationCheck.RunPreparedCalibrationAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token,
+                            candidate450: realDevPreparedCalibration450)
                         : realDevAxisDecision
                         ? await RealDevCalibrationCheck.RunPreparationAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token, args[5])
                         : realDevPreparation
@@ -149,7 +158,7 @@ internal static class Program
                 }
                 catch (Exception)
                 {
-                    Emit(new { schema = realDevPreparedCalibration ? "graphreader.real-dev-prepared-calibration-diagnostic.v1" : realDevAxisDecision ? "graphreader.real-dev-axis-decision-diagnostic.v1" : realDevPreparation ? "graphreader.real-dev-preparation-diagnostic.v1" : realDevGeometry ? "graphreader.real-dev-geometry-properties-diagnostic.v1" : "graphreader.real-dev-calibration-assistance-diagnostic.v1",
+                    Emit(new { schema = realDevPreparedCalibration || realDevPreparedCalibration450 ? "graphreader.real-dev-prepared-calibration-diagnostic.v1" : realDevAxisDecision ? "graphreader.real-dev-axis-decision-diagnostic.v1" : realDevPreparation ? "graphreader.real-dev-preparation-diagnostic.v1" : realDevGeometry ? "graphreader.real-dev-geometry-properties-diagnostic.v1" : "graphreader.real-dev-calibration-assistance-diagnostic.v1",
                         status = "blocked_preflight_or_runtime", error = "REAL_DEV_CALIBRATION_CHECK_FAILED",
                         denominator = 120, sealed_payload_reads = 0, review_only = true, production_approved = false });
                     return 1;
