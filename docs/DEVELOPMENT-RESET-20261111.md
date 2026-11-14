@@ -379,17 +379,18 @@ explanation of the private aggregate failures. It is newer than retained 449.
 Native UI and automatic-accuracy acceptance remain incomplete. Do not package
 each small diagnostic or test-only change.
 
-The next bounded measurement fills a remaining scope gap: the whole-image
-calibration check bypasses import's existing model-free panelizer. The earlier
-447 preparation check already measured only a small geometry availability
-difference, 38 versus 37 sources, and deliberately ran no OCR. Extend that
-existing prepared-panel path through the frozen 449 Rust-first service and
-OCR/refit once; do not rerun both old comparisons or treat preparation as a
-proven fix. Include every derived panel, report project, distinct-image and
-panel denominators separately, use no manual truth to select panels, and score
-no ambiguous residuals. Verify crop mappings and the actual path on owned
-stacked-panel controls before private execution. This measures review-proposal
-availability, not independent accuracy or human review acceptance.
+The [prepared-panel diagnostic](PREPARED-CALIBRATION-449-DIAGNOSTIC-20261114.md)
+now fills that measurement gap through the frozen 449 runtime. All 120 projects
+(118 distinct embedded images) produced 127 effective panels, including 15
+full-image fallbacks. Geometry and OCR returned on 39 panels with 318 numeric
+readings; no measured or estimated calibration completed. The process took
+236.069 seconds with no error, deadline expiry, sealed reads or training.
+Preparation alone does not resolve the calibration gap. Owned labelled controls
+completed on raw, single-panel and stacked-panel paths with verified crop
+offsets; a separate antialiased fixture remained ambiguous. These are proposal
+availability diagnostics, not independent accuracy or native review acceptance.
+Do not rerun the private set to choose thresholds or models. Prioritize the
+reported launcher failure and native review before another algorithm change.
 
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new
@@ -460,7 +461,7 @@ already retired; active package controls and current dependencies remain.
 
 Full pipeline approval work is paused while these product increments advance.
 The [historical closeout](HISTORICAL-ARTIFACT-CLOSEOUT-20261114.md) retired
-175.25 GB of selected completed output across seven guarded batches after their
+189.80 GB of selected completed output across eight guarded batches after their
 records were pushed, with current model and OCR keeper hashes preserved. The
 old `goal22-runs` inventory is complete for its
 1,011 immediate directories, but other worktree storage remains outside that

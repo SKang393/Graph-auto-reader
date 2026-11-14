@@ -54,6 +54,21 @@ internal static partial class RealDevCalibrationCheck
         internal readonly List<double> SourceWidths = [], SourceHeights = [], PanelWidths = [], PanelHeights = [], Coverage = [], PrepareMs = [], RawMs = [], PanelMs = [];
     }
 
+    private static byte[] OwnedPreparationPixels(int mode)
+    {
+        const int width = 640, height = 480;
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
+        void Plot(int top, int bottom) {
+            for (int x = 100; x <= 540; x++) pixels[bottom * width + x] = 0;
+            for (int y = top; y <= bottom; y++) pixels[y * width + 100] = 0;
+            for (int x = 140; x <= 540; x += 200) for (int y = bottom + 1; y <= bottom + 4; y++) pixels[y * width + x] = 0;
+            foreach (int y in new[] { top + 10, (top + bottom) / 2, bottom - 10 }) for (int x = 96; x < 100; x++) pixels[y * width + x] = 0;
+        }
+        if (mode == 1) { Plot(30, 150); Plot(230, 350); } else Plot(80, 350);
+        if (mode == 2) for (int x = 0; x < width; x += 2) pixels[450 * width + x] = 0;
+        return pixels;
+    }
+
     // Resolve the actual packaged implementation before selecting private payloads.
     private static (object Instance, MethodInfo Method) ResolvePanelizer(Assembly assembly)
     {
@@ -203,8 +218,8 @@ internal static partial class RealDevCalibrationCheck
         _ = selector.EnumerateSelectedProjects(CancellationToken.None);
         var report = new { schema = diagnosticWorker is null ? "graphreader.real-dev-preparation-diagnostic.v1" : "graphreader.real-dev-axis-decision-diagnostic.v1",
             status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-            protocol = new { version = "0.4.47", denominator = Denominator, scope = "all_frozen_real_dev", sealed_payload_reads = 0,
-                ocr_calls = 0, review_only = true, production_approved = false, model_selection = false, image_writes = false,
+            protocol = new { version = "0.4.49", denominator = Denominator, scope = "all_frozen_real_dev", sealed_payload_reads = 0,
+                geometry_service = "direct_rust_only", ocr_calls = 0, review_only = true, production_approved = false, model_selection = false, image_writes = false,
                 per_case_output = false, source_identity_policy = "first_observed_locked_payloads_not_preregistered_content" },
             candidate = new { app_exe_sha256 = AppExeHash, app_dll_sha256 = AppDllHash, rust_sha256 = RustHash, runtime_files = candidate.Files },
             geometry_worker = new { sha256 = diagnosticWorker is null ? RustHash : AxisDecisionWorkerHash,
@@ -248,15 +263,7 @@ internal static partial class RealDevCalibrationCheck
         {
             var controlTimer = Stopwatch.StartNew();
             const int width = 640, height = 480;
-            byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
-            void Plot(int top, int bottom) {
-                for (int x = 100; x <= 540; x++) pixels[bottom * width + x] = 0;
-                for (int y = top; y <= bottom; y++) pixels[y * width + 100] = 0;
-                for (int x = 140; x <= 540; x += 200) for (int y = bottom + 1; y <= bottom + 4; y++) pixels[y * width + x] = 0;
-                foreach (int y in new[] { top + 10, (top + bottom) / 2, bottom - 10 }) for (int x = 96; x < 100; x++) pixels[y * width + x] = 0;
-            }
-            if (mode == 1) { Plot(30, 150); Plot(230, 350); } else Plot(80, 350);
-            if (mode == 2) for (int x = 0; x < width; x += 2) pixels[450 * width + x] = 0;
+            byte[] pixels = OwnedPreparationPixels(mode);
             BitmapSource bitmap = BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, pixels, width);
             var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
             using var stream = new MemoryStream(); encoder.Save(stream); byte[] image = stream.ToArray();

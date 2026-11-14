@@ -48,7 +48,8 @@ internal static class Program
         bool realDevCalibration = args.Length > 0 && args[0] == "--real-dev-calibration-check";
         bool realDevPreparation = args.Length > 0 && args[0] == "--real-dev-preparation-check";
         bool realDevAxisDecision = args.Length > 0 && args[0] == "--real-dev-axis-decision-check";
-        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision;
+        bool realDevPreparedCalibration = args.Length > 0 && args[0] == "--real-dev-prepared-calibration-check";
+        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -63,6 +64,18 @@ internal static class Program
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--owned-prepared-known-check", var knownApp, var knownAssets, var knownRust])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await RealDevCalibrationCheck.PreparedKnownControlAsync(knownApp, knownAssets, knownRust, parentBudget, deadline.Token));
+                return 0;
+            }
+            if (args is ["--owned-prepared-calibration-check", var preparedApp, var preparedAssets, var preparedRust])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await RealDevCalibrationCheck.PreparedCalibrationOwnedCheckAsync(preparedApp, preparedAssets, preparedRust, parentBudget, deadline.Token));
+                return 0;
+            }
             if (args is ["--owned-native-tick-proposal-check", var nativeTickRequest, var nativeTickApp, var nativeTickAssets, var nativeTickRust])
             {
                 byte[] input = ReadBounded(nativeTickRequest, 32_768);
@@ -123,7 +136,9 @@ internal static class Program
                     if (args.Length != requiredArguments || args[^1] != "--explicit-opt-in")
                         throw new InvalidDataException();
                     using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
-                    Emit(realDevAxisDecision
+                    Emit(realDevPreparedCalibration
+                        ? await RealDevCalibrationCheck.RunPreparedCalibrationAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token)
+                        : realDevAxisDecision
                         ? await RealDevCalibrationCheck.RunPreparationAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token, args[5])
                         : realDevPreparation
                         ? await RealDevCalibrationCheck.RunPreparationAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token)
@@ -134,7 +149,7 @@ internal static class Program
                 }
                 catch (Exception)
                 {
-                    Emit(new { schema = realDevAxisDecision ? "graphreader.real-dev-axis-decision-diagnostic.v1" : realDevPreparation ? "graphreader.real-dev-preparation-diagnostic.v1" : realDevGeometry ? "graphreader.real-dev-geometry-properties-diagnostic.v1" : "graphreader.real-dev-calibration-assistance-diagnostic.v1",
+                    Emit(new { schema = realDevPreparedCalibration ? "graphreader.real-dev-prepared-calibration-diagnostic.v1" : realDevAxisDecision ? "graphreader.real-dev-axis-decision-diagnostic.v1" : realDevPreparation ? "graphreader.real-dev-preparation-diagnostic.v1" : realDevGeometry ? "graphreader.real-dev-geometry-properties-diagnostic.v1" : "graphreader.real-dev-calibration-assistance-diagnostic.v1",
                         status = "blocked_preflight_or_runtime", error = "REAL_DEV_CALIBRATION_CHECK_FAILED",
                         denominator = 120, sealed_payload_reads = 0, review_only = true, production_approved = false });
                     return 1;
