@@ -94,8 +94,11 @@ instrumented report is
 `5128c5f8945ccaea2e2f1c7d102f4631fdb821f3ce8c9d4fe4b684e39aac017b`. The
 aggregate run exited 0 with empty stderr; its report SHA-256 is
 `a49f8d7485123ba0605661abc1f46425a5147c6fce7c76b0823a86365fe811d1`. Raw
-diagnostic scratch under `artifacts/preparation-diagnostic-check` is under 2
-MB (15 files, 8,437 bytes) and will be retired after this record is pushed and consumers finish.
+diagnostic scratch under `artifacts/preparation-diagnostic-check` was retired
+after source/outcome commit `4992c7f239d6b1dcb8555fe0e02b9dbbd9934696`
+reached `origin/main` and scoped consumers had exited: 15 files / 8,437 bytes
+at `2026-11-14T17:50:19.9584891Z`. Current dependencies and the sole 0.4.47
+package remain available.
 These results neither approve automatic calibration nor establish accuracy.
 
 The probe-only Release compilation passed with zero warnings/errors: initial

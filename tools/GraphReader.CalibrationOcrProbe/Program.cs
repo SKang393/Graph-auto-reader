@@ -47,7 +47,8 @@ internal static class Program
         bool realDevGeometry = args.Length > 0 && args[0] == "--real-dev-geometry-properties-check";
         bool realDevCalibration = args.Length > 0 && args[0] == "--real-dev-calibration-check";
         bool realDevPreparation = args.Length > 0 && args[0] == "--real-dev-preparation-check";
-        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation;
+        bool realDevAxisDecision = args.Length > 0 && args[0] == "--real-dev-axis-decision-check";
+        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -81,6 +82,12 @@ internal static class Program
                 Emit(await RealDevCalibrationCheck.PreparationSelfTestAsync(preparationRust, deadline.Token));
                 return 0;
             }
+            if (args is ["--axis-decision-self-test", var baselineRust, var diagnosticRust])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await AxisDecisionSelfTest.RunAsync(baselineRust, diagnosticRust, deadline.Token));
+                return 0;
+            }
             if (realDevSelfTest)
             {
                 Emit(RealDevCalibrationCheck.SelfTest());
@@ -91,10 +98,13 @@ internal static class Program
                 // Every failure in this private mode is sanitized here, before the owned-mode handler.
                 try
                 {
-                    if (args.Length != 6 || args[5] != "--explicit-opt-in")
+                    int requiredArguments = realDevAxisDecision ? 7 : 6;
+                    if (args.Length != requiredArguments || args[^1] != "--explicit-opt-in")
                         throw new InvalidDataException();
                     using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
-                    Emit(realDevPreparation
+                    Emit(realDevAxisDecision
+                        ? await RealDevCalibrationCheck.RunPreparationAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token, args[5])
+                        : realDevPreparation
                         ? await RealDevCalibrationCheck.RunPreparationAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token)
                         : realDevGeometry
                         ? await RealDevCalibrationCheck.RunGeometryAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token)
@@ -103,7 +113,7 @@ internal static class Program
                 }
                 catch (Exception)
                 {
-                    Emit(new { schema = realDevPreparation ? "graphreader.real-dev-preparation-diagnostic.v1" : realDevGeometry ? "graphreader.real-dev-geometry-properties-diagnostic.v1" : "graphreader.real-dev-calibration-assistance-diagnostic.v1",
+                    Emit(new { schema = realDevAxisDecision ? "graphreader.real-dev-axis-decision-diagnostic.v1" : realDevPreparation ? "graphreader.real-dev-preparation-diagnostic.v1" : realDevGeometry ? "graphreader.real-dev-geometry-properties-diagnostic.v1" : "graphreader.real-dev-calibration-assistance-diagnostic.v1",
                         status = "blocked_preflight_or_runtime", error = "REAL_DEV_CALIBRATION_CHECK_FAILED",
                         denominator = 120, sealed_payload_reads = 0, review_only = true, production_approved = false });
                     return 1;

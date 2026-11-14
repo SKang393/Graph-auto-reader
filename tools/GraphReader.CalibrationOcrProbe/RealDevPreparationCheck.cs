@@ -18,6 +18,34 @@ namespace GraphReader.CalibrationOcrProbe;
 
 internal static partial class RealDevCalibrationCheck
 {
+    private const string AxisDecisionWorkerHash = "94893abf759ba074d1f857acd7c968645003ac2aec6082b16825a32b00d50d79";
+
+    private sealed class DecisionStats
+    {
+        private int count;
+        private ulong rowBands, colBands, pairs, spans, connections, xTicks, yTicks, qualified;
+        private readonly Dictionary<string, int> outcomes = new(StringComparer.Ordinal);
+        internal void Add(AxisDecisionTrace trace)
+        {
+            count++;
+            string key = trace.Route + ":" + trace.Reason;
+            outcomes[key] = outcomes.GetValueOrDefault(key) + 1;
+            rowBands += trace.RowBands; colBands += trace.ColBands; pairs += trace.PairsChecked;
+            spans += trace.SpanRejections; connections += trace.ConnectionRejections;
+            xTicks += trace.XTickRejections; yTicks += trace.YTickRejections; qualified += trace.QualifiedPairs;
+        }
+        internal object Report() => new
+        {
+            images_with_valid_trace = count,
+            route_and_decisive_reason_counts = outcomes.OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value),
+            examined_candidate_totals = new { row_bands = rowBands, col_bands = colBands, pairs_checked = pairs,
+                span_rejections = spans, connection_rejections = connections, x_tick_rejections = xTicks,
+                y_tick_rejections = yTicks, qualified_pairs = qualified },
+            counter_scope = "examined_grid_or_connected_run_candidates_only_early_stops_preserved",
+            tick_rejection_counts_may_overlap = true,
+        };
+    }
+
     private sealed class PreparationStats
     {
         internal int Zero, One, Many, Failed, Panels, PanelAttempted, RawSuccess, PreparedSuccess;
@@ -68,20 +96,39 @@ internal static partial class RealDevCalibrationCheck
         return (bytes, width, height, crop);
     }
 
-    private static async Task<RustAxisProposalResult?> GeometryAsync(byte[] image, int width, int height, string rust, CancellationToken token)
+    private static async Task<RustAxisProposalResult?> GeometryAsync(byte[] image, int width, int height, string rust,
+        CancellationToken token, DecisionStats? decisions = null)
     {
         if (width is < 32 or > 4096 || height is < 32 or > 4096 || (long)width * height > 16_777_216) return null;
         var (decoded, _, _) = Program.Decode(image, [0, 0, width, height], token);
+        if (decisions is not null)
+        {
+            AxisDecisionDiagnosticResult result = await AxisDecisionDiagnosticClient.RunAsync(rust, width, height, decoded.Pixels, token).ConfigureAwait(false);
+            decisions.Add(result.Trace);
+            return result.Proposal;
+        }
         return await RustAxisProposal.RunAsync(rust, width, height, decoded.Pixels, cancellationToken: token).ConfigureAwait(false);
     }
 
     internal static async Task<object> RunPreparationAsync(string corpusRoot, string appExe, string assetRoot, string rustExe,
-        CpuBudgetJob parentBudget, CancellationToken token)
+        CpuBudgetJob parentBudget, CancellationToken token, string? diagnosticRustExe = null)
     {
         if (!parentBudget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(appExe) ||
             !Path.IsPathFullyQualified(assetRoot) || !Path.IsPathFullyQualified(rustExe)) throw new InvalidDataException();
         using Candidate candidate = Candidate.Verify(appExe, assetRoot, rustExe, token);
         var panelizer = ResolvePanelizer(typeof(CalibrationTickProposal).Assembly);
+        if (diagnosticRustExe is not null && !Path.IsPathFullyQualified(diagnosticRustExe)) throw new InvalidDataException();
+        // Keep the separately pinned diagnostic worker immutable until all private consumers finish.
+        using var diagnosticWorker = diagnosticRustExe is null ? null :
+            new FileStream(diagnosticRustExe, FileMode.Open, FileAccess.Read, FileShare.Read, 65_536, FileOptions.SequentialScan);
+        DecisionStats? rawDecisions = null, panelDecisions = null;
+        if (diagnosticWorker is not null)
+        {
+            if (HashStream(diagnosticWorker, token) != AxisDecisionWorkerHash) throw new InvalidDataException();
+            _ = AxisDecisionDiagnosticClient.SelfTest(); // Resolve packaged parser before source selection.
+            rawDecisions = new(); panelDecisions = new();
+        }
+        string geometryWorker = diagnosticRustExe ?? rustExe;
         FrozenDevTrainingSelector selector = FrozenDevTrainingSelector.Load(corpusRoot, token);
         FrozenDevTrainingMetadata metadata = selector.Describe();
         FrozenRealCorpusProject[] selected = selector.EnumerateSelectedProjects(token).OrderBy(p => p.AnonymizedCaseId, StringComparer.Ordinal).ToArray();
@@ -102,7 +149,7 @@ internal static partial class RealDevCalibrationCheck
                 RustAxisProposalResult? raw = null;
                 try
                 {
-                    raw = await GeometryAsync(payload.Image, payload.Width, payload.Height, rustExe, deadline.Token).ConfigureAwait(false);
+                    raw = await GeometryAsync(payload.Image, payload.Width, payload.Height, geometryWorker, deadline.Token, rawDecisions).ConfigureAwait(false);
                     if (raw is null) stats.UnsupportedRaw++;
                     else if (raw.Geometry is { } rawGeometry)
                     { stats.RawSuccess++; if (rawGeometry.XTickPositions.Count >= 3) stats.RawX++; if (rawGeometry.YTickPositions.Count >= 3) stats.RawY++; }
@@ -137,7 +184,7 @@ internal static partial class RealDevCalibrationCheck
                         stats.PanelWidths.Add(width); stats.PanelHeights.Add(height);
                         stats.Coverage.Add(crop.Width * crop.Height / ((double)payload.Width * payload.Height));
                         timer.Restart();
-                        RustAxisProposalResult? result = await GeometryAsync(bytes, width, height, rustExe, deadline.Token).ConfigureAwait(false);
+                        RustAxisProposalResult? result = await GeometryAsync(bytes, width, height, geometryWorker, deadline.Token, panelDecisions).ConfigureAwait(false);
                         stats.PanelMs.Add(timer.Elapsed.TotalMilliseconds);
                         if (result is null) stats.UnsupportedPanel++;
                         else if (result.Geometry is { } geometry)
@@ -154,12 +201,16 @@ internal static partial class RealDevCalibrationCheck
             finally { SampleMemory(totals, 0); }
         }
         _ = selector.EnumerateSelectedProjects(CancellationToken.None);
-        var report = new { schema = "graphreader.real-dev-preparation-diagnostic.v1",
+        var report = new { schema = diagnosticWorker is null ? "graphreader.real-dev-preparation-diagnostic.v1" : "graphreader.real-dev-axis-decision-diagnostic.v1",
             status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
             protocol = new { version = "0.4.47", denominator = Denominator, scope = "all_frozen_real_dev", sealed_payload_reads = 0,
                 ocr_calls = 0, review_only = true, production_approved = false, model_selection = false, image_writes = false,
                 per_case_output = false, source_identity_policy = "first_observed_locked_payloads_not_preregistered_content" },
             candidate = new { app_exe_sha256 = AppExeHash, app_dll_sha256 = AppDllHash, rust_sha256 = RustHash, runtime_files = candidate.Files },
+            geometry_worker = new { sha256 = diagnosticWorker is null ? RustHash : AxisDecisionWorkerHash,
+                role = diagnosticWorker is null ? "packaged_worker" : "separately_pinned_instrumented_worker_ordinary_algorithm_unchanged",
+                packaged_rust_identity_only = diagnosticWorker is not null },
+            decision_traces = rawDecisions is null ? null : new { raw = rawDecisions.Report(), prepared = panelDecisions!.Report() },
             metadata.AssignmentSha256, metadata.SelectedInventorySha256, source_identity_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
             source_identity_digest_complete = totals.PayloadsHashed == Denominator && totals.ImagesBound == Denominator,
             parent_cpu_budget = new { parentBudget.LogicalProcessors, parentBudget.Rate, parentBudget.MaximumLogicalCores, parentBudget.SilentBreakawayVerified,

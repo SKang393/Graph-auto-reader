@@ -6,6 +6,26 @@ const MAX_PIXELS: usize = 16_777_216;
 // Resource budget only: never search a truncated candidate subset.
 const MAX_GRID_PAIR_CHECKS: usize = 128;
 
+#[derive(Clone, Copy)]
+struct Trace {
+    route: &'static str, reason: &'static str,
+    row_bands: usize, col_bands: usize, pairs_checked: usize,
+    span_rejections: usize, connection_rejections: usize,
+    x_tick_rejections: usize, y_tick_rejections: usize, qualified_pairs: usize,
+}
+impl Default for Trace {
+    fn default() -> Self { Self { route: "NONE", reason: "NO_AXIS", row_bands: 0, col_bands: 0,
+        pairs_checked: 0, span_rejections: 0, connection_rejections: 0,
+        x_tick_rejections: 0, y_tick_rejections: 0, qualified_pairs: 0 } }
+}
+impl Trace {
+    fn line(&self) -> String { format!("TRACE1 {} {} {} {} {} {} {} {} {} {}", self.route, self.reason,
+        self.row_bands, self.col_bands, self.pairs_checked, self.span_rejections,
+        self.connection_rejections, self.x_tick_rejections, self.y_tick_rejections, self.qualified_pairs) }
+}
+thread_local! { static TRACE: std::cell::Cell<Option<Trace>> = const { std::cell::Cell::new(None) }; }
+fn trace(f: impl FnOnce(&mut Trace)) { TRACE.with(|cell| { if let Some(mut value) = cell.get() { f(&mut value); cell.set(Some(value)); } }); }
+
 #[derive(Debug, PartialEq)]
 struct Proposal {
     left: u32,
@@ -235,8 +255,9 @@ fn propose(
     let selection = match select(&rows, width * 2 / 5)
         .and_then(|bottom| select(&cols, height * 2 / 5).map(|left| (bottom, left)))
     {
-        Ok(axes) => Ok(axes),
+        Ok(axes) => { trace(|t| t.route = "PRIMARY"); Ok(axes) },
         Err("NO_AXIS") => {
+            trace(|t| t.route = "CONTENT_EXTENT");
             // Only a missing primary axis can use content-relative geometry.
             // Reuse projections without copying, cropping or resampling pixels.
             let first_row = rows.iter().position(|&n| n > 0).ok_or("NO_AXIS")?;
@@ -258,9 +279,9 @@ fn propose(
     match selection {
         Ok((bottom, left)) => measure_axes(width, height, channels, pixels, &rows, &cols,
             bottom, left, x_limit, y_limit, fallback, false),
-        Err("AMBIGUOUS_AXIS") => resolve_grid(width, height, channels, pixels, &rows, &cols,
-            tick_width * 2 / 5, tick_height * 2 / 5, x_limit, y_limit),
-        Err("NO_AXIS") => resolve_connected_runs(width, height, channels, pixels),
+        Err("AMBIGUOUS_AXIS") => { trace(|t| t.route = "GRID"); resolve_grid(width, height, channels, pixels, &rows, &cols,
+            tick_width * 2 / 5, tick_height * 2 / 5, x_limit, y_limit) },
+        Err("NO_AXIS") => { trace(|t| t.route = "CONNECTED_RUNS"); resolve_connected_runs(width, height, channels, pixels) },
         Err(reason) => Err(reason),
     }
 }
@@ -294,7 +315,7 @@ fn resolve_connected_runs(width: usize, height: usize, channels: usize, pixels: 
         (col_max / 20).clamp(3, 32), (row_max / 20).clamp(3, 32))
 }
 
-fn strong_line_bands(scores: &[usize], minimum: usize) -> Result<Vec<(usize, usize)>, &'static str> {
+fn strong_line_bands(scores: &[usize], minimum: usize, row: bool) -> Result<Vec<(usize, usize)>, &'static str> {
     let best = *scores.iter().max().ok_or("AMBIGUOUS_AXIS")?;
     let strong = |index: usize| scores[index] >= minimum && scores[index] * 10 >= best * 9;
     let mut bands = Vec::new();
@@ -305,8 +326,10 @@ fn strong_line_bands(scores: &[usize], minimum: usize) -> Result<Vec<(usize, usi
         while index + 1 < scores.len() && strong(index + 1) { index += 1; }
         // The existing selector rejects comparable strokes more than 3 pixels
         // from the first; grid recovery must not admit an excessively thick band.
-        if index - start > 3 || bands.len() >= MAX_GRID_PAIR_CHECKS { return Err("AMBIGUOUS_AXIS"); }
+        if index - start > 3 { trace(|t| t.reason = if row { "THICK_ROW_BAND" } else { "THICK_COL_BAND" }); return Err("AMBIGUOUS_AXIS"); }
+        if bands.len() >= MAX_GRID_PAIR_CHECKS { trace(|t| t.reason = "BAND_LIMIT"); return Err("AMBIGUOUS_AXIS"); }
         bands.push((start, index));
+        trace(|t| if row { t.row_bands += 1 } else { t.col_bands += 1 });
         index += 1;
     }
     Ok(bands)
@@ -316,21 +339,23 @@ fn resolve_grid(width: usize, height: usize, channels: usize, pixels: &[u8],
     rows: &[usize], cols: &[usize], row_minimum: usize, col_minimum: usize,
     x_limit: usize, y_limit: usize) -> Result<Proposal, &'static str>
 {
-    let row_bands = strong_line_bands(rows, row_minimum)?;
-    let col_bands = strong_line_bands(cols, col_minimum)?;
-    if row_bands.len() * col_bands.len() > MAX_GRID_PAIR_CHECKS { return Err("AMBIGUOUS_AXIS"); }
+    let row_bands = strong_line_bands(rows, row_minimum, true)?;
+    let col_bands = strong_line_bands(cols, col_minimum, false)?;
+    if row_bands.len() * col_bands.len() > MAX_GRID_PAIR_CHECKS { trace(|t| t.reason = "PAIR_LIMIT"); return Err("AMBIGUOUS_AXIS"); }
     let mut unique = None;
     for &(bottom, band_bottom) in &row_bands {
         for &(left, _) in &col_bands {
+            trace(|t| t.pairs_checked += 1);
             if let Ok(proposal) = measure_axes(width, height, channels, pixels, rows, cols,
                 bottom, left, x_limit, y_limit, true, true)
             {
-                if unique.is_some() { return Err("AMBIGUOUS_AXIS"); }
+                trace(|t| t.qualified_pairs += 1);
+                if unique.is_some() { trace(|t| t.reason = "MULTIPLE_PAIRS"); return Err("AMBIGUOUS_AXIS"); }
                 unique = Some((proposal, band_bottom));
             }
         }
     }
-    let (proposal, band_bottom) = unique.ok_or("AMBIGUOUS_AXIS")?;
+    let (proposal, band_bottom) = unique.ok_or_else(|| { trace(|t| t.reason = "NO_VALID_PAIR"); "AMBIGUOUS_AXIS" })?;
     // Strong unexplained strokes outside this plot may belong to another panel.
     // Include the selected horizontal band's thickness without shifting pixels.
     if rows.iter().enumerate().any(|(y, &score)| score >= row_minimum &&
@@ -338,6 +363,7 @@ fn resolve_grid(width: usize, height: usize, channels: usize, pixels: &[u8],
         cols.iter().enumerate().any(|(x, &score)| score >= col_minimum &&
             (x < proposal.left as usize || x > proposal.right as usize))
     {
+        trace(|t| t.reason = "OUTSIDE_BANDS");
         return Err("AMBIGUOUS_AXIS");
     }
     Ok(proposal)
@@ -349,6 +375,7 @@ fn measure_axes(width: usize, height: usize, channels: usize, pixels: &[u8], row
 {
     // Require the two proposals to actually meet; avoid reporting independent text strokes.
     if !is_dark(pixels, (bottom * width + left) * channels, channels) {
+        trace(|t| { t.reason = "DISCONNECTED"; if outward_only { t.connection_rejections += 1; } });
         return Err("NO_INTERSECTION");
     }
     let row_strength = rows[bottom] as f64 / width as f64;
@@ -361,11 +388,13 @@ fn measure_axes(width: usize, height: usize, channels: usize, pixels: &[u8], row
         .find(|&y| is_dark(pixels, (y * width + left) * channels, channels))
         .ok_or("NO_AXIS")?;
     if right <= left || top >= bottom {
+        trace(|t| { t.reason = "SHORT_SPAN"; if outward_only { t.span_rejections += 1; } });
         return Err("NO_AXIS");
     }
     if require_ticks && (!(left..=right).all(|x| is_dark(pixels, (bottom * width + x) * channels, channels))
         || !(top..=bottom).all(|y| is_dark(pixels, (y * width + left) * channels, channels)))
     {
+        trace(|t| { t.reason = "DISCONNECTED"; if outward_only { t.connection_rejections += 1; } });
         return Err("NO_AXIS");
     }
     // Only include immediately adjacent columns with a fully observed vertical
@@ -392,7 +421,13 @@ fn measure_axes(width: usize, height: usize, channels: usize, pixels: &[u8], row
         TickScan::Absent if !outward_only => y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, true, y_limit).positions(),
         scan => scan.positions(),
     };
-    if require_ticks && (x_ticks.len() < 3 || y_ticks.len() < 3) { return Err("NO_AXIS"); }
+    if require_ticks && (x_ticks.len() < 3 || y_ticks.len() < 3) {
+        trace(|t| { t.reason = "INSUFFICIENT_TICKS"; if outward_only {
+            if x_ticks.len() < 3 { t.x_tick_rejections += 1; }
+            if y_ticks.len() < 3 { t.y_tick_rejections += 1; }
+        } });
+        return Err("NO_AXIS");
+    }
     let legacy_ticks = if !require_ticks && x_ticks.is_empty() {
         x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, true, false, x_limit).positions()
     } else { Vec::new() };
@@ -505,9 +540,12 @@ fn set_budget() -> Result<usize, &'static str> {
 }
 
 fn main() {
+    let diagnostics = std::env::args_os().skip(1).any(|arg| arg == "--diagnostics");
+    if diagnostics { TRACE.with(|cell| cell.set(Some(Trace::default()))); }
     let result = set_budget().and_then(|_| process(io::stdin().lock()));
     match result {
         Ok(p) => {
+            trace(|t| t.reason = "OK");
             let (first, last) = p
                 .ticks
                 .map(|(a, b)| (a.to_string(), b.to_string()))
@@ -517,9 +555,12 @@ fn main() {
             println!("OK {} {} {} {} {:.6} {} {} {} {}",
                 p.left, p.bottom, p.right, p.top, p.confidence, first, last,
                 list(&p.x_ticks), list(&p.y_ticks));
+            TRACE.with(|cell| if let Some(t) = cell.get() { println!("{}", t.line()); });
         }
         Err(e) => {
+            trace(|t| if t.route == "NONE" { t.reason = e; });
             println!("ERR {e}");
+            TRACE.with(|cell| if let Some(t) = cell.get() { println!("{}", t.line()); });
             std::process::exit(1);
         }
     }
@@ -528,6 +569,46 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn diagnostic_trace_preserves_result_and_has_bounded_fields() {
+        let pixels = grid_pixels();
+        TRACE.with(|cell| cell.set(None));
+        let ordinary = propose(128, 128, 1, &pixels);
+        TRACE.with(|cell| cell.set(Some(Trace::default())));
+        let diagnosed = propose(128, 128, 1, &pixels);
+        assert_eq!(ordinary, diagnosed);
+        let trace = TRACE.with(|cell| cell.replace(None)).unwrap();
+        assert_eq!(trace.route, "GRID");
+        assert!(trace.pairs_checked <= MAX_GRID_PAIR_CHECKS);
+        assert_eq!(trace.qualified_pairs, 1);
+        assert_eq!(trace.line().split_whitespace().count(), 11);
+    }
+    #[test]
+    fn diagnostic_trace_records_grid_limits_and_rejections() {
+        let mut image = grid_pixels();
+        for x in [30, 70, 110] { for y in 101..=104 { image[y * 128 + x] = 255; } }
+        TRACE.with(|cell| cell.set(Some(Trace::default())));
+        assert_eq!(propose(128, 128, 1, &image), Err("AMBIGUOUS_AXIS"));
+        let trace = TRACE.with(|cell| cell.replace(None)).unwrap();
+        assert_eq!(trace.reason, "NO_VALID_PAIR");
+        assert!(trace.pairs_checked > 0 && trace.pairs_checked <= MAX_GRID_PAIR_CHECKS);
+        assert!(trace.x_tick_rejections > 0);
+        let mut scores = vec![0; 256];
+        for i in (10..=230).step_by(20) { scores[i] = 100; }
+        TRACE.with(|cell| cell.set(Some(Trace::default())));
+        assert_eq!(resolve_grid(256, 256, 1, &vec![255; 256*256], &scores, &scores, 40, 40, 4, 4), Err("AMBIGUOUS_AXIS"));
+        let trace = TRACE.with(|cell| cell.replace(None)).unwrap();
+        assert_eq!(trace.reason, "PAIR_LIMIT");
+        assert_eq!(trace.pairs_checked, 0);
+    }
+    #[test]
+    fn diagnostic_trace_records_thick_band_without_changing_rejection() {
+        let mut scores = vec![0; 64];
+        scores[10..15].fill(50);
+        TRACE.with(|cell| cell.set(Some(Trace::default())));
+        assert!(strong_line_bands(&scores, 20, true).is_err());
+        assert_eq!(TRACE.with(|cell| cell.replace(None)).unwrap().reason, "THICK_ROW_BAND");
+    }
     #[test]
     fn blank_is_rejected() {
         assert_eq!(propose(64, 64, 1, &[255; 4096]), Err("NO_AXIS"));

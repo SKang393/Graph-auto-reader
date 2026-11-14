@@ -85,6 +85,22 @@ routine test or an automatic part of the build.
 
 `--real-dev-preparation-check <absolute-corpus-root> <absolute-packaged-App-exe> <absolute-assets-root> <absolute-Rust-worker> --explicit-opt-in` is a geometry-only fixed-0.4.47 diagnostic using the packaged raster panelizer and the same locked 120-source selector. It reports raw panelizer zero/one/many strata separately from the genuine no-panel full-image import fallback, then runs the existing Rust geometry worker on every returned panel. No OCR, labels or manual anchors enter inference; the output contains aggregates only. `--preparation-self-test <absolute-Rust-worker>` runs owned in-memory single-plot, two-plot and caption controls without corpus input and reports observed behavior rather than a required detection outcome.
 
+`--real-dev-axis-decision-check <absolute-corpus-root> <absolute-packaged-App-exe> <absolute-assets-root> <absolute-packaged-Rust-worker> <absolute-diagnostic-Rust-worker> --explicit-opt-in`
+uses that same preparation diagnostic with a separately pinned instrumented
+worker. The packaged worker is verified as the baseline identity; geometry is
+executed by the diagnostic worker, whose hash is separately reported and held
+read-only before source selection. Its explicit `--diagnostics` flag adds one
+bounded `TRACE1` line after the ordinary response. Only allowlisted routes,
+decisive reasons and eight bounded counters are accepted. Raw and prepared
+aggregates stay separate. Candidate counters cover only examined grid or
+connected-run pairs, preserving early stops; X/Y tick rejection counts overlap.
+No detector threshold, candidate selection, model, parent/child CPU cap or
+private-source policy changes. The normal worker protocol is unchanged.
+Run `--axis-decision-self-test <absolute-packaged-Rust-worker> <absolute-diagnostic-Rust-worker>`
+first to compare ordinary response bytes and exit codes on owned controls,
+with and without diagnostic mode, and validate malformed-response rejection.
+This mode does not read the private corpus or write images.
+
 `--cpu-budget-self-test` starts one owned child without images, corpus or models.
 It queries the parent's breakaway flag, verifies the live child is outside that
 parent job, and checks the child's independently queried cap and below-normal

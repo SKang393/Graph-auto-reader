@@ -292,6 +292,22 @@ tick evidence, competing pairs and outside-band rejections. Do not change those
 rules or start another full OCR/training run until the decisive blocker is
 measured. Keep instrumentation diagnostic-only and verify ordinary-result parity
 on owned controls before private aggregate execution.
+The [decision diagnostic](AXIS-DECISION-DIAGNOSIS-20261114.md) completed that
+check: eight owned controls retained byte-for-byte ordinary responses, and all
+120 raw / 112 prepared traces were valid. Prepared geometry counts remained
+unchanged. Of 335 examined candidate pairs, 301 failed connection checks;
+65 prepared images reached NO_VALID_PAIR. These are candidate diagnostics,
+not proof that rejected pairs are real axes. Do not loosen detector rules from
+these counts alone.
+
+The next product increment is a source-bound manual axis draft for label
+reading. Existing manual three-anchor calibration works after Rust failure,
+but OCR currently requires a Rust proposal and cannot reuse manually indicated
+geometry. Let users mark three pixel anchors, read/refit labels and review
+values before explicit Apply. Draft creation must not calibrate, invent tick
+evidence or change saved data; preserve source invalidation, cancel/dismiss,
+Undo and export guards. Validate this on owned inputs without using private
+manual answers to supply inference geometry.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.
