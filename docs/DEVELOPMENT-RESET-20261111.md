@@ -335,6 +335,12 @@ completed in 139.306 seconds: geometry/OCR remained 37/120, one additional
 X-only draft became available, and complete calibrations remained 0/120.
 These repairs do not establish automatic calibration readiness. No model or
 threshold selection occurred; source-bound manual assistance remains usable.
+The [strict X-tick repair](IRREGULAR-X-TICK-REPAIR-20261114.md) removes the
+raw-pixel uniform-gap restriction already removed from Y, retaining bounded
+stroke/separation checks and the legacy endpoint filter. All 49 Rust tests
+passed, and an owned actual OCR control paired X values 1/2/5 to pixels
+140/240/540 with six measured pairs and zero estimated positions. This does
+not establish real-data accuracy; the proposed calibration was not applied.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.
@@ -400,5 +406,9 @@ private originals or tool environments. Completed 0.4.45 delivery output was
 already retired; active package controls and current dependencies remain.
 
 Full pipeline approval work is paused while these product increments advance.
+The [historical closeout](HISTORICAL-ARTIFACT-CLOSEOUT-20261114.md) retired
+7.93 GB of selected completed output after pushing its record. The larger
+historical inventory remains partial; no claim of a repository-wide 1 GB
+disposable-output total is made.
 No model approval, accuracy claim, package replacement or release is implied by
 this direction change. The final automatic product remains incomplete.

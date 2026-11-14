@@ -48,4 +48,14 @@ Preserve the small v29 failed-model output because the tracked
 is a separate source change. The inventory does not establish that all other
 historical output is closed or that total disposable storage is below 1 GB.
 
-Deletion and post-check totals will be recorded after the guarded cleanup.
+After closeout record `267561f3d56ee4449fd41bc67b493ba582f27410` reached
+`origin/main`, the repeated process, containment, reparse and exact size/count
+checks passed. Cleanup completed at `2026-11-14T19:21:04.5641011Z` and retired
+all three directories: **5,897 files, 7,930,821,054 path bytes**. All three
+paths were absent afterward. Free E: space changed from 360,287,174,656 to
+368,239,001,600 bytes during the operation; concurrent activity means that
+difference is not an exact attribution of physical bytes reclaimed.
+The original corpus and retained 0.4.48 executable remained present. No source
+worktree, current model store, environment or user Data directory was removed.
+The compact inventory and cleanup receipt are disposable once this
+confirmation is pushed.

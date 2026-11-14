@@ -75,4 +75,4 @@ tensor. No inference, training, private/sealed read, or accuracy rerun occurred.
 - False-positive attribution SHA-256: `d6a2999e4fbd31a20bde52c392d0696e499302e29301498d9447a2172c1c146f`
 - Bound geometry diagnostic SHA-256: `ac97213828625081a99ab9ea9a6541fda3f5fe6a8bd1798c355430420ae38b79`
 - Source-level annotation audit SHA-256: `a4e6c3cd6dcca5b8980de00eb562442cb1be60f64f6b69cd0c47609da545e38c`
-- Evidence folder: `artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/current-main-7ec80465-synthetic-20261030`
+- Historical evidence folder: `artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/current-main-7ec80465-synthetic-20261030`. Retired after its pushed outcome and active-consumer checks on 2026-11-14; see the [closeout record](HISTORICAL-ARTIFACT-CLOSEOUT-20261114.md). Its local snapshots, caches and raw results are no longer retained.
