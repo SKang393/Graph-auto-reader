@@ -11,6 +11,42 @@ namespace GraphReader.App.Tests;
 public sealed class CalibrationTickProposalTests
 {
     [TestMethod]
+    [DataRow(480)]
+    [DataRow(1000)]
+    public void SixLiteralLabelsRetainCompleteCalibrationAcrossPlotWidths(int plotWidth)
+    {
+        var geometry = new RustAxisGeometry(100, 380, 100 + plotWidth, 80, .9)
+            { XTickPositions = [140, 340, 540], YTickPositions = [80, 230, 380] };
+        var plot = new OcrRectangle(100, 80, plotWidth, 300);
+        CalibrationOcrProposal Literal(string id, int x, int y, string text, double value)
+        {
+            var region = new OcrDetectedRegion(id, OcrPolygon.FromRectangle(new(x, y, 12, 10)), 0, .9);
+            OcrTextRole role = GraphTextRoleClassifier.Classify(region, text, plot).Role;
+            OcrTextRole beforeRecognition = GraphTextRoleClassifier.Classify(
+                region with { Context = new OcrRegionContext(NumericExpected: true) }, "", plot).Role;
+            string axis = beforeRecognition switch { OcrTextRole.XTick => "X", OcrTextRole.YTick => "Y", _ => "" };
+            return new(id, region.Polygon.Points.Select(point => new CalibrationOcrPoint(point.X, point.Y)).ToArray(),
+                text, .9, value, text, true, role.ToString(), axis, null);
+        }
+        CalibrationOcrProposal[] labels =
+        [
+            Literal("x-first", 134, 398, "1", 1), Literal("x-middle", 334, 398, "2", 2), Literal("x-final", 534, 398, "3", 3),
+            Literal("y-maximum", 68, 75, "10", 10), Literal("y-middle", 68, 225, "5", 5), Literal("y-zero", 68, 376, "0", 0),
+        ];
+        var response = new CalibrationOcrResponse(new("owned-width", "binding", new string('a', 64), new string('b', 64),
+            1200, 480, new(100, 80, 100 + plotWidth, 380)), labels, null, null, null, null, null);
+
+        CalibrationTickProposalResult result = CalibrationTickProposal.Create(geometry, response);
+
+        Assert.IsTrue(result.IsComplete, string.Join(",", result.Reasons));
+        Assert.AreEqual(3, result.PairedTicks.Count(pair => pair.Axis == "X"));
+        Assert.AreEqual(3, result.PairedTicks.Count(pair => pair.Axis == "Y"));
+        Assert.AreEqual(new CalibrationTickAnchors(new(140, 380), new(140, 80), new(540, 380)), result.Anchors);
+        Assert.AreEqual(0d, result.PairedTicks.Single(pair => pair.Label.RegionId == "y-zero").Value);
+        Assert.AreEqual(381d, labels[5].Polygon.Average(point => point.Y), "Glyph alignment must not move the observed tick anchor.");
+    }
+
+    [TestMethod]
     [DataRow(1)]
     [DataRow(29)]
     public void CompleteProposalUsesMeasuredTicksAndObservedZeroWithoutExtrapolation(int first)

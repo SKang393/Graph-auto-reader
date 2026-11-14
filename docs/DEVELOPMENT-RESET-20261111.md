@@ -427,6 +427,16 @@ scientific consistency check. Do not rerun the private corpus for packaging or
 UI-only changes; require a distinct owned-tested processing correction before
 another fixed confirmation. Keep the independent native workflow checks moving.
 
+An owned [bottom-corner label regression](BOTTOM-CORNER-TICK-LANES-20261114.md)
+then established a width-dependent role error: the same Y-zero glyph became an
+X label when only plot width increased. A narrow baseline-overlap correction
+preserves the Y lane, with 870 OCR tests passed (16 existing opt-in skips) and
+39 proposal tests passed. The six-label control retains all three X and three Y
+pairs and measured anchors across both widths. The classifier identity advances
+to v12 so cached old role decisions are invalidated. This is a source-proven
+processing correction, not a claimed explanation or improvement of private
+results. It joins the integrated 0.4.51 review fixes before packaging.
+
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new
 model accuracy thresholds or run expensive training to compensate for a UI,

@@ -10,7 +10,7 @@ public sealed record RoleClassification(
 
 public static class GraphTextRoleClassifier
 {
-    public const string Version = "graph-text-role-classifier-v11-left-axis-crossing-cues";
+    public const string Version = "graph-text-role-classifier-v12-bottom-corner-tick-lanes";
 
     private const string ParticipantLabelPrefix = "Participant ";
 
@@ -61,6 +61,15 @@ public static class GraphTextRoleClassifier
             center.X <= plotBounds.Right + horizontalTolerance;
         var withinPlotY = center.Y >= plotBounds.Top - verticalTolerance &&
             center.Y <= plotBounds.Bottom + verticalTolerance;
+
+        // A wholly left-hand glyph that straddles the baseline follows the Y lane.
+        // Wider X tolerances must not capture it. Labels fully below the baseline
+        // or crossing the Y axis retain the existing X classification rule.
+        if ((numeric || context.NumericExpected) && withinPlotY && bounds.Right < plotBounds.Left &&
+            bounds.Top < plotBounds.Bottom && bounds.Bottom > plotBounds.Bottom)
+        {
+            return Classification(OcrTextRole.YTick, numeric ? 0.94 : 0.72, "numeric_left_of_plot");
+        }
 
         if ((numeric || context.NumericExpected) && center.Y > plotBounds.Bottom && withinPlotX)
         {

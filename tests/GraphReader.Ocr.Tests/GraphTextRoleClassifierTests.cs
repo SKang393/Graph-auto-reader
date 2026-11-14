@@ -11,6 +11,56 @@ public sealed class GraphTextRoleClassifierTests
     private static readonly OcrRectangle Plot = new(30, 15, 110, 70);
 
     [TestMethod]
+    [DataRow(480d, false)]
+    [DataRow(1000d, false)]
+    [DataRow(480d, true)]
+    [DataRow(1000d, true)]
+    public void BottomCornerYAxisLabelDoesNotChangeAxisWhenPlotWidthChanges(double plotWidth, bool beforeRecognition)
+    {
+        OcrDetectedRegion region = OcrTestFixtures.Region("owned-y-zero", 68, 376, 12, 10,
+            context: beforeRecognition ? new OcrRegionContext(NumericExpected: true) : null);
+
+        RoleClassification result = GraphTextRoleClassifier.Classify(region, beforeRecognition ? "" : "0",
+            new OcrRectangle(100, 80, plotWidth, 300));
+
+        Assert.AreEqual(OcrTextRole.YTick, result.Role,
+            "A label wholly left of the Y axis and crossing its baseline must not become X text when only plot width changes.");
+    }
+
+    [TestMethod]
+    [DataRow(480d, 94d, 376d)]
+    [DataRow(1000d, 94d, 376d)]
+    [DataRow(480d, 134d, 398d)]
+    [DataRow(1000d, 134d, 398d)]
+    [DataRow(1000d, 68d, 380d)]
+    [DataRow(1000d, 68d, 381d)]
+    public void ActualXLabelsBelowOrAcrossTheAxisKeepTheirLane(double plotWidth, double x, double y)
+    {
+        OcrDetectedRegion region = OcrTestFixtures.Region("owned-x-first", x, y, 12, 10);
+        var plot = new OcrRectangle(100, 80, plotWidth, 300);
+        Assert.AreEqual(OcrTextRole.XTick, GraphTextRoleClassifier.Classify(region, "1", plot).Role);
+        Assert.AreEqual(OcrTextRole.XTick, GraphTextRoleClassifier.Classify(
+            region with { Context = new OcrRegionContext(NumericExpected: true) }, "", plot).Role);
+    }
+
+    [TestMethod]
+    public void BottomCornerTickRulePreservesExplicitAndSemanticContextOverrides()
+    {
+        (OcrRegionContext Context, OcrTextRole Expected)[] overrides =
+        [
+            (new(ExplicitRoleHint: OcrTextRole.Other), OcrTextRole.Other),
+            (new(InParticipantBand: true), OcrTextRole.Participant),
+            (new(NearLegendGlyph: true), OcrTextRole.LegendText),
+            (new(NearPhaseDivider: true), OcrTextRole.PhaseHeading),
+            (new(NearAnnotationArrow: true), OcrTextRole.Annotation),
+        ];
+        foreach (var item in overrides)
+            Assert.AreEqual(item.Expected, GraphTextRoleClassifier.Classify(
+                OcrTestFixtures.Region("owned-corner-context", 68, 376, 12, 10, context: item.Context),
+                "0", new OcrRectangle(100, 80, 1000, 300)).Role);
+    }
+
+    [TestMethod]
     [DataRow("Participant 01", 1d)]
     [DataRow("Participant O1", 1d)]
     [DataRow("participant Morgan", 1d)]
