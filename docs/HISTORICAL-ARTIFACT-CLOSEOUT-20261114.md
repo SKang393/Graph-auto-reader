@@ -320,13 +320,22 @@ changed from 508,698,312,704 to 536,101,527,552 bytes. The receipt is
 Total across seven historical batches is **175,249,222,646 path bytes**;
 remaining output still requires consumer and outcome review.
 
-## Reviewed eighth scope
+## Completed eighth scope
 
 The [tracked scope manifest](HISTORICAL-RETIREMENT-SCOPE-20261114.json) records
 the next 30 completed run-output directories, their exact inventory and pushed
 outcomes: **27,147 files / 14,553,776,001 path bytes**. Both checkouts' current
 source/protocol searches found no exact-name consumer. Named model and
 validation dependencies were excluded and are listed explicitly in the
-manifest. This scope still requires a pushed-record check, fresh exact-count,
-normal-host process, containment/reparse and keeper-hash validation before
-removal. No eighth cleanup is claimed here.
+manifest. After scope `2fcc13dc2b19f16148f5e3bc1a3e5da2de40c56a` reached main,
+the script verified both the scope's SHA-256 and Git blob, all thirty pushed
+outcomes, exact live counts, zero old-worktree processes, containment/reparse
+checks and protected identities. Cleanup completed at
+`2026-11-14T21:42:11.0744258Z`; all thirty targets were absent, all ten keeper
+hashes and the 449 App hash remained unchanged, and the original corpus
+remained present. Observed free E: space changed from 536,101,224,448 to
+550,715,539,456 bytes. The tracked scope now records retirement; receipt:
+`artifacts/storage-retention-check/cleanup-eighth.json`.
+
+Total across eight historical batches: **189,802,998,647 path bytes**. This
+does not claim all remaining historical outputs are closed or below 1 GB.

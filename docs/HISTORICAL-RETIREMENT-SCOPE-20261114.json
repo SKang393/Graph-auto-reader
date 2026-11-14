@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "scopeStatus": "lead_reviewed_disposable_scope_pending_runtime_guards",
+  "scopeStatus": "retired_after_pushed_scope_and_runtime_guards",
   "inventory": "artifacts/storage-retention-check/remaining-runs.json",
   "sourceRoot": "E:/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs",
   "selection": "Largest present completed run outputs with tracked outcome JSON; excludes known current model/validation keepers, previous scopes and exact-name current source/protocol consumers.",
@@ -41,7 +41,7 @@
   },
   "privacy": "Selected tracked outcomes report zero private/sealed reads or data-access flags; production status is captured per entry. Historical aggregates only were inspected.",
   "license": "License/dependency notes are captured per outcome. Current model inputs and named retainers were excluded; no current source/protocol exact-path consumer was found.",
-  "noDeletionPerformed": true,
+  "noDeletionPerformed": false,
   "entries": [
     {
       "sealedEvidence": 0,
@@ -410,5 +410,20 @@
       "reason": "Preserved as OCR scale-coverage input output.",
       "name": "ocr-scale-coverage-inputs-v1"
     }
-  ]
+  ],
+  "retirement": {
+    "scopeCommit": "2fcc13dc2b19f16148f5e3bc1a3e5da2de40c56a",
+    "completedUtc": "2026-11-14T21:42:11.0744258Z",
+    "files": 27147,
+    "pathBytes": 14553776001,
+    "oldConsumers": 0,
+    "allTargetsAbsent": true,
+    "protectedKeepersUnchanged": 10,
+    "retainedVersion": "0.4.49",
+    "retainedAppSha256": "f95dc00c01166c67656b8bfd165c7b6d92ca15bf489b874e85cdd36824b2f2fa",
+    "originalCorpusPreserved": true,
+    "freeBytesBefore": 536101224448,
+    "freeBytesAfter": 550715539456,
+    "receipt": "artifacts/storage-retention-check/cleanup-eighth.json"
+  }
 }
