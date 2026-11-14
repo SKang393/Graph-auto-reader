@@ -233,9 +233,18 @@ OCR checks skipped. An actual owned dense-label run changed from one merged
 proposal in 3.299 s. Without measured ticks, the ambiguous text remains
 nonnumeric while the valid Y draft is retained. The tickless prepared-crop
 workflow still exported and reopened three manually confirmed points in
-4.735 s. Package this meaningful integration as 0.4.46, then confirm its fixed
-delivered behavior. This is source-level owned evidence, not real-data accuracy
-or native visual acceptance. No threshold or model tuning is justified by it.
+4.735 s. Preview 0.4.46 is uploaded and all 477 extracted files match its ZIP.
+Its packaged dense-label check returned six measured pairs in 3.649 s, and the
+prepared-crop workflow exported and reopened three points in 4.889 s. Source CI
+passed 2,693 .NET tests and 31 Rust tests. The
+[fixed delivered confirmation](REAL-DEV-CALIBRATION-446-CONFIRMATION-20261114.md)
+still has zero complete measured or estimated calibrations across 120 cases.
+It exposes three X-only and two Y-only drafts, without an accuracy or saved-click
+claim. Reused OCR median is 2.294 s. Automatic calibration remains incomplete.
+The next source batch addresses an independently reproduced owned gridline
+failure using unique outward tick evidence, with bounded search and rejection
+of multiple possible panels. Do not infer that it explains private failures or
+tune thresholds/models against private answers. Native acceptance remains waiting.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

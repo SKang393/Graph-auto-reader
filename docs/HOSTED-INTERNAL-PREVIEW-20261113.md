@@ -465,3 +465,35 @@ reading an inherited expected-negative-test `LASTEXITCODE`; the PowerShell test
 itself had completed all checks. It was not rerun unchanged. The
 [fixed real-dev confirmation](REAL-DEV-CALIBRATION-445-CONFIRMATION-20261114.md)
 reports zero complete measured proposals and zero complete estimated drafts.
+
+## Verified build 446 delivery
+
+Internal ManualPreview `0.4.46` was built from clean source
+`42b0d9e20fa1029000e6c902df7898bfc0300335` at
+`2026-11-14T08:37:18.3381684Z`. Hosted preview run
+[43576357651](https://github.com/SKang393/Graph-auto-reader/actions/runs/43576357651),
+job `132391344353`, succeeded: 1,167 tests passed, 7 skipped, 0 failed.
+
+- [Artifact 14106339184](https://github.com/SKang393/Graph-auto-reader/actions/runs/43576357651/artifacts/14106339184): 87,277,355 bytes, SHA-256 `885c0ad0d2b716cfadb8e8c83ddc862099f666502d59db39a839034d30f36629`. Expiration: `2027-02-12T08:33:09Z`.
+- Inner `GraphAutoReader-0.4.46-win-x64-internal-preview.zip`: 87,534,631 bytes, SHA-256 `af6b4a1ebf4ea0f93731ff5c34f86e5c7385b5a8d8fbd94fd7e85af60b2e3e9d`.
+- Extraction verified all 477 files, totaling 196,101,767 bytes. Build directory: `0.4.46-20261114T083718338Z-42b0d9e2`.
+- App EXE SHA-256 `3085c125bdaf9b6271363e3593341dc8d7cd2b9761e1be22282f04389c30c5f7`; App DLL `634d5121dc73d1c18282581b2623def039d86089712d124f9fb260a85c194d03`; Rust worker `71455f26d241aec90bf2b88b4267e272028a286dd2b8e7fbc5f86ab8d27fdfa0`.
+
+The exact-source CI run [43576357311](https://github.com/SKang393/Graph-auto-reader/actions/runs/43576357311), job `132391339949`, also succeeded: 2,693 .NET tests passed, 30 skipped, 0 failed across 13 suites; 31 Rust tests, 68 packaging checks, and 62 version-policy checks passed. The App build reported 0 warnings/errors; release jobs were skipped. Isolated portable smoke returned `Production=0`, `2`, with measured times `1186.1482 ms` and `447.0042 ms`.
+
+Packaging verification restaged and hash-checked all 21 packaged libraries at 26 destinations. The probe-only build completed in `7.2263391 s` with 0 warnings/errors. Adapter and CPU-budget self-tests passed without private-data reads.
+
+Packaged owned controls in `artifacts/axis-evidence-check/packaged-workflow-metadata.json` completed with these outcomes: dense, 6 measured pairs, `3.6486434 s`; dense-tickless, `3.6311342 s`, X absent and Y valid with an estimated draft, 3 numeric labels; ordinary, 6 measured pairs, `3.4222921 s`; tickless, 6 estimated pairs, `3.4873689 s`. These are workflow checks, not accuracy claims.
+
+The packaged tickless full workflow in `artifacts/axis-evidence-check/packaged-full-workflow-metadata.json` completed in `4.8887095 s` process time (`4250.1254 ms` pipeline): CSV export and reopen retained 3 points, the user-confirmed 3 anchors, and 0 tick IDs. Report SHA-256 is `9c47f3e35b69b54dac4df912748e666b1170e048f0d94fbdd0b708bd5074ed47`; CSV SHA-256 is `249b49a16b036e5be69191a4aea4a867e75d4cdbe0ac6fd31fa2568a23b3edee`.
+
+The [fixed real-dev confirmation](REAL-DEV-CALIBRATION-446-CONFIRMATION-20261114.md) completed on the same frozen 120-item assignment: 36 geometry/OCR results, 281 numeric readings, 3 X-only and 2 Y-only review drafts, and 0 complete measured or estimated proposals. This is not an accuracy or click-savings claim. Native UI checks remain pending. Build 445 remains retained until the 0.4.46 delivery record is pushed and the latest pointer is switched. This is an internal portable preview only: no installer, public release, tag, production approval or clean-machine acceptance is claimed.
+
+The new ledger passed all 62 version-policy checks locally in 57.384 s, exit 0.
+The cleanup inventory covers the superseded 445 build/ZIP and completed hosted,
+owned-axis and real-dev scratch: 547 files, 373,661,170 path bytes. After this
+record reaches main and readers finish, switch the latest pointer to 446 and
+retire those exact outputs plus the pointer backup. Preserve shared user Data,
+original corpus, current models, shared validation output, native QA data and
+the independently active gridline control. No new package is needed for this
+diagnostic and delivery-record update.

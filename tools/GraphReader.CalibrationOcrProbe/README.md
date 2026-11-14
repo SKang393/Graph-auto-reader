@@ -23,16 +23,20 @@ CPU kernels, and pacing is not a GPU utilization cap. CPU mode is unchanged.
 
 `--real-dev-calibration-check <absolute-corpus-root> <absolute-packaged-App-exe> <absolute-assets-root> <absolute-Rust-worker> --explicit-opt-in`
 is one fixed diagnostic of all **120 frozen real-dev projects**, with no sealed
-payload reads. Its denominator is fixed before results. The App 0.4.45 DLL,
+payload reads. Its denominator is fixed before results. The App 0.4.46 DLL,
 packaged executable, Rust worker and existing reader/manifest/license hashes are
 checked before payload reads. All 21 supporting libraries have fixed delivered
 hashes; all 14 managed libraries must also match at their actual loaded paths.
 Restage the packaged libraries after a probe-only compile. No App rebuild or
 replacement candidate is implied. The adapter requires the verified
 white-background helper and fails closed before selection if it is absent.
-The 0.4.45 binding follows ZIP verification and owned packaged workflow checks,
-including tickless prepared-crop calibration, marker acceptance, export and
-save/reopen. The historical 0.4.44 run is reproducible from source commit
+The 0.4.46 binding follows ZIP verification and completed owned packaged checks:
+dense measured labels, an unresolved X with a retained Y draft, and tickless
+prepared-crop calibration, marker acceptance, export and save/reopen. Its fixed
+120-item confirmation is recorded in
+[the aggregate outcome](../../docs/REAL-DEV-CALIBRATION-446-CONFIRMATION-20261114.md).
+The historical 0.4.45 run is reproducible from source commit `c20d0577`.
+The historical 0.4.44 run is reproducible from source commit
 `11b24b0f`.
 The historical 0.4.43 run can be reproduced from source commit `46b6d039`.
 
@@ -54,7 +58,9 @@ the same fixed reader for a subsequent case, not select another candidate.
 Inference receives only original embedded pixels and Rust-detected geometry.
 Manual anchors are used afterward to report continuous absolute affine graph
 residuals normalized by the manual-anchor graph ranges, without a pass threshold.
-The existing complete proposal count and residual distributions remain measured-tick-only. The 0.4.45 adapter additionally reports complete review drafts using estimated label positions, their separate residuals, and reasons across all incomplete OCR review drafts. It requires the review-draft API in the pinned App assembly before private selection; 0.4.45 identities have been rebound to the verified ZIP; packaged checks remain pending. These drafts remain review-only and are not production approval.
+The existing complete proposal count and residual distributions remain measured-tick-only. The adapter additionally reports complete review drafts using estimated label positions, their separate residuals, and reasons across all incomplete OCR review drafts. It requires the review-draft API in the pinned App assembly before private selection. These drafts remain review-only and are not production approval.
+
+The 0.4.46 adapter passes measured X ticks into the OCR request and reports separately the availability of validated X and Y review drafts, including complete proposals. Its X-only, Y-only, both and neither counts cover evaluated OCR responses; it also reports any OCR responses not evaluated. Availability does not claim correctness or saved clicks. The new App API and verified 0.4.46 package identities are required before any private selection; those identities have been rebound to the verified ZIP.
 
 Every unsupported, failed or incomplete case remains in the 120-project
 denominator. The JSON reports reason counts, coverage, separate cold/reused OCR

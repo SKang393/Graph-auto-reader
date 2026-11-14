@@ -16,24 +16,24 @@ namespace GraphReader.CalibrationOcrProbe;
 internal static class RealDevCalibrationCheck
 {
     private const int Denominator = 120;
-    private const string AppDllHash = "0117e966cc3a07dfa8124712c77355810f1cfa9e6cfbce7e09bf0c3274cbce7d";
-    private const string AppExeHash = "ef969ee4a3fcf08b0e2715c2339efb58a698a8fa9549aece4596ac9639a4ed88";
+    private const string AppDllHash = "634d5121dc73d1c18282581b2623def039d86089712d124f9fb260a85c194d03";
+    private const string AppExeHash = "3085c125bdaf9b6271363e3593341dc8d7cd2b9761e1be22282f04389c30c5f7";
     private const string RustHash = "71455f26d241aec90bf2b88b4267e272028a286dd2b8e7fbc5f86ab8d27fdfa0";
-    // Exact delivered 0.4.45 libraries from the ZIP-entry-verified package, not caller-selected identities.
+    // Exact delivered 0.4.46 libraries from the ZIP-entry-verified package, not caller-selected identities.
     private static readonly FrozenDictionary<string, string> DeliveredLibraries = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["GraphReader.App.dll"] = AppDllHash,
-        ["GraphReader.Axis.dll"] = "fb477fac780a764203e7762672944f9115e30a584c636199291233060a7e0e92",
-        ["GraphReader.Domain.dll"] = "4a4019ad787e3dbc25871d51849712ae6f2f7ae2cd997e19c62a5f6a0f3baab1",
-        ["GraphReader.Export.dll"] = "a982ac19e711563ab511031fa969435eb20ef6a8e6dd63db66fe7a6150296b92",
-        ["GraphReader.Imaging.dll"] = "3745d8ec5fdaf4c235b4c4ceb0382bdb9f62efe5516e84aff61a354b170840e0",
-        ["GraphReader.Inference.dll"] = "627e6318c3109b06dd85dd5410cb70221ef1056b21e1b7d69e2f826d990d3ead",
-        ["GraphReader.Legends.dll"] = "31ab51aa93950335856c83b337b3f5e427f25546a95a7c53fe07706e1dbda544",
-        ["GraphReader.Markers.dll"] = "d2b5ececaf50b8b3b4ad34148dcb738ccc72843224853c478926fab42e1f8d49",
-        ["GraphReader.Ocr.dll"] = "34cabd6fbc335e4ef673aa95daa6b278ff2fc032299faa6dadad47acbea0a747",
-        ["GraphReader.Pdf.dll"] = "6509e8fb1c75d42e96acce5f78fcf825a3eeb2c6a1dfef8f34bac6489932feda",
-        ["GraphReader.Phases.dll"] = "f4543a6ea0615a798ef9f7bcc09469641e1a8ee2cb95d960ccf6c16718c793be",
-        ["GraphReader.SuperResolution.dll"] = "d565a158f874096d3a21910152bb82acdadd6031333217918c95b657f942e9ee",
+        ["GraphReader.Axis.dll"] = "42562598e489d7558f282ab58207eca490019576366aad4f8b299be4d0223cee",
+        ["GraphReader.Domain.dll"] = "631a22bd8c98a282f66d326048c8136f1c8029985f84b9b3d56e21cb743495cc",
+        ["GraphReader.Export.dll"] = "4c4142341b4f69177989f4a7450f2b96848cdfcf2bcb995f4b8d3d5f16050251",
+        ["GraphReader.Imaging.dll"] = "9f02bc56cc46e65a385b8aa72ed50fed1c3de8688b507c8f8557595d8c6242a0",
+        ["GraphReader.Inference.dll"] = "e1030470781eb4b533f314910ee694167a2bc9d975ae05c9cd320ae4e6430686",
+        ["GraphReader.Legends.dll"] = "0a6d4484ded97954f7a9eb48c027544db502c37d02551fae769b6bcf92b05353",
+        ["GraphReader.Markers.dll"] = "0003e4f54e2b4ddf72176b96821b1c62c3e4e60f4601b5646c4253e871c52595",
+        ["GraphReader.Ocr.dll"] = "05441a279f04c38452b8746c7ab2a8e2d1dda6237b45558c8355c2cca7e01b72",
+        ["GraphReader.Pdf.dll"] = "cc92604446808a4fcf919f516584c84772357dd03562150455f8704a954a6a5e",
+        ["GraphReader.Phases.dll"] = "8e2f27461d31f2b6eebbe9b055fcd205af0c53a80d89b971642285dc3443cf33",
+        ["GraphReader.SuperResolution.dll"] = "af64f365fb82df4a7d587665330c12193dc1a08dfac4b983338383017f8e0a83",
         ["Microsoft.ML.OnnxRuntime.dll"] = "5e83437cb5c97d17fc959f35982ce1f0e90281515dafbacbc158b27bc2e972a3",
         ["onnxruntime.dll"] = "e7eedec6a6f26dc39dc948276a75ef6d2bee3fff944d874ceed0bbd3b97bff40",
         ["onnxruntime_providers_shared.dll"] = "265c8daf29637cb259cac8be9f08f2cd45f3883f0f0e4949cbfddd5b4cbec3b6",
@@ -179,7 +179,7 @@ internal static class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-geometry-properties-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { version = "0.4.45", scope = "all_frozen_real_dev", sealed_payload_reads = 0,
+        protocol = new { version = "0.4.46", scope = "all_frozen_real_dev", sealed_payload_reads = 0,
             ocr_calls = 0, model_selection = false, review_only = true, production_approved = false,
             per_case_output = false, image_writes = false, persistent_cache = false,
             empty_ticks_mean = "unavailable_or_ambiguous_not_absence", case_deadline_seconds = 45, overall_deadline_seconds = 900 },
@@ -247,7 +247,8 @@ internal static class RealDevCalibrationCheck
         { totals.Reason(AxisReason(axis.ErrorCode)); return (null, null); }
         totals.GeometryReturned++;
         var request = new CalibrationOcrRequest("fixed-real-dev-assistance", projectHash, projectHash, imageHash,
-            width, height, new(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom));
+            width, height, new(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom))
+        { MeasuredXTicks = geometry.XTickPositions.Count > 0 ? geometry.XTickPositions.ToArray() : null };
         CalibrationOcrResponse response = await ocr.SuggestAsync(request, encoded, token).ConfigureAwait(false);
         if (response.FailureCode is not null)
         { totals.Reason(response.FailureCode == CalibrationOcrReasonCodes.Timeout ? "OCR_TIMEOUT" : "OCR_READ_FAILED"); return (null, null); }
@@ -265,6 +266,7 @@ internal static class RealDevCalibrationCheck
         stage.Restart();
         CalibrationTickProposalResult result = CalibrationTickProposal.Create(geometry, response);
         CalibrationTickProposalResult draft = CalibrationTickProposal.CreateReviewDraft(geometry, response);
+        CountPartialAxes(totals, draft.XReviewDraft is not null, draft.YReviewDraft is not null);
         totals.PairingMilliseconds.Add(stage.Elapsed.TotalMilliseconds);
         if (!result.IsComplete)
         {
@@ -343,7 +345,7 @@ internal static class RealDevCalibrationCheck
 
     private sealed class Totals
     {
-        internal int Attempted, PayloadsHashed, ImagesBound, GeometryReturned, OcrReturned, NumericRows, Complete, Incomplete, Scored, EstimatedComplete, EstimatedScored;
+        internal int Attempted, PayloadsHashed, ImagesBound, GeometryReturned, OcrReturned, NumericRows, Complete, Incomplete, Scored, EstimatedComplete, EstimatedScored, AxisEvaluated, PartialX, PartialY, PartialBoth, PartialNeither;
         internal long PeakSampledParentBytes, PeakParentWorkingSetBytes, PeakSampledCombinedBytes;
         internal Dictionary<string, int> Reasons { get; } = new(StringComparer.Ordinal);
         internal Dictionary<string, int> DraftReasons { get; } = new(StringComparer.Ordinal);
@@ -362,6 +364,15 @@ internal static class RealDevCalibrationCheck
         internal void Reason(string key, int count = 1) { if (count > 0) Reasons[key] = Reasons.GetValueOrDefault(key) + count; }
     }
 
+    private static void CountPartialAxes(Totals totals, bool x, bool y)
+    {
+        totals.AxisEvaluated++;
+        if (x && y) totals.PartialBoth++;
+        else if (x) totals.PartialX++;
+        else if (y) totals.PartialY++;
+        else totals.PartialNeither++;
+    }
+
     private static object Stats(List<double> values)
     {
         double[] sorted = values.Order().ToArray();
@@ -378,7 +389,7 @@ internal static class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-calibration-assistance-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { fixed_candidate = true, version = "0.4.45", denominator = Denominator,
+        protocol = new { fixed_candidate = true, version = "0.4.46", denominator = Denominator,
             scope = "all_frozen_real_dev", sealed_payload_reads = 0, train_optimizer_steps = 0, model_selection = false,
             independent_accuracy = false, production_approved = false, review_only = true, applied = false,
             manual_truth_used_for_inference = false, case_deadline_seconds = 45, overall_deadline_seconds = 900,
@@ -400,6 +411,12 @@ internal static class RealDevCalibrationCheck
         scored_complete_proposals = totals.Scored, failure_or_incomplete_count = Denominator - totals.Complete,
         reason_counts = totals.Reasons.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToDictionary(pair => pair.Key, pair => pair.Value),
         normalized_x_residual = Stats(totals.XResiduals), normalized_y_residual = Stats(totals.YResiduals),
+        axis_review_availability = new { scope = "ocr_responses_with_review_draft_evaluated_including_complete_proposals",
+            denominator = Denominator, ocr_response_count = totals.OcrReturned, evaluated_count = totals.AxisEvaluated,
+            unevaluated_ocr_responses = totals.OcrReturned - totals.AxisEvaluated,
+            valid_x = totals.PartialX + totals.PartialBoth, valid_y = totals.PartialY + totals.PartialBoth,
+            x_only = totals.PartialX, y_only = totals.PartialY, both = totals.PartialBoth, neither = totals.PartialNeither,
+            accuracy_or_click_savings_claimed = false },
         estimated_review_draft = new { complete_count = totals.EstimatedComplete, scored_count = totals.EstimatedScored,
             scope = "complete_drafts_using_estimated_positions_only", denominator = Denominator,
             evaluated_ocr_response_count = totals.OcrReturned,
@@ -487,7 +504,10 @@ internal static class RealDevCalibrationCheck
         MethodInfo? method = type?.GetMethod("CreateReviewDraft", BindingFlags.Static | BindingFlags.Public,
             binder: null, types: [typeof(RustAxisGeometry), typeof(CalibrationOcrResponse)], modifiers: null);
         Type? result = assembly.GetType("GraphReader.App.Services.CalibrationTickProposalResult", throwOnError: false);
-        if (method?.ReturnType != result || result?.GetProperty("UsesEstimatedPositions")?.PropertyType != typeof(bool))
+        Type? request = assembly.GetType("GraphReader.App.Services.CalibrationOcrRequest", throwOnError: false);
+        if (result is null || method?.ReturnType != result || result.GetProperty("UsesEstimatedPositions")?.PropertyType != typeof(bool) ||
+            result.GetProperty("XReviewDraft") is null || result.GetProperty("YReviewDraft") is null ||
+            request?.GetProperty("MeasuredXTicks")?.PropertyType != typeof(int[]))
             throw new InvalidDataException();
     }
 
@@ -533,6 +553,9 @@ internal static class RealDevCalibrationCheck
         totals.Reason("OWNED_SELF_TEST", Denominator - 1);
         object aggregate = Report(totals, new string('0', 64), new(new string('1', 64), new string('2', 64), [], false, false),
             new Dictionary<string, string>(StringComparer.Ordinal), new(2, 2500, .5), 1);
+        totals.OcrReturned = 4;
+        CountPartialAxes(totals, true, false); CountPartialAxes(totals, false, true);
+        CountPartialAxes(totals, true, true); CountPartialAxes(totals, false, false);
         totals.EstimatedComplete = 1; totals.EstimatedScored = 1;
         totals.EstimatedXResiduals.AddRange(x); totals.EstimatedYResiduals.AddRange(y);
         totals.DraftReasons["TICK_INSUFFICIENT_PAIRS"] = 2;
@@ -542,6 +565,13 @@ internal static class RealDevCalibrationCheck
         EnsureAggregateOnly(serialized);
         if (serialized.GetProperty("denominator").GetInt32() != Denominator ||
             serialized.GetProperty("complete_proposal_count").GetInt32() != 1 ||
+            serialized.GetProperty("axis_review_availability").GetProperty("evaluated_count").GetInt32() != 4 ||
+            serialized.GetProperty("axis_review_availability").GetProperty("valid_x").GetInt32() != 2 ||
+            serialized.GetProperty("axis_review_availability").GetProperty("valid_y").GetInt32() != 2 ||
+            serialized.GetProperty("axis_review_availability").GetProperty("x_only").GetInt32() != 1 ||
+            serialized.GetProperty("axis_review_availability").GetProperty("y_only").GetInt32() != 1 ||
+            serialized.GetProperty("axis_review_availability").GetProperty("both").GetInt32() != 1 ||
+            serialized.GetProperty("axis_review_availability").GetProperty("neither").GetInt32() != 1 ||
             serialized.GetProperty("estimated_review_draft").GetProperty("complete_count").GetInt32() != 1 ||
             serialized.GetProperty("estimated_review_draft").GetProperty("normalized_x_residual").GetProperty("count").GetInt32() != 3 ||
             serialized.GetProperty("normalized_x_residual").GetProperty("count").GetInt32() != 3 ||

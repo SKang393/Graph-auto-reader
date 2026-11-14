@@ -100,8 +100,11 @@ The first three build commands produced the App/tests, OCR tests and probe;
 the VSTest command ran the two test assemblies above.
 
 No private 0.4.46 run, native GUI check, accuracy claim or production approval
-is included. Version 0.4.46 was prepared once for packaging. The owned outputs under
-`E:\Graph-auto-reader\artifacts\ocr-grouping-repro-20261114` and the active
-`artifacts/axis-evidence-check` inputs remain only for integration/package
-consumers. Retire them after this record is pushed and consumers finish. No
-private case-level data was used.
+is included in this source outcome. Version 0.4.46 was prepared once for packaging.
+After this record reached main at `42b0d9e2`, the unused owned reproduction output
+`E:\Graph-auto-reader\artifacts\ocr-grouping-repro-20261114` was retired at
+2026-11-14T08:35:18Z: 171 files, 102,081,435 path bytes. Exact containment,
+reparse and inventory checks preceded deletion. The active
+`artifacts/axis-evidence-check` inputs remain only until packaged verification
+and its outcome record finish. Original data, current assets, shared validation
+output and user Data were preserved. No private case-level data was used.
