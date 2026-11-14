@@ -161,7 +161,13 @@ assignment was found, so this protocol is a historical record, not an active
 consumer. The two CenterBinding tools reference only the recognizer manifest
 here; the notice and conversion dependencies above remain preserved elsewhere.
 The ignored inventory `artifacts/storage-retention-check/server-disposable.json`
-(SHA-256 `2a9d6b427ccb29f4755bcdf949205464fd3a9d70c7e80d13457b43a3a7bebf73`)
+(SHA-256 `d43f6304ebc0132158ae0b3b73975b154d8e01848283e897b4e9de090a07d85f`)
 contains exact counts and hashes. This partial-tree retirement is pending the
 lead's pre-removal consumer, process, containment, and reparse checks. No
 deletion is claimed.
+
+The first removal attempt stopped at its inventory-hash check before deleting
+anything. The earlier captured digest differed from the completed inventory;
+the cause was not established. The lead re-reviewed all 17 exact sibling paths,
+counts and bytes, reconciled the same 7,800-file scope, and checked all four
+preserved dependency identities. The digest above binds that reviewed inventory.

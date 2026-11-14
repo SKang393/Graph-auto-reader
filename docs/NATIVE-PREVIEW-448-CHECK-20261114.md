@@ -22,3 +22,13 @@ was asked whether an access prompt is waiting; native verification remains
 open under REV-011. No screenshot, project, setting or source change resulted
 from this attempt. This is an unresolved launch-tool action, not evidence of
 an application workflow failure.
+
+The maintainer subsequently reported that no access prompt was visible. A
+second bounded attempt first listed windows successfully in 4.5 seconds,
+again finding no Graph Auto Reader or lock-screen window. The launch call
+requested a 45-second tool timeout but still returned no launch or refresh
+result. The lead interrupted it after 517.3 seconds. That interruption was
+initiated by the lead, not evidence of a physical Escape press. No prompt was
+clicked, setting changed or screenshot captured. The launch outcome is
+unknown, and no further UI input was issued. Continue code and worker checks;
+native settings and workflow acceptance remain unresolved.
