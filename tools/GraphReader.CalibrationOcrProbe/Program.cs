@@ -39,32 +39,39 @@ internal static class Program
         bool markerCheck = args.Length > 0 && args[0] == "--marker-exemplar-check";
         bool markerShapeCheck = args.Length > 0 && args[0] == "--marker-shape-control-check";
         bool markerWorkflow = args.Length > 0 && args[0] == "--marker-workflow-check";
-        int seconds = markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        bool panelCrop = args.Length > 0 && args[0] == "--panel-crop-check";
+        int seconds = panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--panel-crop-check", var cropOutput])
+            {
+                Emit(await PanelCropCheck.RunAsync(cropOutput, deadline.Token));
+                return 0;
+            }
+            if (panelCrop) throw new InvalidDataException("Usage: --panel-crop-check <absolute-empty-output-root>");
             if (args is ["--marker-shape-control-check", var shapeApp])
             {
                 Emit(await MarkerShapeControlCheck.RunAsync(shapeApp, deadline.Token));
                 return 0;
             }
             if (markerShapeCheck) throw new InvalidDataException("Usage: --marker-shape-control-check <absolute-App-exe>");
-            if (args is ["--marker-workflow-check", var workflowRequest, var workflowApp, var workflowAssets, var workflowRust, var workflowOutput])
+            if (markerWorkflow && (args.Length == 6 || args.Length == 7 && args[6] == "prepared-crop"))
             {
-                byte[] input = ReadBounded(workflowRequest, 32_768);
+                byte[] input = ReadBounded(args[1], 32_768);
                 ProbeRequest owned = JsonSerializer.Deserialize<ProbeRequest>(input, Json)
                     ?? throw new InvalidDataException("Missing request.");
-                Emit(await MarkerWorkflowCheck.RunAsync(owned, workflowApp, workflowAssets, workflowRust, workflowOutput, deadline.Token));
+                Emit(await MarkerWorkflowCheck.RunAsync(owned, args[2], args[3], args[4], args[5], args.Length == 7, deadline.Token));
                 return 0;
             }
-            if (markerWorkflow) throw new InvalidDataException("Usage: --marker-workflow-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker> <absolute-empty-output-root>");
+            if (markerWorkflow) throw new InvalidDataException("Usage: --marker-workflow-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker> <absolute-empty-output-root> [prepared-crop]");
             if (args is ["--marker-exemplar-check", var markerApp])
             {
                 Emit(await MarkerExemplarCheck.RunAsync(markerApp, deadline.Token));

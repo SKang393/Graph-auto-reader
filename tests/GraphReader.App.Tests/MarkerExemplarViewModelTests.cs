@@ -16,6 +16,13 @@ namespace GraphReader.App.Tests;
 public sealed class MarkerExemplarViewModelTests
 {
     [TestMethod]
+    [DataRow(4097, 32, false)]
+    [DataRow(2049, 2048, false)]
+    [DataRow(2048, 2048, true)]
+    public void PanelSizePreflightMatchesSideAndPixelLimits(int width, int height, bool expected) =>
+        Assert.AreEqual(expected, MainWindowViewModel.IsMarkerExemplarPanelWithinLimits(width, height));
+
+    [TestMethod]
     public void FindOnlyPreviewsAndUserAddsCandidateToSelectedSeries() => WithImage(path =>
     {
         var matcher = new MatcherStub

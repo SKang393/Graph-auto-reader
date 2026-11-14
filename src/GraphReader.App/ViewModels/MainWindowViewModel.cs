@@ -28,6 +28,7 @@ public enum ManualEditorMode
     MovePoint,
     AddPhaseDivider,
     MovePhaseDivider,
+    PanelCrop,
 }
 
 public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
@@ -191,7 +192,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ExportCommand = new AsyncRelayCommand(
             ExportFromDialogAsync,
             () => !IsBusy && _isWorkflowAvailable && (_manualWorkspaceService is null || SelectedTab is not null));
-        CancelCommand = new RelayCommand(_ => CancelActiveOperation(), _ => IsBusy);
+        CancelCommand = new RelayCommand(_ => CancelActiveOperation(), _ => IsBusy || IsPanelCropActive);
         AddPointCommand = new RelayCommand(
             parameter => AddPoint((string)parameter!),
             parameter => parameter is string seriesId && FindSeries(seriesId) is not null);
@@ -271,6 +272,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         StartCalibrationCommand = new RelayCommand(_ => StartAxisCalibrationCorrection(), _ => CanStartCalibration());
         InitializeAxisSuggestionCommands();
         InitializeMarkerExemplarCommands();
+        InitializePanelCropCommands();
         SelectEditorModeCommand = new RelayCommand(
             _ => EditorMode = ManualEditorMode.Select,
             _ => SelectedTab is not null);
@@ -643,8 +645,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             if (SetProperty(ref _editorMode, value))
             {
+                if (value != ManualEditorMode.PanelCrop && _panelCropContext is not null)
+                {
+                    OnPanelCropModeExited();
+                }
+                OnPropertyChanged(nameof(IsPanelCropActive));
                 OnPropertyChanged(nameof(EditorInstruction));
                 InvalidateMarkerExemplarInputs();
+                RelayCommand.RaiseCanExecuteChanged();
+                AsyncRelayCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -658,6 +667,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ManualEditorMode.MovePoint => GetLocalizedString(LocalizationKeys.ManualInstructionMovePoint),
         ManualEditorMode.AddPhaseDivider => GetLocalizedString(LocalizationKeys.ManualInstructionAddDivider),
         ManualEditorMode.MovePhaseDivider => GetLocalizedString(LocalizationKeys.ManualInstructionMoveDivider),
+        ManualEditorMode.PanelCrop => GetLocalizedString(_panelCropFirstCorner is null
+            ? LocalizationKeys.ManualPanelCropFirstCorner
+            : _panelCropRectangle is null
+                ? LocalizationKeys.ManualPanelCropSecondCorner
+                : LocalizationKeys.ManualPanelCropReview),
         _ => GetLocalizedString(LocalizationKeys.ManualInstructionSelect),
     };
 
@@ -1172,6 +1186,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
         HandleCanvasNavigation(point);
         WorkspaceTabSnapshot? before = EditorMode == ManualEditorMode.Select
+            || EditorMode == ManualEditorMode.PanelCrop
             ? null
             : CaptureTabSnapshot(tab);
 
@@ -1179,6 +1194,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             switch (EditorMode)
             {
+                case ManualEditorMode.PanelCrop:
+                    HandlePanelCropCanvasPoint(tab, point);
+                    break;
                 case ManualEditorMode.Calibration:
                 _calibrationAnchors.Add(point);
                 OnPropertyChanged(nameof(EditorInstruction));
@@ -1364,7 +1382,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }, cancellationToken);
     }
 
-    private void AddImportedTabs(IEnumerable<WorkspaceTabViewModel> imported)
+    private void AddImportedTabs(IEnumerable<WorkspaceTabViewModel> imported, bool selectLast = true)
     {
         var existingTabIds = Tabs.Select(static tab => tab.TabId).ToHashSet(StringComparer.Ordinal);
         WorkspaceTabViewModel? lastAdded = null;
@@ -1382,7 +1400,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             lastAdded = tab;
         }
 
-        if (lastAdded is not null)
+        if (selectLast && lastAdded is not null)
         {
             SelectedTab = lastAdded;
         }
@@ -1882,6 +1900,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        if (_workspaceService is IPanelCropWorkspace crops && crops.HasDependentPanelCrops(tab.TabId))
+        {
+            SetStatus(GetLocalizedString(LocalizationKeys.ManualPanelCropParentRequired));
+            return;
+        }
+
         if (tab.IsDirty)
         {
             SetStatus(GetLocalizedString(LocalizationKeys.ProjectCloseDirtyBlocked));
@@ -1889,9 +1913,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
 
         int index = Tabs.IndexOf(tab);
-        if (_manualWorkspaceService is not null)
+        if (_manualWorkspaceService is not null && !_manualWorkspaceService.CloseTab(tab.TabId))
         {
-            _manualWorkspaceService.CloseTab(tab.TabId);
+            return;
         }
 
         Tabs.Remove(tab);
@@ -2574,7 +2598,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         return matches.Length == 1 ? matches[0] : null;
     }
 
-    private void CancelActiveOperation() => _activeOperation?.Cancel();
+    private void CancelActiveOperation()
+    {
+        if (IsPanelCropActive)
+        {
+            CancelPanelCrop();
+            SetStatus(GetLocalizedString(LocalizationKeys.StatusCancelled));
+            return;
+        }
+        _activeOperation?.Cancel();
+    }
 
     private void EnsureEditHistory(WorkspaceTabViewModel tab)
     {

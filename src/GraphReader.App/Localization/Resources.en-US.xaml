@@ -108,6 +108,7 @@
   <sys:String x:Key="Manual.MarkerExemplar.Ready">Select a calibrated point and series. Fit the square around the whole marker with a little background.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.InvalidSize">Enter a whole-pixel size from 5 to 65.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Unavailable">The example must fit inside the panel and its center must be inside the confirmed plot area.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.PanelTooLarge">This panel exceeds the marker search limit (4096 pixels per side or 4,194,304 pixels total). Use Crop panel to create a smaller child tab; the original stays unchanged.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Searching">Searching the original panel for similar markers…</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.NoMatches">No similar positions were found. Try a smaller sample that includes the whole marker, another placed example, or add the point manually.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Count">{0} possible matches found.</sys:String>
@@ -163,6 +164,17 @@
   <sys:String x:Key="Manual.Mode.Calibrate">Calibrate</sys:String>
   <sys:String x:Key="Manual.Mode.Points">Points</sys:String>
   <sys:String x:Key="Manual.Mode.Phases">Phases</sys:String>
+  <sys:String x:Key="Manual.Mode.CropPanel">Crop panel</sys:String>
+  <sys:String x:Key="Manual.PanelCrop.Create">Create panel</sys:String>
+  <sys:String x:Key="Manual.PanelCrop.FirstCorner">Click one corner of the graph panel.</sys:String>
+  <sys:String x:Key="Manual.PanelCrop.SecondCorner">Click the opposite corner to preview the crop.</sys:String>
+  <sys:String x:Key="Manual.PanelCrop.Review">Review the outline, then choose Create panel to add a new tab.</sys:String>
+  <sys:String x:Key="Manual.PanelCrop.Invalid">Choose a rectangle from 32 to 4096 pixels per side and no more than 4,194,304 pixels total.</sys:String>
+  <sys:String x:Key="Manual.PanelCrop.InsideImage">Both corners must be inside the original image.</sys:String>
+  <sys:String x:Key="Manual.PanelCrop.Unavailable">Panel cropping is unavailable for this tab.</sys:String>
+  <sys:String x:Key="Manual.PanelCrop.Stale">The source panel changed. Start the crop again.</sys:String>
+  <sys:String x:Key="Manual.PanelCrop.Created">A cropped child panel was added in a new tab. The source panel remains available.</sys:String>
+  <sys:String x:Key="Manual.PanelCrop.ParentRequired">Keep this source tab open while its cropped panels are in the project. Close the cropped panels first.</sys:String>
   <sys:String x:Key="Manual.Instruction">Current action</sys:String>
   <sys:String x:Key="Manual.Calibration">Start three-anchor calibration</sys:String>
   <sys:String x:Key="Manual.YMaximum">Y maximum</sys:String>

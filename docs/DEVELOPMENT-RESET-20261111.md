@@ -138,12 +138,16 @@ worker request took 0.976 s and cancelled in 0.097 s. The integrated
 [0.4.41 preview](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0441) is
 uploaded, downloaded and verified; its packaged four controls reproduced the
 expected results. These checks do not establish representative accuracy, native
-interaction or final production approval. Next implement a native Prepare crop
-that creates a new uncalibrated graph panel while retaining the parent image/PDF,
-source hashes, reversible coordinates, and exact save/reopen provenance. Clarify
-oversized-panel assistance limits before allocating work. Existing automatic
-PDF/raster overlap checks must remain intact; retained manual children need an
-explicit authenticated parent relationship rather than weakened validation.
+interaction or final production approval. The
+[Prepare crop increment](PANEL-CROP-WORKFLOW-20261114.md) now creates an
+uncalibrated child while retaining its source image/PDF, authenticated parent
+lineage and reversible coordinates. Existing automatic overlap checks remain
+intact. Oversized panels direct users to Crop panel before marker work starts.
+The measured 4-megapixel crop took 43.978 ms; actual cropped Rust/OCR/marker
+review through export/reopen took 5.537 s on an owned control. Native interaction
+is still waiting under REV-011. Next deliver this meaningful integrated crop
+increment, complete the native interaction checks when Computer Use resumes,
+and address observed workflow defects before further model work.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

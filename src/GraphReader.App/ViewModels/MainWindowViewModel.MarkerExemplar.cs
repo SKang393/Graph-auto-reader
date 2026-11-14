@@ -3,6 +3,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using GraphReader.App.Controls;
+using GraphReader.App.Integration.MarkerExemplar;
 using System.Windows.Input;
 using GraphReader.App.Localization;
 using GraphReader.App.Services;
@@ -53,6 +54,8 @@ public sealed partial class MainWindowViewModel
             if (_markerExemplarStatusOverride.Length > 0) return _markerExemplarStatusOverride;
             if (!CanShowMarkerExemplar) return string.Empty;
             if (!TryGetMarkerExemplarSize(out _)) return GetLocalizedString(LocalizationKeys.ManualMarkerExemplarInvalidSize);
+            if (SelectedTab is { } selectedTab && !IsMarkerExemplarPanelWithinLimits(selectedTab.PixelWidth, selectedTab.PixelHeight))
+                return GetLocalizedString(LocalizationKeys.ManualMarkerExemplarPanelTooLarge);
             if (_workspaceService is not IMarkerExemplarWorkspace { CanFindMarkerExamples: true })
                 return FormatLocalizedString(LocalizationKeys.ManualMarkerExemplarFailure,
                     GetLocalizedString(LocalizationKeys.ManualMarkerExemplarFailureUnavailable));
@@ -84,8 +87,7 @@ public sealed partial class MainWindowViewModel
         if (!TryGetMarkerExemplarContext(out IMarkerExemplarWorkspace workspace, out WorkspaceTabViewModel tab,
                 out GraphPoint seed, out string seriesId, out int exampleSize))
         {
-            SetMarkerExemplarStatus(GetLocalizedString(CanFindMarkerExemplarSizeOnly()
-                ? LocalizationKeys.ManualMarkerExemplarUnavailable : LocalizationKeys.ManualMarkerExemplarInvalidSize));
+            SetMarkerExemplarStatus(GetMarkerExemplarInputStatus());
             return;
         }
 
@@ -179,6 +181,7 @@ public sealed partial class MainWindowViewModel
             EditorMode == ManualEditorMode.Calibration ||
             SelectedTab is not { Calibration: not null } selectedTab || SelectedPointId is not { } pointId ||
             SelectedSeriesId is not { } selectedSeries || !TryGetMarkerExemplarSize(out exampleSize) ||
+            !IsMarkerExemplarPanelWithinLimits(selectedTab.PixelWidth, selectedTab.PixelHeight) ||
             !selectedTab.SeriesCards.Any(series => series.SeriesId == selectedSeries) ||
             selectedTab.Points.SingleOrDefault(point => point.PointId == pointId) is not { } selectedPoint ||
             !double.IsFinite(selectedPoint.PixelX) || !double.IsFinite(selectedPoint.PixelY) ||
@@ -191,7 +194,17 @@ public sealed partial class MainWindowViewModel
         return selectedPoint.SeriesId == selectedSeries;
     }
 
-    private bool CanFindMarkerExemplarSizeOnly() => TryGetMarkerExemplarSize(out _);
+    private string GetMarkerExemplarInputStatus()
+    {
+        if (!TryGetMarkerExemplarSize(out _)) return GetLocalizedString(LocalizationKeys.ManualMarkerExemplarInvalidSize);
+        if (SelectedTab is { } tab && !IsMarkerExemplarPanelWithinLimits(tab.PixelWidth, tab.PixelHeight))
+            return GetLocalizedString(LocalizationKeys.ManualMarkerExemplarPanelTooLarge);
+        return GetLocalizedString(LocalizationKeys.ManualMarkerExemplarUnavailable);
+    }
+
+    internal static bool IsMarkerExemplarPanelWithinLimits(int width, int height) =>
+        width is > 0 and <= MarkerExemplarValidation.MaximumSide && height is > 0 and <= MarkerExemplarValidation.MaximumSide &&
+        (long)width * height <= MarkerExemplarValidation.MaximumPixels;
 
     private bool TryGetMarkerExemplarSize(out int size) =>
         int.TryParse(MarkerExemplarExampleSizeText, NumberStyles.None, CultureInfo.InvariantCulture, out size) &&

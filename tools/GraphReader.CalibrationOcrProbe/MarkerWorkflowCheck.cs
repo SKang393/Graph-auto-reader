@@ -16,7 +16,7 @@ internal static class MarkerWorkflowCheck
     private static readonly double[] ExpectedExportX = [1, 2, 3];
 
     internal static async Task<object> RunAsync(Program.ProbeRequest source, string appExe, string assetRoot,
-        string rustExe, string outputRoot, CancellationToken cancellationToken)
+        string rustExe, string outputRoot, bool preparedCrop, CancellationToken cancellationToken)
     {
         if (source.Scope != "owned-synthetic-review-only" || !Path.IsPathFullyQualified(source.ImagePath) ||
             !Path.IsPathFullyQualified(appExe) || !File.Exists(appExe) || !Path.IsPathFullyQualified(rustExe) || !File.Exists(rustExe) ||
@@ -39,15 +39,40 @@ internal static class MarkerWorkflowCheck
         foreach (int center in new[] { 140, 340, 540 })
             for (int dy = -3; dy <= 3; dy++) for (int dx = -3; dx <= 3; dx++)
                 if (dx * dx + dy * dy <= 9) pixels[(230 + dy) * 640 + center + dx] = 0;
+        int imageWidth = preparedCrop ? 768 : 640, imageHeight = preparedCrop ? 608 : 480;
+        byte[] sourcePixels = pixels;
+        if (preparedCrop)
+        {
+            sourcePixels = new byte[imageWidth * imageHeight];
+            Array.Fill(sourcePixels, (byte)255);
+            for (int row = 0; row < 480; row++)
+                Array.Copy(pixels, row * 640, sourcePixels, (row + 64) * imageWidth + 64, 640);
+        }
         string imagePath = Path.Combine(outputRoot, "owned-marker-workflow.png");
         var encoder = new PngBitmapEncoder();
-        encoder.Frames.Add(BitmapFrame.Create(BitmapSource.Create(640, 480, 96, 96, PixelFormats.Gray8, null, pixels, 640)));
+        encoder.Frames.Add(BitmapFrame.Create(BitmapSource.Create(imageWidth, imageHeight, 96, 96, PixelFormats.Gray8, null, sourcePixels, imageWidth)));
         using (var file = new FileStream(imagePath, FileMode.CreateNew, FileAccess.Write, FileShare.None)) encoder.Save(file);
+        string generatedSourceHash = Program.Hash(File.ReadAllBytes(imagePath));
         var elapsed = Stopwatch.StartNew();
         using var workspace = new ManualPreviewWorkspaceService(axisProposalService: new RustAxisProposalService(rustExe),
             calibrationOcrSuggestionService: new CalibrationOcrWorkerClient(appExe, assetRoot),
             markerExemplarSuggestionService: new MarkerExemplarWorkerClient(appExe));
-        var tab = (await workspace.ImportImagesAsync([imagePath], cancellationToken)).Single();
+        var parent = (await workspace.ImportImagesAsync([imagePath], cancellationToken)).Single();
+        string? parentPanelHash = parent.SourceSha256;
+        var tab = parent;
+        double? cropMilliseconds = null;
+        if (preparedCrop)
+        {
+            PanelCropContext context = workspace.GetPanelCropContext(parent.TabId) ?? throw new InvalidDataException("Crop context unavailable.");
+            var crop = Stopwatch.StartNew();
+            tab = await workspace.CreatePanelCropAsync(context, new(64, 64, 640, 480), cancellationToken);
+            crop.Stop();
+            cropMilliseconds = crop.Elapsed.TotalMilliseconds;
+            if (parent.Calibration is not null || parent.Points.Count != 0 || parent.SeriesCards.Count != 0 ||
+                !workspace.IsPanelCropContextCurrent(context) || parent.SourceSha256 != parentPanelHash ||
+                workspace.CurrentProject.Sources.Single().Sha256 != generatedSourceHash)
+                throw new InvalidDataException("Preparing a crop changed the original parent.");
+        }
         WorkspaceAxisSuggestion? axis = await workspace.SuggestAxesAsync(tab.TabId, cancellationToken);
         if (axis is null) return new { completed = false, reason = "AXIS_PROPOSAL_UNAVAILABLE", review_only = true };
         WorkspaceCalibrationLabelSuggestion? labels = await workspace.ReadCalibrationLabelsAsync(axis, cancellationToken);
@@ -94,14 +119,45 @@ internal static class MarkerWorkflowCheck
         string project = Path.Combine(outputRoot, "owned-marker-workflow.garproj");
         if (!(await workspace.SaveProjectAsync(project, cancellationToken)).IsSuccess) throw new InvalidDataException("Project save failed.");
         using var reopened = new ManualPreviewWorkspaceService();
-        var restored = (await reopened.OpenProjectAsync(project, cancellationToken)).Single();
+        var reopenedTabs = await reopened.OpenProjectAsync(project, cancellationToken);
+        if (reopenedTabs.Count != (preparedCrop ? 2 : 1)) throw new InvalidDataException("Unexpected reopened panel count.");
+        var restored = reopenedTabs.Single(item => item.TabId == tab.TabId);
         if (restored.Points.Count != 3 || restored.Calibration is null || restored.Calibration != tab.Calibration ||
             restored.SeriesCards.Count != 1 || restored.Points.Any(point => point.SeriesId != restored.SeriesCards[0].SeriesId) ||
             restored.Points.OrderBy(point => point.GraphX).Zip(ExpectedXValues)
                 .Any(pair => Math.Abs(pair.First.GraphX - pair.Second) > .02 || Math.Abs(pair.First.GraphY - 5) > .05))
             throw new InvalidDataException("Reopened project differs from the accepted control.");
+        if (preparedCrop)
+        {
+            var restoredParent = reopenedTabs.Single(item => item.TabId == parent.TabId);
+            var panel = reopened.CurrentProject.Panels.Single(item => item.PanelId.Value.ToString("D") == tab.PanelId);
+            if (parent.Calibration is not null || parent.Points.Count != 0 || parent.SeriesCards.Count != 0 ||
+                restoredParent.Calibration is not null || restoredParent.Points.Count != 0 || restoredParent.SeriesCards.Count != 0 ||
+                Program.Hash(File.ReadAllBytes(imagePath)) != generatedSourceHash ||
+                restoredParent.SourceSha256 != parentPanelHash || reopened.CurrentProject.Sources.Single().Sha256 != generatedSourceHash ||
+                panel.Points.Count != restored.Points.Count)
+                throw new InvalidDataException("Original parent or source changed during the cropped workflow.");
+            foreach (var point in restored.Points)
+            {
+                var retained = panel.Points.Single(item => item.PointId.Value.ToString("D") == point.PointId);
+                if (Math.Abs(retained.OriginalPixel.X - point.PixelX - 64) > 1e-9 ||
+                    Math.Abs(retained.OriginalPixel.Y - point.PixelY - 64) > 1e-9)
+                    throw new InvalidDataException("Saved point did not preserve the single source offset.");
+            }
+            var savedAnchors = panel.Calibration?.Anchors ?? throw new InvalidDataException("Saved calibration missing.");
+            if (savedAnchors.Count != 3) throw new InvalidDataException("Saved calibration anchor count differs.");
+            foreach (var anchor in savedAnchors)
+            {
+                double localX = anchor.Graph.X == 1 ? tab.Calibration!.Session1Y0.X : tab.Calibration!.SessionMaximumY0.X;
+                double localY = anchor.Graph.Y == 0 ? tab.Calibration!.Session1Y0.Y : tab.Calibration!.Session1YMaximum.Y;
+                if (Math.Abs(anchor.Screen.X - localX - 64) > 1e-9 || Math.Abs(anchor.Screen.Y - localY - 64) > 1e-9)
+                    throw new InvalidDataException("Saved calibration did not preserve the single source offset.");
+            }
+        }
         return new { completed = true, review_only = true, production_approved = false,
-            source_sha256 = source.ImageSha256, panel_sha256 = tab.SourceSha256, proposal,
+            source_sha256 = source.ImageSha256, generated_source_sha256 = generatedSourceHash,
+            scope = preparedCrop ? "prepared-crop" : "full-panel", crop_milliseconds = cropMilliseconds,
+            panel_sha256 = tab.SourceSha256, proposal,
             marker_proposals = matches.Response.Candidates.Count, explicitly_accepted = 2,
             remaining_unapplied = matches.Response.Candidates.Count - 2, csv_path = csv.WrittenPath,
             ocr_timings = labels.Response.Timings, marker_timings = matches.Response.Timings,

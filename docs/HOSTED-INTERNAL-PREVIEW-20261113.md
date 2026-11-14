@@ -281,10 +281,13 @@ accuracy or native UI acceptance. Shape and near-limit JSON hashes were
 `d7d817635c0c4b55f4d23b47316b4f15cb6b30aad450931d192cabb3c21e71ba`
 and `2440aafc0e886e6616cf9a0371bd344cec081fb7dc64a866ee70d6793a61c697`.
 
-After this verified ledger/outcome is pushed, atomically switch the latest
-pointer and retire the superseded 0.4.40 build/ZIP, outer download, receipt,
-isolated smoke/probe scratch and pointer backup. Preserve shared user Data,
-the earlier QA App and its dependencies. The isolated compiler output is reused
+After verified ledger/outcome `000b6118f44059c2914c95028b53e073f4d4bb3f` reached
+main, the latest pointer was atomically switched to 0.4.41. Contained,
+reparse-free cleanup retired 487 files totaling 370,799,420 path bytes:
+the superseded 0.4.40 build/ZIP, outer download, receipt, isolated smoke/probe
+scratch and pointer backup. One extracted build and one ZIP remain. Shared user
+Data, the current hard-linked OCR input (hash rechecked), and the earlier QA App
+and its dependencies were preserved. The isolated compiler output is reused
 for the active Prepare/crop implementation rather than copied to another build
 tree. Although 441 is a release-eligible ordinal, this is an internal ZIP only:
 no tag, installer, public release, clean-machine pass or production activation.

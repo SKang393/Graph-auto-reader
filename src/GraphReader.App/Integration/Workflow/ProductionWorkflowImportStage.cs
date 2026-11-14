@@ -179,7 +179,7 @@ public sealed class ProductionWorkflowImportStage : IWorkflowImportStage
         }
     }
 
-    private static byte[] EncodeIntegerCrop(BitmapSource source, PdfRectD crop, CancellationToken cancellationToken)
+    internal static byte[] EncodeIntegerCrop(BitmapSource source, PdfRectD crop, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var cropped = new CroppedBitmap(source, new Int32Rect(checked((int)crop.X), checked((int)crop.Y),

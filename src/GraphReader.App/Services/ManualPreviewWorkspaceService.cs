@@ -39,7 +39,7 @@ namespace GraphReader.App.Services;
 /// Real-data manual workspace. It intentionally begins empty and never supplies
 /// recorded detections when production models are absent.
 /// </summary>
-public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspaceEditStateSink, IAxisSuggestionWorkspace, ICalibrationLabelSuggestionWorkspace, IMarkerExemplarWorkspace, IDisposable
+public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspaceEditStateSink, IAxisSuggestionWorkspace, ICalibrationLabelSuggestionWorkspace, IMarkerExemplarWorkspace, IPanelCropWorkspace, IDisposable
 {
     private const string ProductionProjectionAuditKind = "production_review_projection";
     private const string ProductionAddAuditKind = "production_point_added";
@@ -331,6 +331,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 {
                     WorkspaceTabViewModel tab = CreateEmptyRasterTab(source, panel);
                     RegisterImportedTab(tab, panel.OriginalBytes, addedTabs);
+                    _rasterPanelsByTab[tab.TabId] = panel;
                     seededPanels.Add(CreateRasterPanelSeed(tab, panel.SourceProvenance));
                 }
 
@@ -429,7 +430,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             if (source.Kind == SourceKind.Image)
             {
                 PanelRecord[] sourcePanels = project.Panels
-                    .Where(panel => panel.SourceId == source.SourceId)
+                    .Where(panel => panel.SourceId == source.SourceId && !IsManualPanelCrop(panel))
                     .ToArray();
                 TransformRecord?[] cropTransforms = sourcePanels
                     .Select(panel => panel.Transforms.SingleOrDefault(IsRasterCropTransform))
@@ -516,6 +517,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         var stagedPointHistories = new Dictionary<string, List<PointModification>>(StringComparer.Ordinal);
         var stagedDetectionKeys = new Dictionary<string, Dictionary<string, string?>>(StringComparer.Ordinal);
         var stagedTombstones = new Dictionary<string, Dictionary<string, DeletedPointTombstone>>(StringComparer.Ordinal);
+        await RestoreManualPanelCropsAsync(project, importedRasterPanelsById, importedPdfPanelsById,
+            importedLegacyRasterSources, cancellationToken).ConfigureAwait(false);
         var stagedEnhancement = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         var stagedOriginalBytes = new Dictionary<string, ImmutableImageBytes>(StringComparer.Ordinal);
         var stagedPdfPanels = new Dictionary<string, PdfWorkspacePanel>(StringComparer.Ordinal);
@@ -750,6 +753,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             return false;
         }
 
+        if (HasDependentPanelCrops(tabId)) return false;
         _tabs.Remove(tab);
         _phaseOverrides.Remove(tab.TabId);
         _productionDetectionKeysByTab.Remove(tab.TabId);
@@ -3759,7 +3763,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     private static WorkspaceTabViewModel CreateEmptyRasterTab(
         SourceReference source,
-        RasterWorkspacePanel panel)
+        RasterWorkspacePanel panel,
+        BitmapSource? decodedImage = null)
     {
         var points = new ObservableCollection<AppGraphPoint>();
         var series = new ObservableCollection<SeriesCardViewModel>();
@@ -3769,7 +3774,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             panel.Panel.DisplayName,
             points,
             series,
-            CreateBitmap(panel.OriginalBytes),
+            decodedImage ?? CreateBitmap(panel.OriginalBytes),
             enhancedImageSource: null,
             phaseOverlayContent: null,
             panel.Panel.PanelId.ToString("D"),
@@ -3784,7 +3789,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     private static WorkspaceTabViewModel CreateEmptyPdfTab(
         SourceReference source,
-        PdfWorkspacePanel panel)
+        PdfWorkspacePanel panel,
+        BitmapSource? decodedImage = null)
     {
         var points = new ObservableCollection<AppGraphPoint>();
         var series = new ObservableCollection<SeriesCardViewModel>();
@@ -3794,7 +3800,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             panel.Panel.DisplayName,
             points,
             series,
-            CreateBitmap(panel.OriginalBytes),
+            decodedImage ?? CreateBitmap(panel.OriginalBytes),
             enhancedImageSource: null,
             phaseOverlayContent: null,
             panel.Panel.PanelId.ToString("D"),

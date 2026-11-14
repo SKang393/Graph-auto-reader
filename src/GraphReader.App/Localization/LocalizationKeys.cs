@@ -105,6 +105,7 @@ public static class LocalizationKeys
     public const string ManualMarkerExemplarReady = "Manual.MarkerExemplar.Ready";
     public const string ManualMarkerExemplarInvalidSize = "Manual.MarkerExemplar.InvalidSize";
     public const string ManualMarkerExemplarUnavailable = "Manual.MarkerExemplar.Unavailable";
+    public const string ManualMarkerExemplarPanelTooLarge = "Manual.MarkerExemplar.PanelTooLarge";
     public const string ManualMarkerExemplarSearching = "Manual.MarkerExemplar.Searching";
     public const string ManualMarkerExemplarNoMatches = "Manual.MarkerExemplar.NoMatches";
     public const string ManualMarkerExemplarCount = "Manual.MarkerExemplar.Count";
@@ -160,6 +161,17 @@ public static class LocalizationKeys
     public const string ManualModeCalibrate = "Manual.Mode.Calibrate";
     public const string ManualModePoints = "Manual.Mode.Points";
     public const string ManualModePhases = "Manual.Mode.Phases";
+    public const string ManualModeCropPanel = "Manual.Mode.CropPanel";
+    public const string ManualPanelCropCreate = "Manual.PanelCrop.Create";
+    public const string ManualPanelCropFirstCorner = "Manual.PanelCrop.FirstCorner";
+    public const string ManualPanelCropSecondCorner = "Manual.PanelCrop.SecondCorner";
+    public const string ManualPanelCropReview = "Manual.PanelCrop.Review";
+    public const string ManualPanelCropInvalid = "Manual.PanelCrop.Invalid";
+    public const string ManualPanelCropInsideImage = "Manual.PanelCrop.InsideImage";
+    public const string ManualPanelCropUnavailable = "Manual.PanelCrop.Unavailable";
+    public const string ManualPanelCropStale = "Manual.PanelCrop.Stale";
+    public const string ManualPanelCropCreated = "Manual.PanelCrop.Created";
+    public const string ManualPanelCropParentRequired = "Manual.PanelCrop.ParentRequired";
     public const string ManualInstruction = "Manual.Instruction";
     public const string ManualCalibration = "Manual.Calibration";
     public const string ManualYMaximum = "Manual.YMaximum";
@@ -496,6 +508,7 @@ public static class LocalizationKeys
         ManualMarkerExemplarReady,
         ManualMarkerExemplarInvalidSize,
         ManualMarkerExemplarUnavailable,
+        ManualMarkerExemplarPanelTooLarge,
         ManualMarkerExemplarSearching,
         ManualMarkerExemplarNoMatches,
         ManualMarkerExemplarCount,
@@ -516,6 +529,17 @@ public static class LocalizationKeys
         ManualModeCalibrate,
         ManualModePoints,
         ManualModePhases,
+        ManualModeCropPanel,
+        ManualPanelCropCreate,
+        ManualPanelCropFirstCorner,
+        ManualPanelCropSecondCorner,
+        ManualPanelCropReview,
+        ManualPanelCropInvalid,
+        ManualPanelCropInsideImage,
+        ManualPanelCropUnavailable,
+        ManualPanelCropStale,
+        ManualPanelCropCreated,
+        ManualPanelCropParentRequired,
         ManualInstruction,
         ManualCalibration,
         ManualYMaximum,

@@ -3,6 +3,20 @@
 
 # Calibration OCR probe
 
+`--marker-workflow-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker> <absolute-empty-output-root> [prepared-crop]`
+checks the owned control through actual geometry, OCR, explicit simulated review,
+marker suggestions, export and save/reopen. The optional `prepared-crop` embeds
+the control in a larger original and verifies its source-coordinate offset and
+unchanged parent. This is headless service evidence, not UI or accuracy approval.
+
+`--panel-crop-check <absolute-empty-output-root>` runs the real manual crop
+service on an owned 2560×2200 image and checks a 2048×2048 crop, original
+pixels and hashes, pre-cancellation, and save/reopen. It measures process CPU,
+wall time and a 10 ms STA dispatcher heartbeat; the application crop path has
+no hard CPU cap. The probe cancels at 25 seconds and has a 30-second watchdog.
+The output directory receives the synthetic source and project, limited to
+64 MiB; the result is a performance check, not an accuracy claim.
+
 `--marker-exemplar-check <absolute-App-exe>` runs the actual capped marker
 worker on a 1280 x 800 project-owned connected-symbol image generated in memory.
 It reports proposals, control-center errors, budget and timing only. No image

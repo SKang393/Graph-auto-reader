@@ -22,6 +22,8 @@ public sealed class ManualReviewOverlay : FrameworkElement
     private Point[] _axisProposal = [];
     private MarkerExemplarRectangle? _markerExemplar;
     private Point[] _markerCandidates = [];
+    private MarkerExemplarRectangle? _panelCrop;
+    private bool _panelCropIsValid;
 
     public void SetAxisProposal(IEnumerable<Point> anchors)
     {
@@ -33,6 +35,13 @@ public sealed class ManualReviewOverlay : FrameworkElement
     {
         _markerExemplar = exemplar;
         _markerCandidates = candidates.Select(candidate => new Point(candidate.X, candidate.Y)).ToArray();
+        InvalidateVisual();
+    }
+
+    public void SetPanelCrop(MarkerExemplarRectangle? rectangle, bool isValid)
+    {
+        _panelCrop = rectangle;
+        _panelCropIsValid = isValid;
         InvalidateVisual();
     }
 
@@ -84,6 +93,15 @@ public sealed class ManualReviewOverlay : FrameworkElement
             var samplePen = new Pen(Brushes.Gold, 1.5) { DashStyle = DashStyles.Dash };
             drawingContext.DrawRectangle(Brushes.Transparent, samplePen,
                 new Rect(exemplar.X, exemplar.Y, exemplar.Width, exemplar.Height));
+        }
+        if (_panelCrop is { } crop)
+        {
+            var cropPen = new Pen(_panelCropIsValid ? Brushes.DeepSkyBlue : Brushes.OrangeRed, 2)
+            {
+                DashStyle = DashStyles.Dash,
+            };
+            drawingContext.DrawRectangle(Brushes.Transparent, cropPen,
+                new Rect(crop.X, crop.Y, crop.Width, crop.Height));
         }
         var candidatePen = new Pen(Brushes.OrangeRed, 2);
         foreach (Point candidate in _markerCandidates)

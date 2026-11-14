@@ -566,6 +566,19 @@
                     Style="{DynamicResource App.Style.Button}"
                     automation:AutomationProperties.AutomationId="Manual.Mode.Phases"
                     automation:AutomationProperties.Name="{DynamicResource Manual.Mode.Phases}" />
+            <Button Margin="0,0,6,0"
+                    Command="{Binding BeginPanelCropCommand}"
+                    Content="{DynamicResource Manual.Mode.CropPanel}"
+                    Style="{DynamicResource App.Style.Button}"
+                    automation:AutomationProperties.AutomationId="Manual.Mode.CropPanel"
+                    automation:AutomationProperties.Name="{DynamicResource Manual.Mode.CropPanel}" />
+            <Button Margin="0,0,12,0"
+                    Command="{Binding CreatePanelCropCommand}"
+                    Content="{DynamicResource Manual.PanelCrop.Create}"
+                    Style="{DynamicResource App.Style.Button}"
+                    Visibility="{Binding HasPanelCropRectangle, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    automation:AutomationProperties.AutomationId="Manual.PanelCrop.Create"
+                    automation:AutomationProperties.Name="{DynamicResource Manual.PanelCrop.Create}" />
             <Button x:Name="WorkflowEnhanceButton"
                     Margin="0,0,12,0"
                     Command="{Binding EnhanceCommand}"
@@ -1135,6 +1148,13 @@
                        Foreground="{DynamicResource App.Brush.TextMuted}"
                        Text="{Binding EditorInstruction}"
                        TextWrapping="Wrap" />
+            <TextBlock Margin="0,0,0,8"
+                       Foreground="{DynamicResource App.Brush.TextMuted}"
+                       Text="{Binding PanelCropStatusText}"
+                       TextWrapping="Wrap"
+                       Visibility="{Binding IsPanelCropActive, Converter={StaticResource BooleanToVisibilityConverter}}"
+                       automation:AutomationProperties.AutomationId="Manual.PanelCrop.Status"
+                       automation:AutomationProperties.Name="{Binding PanelCropStatusText}" />
             <StackPanel Margin="0,0,0,8" Visibility="{Binding CanShowMarkerExemplar, Converter={StaticResource BooleanToVisibilityConverter}}">
               <TextBlock Margin="0,0,0,4" FontWeight="SemiBold"
                          Text="{DynamicResource Manual.MarkerExemplar.Title}"

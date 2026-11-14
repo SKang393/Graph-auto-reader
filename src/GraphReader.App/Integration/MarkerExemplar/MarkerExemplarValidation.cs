@@ -8,6 +8,7 @@ namespace GraphReader.App.Integration.MarkerExemplar;
 internal static class MarkerExemplarValidation
 {
     internal const int MaximumPixels = 4_194_304;
+    internal const int MaximumSide = 4096;
     internal const int MaximumCandidates = 128;
     internal const string Algorithm = "original-panel-user-exemplar-gaussian-single-scale-v2";
     internal static bool ValidRequest(MarkerExemplarRequest? request, ReadOnlyMemory<byte> image) =>
@@ -20,7 +21,7 @@ internal static class MarkerExemplarValidation
         if (request is null || request.ProtocolVersion != 1 || !Identifier(request.RequestId) ||
             !Identifier(request.PanelId) || !Identifier(request.SelectedPointId) || !Identifier(request.SelectedSeriesId) ||
             !Sha(request.Binding) || !Sha(request.SourceFileSha256) || !Sha(request.PanelImageSha256) ||
-            request.Width is < 1 or > 4096 || request.Height is < 1 or > 4096 ||
+            request.Width is < 1 or > MaximumSide || request.Height is < 1 or > MaximumSide ||
             (long)request.Width * request.Height > MaximumPixels || request.Exemplar is not { } exemplar ||
             request.Plot is not { } plot || request.SelectedPoint is not { } point ||
             !InsideImage(exemplar, request.Width, request.Height) || !InsideImage(plot, request.Width, request.Height) ||
