@@ -279,6 +279,19 @@ the existing reader, thresholds, strict fit checks, independent worker caps and
 fixed 120-source assignment. Report stage failures and runtime as aggregate
 diagnostics, not target-panel association or accuracy. Do not start model
 training or select another detector to explain an unmeasured preparation gap.
+The [preparation diagnostic](PREPARATION-GEOMETRY-DIAGNOSIS-20261114.md) now
+confirms the actual import path: all 120 sources completed, with 98 single-panel
+sources, seven multiple-panel sources and 15 genuine full-image fallbacks.
+There were 127 effective panels and geometry on 38 distinct sources, compared
+with 37 raw-source successes. Preparation median was 43.693 ms and p95
+445.298 ms. This small net availability difference does not explain the broad
+geometry failures or establish calibration accuracy. The next diagnosis should
+expose fixed rejection reasons inside the unchanged Rust decision logic. Its
+current AMBIGUOUS_AXIS code merges band thickness, pair-budget, insufficient
+tick evidence, competing pairs and outside-band rejections. Do not change those
+rules or start another full OCR/training run until the decisive blocker is
+measured. Keep instrumentation diagnostic-only and verify ordinary-result parity
+on owned controls before private aggregate execution.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

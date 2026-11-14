@@ -46,7 +46,8 @@ internal static class Program
         bool ocrPaddingAdapters = args.Length > 0 && args[0] == "--ocr-padding-adapters";
         bool realDevGeometry = args.Length > 0 && args[0] == "--real-dev-geometry-properties-check";
         bool realDevCalibration = args.Length > 0 && args[0] == "--real-dev-calibration-check";
-        bool realDevPrivate = realDevCalibration || realDevGeometry;
+        bool realDevPreparation = args.Length > 0 && args[0] == "--real-dev-preparation-check";
+        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -74,6 +75,12 @@ internal static class Program
                 byte[] acknowledgement = new byte[1];
                 return await Console.OpenStandardInput().ReadAsync(acknowledgement, deadline.Token) == 1 ? 0 : 1;
             }
+            if (args is ["--preparation-self-test", var preparationRust])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await RealDevCalibrationCheck.PreparationSelfTestAsync(preparationRust, deadline.Token));
+                return 0;
+            }
             if (realDevSelfTest)
             {
                 Emit(RealDevCalibrationCheck.SelfTest());
@@ -87,14 +94,16 @@ internal static class Program
                     if (args.Length != 6 || args[5] != "--explicit-opt-in")
                         throw new InvalidDataException();
                     using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
-                    Emit(realDevGeometry
+                    Emit(realDevPreparation
+                        ? await RealDevCalibrationCheck.RunPreparationAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token)
+                        : realDevGeometry
                         ? await RealDevCalibrationCheck.RunGeometryAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token)
                         : await RealDevCalibrationCheck.RunAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
                     return 0;
                 }
                 catch (Exception)
                 {
-                    Emit(new { schema = realDevGeometry ? "graphreader.real-dev-geometry-properties-diagnostic.v1" : "graphreader.real-dev-calibration-assistance-diagnostic.v1",
+                    Emit(new { schema = realDevPreparation ? "graphreader.real-dev-preparation-diagnostic.v1" : realDevGeometry ? "graphreader.real-dev-geometry-properties-diagnostic.v1" : "graphreader.real-dev-calibration-assistance-diagnostic.v1",
                         status = "blocked_preflight_or_runtime", error = "REAL_DEV_CALIBRATION_CHECK_FAILED",
                         denominator = 120, sealed_payload_reads = 0, review_only = true, production_approved = false });
                     return 1;

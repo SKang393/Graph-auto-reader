@@ -83,6 +83,8 @@ routine test or an automatic part of the build.
 
 `--real-dev-geometry-properties-check` takes the same six arguments and explicit opt-in as the calibration check. It uses the same locked 120 real-dev inputs and delivered identity checks, but calls only the Rust geometry worker, never OCR. Its aggregate report gives image and detected plot dimension statistics, geometry failures and measured X/Y tick-count buckets. Empty tick lists mean unavailable or ambiguous, not that printed ticks are absent. The same privacy guard, child budget and deadlines apply; no per-case output or images are written. The owned calibration self-test also exercises its aggregate report without corpus reads.
 
+`--real-dev-preparation-check <absolute-corpus-root> <absolute-packaged-App-exe> <absolute-assets-root> <absolute-Rust-worker> --explicit-opt-in` is a geometry-only fixed-0.4.47 diagnostic using the packaged raster panelizer and the same locked 120-source selector. It reports raw panelizer zero/one/many strata separately from the genuine no-panel full-image import fallback, then runs the existing Rust geometry worker on every returned panel. No OCR, labels or manual anchors enter inference; the output contains aggregates only. `--preparation-self-test <absolute-Rust-worker>` runs owned in-memory single-plot, two-plot and caption controls without corpus input and reports observed behavior rather than a required detection outcome.
+
 `--cpu-budget-self-test` starts one owned child without images, corpus or models.
 It queries the parent's breakaway flag, verifies the live child is outside that
 parent job, and checks the child's independently queried cap and below-normal

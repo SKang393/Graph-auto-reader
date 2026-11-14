@@ -13,7 +13,7 @@ using GraphReader.RealAcceptance.Ocr;
 namespace GraphReader.CalibrationOcrProbe;
 
 /// <summary>One fixed real-dev diagnostic. Private payloads and observations never enter its report.</summary>
-internal static class RealDevCalibrationCheck
+internal static partial class RealDevCalibrationCheck
 {
     private const int Denominator = 120;
     private const string AppDllHash = "5fa629e7a01b40ec58fb4ab136dd21b0f5b3ff5cc61e286b1c45a7642317d039";
