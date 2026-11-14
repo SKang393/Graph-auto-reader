@@ -39,6 +39,17 @@ public sealed record OcrCropBatcherOptions
 
     public int BatchSize { get; init; } = 16;
 
+    /// <summary>
+    /// Optional dynamic-batch allocation bound: padded batch width times its
+    /// count cannot exceed this multiple of the sum of each crop's original
+    /// content width or TargetWidth, whichever is larger. Splits stay within
+    /// original batches and preserve their sampling widths, including clamps.
+    /// Tensor allocation never exceeds the original batch allocation. This
+    /// limits padding overhead, not recognition accuracy. Null preserves the
+    /// existing grouping.
+    /// </summary>
+    public double? MaximumPaddingOverhead { get; init; }
+
     public double PaddingPixels { get; init; } = 1;
 
     public double? HorizontalPaddingPixels { get; init; }
@@ -94,9 +105,51 @@ public static class OcrCropBatcher
             cancellationToken.ThrowIfCancellationRequested();
             PreparedRegion[] batch = prepared.Skip(index).Take(options.BatchSize).ToArray();
             int targetWidth = TargetWidth(batch, options);
-            batches.Add(Array.AsReadOnly(batch
-                .Select(item => CreateCrop(image, item, options, targetWidth, cancellationToken))
-                .ToArray()));
+            if (options.MaximumPaddingOverhead is not { } limit)
+            {
+                batches.Add(Array.AsReadOnly(batch
+                    .Select(item => CreateCrop(image, item, options, targetWidth, cancellationToken))
+                    .ToArray()));
+                continue;
+            }
+
+            // Derive sampling widths before splitting. A fractional aspect ratio
+            // may round up for content but down for the legacy batch width;
+            // recalculating after a split would change interpolation coordinates.
+            int[] contentWidths = batch.Select(item => ContentWidth(
+                item.PaddedBounds, item.Orientation, options, targetWidth)).ToArray();
+            for (int start = 0; start < batch.Length;)
+            {
+                long individualWidthSum = 0;
+                int count = 0;
+                int groupWidth = options.TargetWidth;
+                while (start + count < batch.Length)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    int width = Math.Max(options.TargetWidth, contentWidths[start + count]);
+                    int proposedWidth = Math.Max(groupWidth, width);
+                    long proposedSum = individualWidthSum + width;
+                    if (count > 0 && (count + 1L) * proposedWidth > limit * proposedSum)
+                    {
+                        break;
+                    }
+
+                    individualWidthSum = proposedSum;
+                    groupWidth = proposedWidth;
+                    count++;
+                }
+
+                var crops = new OcrCrop[count];
+                for (int offset = 0; offset < count; offset++)
+                {
+                    int itemIndex = start + offset;
+                    crops[offset] = CreateCrop(image, batch[itemIndex], options, groupWidth,
+                        cancellationToken, contentWidths[itemIndex]);
+                }
+
+                batches.Add(Array.AsReadOnly(crops));
+                start += count;
+            }
         }
 
         return OcrCollections.Freeze(batches);
@@ -107,12 +160,13 @@ public static class OcrCropBatcher
         PreparedRegion prepared,
         OcrCropBatcherOptions options,
         int targetWidth,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int? preservedContentWidth = null)
     {
         OcrDetectedRegion region = prepared.Region;
         OcrOrientation orientation = prepared.Orientation;
         OcrRectangle padded = prepared.PaddedBounds;
-        int contentWidth = ContentWidth(padded, orientation, options, targetWidth);
+        int contentWidth = preservedContentWidth ?? ContentWidth(padded, orientation, options, targetWidth);
         var output = Enumerable.Repeat(
                 options.PaddingValue,
                 checked(targetWidth * options.TargetHeight))
@@ -359,6 +413,8 @@ public static class OcrCropBatcher
         if (options.TargetWidth <= 0 || options.TargetHeight <= 0 || options.BatchSize <= 0 ||
             options.MaximumTargetWidth < options.TargetWidth ||
             !Enum.IsDefined(options.WidthMode) ||
+            (options.MaximumPaddingOverhead is { } overhead &&
+             (!double.IsFinite(overhead) || overhead < 1 || options.WidthMode != OcrCropWidthMode.PaddleBatchMaximumAspectRatio)) ||
             !double.IsFinite(options.PaddingPixels) || options.PaddingPixels < 0 ||
             (options.HorizontalPaddingPixels.HasValue &&
              (!double.IsFinite(options.HorizontalPaddingPixels.Value) ||

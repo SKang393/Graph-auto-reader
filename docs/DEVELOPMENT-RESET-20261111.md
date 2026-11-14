@@ -157,6 +157,24 @@ Prioritize diagnosing geometry coverage and recognition cost, with repairs
 reproduced on owned/synthetic inputs and no private-answer tuning. Preserve
 scientific cross-checks and the manual fallback. Complete native interaction
 checks when Computer Use resumes, and fix observed workflow defects in parallel.
+The subsequent [owned padding and axis checks](OCR-PADDING-AND-AXIS-CONTINUATION-20261114.md)
+repair two source-reproduced defects without using private answers: a continued
+Y-axis no longer discards separately observed X ticks, and dynamic calibration
+OCR splits excessive padding while preserving each crop's source sampling.
+On one mixed-width owned fixture, warm recognition fell from 7.654 to 1.866 s
+on the capped CPU and from 0.860 to 0.534 s including pacing on the RX 6600 XT.
+Compared text, values, failures and geometry matched; confidence can change.
+An owned continued-axis panel produced a complete six-tick proposal in 3.287 s.
+These controls do not revise the real-dev result or establish general accuracy.
+The [export receipt correction](EXPORT-RECEIPT-ISOLATION-20261114.md) also keeps
+completed export summaries and pending warning acknowledgements bound to the
+reviewed tab when selection changes during export.
+The [varied Auto workload check](OCR-AUTOMATIC-DEVICE-20261113.md#varied-workloads-2026-11-14)
+now alternates two owned layouts within its existing four reads. All 23 focused
+tests and the actual CPU/two-GPU comparison passed. CPU remained selected:
+8.804 s total versus 8.447 s on RX 6600 XT, below the unchanged 15% switch
+margin. Startup, worker IPC and pacing are included. Geometry-failure guidance
+now points to cropping with labels and visible zero or manual calibration.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

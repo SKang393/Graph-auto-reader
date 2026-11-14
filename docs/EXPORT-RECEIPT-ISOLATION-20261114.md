@@ -60,6 +60,12 @@ the corrected regression TRX was
 `c54c2c95c1b83afbe6e59c464912a150cbc88caa027a31b9bb8a842a12365531`.
 The temporary `artifacts/export-summary-check` outputs may be retired after
 this source and outcome reach main and active compiler consumers finish.
+After `d7fe8b1046102af7d2bedb636b45d4d464951db7` reached main and its source CI
+`43559499098` succeeded, guarded cleanup removed that contained, reparse-free
+directory: four files totaling 55,085 path bytes. No compiler or probe remained
+active, and a subsequent existence check confirmed the directory absent.
+Source, user data, current package and the separate active native QA App were
+preserved.
 
 ## Limits
 

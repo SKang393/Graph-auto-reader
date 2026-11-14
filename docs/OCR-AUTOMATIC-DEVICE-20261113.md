@@ -116,3 +116,68 @@ job 132273429202. The full .NET suite reported 2,560 passes and 30 skips,
 including App 879/879, with zero build warnings/errors. Packaging, Rust,
 localization and artifact-policy checks passed. Release jobs were skipped;
 no additional packaged build was created.
+
+## Varied workloads, 2026-11-14
+
+The next source batch, based on `d7fe8b1046102af7d2bedb636b45d4d464951db7`,
+uses A/B/A/B within the same four requests per device. A retains the original
+320 x 200 bytes; B is a 960 x 320 owned bitmap with three separate glyphs and
+an 18-digit row. Both are generated once in memory, with no external fonts or
+user images. Each device has one persistent worker. Each repeated result must
+match the corresponding CPU fixture, including failure, normalized numeric,
+role and axis fields; confidence equality is not required. The warm median is
+the mixed reused B/A/B workload, not either fixture's steady-state latency.
+
+The 15% selection margin, two-GPU limit, 30-second device deadline, 90-second
+total deadline, half-core worker budget and GPU pacing are unchanged. Existing
+App-DLL identity binding invalidates an older measured profile. The failure
+message now suggests cropping one graph with its labels and any visible zero,
+retrying, or using manual three-anchor calibration. No values are inferred.
+
+The App compiled, but the first test compilation failed after 57.47 s with
+CA2012 at `CalibrationOcrDeviceBenchmarkTests.cs:64`: directly awaiting a
+`ValueTask` synchronously is not guaranteed to block. The fixture now converts
+it with `AsTask()` before the STA test waits. Test-only compilation passed in
+20.33 s and the probe-only build in 7.74 s, both with zero warnings/errors.
+The sandboxed VSTest command could not connect to its testhost within 30 s;
+zero tests executed. With local testhost access, the same bounded filter passed
+**23/23**, zero skips/failures, in 523 ms test time (2.814 s command time):
+
+```powershell
+$out = Join-Path (Get-Location).Path 'artifacts/hardware-final-build/'
+dotnet vstest "$out/GraphReader.App.Tests.dll" '--TestCaseFilter:FullyQualifiedName~CalibrationOcrDeviceBenchmarkTests|FullyQualifiedName~CalibrationOcrDeviceOptimizerTests' '--ResultsDirectory:artifacts/ocr-padding-check' '--Logger:trx;LogFileName=varied-device-benchmark-recheck.trx'
+```
+
+The checks cover actual BMP decoding, component selection and different crop
+widths, exact request/image order, per-fixture repeat and semantic mismatch
+rejection, confidence tolerance, cancellation, disposal and optimizer behavior.
+TRX SHA-256: `583aafa8f34d21e18c23ce3814ef39d528f457ff89805fee9331f9c345e98d74`.
+
+The existing `--automatic-device-check` then exited 0 in **45.0222434 s**,
+using the new App and unchanged review assets from the verified 0.4.42 package.
+All three devices matched their CPU fixture outputs, with no accepted fallback:
+
+| Device | Cold A ms | Reused B/A/B median ms | Four-read total ms |
+| --- | ---: | ---: | ---: |
+| CPU | 2909.6551 | 2333.8302 | 8803.8409 |
+| RX 6600 XT, index 0 / LUID 82535 | 3515.0004 | 2226.8145 | 8446.7172 |
+| Integrated Radeon, index 1 / LUID 89512 | 18397.4270 | 2019.1550 | 26471.9225 |
+
+Auto selected CPU: the RX's four-read gain was about 4.1%, below the unchanged
+15% rule. These totals include startup, IPC and pacing; the microbenchmark's
+recognition-only improvement is a different measurement. This single host/run
+does not establish universal latency or justify changing the selection rule.
+Disposable settings verified profile reload, changed-identity CPU fallback and
+an explicit CPU override surviving profile updates. Live user settings were
+untouched. No owned probe remained after completion; stderr was empty.
+
+- Result: 1,109 bytes, SHA-256 `272688c0b66118f0f24a97de6e60cbb1aab294674d53ac680c535905aa391aeb`.
+- App DLL: `8ad13d2a7f530423626d126b36df656ab33f631ee4b57e7bf6e158842cc12512`.
+- Probe DLL: `dfc7e7cc2e984fbbb5eed43e58ccd6a84f8ab61c74cc82b677ef53567d6fae29`.
+- Profile identity: `03c9290b6ad5629f45bd1e184b3c4890d31249641b30fd5b5d47a0672d8f20e6`.
+
+The 281-byte settings file, report, abort/recheck TRXs and metadata are temporary
+under `artifacts/ocr-padding-check`. Retire them with that batch after its
+pushed outcome and packaged consumers finish. The original corpus and active
+native QA dependencies remain untouched. No new dependency, model, training,
+private/sealed read, native-interaction pass or production approval is implied.

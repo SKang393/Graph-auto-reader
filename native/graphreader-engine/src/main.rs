@@ -22,6 +22,7 @@ fn x_tick_positions(
     height: usize,
     channels: usize,
     left: usize,
+    y_axis_right: usize,
     right: usize,
     bottom: usize,
     rows: &[usize],
@@ -45,7 +46,12 @@ fn x_tick_positions(
             })
             .count();
         if length > limit {
-            if legacy { x += 1; continue; }
+            // The identified Y-axis can continue below the horizontal axis.
+            // Its long downward run is not a tick and must not erase other measured ticks.
+            if legacy || x <= y_axis_right {
+                x += 1;
+                continue;
+            }
             return Vec::new();
         }
         if length < 2 {
@@ -187,10 +193,18 @@ fn propose(
     if right <= left || top >= bottom {
         return Err("NO_AXIS");
     }
-    let x_ticks = x_tick_positions(pixels, width, height, channels, left, right, bottom, &rows, false);
+    // Only include immediately adjacent columns with a fully observed vertical
+    // stroke through the detected axis. Do not skip unrelated interior lines.
+    let mut y_axis_right = left;
+    while y_axis_right < right
+        && (top..=bottom).all(|y| is_dark(pixels, (y * width + y_axis_right + 1) * channels, channels))
+    {
+        y_axis_right += 1;
+    }
+    let x_ticks = x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false);
     let y_ticks = y_tick_positions(pixels, width, channels, left, top, bottom, &cols);
     let legacy_ticks = if x_ticks.is_empty() {
-        x_tick_positions(pixels, width, height, channels, left, right, bottom, &rows, true)
+        x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, true)
     } else { Vec::new() };
     let endpoints = if x_ticks.is_empty() { &legacy_ticks } else { &x_ticks };
     let ticks = endpoints.first().zip(endpoints.last()).map(|(&a, &b)| (a, b));
@@ -394,7 +408,7 @@ mod tests {
         assert!(!p.y_ticks.contains(&100));
     }
     #[test]
-    fn downward_y_axis_preserves_legacy_endpoints_without_claiming_full_ticks() {
+    fn downward_y_axis_preserves_measured_ticks_without_inventing_intersection_tick() {
         let mut a = vec![255; 128 * 128];
         for x in 20..=115 { a[100 * 128 + x] = 0; }
         for y in 10..=110 { a[y * 128 + 20] = 0; }
@@ -402,8 +416,45 @@ mod tests {
             for y in 101..=104 { a[y * 128 + x] = 0; }
         }
         let p = propose(128, 128, 1, &a).unwrap();
-        assert!(p.x_ticks.is_empty());
+        assert_eq!(p.x_ticks, vec![30, 50, 70, 90, 110]);
+        assert!(!p.x_ticks.contains(&20));
         assert_eq!(p.ticks, Some((30, 110)));
+    }
+    #[test]
+    fn contiguous_y_axis_stroke_columns_do_not_erase_observed_x_ticks() {
+        for stroke_width in 1..=3 {
+            let mut a = vec![255; 128 * 128];
+            for x in 20..=115 { a[100 * 128 + x] = 0; }
+            for y in 10..=110 {
+                for x in 20..20 + stroke_width { a[y * 128 + x] = 0; }
+            }
+            for x in [30, 50, 70, 90, 110] {
+                for y in 101..=104 { a[y * 128 + x] = 0; }
+            }
+            let p = propose(128, 128, 1, &a).unwrap();
+            assert_eq!(p.left, 20);
+            assert_eq!(p.x_ticks, vec![30, 50, 70, 90, 110]);
+            assert_eq!(p.ticks, Some((30, 110)));
+        }
+    }
+    #[test]
+    fn downward_axis_is_not_an_extra_tick_or_permission_to_ignore_other_long_strokes() {
+        let mut a = vec![255; 128 * 128];
+        for x in 20..=115 { a[100 * 128 + x] = 0; }
+        for y in 10..=110 { a[y * 128 + 20] = 0; }
+        for x in [30, 50] {
+            for y in 101..=104 { a[y * 128 + x] = 0; }
+        }
+        let sparse = propose(128, 128, 1, &a).unwrap();
+        assert!(sparse.x_ticks.is_empty());
+        assert_eq!(sparse.ticks, None);
+        for x in [70, 90, 110] {
+            for y in 101..=104 { a[y * 128 + x] = 0; }
+        }
+        for y in 101..=110 { a[y * 128 + 70] = 0; }
+        assert!(propose(128, 128, 1, &a).unwrap().x_ticks.is_empty());
+        for y in 10..=110 { a[y * 128 + 80] = 0; }
+        assert_eq!(propose(128, 128, 1, &a), Err("AMBIGUOUS_AXIS"));
     }
     #[test]
     fn sparse_and_irregular_strokes_do_not_become_tick_endpoints() {

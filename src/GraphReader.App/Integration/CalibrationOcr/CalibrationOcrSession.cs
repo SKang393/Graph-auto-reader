@@ -91,6 +91,11 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
                 WidthMode = options.CropWidthMode,
                 MaximumTargetWidth = options.MaximumCropWidth,
                 BatchSize = options.BatchSize,
+                // Split dynamic batches at twice the minimum allocation needed
+                // for their preserved content widths. Sampling stays unchanged;
+                // only excess right padding is removed within original batches.
+                MaximumPaddingOverhead = options.CropWidthMode == OcrCropWidthMode.PaddleBatchMaximumAspectRatio
+                    ? 2d : null,
                 PaddingPixels = options.CropPaddingPixels,
                 HorizontalPaddingPixels = options.CropHorizontalPaddingPixels,
                 VerticalPaddingPixels = options.CropVerticalPaddingPixels,

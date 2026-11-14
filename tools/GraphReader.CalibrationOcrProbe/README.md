@@ -3,6 +3,24 @@
 
 # Calibration OCR probe
 
+`--ocr-padding-check <absolute-reviewed-assets-root>` compares the existing
+dynamic batching with the opt-in factor-2 padding bound on seven owned digit
+regions and one wide caption region generated in memory. It verifies the
+reviewed reader, manifest, license and notice hashes, uses separate CPU-only
+one-thread sessions under the existing parent job, and reports initialization,
+one cold and three warm read timings, tensor sizes, per-ID text/value/failure/
+geometry parity, and confidence differences. It writes no images and makes no
+accuracy or production-activation claim. The parent has a 120-second deadline
+and a 125-second hard watchdog.
+
+`--ocr-padding-adapters` lists current nonsoftware DXGI indices, LUIDs, names
+and available process-budget queries without changing device settings.
+`--ocr-padding-gpu-check <absolute-reviewed-assets-root> <DXGI-index> <LUID>`
+runs the same owned comparison on that exact DirectML session, requires at
+least 256 MiB of reported process-budget headroom and rejects whole-session CPU
+fallback. It reports recognition and pacing separately; DirectML can still use
+CPU kernels, and pacing is not a GPU utilization cap. CPU mode is unchanged.
+
 `--real-dev-calibration-check <absolute-corpus-root> <absolute-packaged-App-exe> <absolute-assets-root> <absolute-Rust-worker> --explicit-opt-in`
 is one fixed diagnostic of all **120 frozen real-dev projects**, with no sealed
 payload reads. Its denominator is fixed before results. The App 0.4.42 DLL,

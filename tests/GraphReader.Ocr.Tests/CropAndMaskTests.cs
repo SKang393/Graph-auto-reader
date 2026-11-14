@@ -277,6 +277,176 @@ public sealed class CropAndMaskTests
     }
 
     [TestMethod]
+    public void OptionalPaddingBoundSplitsWideCaptionWithoutDroppingTickEvidence()
+    {
+        OcrImage image = OcrTestFixtures.Image(width: 2000, height: 120);
+        OcrDetectedRegion[] regions = Enumerable.Range(0, 7)
+            .Select(index => OcrTestFixtures.Region($"tick-{index}", index * 50, 0, 48, 48))
+            .Append(OcrTestFixtures.Region("caption", 0, 60, 1920, 48)).ToArray();
+        var options = new OcrCropBatcherOptions
+        {
+            TargetWidth = 320, TargetHeight = 48, MaximumTargetWidth = 2048,
+            BatchSize = 16, PaddingPixels = 0, WidthMode = OcrCropWidthMode.PaddleBatchMaximumAspectRatio,
+        };
+        var legacy = OcrCropBatcher.CreateBatches(image, regions, options);
+        var bounded = OcrCropBatcher.CreateBatches(image, regions, options with { MaximumPaddingOverhead = 2 });
+        Assert.HasCount(1, legacy);
+        Assert.HasCount(2, bounded);
+        Assert.AreEqual(737280, legacy.Sum(batch => batch.Sum(crop => crop.Width * crop.Height)));
+        Assert.AreEqual(199680, bounded.Sum(batch => batch.Sum(crop => crop.Width * crop.Height)));
+        OcrCrop[] oldCrops = legacy.SelectMany(batch => batch).ToArray();
+        OcrCrop[] newCrops = bounded.SelectMany(batch => batch).ToArray();
+        CollectionAssert.AreEqual(oldCrops.Select(crop => crop.RegionId).ToArray(), newCrops.Select(crop => crop.RegionId).ToArray());
+        for (int i = 0; i < oldCrops.Length; i++)
+        {
+            Assert.AreEqual(oldCrops[i].OriginalPolygon, newCrops[i].OriginalPolygon);
+            Assert.AreEqual(oldCrops[i].SourceImage, newCrops[i].SourceImage);
+            for (int y = 0; y < newCrops[i].Height; y++)
+                CollectionAssert.AreEqual(oldCrops[i].Pixels.Slice(y * oldCrops[i].Width, newCrops[i].Width).ToArray(),
+                    newCrops[i].Pixels.Slice(y * newCrops[i].Width, newCrops[i].Width).ToArray());
+        }
+    }
+
+    [TestMethod]
+    [DataRow(1600d, 48d)]
+    [DataRow(1901d, 57d)]
+    public void PaddingSplitPreservesFractionalContentAndLegacyMaximumClamp(
+        double captionWidth,
+        double captionHeight)
+    {
+        OcrImage grayscale = OcrTestFixtures.Image(width: 2000, height: 160);
+        OcrImage image = grayscale with
+        {
+            BgrPixels = new OcrBgrBytePixels(grayscale.Width * 3,
+                Enumerable.Range(0, grayscale.Width * grayscale.Height * 3)
+                    .Select(static index => (byte)((index * 29) % 253)).ToArray()),
+        };
+        OcrDetectedRegion[] regions = Enumerable.Range(0, 7)
+            .Select(index => OcrTestFixtures.Region($"tick-{index}", index * 50, 0, 200, 19))
+            .Append(OcrTestFixtures.Region("caption", 0, 80, captionWidth, captionHeight))
+            .ToArray();
+        var options = new OcrCropBatcherOptions
+        {
+            TargetWidth = 320,
+            TargetHeight = 48,
+            MaximumTargetWidth = 1601,
+            BatchSize = 16,
+            PaddingPixels = 0,
+            WidthMode = OcrCropWidthMode.PaddleBatchMaximumAspectRatio,
+        };
+
+        var legacy = OcrCropBatcher.CreateBatches(image, regions, options);
+        var bounded = OcrCropBatcher.CreateBatches(image, regions,
+            options with { MaximumPaddingOverhead = 2 });
+
+        Assert.HasCount(1, legacy);
+        Assert.IsTrue(legacy[0].All(static crop => crop.Width == 1600));
+        Assert.HasCount(2, bounded);
+        Assert.HasCount(7, bounded[0]);
+        // 48 * 200 / 19 needs 506 content samples, despite a floored
+        // individual target width of 505. The widest fractional caption must
+        // retain its original 1600-sample clamp rather than grow to 1601.
+        Assert.IsTrue(bounded[0].All(static crop => crop.Width == 506));
+        Assert.AreEqual(1600, bounded[1][0].Width);
+        Assert.AreEqual(614400, legacy.Sum(batch => batch.Sum(crop => crop.Pixels.Length)));
+        Assert.AreEqual(246816, bounded.Sum(batch => batch.Sum(crop => crop.Pixels.Length)));
+        AssertPreservedCropSamples(legacy, bounded);
+    }
+
+    [TestMethod]
+    public void PaddingSplitKeepsOriginalBatchBoundariesAndMinimumWidthCostBound()
+    {
+        OcrImage image = OcrTestFixtures.Image(width: 2400, height: 120);
+        OcrDetectedRegion[] regions = Enumerable.Range(0, 3)
+            .Select(index => OcrTestFixtures.Region($"small-{index}", index * 50, 0, 48, 48))
+            .Append(OcrTestFixtures.Region("medium", 0, 60, 1000, 48))
+            .Concat(Enumerable.Range(0, 4)
+                .Select(index => OcrTestFixtures.Region($"wide-{index}", 0, 60, 2000, 48)))
+            .ToArray();
+        var options = new OcrCropBatcherOptions
+        {
+            TargetWidth = 320,
+            TargetHeight = 48,
+            MaximumTargetWidth = 2048,
+            BatchSize = 4,
+            PaddingPixels = 0,
+            WidthMode = OcrCropWidthMode.PaddleBatchMaximumAspectRatio,
+        };
+
+        var legacy = OcrCropBatcher.CreateBatches(image, regions, options);
+        var bounded = OcrCropBatcher.CreateBatches(image, regions,
+            options with { MaximumPaddingOverhead = 2 });
+
+        Assert.HasCount(2, legacy);
+        Assert.HasCount(3, bounded);
+        Assert.HasCount(3, bounded[0]);
+        Assert.IsTrue(bounded[0].All(static crop => crop.Width == 320));
+        Assert.HasCount(1, bounded[1]);
+        Assert.AreEqual("medium", bounded[1][0].RegionId);
+        CollectionAssert.AreEqual(
+            legacy[1].Select(static crop => crop.RegionId).ToArray(),
+            bounded[2].Select(static crop => crop.RegionId).ToArray());
+        Assert.AreEqual(576000, legacy.Sum(batch => batch.Sum(crop => crop.Pixels.Length)));
+        Assert.AreEqual(478080, bounded.Sum(batch => batch.Sum(crop => crop.Pixels.Length)));
+        foreach (IReadOnlyList<OcrCrop> batch in bounded)
+        {
+            int individualWidthSum = batch.Sum(crop => Math.Max(options.TargetWidth,
+                (int)crop.OriginalPolygon.Bounds.Width));
+            Assert.IsTrue(batch.Count * batch[0].Width <= 2 * individualWidthSum);
+        }
+
+        AssertPreservedCropSamples(legacy, bounded);
+    }
+
+    private static void AssertPreservedCropSamples(
+        IReadOnlyList<IReadOnlyList<OcrCrop>> legacy,
+        IReadOnlyList<IReadOnlyList<OcrCrop>> bounded)
+    {
+        OcrCrop[] oldCrops = legacy.SelectMany(static batch => batch).ToArray();
+        OcrCrop[] newCrops = bounded.SelectMany(static batch => batch).ToArray();
+        CollectionAssert.AreEqual(
+            oldCrops.Select(static crop => crop.RegionId).ToArray(),
+            newCrops.Select(static crop => crop.RegionId).ToArray());
+        for (int index = 0; index < oldCrops.Length; index++)
+        {
+            OcrCrop original = oldCrops[index];
+            OcrCrop split = newCrops[index];
+            Assert.AreEqual(original.OriginalPolygon, split.OriginalPolygon);
+            Assert.AreEqual(original.SourceImage, split.SourceImage);
+            Assert.AreEqual(original.Height, split.Height);
+            Assert.AreEqual(original.SourceCrop?.PixelSha256, split.SourceCrop?.PixelSha256);
+            for (int y = 0; y < split.Height; y++)
+            {
+                CollectionAssert.AreEqual(
+                    original.Pixels.Slice(y * original.Width, split.Width).ToArray(),
+                    split.Pixels.Slice(y * split.Width, split.Width).ToArray());
+                if (original.BgrPixels is { } originalBgr)
+                {
+                    Assert.IsNotNull(split.BgrPixels);
+                    CollectionAssert.AreEqual(
+                        originalBgr.Pixels.Slice(y * originalBgr.Stride, split.Width * 3).ToArray(),
+                        split.BgrPixels.Pixels.Slice(y * split.BgrPixels.Stride, split.Width * 3).ToArray());
+                }
+            }
+        }
+    }
+
+    [TestMethod]
+    public void PaddingBoundRejectsInvalidPolicyOversizeAndCancellation()
+    {
+        OcrImage image = OcrTestFixtures.Image(width: 800, height: 100);
+        OcrDetectedRegion region = OcrTestFixtures.Region("wide", 0, 0, 500, 48);
+        var options = new OcrCropBatcherOptions { TargetWidth = 320, TargetHeight = 48, MaximumTargetWidth = 400,
+            PaddingPixels = 0, WidthMode = OcrCropWidthMode.PaddleBatchMaximumAspectRatio, MaximumPaddingOverhead = 2 };
+        Assert.ThrowsExactly<InvalidDataException>(() => OcrCropBatcher.CreateBatches(image, [region], options));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => OcrCropBatcher.CreateBatches(image, [], options with { MaximumPaddingOverhead = .99 }));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => OcrCropBatcher.CreateBatches(image, [], options with { MaximumPaddingOverhead = double.NaN }));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => OcrCropBatcher.CreateBatches(image, [], options with { WidthMode = OcrCropWidthMode.Fixed }));
+        Assert.ThrowsExactly<OperationCanceledException>(() => OcrCropBatcher.CreateBatches(image, [region], options,
+            new CancellationToken(canceled: true)));
+    }
+
+    [TestMethod]
     public void MarkerExclusionMasksArePaddedClippedAndOriginalPixelBased()
     {
         OcrDetectedRegion[] textRegions =

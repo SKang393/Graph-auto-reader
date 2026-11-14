@@ -86,7 +86,7 @@
   <sys:String x:Key="Manual.SuggestAxes">Suggest axes (review only)</sys:String>
   <sys:String x:Key="Manual.AxisReview">Check the anchor pixels. Read tick labels as review-only hints or enter the actual values yourself. Confirm every value before applying; nothing changes until Apply.</sys:String>
   <sys:String x:Key="Manual.AxisPositions">Original pixels: origin ({0}, {1}); Y maximum ({2}, {3}); final session ({4}, {5}).</sys:String>
-  <sys:String x:Key="Manual.AxisUnavailable">No current axis proposal is available. Use manual three-anchor calibration.</sys:String>
+  <sys:String x:Key="Manual.AxisUnavailable">No axis proposal is available. Crop one graph including its axis labels and any visible zero, then retry, or use manual three-anchor calibration.</sys:String>
   <sys:String x:Key="Manual.AxisReviewed">I checked anchor pixels and actual labels.</sys:String>
   <sys:String x:Key="Manual.AxisApply">Apply</sys:String>
   <sys:String x:Key="Manual.AxisDismiss">Dismiss</sys:String>

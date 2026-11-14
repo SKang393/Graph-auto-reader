@@ -10,7 +10,7 @@ public sealed record CalibrationOcrDeviceMeasurement(CalibrationOcrDeviceSelecti
 public sealed record CalibrationOcrDeviceBenchmarkResult(CalibrationOcrDeviceSelection SelectedDevice,
     IReadOnlyList<CalibrationOcrDeviceMeasurement> Measurements);
 
-/// <summary>Bounded, review-only device comparison on an owned in-memory fixture.</summary>
+/// <summary>Bounded, review-only device comparison on two owned in-memory fixtures.</summary>
 public sealed class CalibrationOcrDeviceBenchmark
 {
     private readonly Func<CalibrationOcrDeviceSelection, ICalibrationOcrSuggestionService> _factory;
@@ -35,11 +35,11 @@ public sealed class CalibrationOcrDeviceBenchmark
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(devices);
-        var fixture = CalibrationOcrBenchmarkFixture.Create();
+        var fixtures = CalibrationOcrBenchmarkFixture.CreateWorkloads();
         var measurements = new List<CalibrationOcrDeviceMeasurement>();
         using var total = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         total.CancelAfter(_totalTimeout);
-        var (cpu, baseline) = await MeasureAsync(CalibrationOcrDeviceSelection.Cpu, fixture, null, total.Token, cancellationToken).ConfigureAwait(false);
+        var (cpu, baseline) = await MeasureAsync(CalibrationOcrDeviceSelection.Cpu, fixtures, null, total.Token, cancellationToken).ConfigureAwait(false);
         measurements.Add(cpu);
         if (cpu.FailureCode is not null || baseline is null) return new(CalibrationOcrDeviceSelection.Cpu, measurements);
         foreach (CalibrationOcrDeviceSelection device in devices.Where(d => d.Provider == "DirectMl" &&
@@ -47,7 +47,7 @@ public sealed class CalibrationOcrDeviceBenchmark
                      .DistinctBy(d => (d.AdapterIndex, d.AdapterLuid)).Take(2))
         {
             if (total.IsCancellationRequested) break;
-            var (measurement, _) = await MeasureAsync(device, fixture, baseline, total.Token, cancellationToken).ConfigureAwait(false);
+            var (measurement, _) = await MeasureAsync(device, fixtures, baseline, total.Token, cancellationToken).ConfigureAwait(false);
             measurements.Add(measurement);
         }
         cancellationToken.ThrowIfCancellationRequested();
@@ -57,8 +57,8 @@ public sealed class CalibrationOcrDeviceBenchmark
         return new(selected, measurements);
     }
 
-    private async Task<(CalibrationOcrDeviceMeasurement Measurement, CalibrationOcrProposal[]? Baseline)> MeasureAsync(CalibrationOcrDeviceSelection device,
-        (CalibrationOcrRequest Request, byte[] Image) fixture, CalibrationOcrProposal[]? baseline,
+    private async Task<(CalibrationOcrDeviceMeasurement Measurement, Dictionary<int, CalibrationOcrProposal[]>? Baseline)> MeasureAsync(CalibrationOcrDeviceSelection device,
+        (CalibrationOcrRequest Request, byte[] Image)[] fixtures, Dictionary<int, CalibrationOcrProposal[]>? baseline,
         CancellationToken total, CancellationToken caller)
     {
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(total);
@@ -67,10 +67,15 @@ public sealed class CalibrationOcrDeviceBenchmark
         {
             await using ICalibrationOcrSuggestionService worker = _factory(device);
             var elapsed = new double[4];
-            CalibrationOcrProposal[]? expected = baseline;
+            var expected = baseline is null
+                ? new Dictionary<int, CalibrationOcrProposal[]>()
+                : new Dictionary<int, CalibrationOcrProposal[]>(baseline);
             var all = Stopwatch.StartNew();
             for (int i = 0; i < elapsed.Length; i++)
             {
+                // A/B/A/B: both fixtures repeat within the same persistent session.
+                int fixtureIndex = i % fixtures.Length;
+                var fixture = fixtures[fixtureIndex];
                 var read = Stopwatch.StartNew();
                 CalibrationOcrResponse response = await worker.SuggestAsync(fixture.Request, fixture.Image, deadline.Token)
                     .WaitAsync(deadline.Token).ConfigureAwait(false);
@@ -85,10 +90,13 @@ public sealed class CalibrationOcrDeviceBenchmark
                 if (actual.Length < 3 || actual.Any(p => string.IsNullOrWhiteSpace(p.Text)) ||
                     actual.Select(p => p.RegionId).Distinct(StringComparer.Ordinal).Count() != actual.Length)
                     return (Failed(device, "CALIBRATION_OCR_BENCHMARK_INSUFFICIENT_OUTPUT"), null);
-                expected ??= actual;
-                if (!Matches(expected, actual)) return (Failed(device, "CALIBRATION_OCR_BENCHMARK_OUTPUT_MISMATCH"), null);
+                if (!expected.TryGetValue(fixtureIndex, out CalibrationOcrProposal[]? reference))
+                    expected.Add(fixtureIndex, actual);
+                else if (!Matches(reference, actual))
+                    return (Failed(device, "CALIBRATION_OCR_BENCHMARK_OUTPUT_MISMATCH"), null);
             }
             all.Stop();
+            // Median of reused B/A/B reads, not per-fixture steady-state latency.
             double[] warm = elapsed[1..]; Array.Sort(warm);
             return (new(device, elapsed[0], warm[1], all.Elapsed.TotalMilliseconds, true, null), expected);
         }
@@ -113,5 +121,8 @@ public sealed class CalibrationOcrDeviceBenchmark
     private static bool Matches(CalibrationOcrProposal[] left, CalibrationOcrProposal[] right) =>
         left.Length == right.Length && left.Zip(right).All(pair => pair.First.RegionId == pair.Second.RegionId &&
             pair.First.Text == pair.Second.Text && pair.First.NumericValue == pair.Second.NumericValue &&
+            pair.First.FailureCode == pair.Second.FailureCode && pair.First.Role == pair.Second.Role &&
+            pair.First.SuggestedAxis == pair.Second.SuggestedAxis && pair.First.NumericLiteral == pair.Second.NumericLiteral &&
+            pair.First.NormalizedText == pair.Second.NormalizedText &&
             pair.First.Polygon.SequenceEqual(pair.Second.Polygon));
 }

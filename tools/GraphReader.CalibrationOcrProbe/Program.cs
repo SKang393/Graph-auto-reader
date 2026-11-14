@@ -40,17 +40,20 @@ internal static class Program
         bool markerShapeCheck = args.Length > 0 && args[0] == "--marker-shape-control-check";
         bool markerWorkflow = args.Length > 0 && args[0] == "--marker-workflow-check";
         bool panelCrop = args.Length > 0 && args[0] == "--panel-crop-check";
+        bool ocrPadding = args.Length > 0 && args[0] == "--ocr-padding-check";
+        bool ocrPaddingGpu = args.Length > 0 && args[0] == "--ocr-padding-gpu-check";
+        bool ocrPaddingAdapters = args.Length > 0 && args[0] == "--ocr-padding-adapters";
         bool realDevCalibration = args.Length > 0 && args[0] == "--real-dev-calibration-check";
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
-        int seconds = cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevCalibration ? 900 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        int seconds = ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevCalibration ? 900 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevCalibration ? 905 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevCalibration ? 905 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
@@ -177,6 +180,32 @@ internal static class Program
             if (workerCheck) throw new InvalidDataException("Usage: --worker-check <request.json> <absolute-App-exe> <asset-root>");
             // Apply and query the aggregate cap before entering any OCR/runtime code.
             using CpuBudgetJob budget = CpuBudgetJob.Apply();
+            if (args is ["--ocr-padding-adapters"])
+            {
+                var inventory = new WindowsDxgiAdapterInventory();
+                Emit(new { adapters = inventory.Enumerate().Where(item => !item.IsSoftware).Select(item => new
+                {
+                    item.Index, item.Luid, item.Name,
+                    budget = WindowsDxgiAdapterInventory.TryReadLocalMemoryBudget(new(item.Index, item.Luid)),
+                }).ToArray() });
+                return 0;
+            }
+            if (ocrPaddingAdapters) throw new InvalidDataException("Usage: --ocr-padding-adapters");
+            if (args is ["--ocr-padding-check", var paddingAssets])
+            {
+                Emit(await OcrBatchPaddingCheck.RunAsync(paddingAssets, budget, deadline.Token));
+                return 0;
+            }
+            if (ocrPadding) throw new InvalidDataException("Usage: --ocr-padding-check <absolute-reviewed-assets-root>");
+            if (args is ["--ocr-padding-gpu-check", var gpuPaddingAssets, var gpuPaddingIndex, var gpuPaddingLuid])
+            {
+                if (!int.TryParse(gpuPaddingIndex, NumberStyles.None, CultureInfo.InvariantCulture, out int index) || index < 0 ||
+                    !long.TryParse(gpuPaddingLuid, NumberStyles.Integer, CultureInfo.InvariantCulture, out long luid))
+                    throw new InvalidDataException("An explicit DXGI index and LUID are required.");
+                Emit(await OcrBatchPaddingCheck.RunGpuAsync(gpuPaddingAssets, index, luid, budget, deadline.Token));
+                return 0;
+            }
+            if (ocrPaddingGpu) throw new InvalidDataException("Usage: --ocr-padding-gpu-check <absolute-reviewed-assets-root> <DXGI-index> <LUID>");
             if (args is ["--self-test"])
             {
                 await ProbeSelfTest.RunAsync(deadline.Token);
