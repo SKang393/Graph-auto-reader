@@ -23,7 +23,12 @@ impl Trace {
         self.row_bands, self.col_bands, self.pairs_checked, self.span_rejections,
         self.connection_rejections, self.x_tick_rejections, self.y_tick_rejections, self.qualified_pairs) }
 }
-thread_local! { static TRACE: std::cell::Cell<Option<Trace>> = const { std::cell::Cell::new(None) }; }
+thread_local! {
+    static TRACE: std::cell::Cell<Option<Trace>> = const { std::cell::Cell::new(None) };
+    // One request-wide budget shared across all candidate pairs; fail closed.
+    static BRIDGE_WORK: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+    static BRIDGE_EXHAUSTED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
 fn trace(f: impl FnOnce(&mut Trace)) { TRACE.with(|cell| { if let Some(mut value) = cell.get() { f(&mut value); cell.set(Some(value)); } }); }
 
 #[derive(Debug, PartialEq)]
@@ -66,6 +71,7 @@ fn x_tick_positions(
     legacy: bool,
     inward: bool,
     limit: usize,
+    ignored: &[(usize, usize)],
 ) -> TickScan {
     let mut edge = bottom;
     if inward {
@@ -84,6 +90,7 @@ fn x_tick_positions(
     let mut positions = Vec::new();
     let mut x = if legacy { left.saturating_add(3) } else { left };
     while x <= right {
+        if ignored.iter().any(|&(lo, hi)| (lo..=hi).contains(&x)) { x += 1; continue; }
         // On the inward side the Y axis itself is not evidence of an X tick.
         if inward && x <= y_axis_right { x = y_axis_right + 1; continue; }
         let length = (1..=limit + 1)
@@ -105,6 +112,7 @@ fn x_tick_positions(
         let start = x;
         x += 1;
         while x <= right
+            && !ignored.iter().any(|&(lo, hi)| (lo..=hi).contains(&x))
             && (1..=2).all(|dy| dark(x, dy))
         {
             // A long adjacent grid stroke must not hide behind a short group
@@ -145,6 +153,7 @@ fn validate_positions(positions: Vec<usize>) -> TickScan {
 fn y_tick_positions(
     pixels: &[u8], width: usize, channels: usize,
     left: usize, top: usize, bottom: usize, x_axis_top: usize, cols: &[usize], inward: bool, limit: usize,
+    ignored: &[(usize, usize)],
 ) -> TickScan {
     let mut edge = left;
     if inward {
@@ -161,6 +170,7 @@ fn y_tick_positions(
     let mut positions = Vec::new();
     let mut y = top;
     while y <= bottom {
+        if ignored.iter().any(|&(lo, hi)| (lo..=hi).contains(&y)) { y += 1; continue; }
         // Only the fully observed horizontal axis band is excluded. It cannot
         // establish a Y tick at the intersection without a separate stroke.
         if inward && y >= x_axis_top { break; }
@@ -175,6 +185,7 @@ fn y_tick_positions(
         let start = y;
         y += 1;
         while y <= bottom && (!inward || y < x_axis_top)
+            && !ignored.iter().any(|&(lo, hi)| (lo..=hi).contains(&y))
             && (1..=2).all(|dx| dark(y, dx))
         {
             if (1..=limit + 1).take_while(|&dx| dark(y, dx)).count() > limit {
@@ -238,6 +249,8 @@ fn propose(
     {
         return Err("INVALID_INPUT");
     }
+    BRIDGE_WORK.with(|work| work.set(0));
+    BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
     let mut rows = vec![0usize; height];
     let mut cols = vec![0usize; width];
     for y in 0..height {
@@ -346,8 +359,14 @@ fn resolve_grid(width: usize, height: usize, channels: usize, pixels: &[u8],
     for &(bottom, band_bottom) in &row_bands {
         for &(left, _) in &col_bands {
             trace(|t| t.pairs_checked += 1);
-            if let Ok(proposal) = measure_axes(width, height, channels, pixels, rows, cols,
-                bottom, left, x_limit, y_limit, true, true)
+            let measured = measure_axes(width, height, channels, pixels, rows, cols,
+                bottom, left, x_limit, y_limit, true, true);
+            // Never accept a partial candidate search after exhausting bridge work.
+            if BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) {
+                trace(|t| t.reason = "NO_AXIS");
+                return Err("AMBIGUOUS_AXIS");
+            }
+            if let Ok(proposal) = measured
             {
                 trace(|t| t.qualified_pairs += 1);
                 if unique.is_some() { trace(|t| t.reason = "MULTIPLE_PAIRS"); return Err("AMBIGUOUS_AXIS"); }
@@ -367,6 +386,60 @@ fn resolve_grid(width: usize, height: usize, channels: usize, pixels: &[u8],
         return Err("AMBIGUOUS_AXIS");
     }
     Ok(proposal)
+}
+
+// A missing axis run is supported only by a bounded, observed 8-connected ink
+// path between the exact dark endpoints. Bounds mirror the existing C# ink
+// bridge; unlike native Hough endpoints, these endpoints need no tolerance.
+fn observed_axis_span(pixels: &[u8], width: usize, height: usize, channels: usize,
+    fixed: usize, start: usize, end: usize, horizontal: bool) -> Option<Vec<(usize, usize)>>
+{
+    let dark = |along: usize, across: usize| {
+        let (x, y) = if horizontal { (along, across) } else { (across, along) };
+        is_dark(pixels, (y * width + x) * channels, channels)
+    };
+    let mut bridges = Vec::new();
+    let mut i = start;
+    let max_span = 24usize.max(((width.min(height) as f64 * 0.08).min(80.0)).ceil() as usize);
+    while i <= end {
+        if dark(i, fixed) { i += 1; continue; }
+        let gap_start = i;
+        while i <= end && !dark(i, fixed) { i += 1; }
+        if gap_start == start || i > end || i - gap_start > max_span + 4 { return None; }
+        let from = gap_start - 1;
+        let to = i;
+        let radius = max_span.min(24usize.max((to - from + 1) / 2 + 2));
+        let along_max = if horizontal { width - 1 } else { height - 1 };
+        let across_max = if horizontal { height - 1 } else { width - 1 };
+        let lo = from.saturating_sub(radius); let hi = to.saturating_add(radius).min(along_max);
+        let near = fixed.saturating_sub(radius); let far = fixed.saturating_add(radius).min(across_max);
+        let across_len = far - near + 1;
+        let count = (hi - lo + 1) * across_len;
+        let mut visited = vec![false; count];
+        let index = |along: usize, across: usize| (along - lo) * across_len + across - near;
+        let first = index(from, fixed); let target = index(to, fixed);
+        visited[first] = true;
+        let mut queue = std::collections::VecDeque::from([first]);
+        while let Some(current) = queue.pop_front() {
+            if !BRIDGE_WORK.with(|work| { let used = work.get(); if used >= MAX_PIXELS { false } else { work.set(used + 1); true } }) {
+                BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(true));
+                return None;
+            }
+            if current == target { break; }
+            let along = lo + current / across_len; let across = near + current % across_len;
+            for da in -1isize..=1 { for db in -1isize..=1 {
+                let Some(a) = along.checked_add_signed(da) else { continue; };
+                let Some(b) = across.checked_add_signed(db) else { continue; };
+                if a < lo || a > hi || b < near || b > far { continue; }
+                let next = index(a, b);
+                if !visited[next] && dark(a, b) { visited[next] = true; queue.push_back(next); }
+            } }
+        }
+        if !visited[target] { return None; }
+        // Omit only the missing run and its adjacent dark endpoints, never the search window.
+        bridges.push((from, to));
+    }
+    Some(bridges)
 }
 
 fn measure_axes(width: usize, height: usize, channels: usize, pixels: &[u8], rows: &[usize], cols: &[usize],
@@ -391,12 +464,17 @@ fn measure_axes(width: usize, height: usize, channels: usize, pixels: &[u8], row
         trace(|t| { t.reason = "SHORT_SPAN"; if outward_only { t.span_rejections += 1; } });
         return Err("NO_AXIS");
     }
-    if require_ticks && (!(left..=right).all(|x| is_dark(pixels, (bottom * width + x) * channels, channels))
-        || !(top..=bottom).all(|y| is_dark(pixels, (y * width + left) * channels, channels)))
-    {
-        trace(|t| { t.reason = "DISCONNECTED"; if outward_only { t.connection_rejections += 1; } });
-        return Err("NO_AXIS");
-    }
+    let (x_bridges, y_bridges) = if require_ticks {
+        let x = observed_axis_span(pixels, width, height, channels, bottom, left, right, true);
+        let y = observed_axis_span(pixels, width, height, channels, left, top, bottom, false);
+        match (x, y) {
+            (Some(x), Some(y)) => (x, y),
+            _ => {
+                trace(|t| { t.reason = "DISCONNECTED"; if outward_only { t.connection_rejections += 1; } });
+                return Err("NO_AXIS");
+            }
+        }
+    } else { (Vec::new(), Vec::new()) };
     // Only include immediately adjacent columns with a fully observed vertical
     // stroke through the detected axis. Do not skip unrelated interior lines.
     let mut y_axis_right = left;
@@ -413,12 +491,12 @@ fn measure_axes(width: usize, height: usize, channels: usize, pixels: &[u8], row
     }
     // Prefer outward ticks. Inward strokes are considered only if that side
     // has no evidence, never to rescue rejected or conflicting outward marks.
-    let x_ticks = match x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, false, x_limit) {
-        TickScan::Absent if !outward_only => x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, true, x_limit).positions(),
+    let x_ticks = match x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, false, x_limit, &x_bridges) {
+        TickScan::Absent if !outward_only => x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, true, x_limit, &x_bridges).positions(),
         scan => scan.positions(),
     };
-    let y_ticks = match y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, false, y_limit) {
-        TickScan::Absent if !outward_only => y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, true, y_limit).positions(),
+    let y_ticks = match y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, false, y_limit, &y_bridges) {
+        TickScan::Absent if !outward_only => y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, true, y_limit, &y_bridges).positions(),
         scan => scan.positions(),
     };
     if require_ticks && (x_ticks.len() < 3 || y_ticks.len() < 3) {
@@ -429,7 +507,7 @@ fn measure_axes(width: usize, height: usize, channels: usize, pixels: &[u8], row
         return Err("NO_AXIS");
     }
     let legacy_ticks = if !require_ticks && x_ticks.is_empty() {
-        x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, true, false, x_limit).positions()
+        x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, true, false, x_limit, &[]).positions()
     } else { Vec::new() };
     let endpoints = if x_ticks.is_empty() { &legacy_ticks } else { &x_ticks };
     let ticks = endpoints.first().zip(endpoints.last()).map(|(&a, &b)| (a, b));
@@ -689,6 +767,74 @@ mod tests {
             let padded = padded_pixels(&source, 256, 64, 64);
             assert!(propose(256, 256, 1, &padded).is_err());
         }
+    }
+    // Port of OpenCvLineCandidateProviderTests.CreateOccludedAxisFrame:
+    // two-pixel axes, erased x=30..31/y=100..104 and optional 10x7 outline.
+    // Padding forces the Rust content-extent path; ticks are additional observed ink.
+    fn owned_outline_axis_fixture(connected: bool) -> Vec<u8> {
+        const SIDE: usize = 768;
+        const OX: usize = 200;
+        const OY: usize = 200;
+        let mut image = vec![255; SIDE * SIDE];
+        for x in 30..=225 { for y in 130..=131 { image[(OY + y) * SIDE + OX + x] = 0; } }
+        for y in 20..=131 { for x in 30..=31 { image[(OY + y) * SIDE + OX + x] = 0; } }
+        for y in 100..=104 { for x in 30..=31 { image[(OY + y) * SIDE + OX + x] = 255; } }
+        if connected {
+            for x in 26..=35 { for y in [99, 105] { image[(OY + y) * SIDE + OX + x] = 0; } }
+            for y in 99..=105 { for x in [26, 35] { image[(OY + y) * SIDE + OX + x] = 0; } }
+        }
+        for x in [60, 120, 200] { for y in 132..=135 { image[(OY + y) * SIDE + OX + x] = 0; } }
+        for y in [40, 70, 120] { for x in 26..30 { image[(OY + y) * SIDE + OX + x] = 0; } }
+        image
+    }
+    #[test]
+    fn owned_outline_connected_axis_fallback_reproduction() {
+        let image = owned_outline_axis_fixture(true);
+        let proposal = propose(768, 768, 1, &image).expect("Observed marker outline connects the original axis ink");
+        assert_eq!((proposal.left, proposal.bottom, proposal.right, proposal.top), (230, 330, 425, 220));
+        assert_eq!(proposal.x_ticks, vec![260, 320, 400]);
+        assert_eq!(proposal.y_ticks, vec![240, 270, 320], "outline edges are not ticks");
+    }
+    #[test]
+    fn horizontal_outline_bridge_preserves_ticks_and_rejects_empty_gap() {
+        for connected in [true, false] {
+            let mut image = owned_outline_axis_fixture(false);
+            const SIDE: usize = 768; const OX: usize = 200; const OY: usize = 200;
+            for y in 100..=104 { for x in 30..=31 { image[(OY + y) * SIDE + OX + x] = 0; } }
+            for y in 132..=135 {
+                image[(OY + y) * SIDE + OX + 120] = 255; image[(OY + y) * SIDE + OX + 200] = 255;
+                image[(OY + y) * SIDE + OX + 100] = 0; image[(OY + y) * SIDE + OX + 140] = 0;
+            }
+            for x in 120..=124 { for y in 130..=131 { image[(OY + y) * SIDE + OX + x] = 255; } }
+            if connected {
+                for x in 119..=125 { for y in [126, 135] { image[(OY + y) * SIDE + OX + x] = 0; } }
+                for y in 126..=135 { for x in [119, 125] { image[(OY + y) * SIDE + OX + x] = 0; } }
+            }
+            let result = propose(SIDE, SIDE, 1, &image);
+            if connected {
+                let proposal = result.expect("horizontal outline joins original axis ink");
+                assert_eq!(proposal.x_ticks, vec![260, 300, 340], "outline edges are not ticks");
+                assert_eq!(proposal.y_ticks, vec![240, 270, 320]);
+            } else { assert!(result.is_err()); }
+        }
+    }
+    #[test]
+    fn observed_ink_bridge_work_limit_fails_closed() {
+        let image = owned_outline_axis_fixture(true);
+        BRIDGE_WORK.with(|work| work.set(MAX_PIXELS));
+        assert!(observed_axis_span(&image, 768, 768, 1, 230, 220, 330, false).is_none());
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+        let mut rows = vec![0; 768]; let mut cols = vec![0; 768];
+        for y in 0..768 { for x in 0..768 { if image[y * 768 + x] == 0 { rows[y] += 1; cols[x] += 1; } } }
+        assert_eq!(resolve_grid(768, 768, 1, &image, &rows, &cols, 40, 40, 5, 9), Err("AMBIGUOUS_AXIS"));
+        assert!(BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()), "candidate search must fail closed on work exhaustion");
+        BRIDGE_WORK.with(|work| work.set(0));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+    }
+    #[test]
+    fn owned_outline_empty_gap_fallback_negative() {
+        let image = owned_outline_axis_fixture(false);
+        assert!(propose(768, 768, 1, &image).is_err(), "Empty gap must not invent connected axis ink");
     }
     #[test]
     fn fallback_requires_connected_spans_without_changing_primary_success() {

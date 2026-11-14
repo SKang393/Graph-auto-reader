@@ -320,9 +320,12 @@ tests. After delivery record `172a4bf7` reached main, the latest pointer switche
 to 0.4.48 and 534 superseded/generated files (372,429,338 path bytes) were
 retired. One build/ZIP remains, with all 12 shared Data hashes preserved.
 Native interaction and private automatic-calibration accuracy remain unverified.
-The next bounded repair addresses observed ink connecting a marker outline
-across an axis stroke. Owned positive and empty-gap negative controls reproduce
-the defect; preserve dark intersections, tick provenance and request work limits.
+The [connected-ink repair](CONNECTED-INK-AXIS-REPAIR-20261114.md) now recovers
+owned marker-outline interruptions while rejecting matching empty gaps. All 48
+Rust tests passed. The actual repaired worker plus 0.4.48 App/OCR completed one
+owned workflow with six measured label pairs, export and reopen in 5.518 seconds.
+The retained package remains unchanged; this source repair will join the next
+meaningful integration batch. General axis accuracy remains unmeasured.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

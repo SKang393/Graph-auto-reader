@@ -205,14 +205,18 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   Verify a placed marker example, visible matches, individual Add/Remove and
   undo using the next integrated preview, including the reviewed Add remaining
   matches action as one Undo operation. Include the new Crop panel preview,
-  explicit creation, retained source tab and save/reopen workflow
+  explicit creation, retained source tab and save/reopen workflow. In 0.4.48,
+  check Mark axes for label reading, three anchor clicks, Cancel/Dismiss,
+  retained OCR labels, explicit Apply and Undo
 - **Why:** the user stopped Computer Use with physical Escape. Initial native
   CPU/default and adapter-list display was observed; saved-choice verification
   was not completed. The actual worker lifecycle and headless persistence tests
   already passed, so repeating those is unnecessary. On 2026-11-14 the
   maintainer authorized resuming checks, but the first window-list call
   immediately reported a physical Escape stop. Native inputs stopped again;
-  this is an execution interruption, not a failed product interaction
+  this is an execution interruption, not a failed product interaction. The
+  later resumed tool session has no Computer Use tools available; owned
+  headless package checks passed, but do not replace these visual checks
 - **Files:** [hardware and worker outcome](OCR-HARDWARE-CHECK-20261113.md),
   [automatic device-profile outcome](OCR-AUTOMATIC-DEVICE-20261113.md),
   [measured-tick proposal outcome](CALIBRATION-TICK-PROPOSALS-20261113.md),
