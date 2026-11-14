@@ -211,9 +211,11 @@ public sealed partial class MainWindowViewModel
         int left = (int)Math.Ceiling(origin.X), top = (int)Math.Ceiling(upper.Y);
         int plotRight = (int)Math.Floor(right.X), bottom = (int)Math.Floor(origin.Y);
         int x = (int)Math.Floor(seed.PixelX - size / 2d), y = (int)Math.Floor(seed.PixelY - size / 2d);
+        var plot = new MarkerExemplarRectangle(left, top, plotRight - left + 1, bottom - top + 1);
         if (left < 0 || top < 0 || plotRight >= tab.PixelWidth || bottom >= tab.PixelHeight ||
-            plotRight <= left || bottom <= top || x < left || y < top ||
-            (long)x + size - 1 > plotRight || (long)y + size - 1 > bottom)
+            plotRight <= left || bottom <= top ||
+            !MarkerExemplarGeometry.ContainsCenter(plot, new MarkerExemplarPoint(seed.PixelX, seed.PixelY)) ||
+            x < 0 || y < 0 || (long)x + size > tab.PixelWidth || (long)y + size > tab.PixelHeight)
             return false;
         rectangle = new(x, y, size, size);
         return true;
@@ -364,9 +366,7 @@ public sealed partial class MainWindowViewModel
     private static bool IsValidMarkerCandidate(MarkerExemplarCandidate candidate, MarkerExemplarRequest request) =>
         !string.IsNullOrWhiteSpace(candidate.CandidateId) && double.IsFinite(candidate.Similarity) &&
         candidate.Similarity is >= 0 and <= 1 && double.IsFinite(candidate.Center.X) && double.IsFinite(candidate.Center.Y) &&
-        candidate.Center.X >= request.Plot.X && candidate.Center.Y >= request.Plot.Y &&
-        candidate.Center.X <= (long)request.Plot.X + request.Plot.Width - 1 &&
-        candidate.Center.Y <= (long)request.Plot.Y + request.Plot.Height - 1 &&
+        MarkerExemplarGeometry.ContainsCenter(request.Plot, candidate.Center) &&
         candidate.Center.X >= 0 && candidate.Center.Y >= 0 && candidate.Center.X < request.Width &&
         candidate.Center.Y < request.Height;
 

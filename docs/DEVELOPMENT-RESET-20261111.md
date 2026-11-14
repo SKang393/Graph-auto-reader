@@ -126,9 +126,12 @@ is uploaded, downloaded and verified; its actual packaged marker request took
 The [reviewed batch action and complete owned workflow](MARKER-BATCH-WORKFLOW-20261114.md)
 now pass: 24 focused tests, 64 additions in 13.876 ms with one Undo/autosave,
 and actual geometry/OCR/marker-to-export/reopen in 4.937 s process wall time.
-The next independent fix allows first/last-session and Y-zero marker examples:
-use original image context outside the plot, with all accepted centers still
-inside the confirmed plot. Do not pad pixels or change matching thresholds.
+The same batch record now includes the first/last-session and Y-zero boundary
+fix: original image context may cross the plot, with all candidate centers
+inside it. Thirty focused tests and the actual boundary-marker workflow passed;
+the latter took 4.889 s. Next check the current matcher's utility on two small
+owned controls with horizontal and changing-slope connecting lines. Keep the
+existing threshold fixed and use the result to prioritize a concrete defect.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

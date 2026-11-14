@@ -73,9 +73,10 @@ public partial class ManualPreviewWorkspaceService
         int left = (int)Math.Ceiling(origin.X), top = (int)Math.Ceiling(upper.Y);
         int plotRight = (int)Math.Floor(right.X), bottom = (int)Math.Floor(origin.Y);
         int x = (int)Math.Floor(point.PixelX - size / 2d), y = (int)Math.Floor(point.PixelY - size / 2d);
-        if (x < left || y < top || (long)x + size - 1 > plotRight || (long)y + size - 1 > bottom) return false;
         var plot = new MarkerExemplarRectangle(left, top, plotRight - left + 1, bottom - top + 1);
         var exemplar = new MarkerExemplarRectangle(x, y, size, size);
+        if (x < 0 || y < 0 || (long)x + size > tab.PixelWidth || (long)y + size > tab.PixelHeight ||
+            !MarkerExemplarGeometry.ContainsCenter(plot, new MarkerExemplarPoint(point.PixelX, point.PixelY))) return false;
         string payload = JsonSerializer.Serialize(new { Axis = AxisSuggestionBinding(tab), panel.Calibration,
             point.PointId, point.SeriesId, point.PixelX, point.PixelY, size });
         string binding = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(payload)));

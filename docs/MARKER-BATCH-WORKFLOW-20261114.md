@@ -108,8 +108,55 @@ first/last-session and Y-zero examples. The next change will allow original
 image context outside the plot while keeping every proposed center inside it;
 no padding, fabricated pixels, threshold or model change is justified.
 
-After this source/outcome is pushed, retire all 26 files (80,225 bytes) under
-`artifacts/marker-workflow-check`, including failed attempt output, generated
-controls, CSV/project, TRX and logs. Keep the isolated compiler output and
+After source/outcome `0f449629adc1cb7d520ab3ad5c22f43204523a52` reached main,
+all 26 files (80,225 bytes) under `artifacts/marker-workflow-check` were retired,
+including failed attempt output, generated controls, CSV/project, TRX and logs.
+Containment and active-worker checks passed. Keep the isolated compiler output and
 hard-linked review assets only for the next boundary regression/worker check.
 The retained package, shared user Data and the earlier open QA App are protected.
+
+## Plot-boundary follow-up
+
+Base: `0f449629adc1cb7d520ab3ad5c22f43204523a52`. A first/last-session
+example previously failed because the full square had to fit inside the plot.
+Workspace, UI and worker validation now require the full square to fit inside
+the original panel, with its selected center inside the confirmed plot. Matching
+uses the exact seed offset to calculate bounded integer template origins in the
+original image. Candidate centers use the same inclusive pixel-boundary helper.
+No padding, resizing, invented pixels, similarity threshold, model or protocol
+change was introduced. Existing CPU/memory/count/time limits remain intact.
+
+Five added methods (six cases) cover all four plot corners, excluded identical
+outside markers, odd crops and fractional centers, tiny plots, and rejection of
+original-image clipping. UI cases use the real workspace. Independent read-only
+review found no material ROI-bound defect. Probe/App and test builds passed with
+zero warnings/errors in 78.713 s and 11.717 s. The focused marker/localization
+run passed **30/30**, no skips, in 5.229 s command wall time.
+
+The actual owned workflow control now places the seed at (140,230) and matches
+at (340,230)/(540,230), exercising both horizontal plot boundaries. All six
+calibration tick pairs were observed, both proposals were explicitly accepted,
+and three points with calibrated X 1/2/3 and Y 5 survived export/save/reopen.
+Observation-order CSV/audit checks also passed. The workflow took 4.278 s
+internally and **4.889 s process wall**, with OCR 2.095 s and marker work
+116.326 ms (81.215 ms matching). One OpenCV thread and the verified 0.4992-core
+budget remained in effect. This is a controlled execution check, not a latency
+improvement claim or representative accuracy evidence.
+
+SHA-256 identities for this follow-up:
+
+| Item | SHA-256 |
+| --- | --- |
+| App DLL | `144f81553539ca592bd58eb3e33f1f330f9aae5efde9fcb6194c6f7869ce62cf` |
+| Probe DLL | `32256ce1be037177bbe0cc7a49d35d9b79bd32edec53b976339c11a37bb6d019` |
+| Derived boundary-control PNG | `e981c6c798a178cc8f8baeb89cee985bbd3b438611cfff3a1b5178e205726625` |
+| Test TRX | `109a93ad482c66d60ce6ef6b5542fd0667ee8fdda595842a41bdad202a613c4a` |
+| Workflow JSON | `e317b93fb477564a8e0fbb32c069d7ac29f053c3c58d83c27536951f39c40a38` |
+
+The same commands above use scratch `artifacts/marker-boundary-check` and the
+updated control coordinates. Rust, OCR, native DLL and CSV identities are
+unchanged. After this outcome is pushed, retire its 16 files (74,051 bytes).
+The isolated compiler output remains the active input for a two-control check
+of changing connecting-line slopes. That diagnostic will measure utility of
+the existing matcher without changing its threshold or selecting a model.
+Native review remains waiting; this source increment does not allocate a package.

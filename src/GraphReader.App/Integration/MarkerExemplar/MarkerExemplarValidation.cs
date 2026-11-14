@@ -25,11 +25,7 @@ internal static class MarkerExemplarValidation
             request.Plot is not { } plot || request.SelectedPoint is not { } point ||
             !InsideImage(exemplar, request.Width, request.Height) || !InsideImage(plot, request.Width, request.Height) ||
             exemplar.Width != exemplar.Height || exemplar.Width is < 5 or > 65 ||
-            plot.Width < exemplar.Width || plot.Height < exemplar.Height ||
-            exemplar.X < plot.X || exemplar.Y < plot.Y ||
-            (long)exemplar.X + exemplar.Width > (long)plot.X + plot.Width ||
-            (long)exemplar.Y + exemplar.Height > (long)plot.Y + plot.Height ||
-            !Inside(point, exemplar) || !Inside(point, plot)) return false;
+            !Inside(point, exemplar) || !MarkerExemplarGeometry.ContainsCenter(plot, point)) return false;
         return true;
     }
 
@@ -60,7 +56,7 @@ internal static class MarkerExemplarValidation
         foreach (MarkerExemplarCandidate candidate in response.Candidates)
         {
             if (candidate is null || !Identifier(candidate.CandidateId) || !ids.Add(candidate.CandidateId) ||
-                candidate.Center is null || !Inside(candidate.Center, request.Plot) || !double.IsFinite(candidate.Similarity) ||
+                candidate.Center is null || !MarkerExemplarGeometry.ContainsCenter(request.Plot, candidate.Center) || !double.IsFinite(candidate.Similarity) ||
                 candidate.Similarity is < .9 or > 1 ||
                 DistanceSquared(candidate.Center, request.SelectedPoint) < .25) return false;
         }

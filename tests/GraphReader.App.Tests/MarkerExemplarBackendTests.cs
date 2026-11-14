@@ -38,6 +38,60 @@ public sealed class MarkerExemplarBackendTests
     }
 
     [TestMethod]
+    public void FullImageContextFindsAllInclusivePlotCornersButExcludesOutsideCenters()
+    {
+        byte[] pixels = Enumerable.Repeat((byte)255, 128 * 96).ToArray();
+        (int X, int Y)[] centers = [(30, 20), (90, 20), (30, 70), (90, 70),
+            (29, 45), (91, 45), (60, 19), (60, 71)];
+        foreach (var center in centers)
+            for (int dy = -3; dy <= 3; dy++)
+                for (int dx = -3; dx <= 3; dx++)
+                    if (Math.Abs(dx) + Math.Abs(dy) <= 3) pixels[(center.Y + dy) * 128 + center.X + dx] = 0;
+        MarkerExemplarRequest request = Request([1]) with
+        {
+            Width = 128, Height = 96, Plot = new(30, 20, 61, 51),
+            Exemplar = new(25, 15, 9, 9), SelectedPoint = new(30, 20),
+        };
+        Assert.IsTrue(MarkerExemplarValidation.ValidMetadata(request));
+        IReadOnlyList<MarkerExemplarCandidate> result = MarkerExemplarMatcher.Find(request, pixels, CancellationToken.None);
+        Assert.HasCount(3, result, "Template context may cross plot edges, while match centers may not.");
+        foreach (var expected in new[] { new MarkerExemplarPoint(90, 20), new(30, 70), new(90, 70) })
+            Assert.IsTrue(result.Any(candidate => candidate.Center == expected));
+        Assert.IsTrue(result.All(candidate => MarkerExemplarGeometry.ContainsCenter(request.Plot, candidate.Center)));
+    }
+
+    [TestMethod]
+    public void FractionalOddTemplateUsesNonzeroSearchOriginAndInclusiveLastPixelCutoff()
+    {
+        MarkerExemplarRequest request = Request([1]) with { Plot = new(20, 30, 62, 2) };
+        IReadOnlyList<MarkerExemplarCandidate> result = MarkerExemplarMatcher.Find(request, Pixels(), CancellationToken.None);
+        Assert.HasCount(2, result);
+        Assert.IsTrue(result.Any(candidate => candidate.Center == new MarkerExemplarPoint(20.25, 30.5)));
+        Assert.IsTrue(result.Any(candidate => candidate.Center == new MarkerExemplarPoint(80.25, 30.5)));
+        MarkerExemplarRequest cutoff = request with { Plot = new(20, 30, 61, 2) };
+        IReadOnlyList<MarkerExemplarCandidate> restricted = MarkerExemplarMatcher.Find(cutoff, Pixels(), CancellationToken.None);
+        Assert.HasCount(1, restricted);
+        Assert.AreEqual(new MarkerExemplarPoint(20.25, 30.5), restricted[0].Center,
+            "A fractional center at 80.25 is beyond the confirmed last pixel 80.");
+        var response = new MarkerExemplarResponse(cutoff, [new("outside", new(80.25, 30.5), .99)],
+            new(1, 1, 2), new(new(2, 2500, .5, true), 1, MarkerExemplarValidation.Algorithm), null);
+        Assert.IsFalse(MarkerExemplarWorkerClient.IsValidResponse(cutoff, response));
+    }
+
+    [TestMethod]
+    public void SmallPlotCanUseFullImageTemplateButImageClippingStillFails()
+    {
+        MarkerExemplarRequest request = Request([1]) with { Plot = new(50, 30, 2, 2) };
+        Assert.IsTrue(MarkerExemplarValidation.ValidMetadata(request));
+        Assert.IsEmpty(MarkerExemplarMatcher.Find(request, Pixels(), CancellationToken.None), "Only the seed fits this small plot.");
+        Assert.IsFalse(MarkerExemplarValidation.ValidMetadata(request with { Exemplar = new(-1, 26, 9, 9) }));
+        Assert.IsFalse(MarkerExemplarValidation.ValidMetadata(request with
+        {
+            Plot = new(90, 30, 6, 2), Exemplar = new(90, 26, 9, 9), SelectedPoint = new(94, 30.5),
+        }));
+    }
+
+    [TestMethod]
     public void ConstantTemplateAndCancellationCannotProduceProposals()
     {
         MarkerExemplarRequest request = Request([1]);
@@ -62,7 +116,6 @@ public sealed class MarkerExemplarBackendTests
             request with { Exemplar = new(40, 10, 66, 66) },
             request with { Exemplar = new(40, 10, 9, 8) },
             request with { Plot = new(0, 0, 20, 20) },
-            request with { Plot = new(50, 10, 44, 40) }, // Seed is inside, but exemplar extends outside.
             request with { SelectedPoint = new(double.NaN, 30) },
             request with { SelectedSeriesId = "" },
             request with { Binding = "stale" },

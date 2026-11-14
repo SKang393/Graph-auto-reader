@@ -12,7 +12,7 @@ namespace GraphReader.CalibrationOcrProbe;
 
 internal static class MarkerWorkflowCheck
 {
-    private static readonly double[] ExpectedXValues = [1.5, 2, 2.5];
+    private static readonly double[] ExpectedXValues = [1, 2, 3];
     private static readonly double[] ExpectedExportX = [1, 2, 3];
 
     internal static async Task<object> RunAsync(Program.ProbeRequest source, string appExe, string assetRoot,
@@ -35,8 +35,8 @@ internal static class MarkerWorkflowCheck
             var gray = new FormatConvertedBitmap(decoder.Frames[0], PixelFormats.Gray8, null, 0);
             pixels = new byte[640 * 480]; gray.CopyPixels(pixels, 640, 0);
         }
-        for (int x = 230; x <= 450; x++) pixels[230 * 640 + x] = 0;
-        foreach (int center in new[] { 240, 340, 440 })
+        for (int x = 130; x <= 550; x++) pixels[230 * 640 + x] = 0;
+        foreach (int center in new[] { 140, 340, 540 })
             for (int dy = -3; dy <= 3; dy++) for (int dx = -3; dx <= 3; dx++)
                 if (dx * dx + dy * dy <= 9) pixels[(230 + dy) * 640 + center + dx] = 0;
         string imagePath = Path.Combine(outputRoot, "owned-marker-workflow.png");
@@ -66,12 +66,13 @@ internal static class MarkerWorkflowCheck
             new(anchors.FinalSessionY0.X, anchors.FinalSessionY0.Y), proposal.YMaximum!.Value,
             proposal.FinalSession!.Value, proposal.FirstSession!.Value));
         var series = workspace.AddSeries(tab.TabId, new("Owned control", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
-        var seed = workspace.AddPoint(tab.TabId, series.SeriesId, 240, 230);
+        // The first and last markers are on the confirmed plot's horizontal boundaries.
+        var seed = workspace.AddPoint(tab.TabId, series.SeriesId, 140, 230);
         WorkspaceMarkerExemplarSuggestion? matches = await workspace.FindMarkerExamplesAsync(tab.TabId, seed.PointId, series.SeriesId, 13, cancellationToken);
         if (matches is null || matches.Response.FailureCode is not null)
             return new { completed = false, reason = matches?.Response.FailureCode ?? "MARKER_UNAVAILABLE_OR_STALE", review_only = true };
         if (tab.Points.Count != 1) throw new InvalidDataException("Worker unexpectedly changed points.");
-        foreach (int expected in new[] { 340, 440 })
+        foreach (int expected in new[] { 340, 540 })
         {
             var candidate = matches.Response.Candidates.SingleOrDefault(item => Math.Abs(item.Center.X - expected) <= 1 && Math.Abs(item.Center.Y - 230) <= 1);
             if (candidate is null) return new { completed = false, reason = "MARKER_CONTROL_NOT_FOUND", matches.Response.Candidates, review_only = true };

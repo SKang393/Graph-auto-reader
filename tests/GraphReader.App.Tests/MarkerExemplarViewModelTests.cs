@@ -91,6 +91,46 @@ public sealed class MarkerExemplarViewModelTests
         Assert.IsFalse(vm.HasMarkerExemplarCandidates, "A seed change discards the old binding and its proposals.");
     });
 
+    [TestMethod]
+    [DataRow(10d, 10d)]
+    [DataRow(150d, 100d)]
+    public void EdgeSeedRemainsAvailableThroughWorkspaceAndVmWithoutApplyingProposals(double x, double y) => WithImage(path =>
+    {
+        var matcher = new MatcherStub { Candidates = [new("edge", new(150 - (x - 10), 100 - (y - 10)), .95)] };
+        using var workspace = new ManualPreviewWorkspaceService(markerExemplarSuggestionService: matcher);
+        WorkspaceTabViewModel tab = Pump(workspace.ImportImagesAsync([path], CancellationToken.None)).Single();
+        workspace.Calibrate(tab.TabId, Calibration());
+        string series = workspace.AddSeries(tab.TabId,
+            new("Intervention", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention)).SeriesId;
+        var seed = workspace.AddPoint(tab.TabId, series, x, y);
+        using var vm = new MainWindowViewModel(workspace) { SelectedSeriesId = series, SelectedPointId = seed.PointId,
+            MarkerExemplarExampleSizeText = "9" };
+        Assert.IsTrue(vm.FindMarkerExemplarsCommand.CanExecute(null), "An edge seed can use context inside the full original image.");
+        Pump(vm.FindMarkerExemplarsAsync(CancellationToken.None));
+        Assert.IsNotNull(matcher.LastRequest);
+        Assert.AreEqual(new MarkerExemplarPoint(x, y), matcher.LastRequest.SelectedPoint);
+        Assert.AreEqual(new MarkerExemplarRectangle((int)Math.Floor(x - 4.5), (int)Math.Floor(y - 4.5), 9, 9), matcher.LastRequest.Exemplar);
+        Assert.HasCount(1, vm.MarkerExemplarCandidates);
+        Assert.HasCount(1, tab.Points, "Preview never changes scientific point state.");
+    });
+
+    [TestMethod]
+    public void CropCrossingOriginalImageBoundaryRemainsUnavailable() => WithImage(path =>
+    {
+        var matcher = new MatcherStub();
+        using var workspace = new ManualPreviewWorkspaceService(markerExemplarSuggestionService: matcher);
+        WorkspaceTabViewModel tab = Pump(workspace.ImportImagesAsync([path], CancellationToken.None)).Single();
+        workspace.Calibrate(tab.TabId, new(new(0, 100), new(0, 10), new(150, 100), 10, 24));
+        string series = workspace.AddSeries(tab.TabId,
+            new("Intervention", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention)).SeriesId;
+        var seed = workspace.AddPoint(tab.TabId, series, 1, 50);
+        using var vm = new MainWindowViewModel(workspace) { SelectedSeriesId = series, SelectedPointId = seed.PointId,
+            MarkerExemplarExampleSizeText = "9" };
+        Assert.IsFalse(vm.FindMarkerExemplarsCommand.CanExecute(null));
+        Assert.IsNull(Pump(workspace.FindMarkerExamplesAsync(tab.TabId, seed.PointId, series, 9, CancellationToken.None)));
+        Assert.IsNull(matcher.LastRequest, "No clipped or padded template may reach the worker.");
+    });
+
     private static ManualCalibrationRequest Calibration() => new(
         new(10, 100), new(10, 10), new(150, 100), 10, 24);
 
