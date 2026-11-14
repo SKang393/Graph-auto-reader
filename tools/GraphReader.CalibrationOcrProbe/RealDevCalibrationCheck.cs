@@ -16,24 +16,24 @@ namespace GraphReader.CalibrationOcrProbe;
 internal static partial class RealDevCalibrationCheck
 {
     private const int Denominator = 120;
-    private const string AppDllHash = "5fa629e7a01b40ec58fb4ab136dd21b0f5b3ff5cc61e286b1c45a7642317d039";
-    private const string AppExeHash = "a2824381f3b9d19caad083b19f031e45dd50f8f02bdda41a01eb38433177d12f";
-    private const string RustHash = "44258191be06bae2fa9536ebd84cca69631d7732fd3237bc6b001d71440a673d";
-    // Exact delivered 0.4.47 libraries from the ZIP-entry-verified package, not caller-selected identities.
-    private static readonly FrozenDictionary<string, string> DeliveredLibraries = new Dictionary<string, string>(StringComparer.Ordinal)
+    private const string AppDllHash = "939a76b3f0ce08ea76b63006c97dc2bfe073570adc6772c1cecbfd5385f3fffd";
+    private const string AppExeHash = "45551d71a4e79d0e67d8a5c15df2e41af9b798d45dda8dedc1f60921c46a84b4";
+    private const string RustHash = "46e6dcf885760e4ce61c956ef93802b53e2dd51ddb0118ac0c84691e3dda94a0";
+    // Exact frozen 0.4.48 source-build libraries, not delivered-package or caller-selected identities.
+    private static readonly FrozenDictionary<string, string> SourceRuntimeLibraries = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["GraphReader.App.dll"] = AppDllHash,
-        ["GraphReader.Axis.dll"] = "7dd0572505a990b4d14e773d5919fd69d29dc51e32493f21db062aa0a49476e1",
-        ["GraphReader.Domain.dll"] = "ec35fbfe890494b7e5a210b615a7b0f7f9e8fb114fbb44dfb934b4b0a9cc9217",
-        ["GraphReader.Export.dll"] = "91b87a496a433d56e73b791504967ea908ed6769477c2cb7f93497ad91d8db79",
-        ["GraphReader.Imaging.dll"] = "494ddb6af0c96d01f01df2c00cd976fbbcaf64c644f2dacf5e88083f4c0afbdf",
-        ["GraphReader.Inference.dll"] = "7e14061c54278ca31376d9bace49e23373f56877d610334d113362edc597e7a6",
-        ["GraphReader.Legends.dll"] = "b8e52a1f5079c38cede7658cda051bc26f0b0b758859b76d1c59b596a6f451c0",
-        ["GraphReader.Markers.dll"] = "6d9fef2de12c4ffb19e5bc266757512a91467bedda58ab206173d43f17ac1ae2",
-        ["GraphReader.Ocr.dll"] = "ea29ca9034c2cc37c5ed731040f5f1f6a1bdc3b4b6d7fb06307dbf3a6d168ceb",
-        ["GraphReader.Pdf.dll"] = "eae29b4c2cd8a977c597ba9ee9f992ea9ee85750dc05f7d55b70e462e60a9a8f",
-        ["GraphReader.Phases.dll"] = "6b35f733bafe0d79361331a998228a9a2e8f23bb91336df7074bdfc81e177cc4",
-        ["GraphReader.SuperResolution.dll"] = "4f9d67e9861e9843554f1a35e7ad1c46e885a715d90780f133a55c26d317270e",
+        ["GraphReader.Axis.dll"] = "083d3243461cecaedffca37735b3adc2e9c14f60a4fac9d880f3b62689d62336",
+        ["GraphReader.Domain.dll"] = "3e2e3b474d1e215198ac9f5a079da9bb069f089d44bf5bcf2ef6fdc61412ee35",
+        ["GraphReader.Export.dll"] = "380c845f640489623fdf86a2addf34d144200c0f2e8efd87250578b81b1d4368",
+        ["GraphReader.Imaging.dll"] = "1410ce0ffbf0146d7f6704e50c17d40961d1c7355581cb1ce38acc548e8522da",
+        ["GraphReader.Inference.dll"] = "ce96d287ce30a240fee86dc60bccde605d2c9452d7975507e973789fdd0593cf",
+        ["GraphReader.Legends.dll"] = "787482fa073c8c6057f6b942a4fccd6c767c90b8bb356ac9622a1b9791168060",
+        ["GraphReader.Markers.dll"] = "87b35f4f099e3edbc45cdf25a61eeedf0e36808019685b4caa4ea2f6bc2cb250",
+        ["GraphReader.Ocr.dll"] = "1e23d76dda52293c82c0f3b91f52bdbb8e821452ae531d8a7237a4268107c4b1",
+        ["GraphReader.Pdf.dll"] = "66b2ca6e5ebe23090c0098b5ef0a2a81ceb8b5dfe48f7cbcf362605d72abd0cd",
+        ["GraphReader.Phases.dll"] = "d83e764ad0ce54acfb619ed4c74ac0eecbb10e552b3c1cb2c14909cc73ccf3c1",
+        ["GraphReader.SuperResolution.dll"] = "0c06646b7c65b8a47a30bb05bc5fb031af4074b17bfbe7761fbe99f4df805272",
         ["Microsoft.ML.OnnxRuntime.dll"] = "5e83437cb5c97d17fc959f35982ce1f0e90281515dafbacbc158b27bc2e972a3",
         ["onnxruntime.dll"] = "e7eedec6a6f26dc39dc948276a75ef6d2bee3fff944d874ceed0bbd3b97bff40",
         ["onnxruntime_providers_shared.dll"] = "265c8daf29637cb259cac8be9f08f2cd45f3883f0f0e4949cbfddd5b4cbec3b6",
@@ -179,7 +179,8 @@ internal static partial class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-geometry-properties-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { version = "0.4.47", scope = "all_frozen_real_dev", sealed_payload_reads = 0,
+        protocol = new { version = "0.4.48", runtime_scope = "source_build", delivered_package = false,
+            scope = "all_frozen_real_dev", sealed_payload_reads = 0,
             ocr_calls = 0, model_selection = false, review_only = true, production_approved = false,
             per_case_output = false, image_writes = false, persistent_cache = false,
             empty_ticks_mean = "unavailable_or_ambiguous_not_absence", case_deadline_seconds = 45, overall_deadline_seconds = 900 },
@@ -389,7 +390,8 @@ internal static partial class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-calibration-assistance-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { fixed_candidate = true, version = "0.4.47", denominator = Denominator,
+        protocol = new { fixed_candidate = true, version = "0.4.48", runtime_scope = "source_build", delivered_package = false,
+            denominator = Denominator,
             scope = "all_frozen_real_dev", sealed_payload_reads = 0, train_optimizer_steps = 0, model_selection = false,
             independent_accuracy = false, production_approved = false, review_only = true, applied = false,
             manual_truth_used_for_inference = false, case_deadline_seconds = 45, overall_deadline_seconds = 900,
@@ -461,7 +463,7 @@ internal static partial class RealDevCalibrationCheck
                 result.Pin(Path.Combine(assets, "recognizer.json"), Program.ManifestHash, token);
                 result.Pin(Path.Combine(assets, "PaddlePaddle-PP-OCRv5-Models-Apache-2.0.txt"), "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4", token);
                 result.Pin(Path.Combine(assets, "PaddlePaddle-PP-OCRv5-Models-Notice.txt"), "8d81f5d0c58547cce471c24f82efe768a9d907d06764f67e90cc680c6d777729", token);
-                foreach (var library in DeliveredLibraries.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+                foreach (var library in SourceRuntimeLibraries.OrderBy(pair => pair.Key, StringComparer.Ordinal))
                 {
                     result.Pin(Path.Combine(directory, library.Key), library.Value, token);
                     bool managed = library.Key.StartsWith("GraphReader.", StringComparison.Ordinal) ||

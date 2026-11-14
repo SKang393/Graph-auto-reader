@@ -330,8 +330,11 @@ The [unlabelled-tick correction](UNLABELLED-TICK-CALIBRATION-20261114.md) also
 keeps valid observed anchor pairs when additional outer/minor ticks lack
 labels. It passed 52 focused proposal/review tests and an owned actual-worker
 export/reopen check in 5.263 seconds, without assigning values to those ticks.
-One fixed real-dev confirmation will assess these owned-defect repairs after
-their source identities are frozen; it will not select models or thresholds.
+The [fixed real-dev confirmation](REAL-DEV-OBSERVED-PAIRS-CONFIRMATION-20261114.md)
+completed in 139.306 seconds: geometry/OCR remained 37/120, one additional
+X-only draft became available, and complete calibrations remained 0/120.
+These repairs do not establish automatic calibration readiness. No model or
+threshold selection occurred; source-bound manual assistance remains usable.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.
