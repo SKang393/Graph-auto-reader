@@ -6,7 +6,8 @@ param(
     [string]$BuildRoot,
     [string]$LatestPath,
     [string]$OutputPath,
-    [string]$AssignedUtc = ''
+    [string]$AssignedUtc = '',
+    [switch]$ValidateRetainedLedger
 )
 
 Set-StrictMode -Version Latest
@@ -89,6 +90,24 @@ function Get-Sha256 {
     param([Parameter(Mandatory)][string]$Path)
 
     return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+}
+
+if ($ValidateRetainedLedger) {
+    if (-not (Test-Path -LiteralPath $OutputPath -PathType Leaf)) {
+        throw "Build ledger is missing: $OutputPath"
+    }
+    $ledger = Get-Content -LiteralPath $OutputPath -Raw | ConvertFrom-Json
+    if ($ledger.schemaVersion -ne 1) { throw 'Build ledger schema is unsupported.' }
+    $retained = @($ledger.builds | Where-Object { $_.retained -eq $true })
+    if ($retained.Count -ne 1) { throw 'Build ledger must contain exactly one retained entry.' }
+    $directory = Get-OptionalString -Object $retained[0] -Name 'directory'
+    if ($null -eq $directory -or $directory -in @('.', '..') -or
+        $directory.IndexOfAny([char[]]'\/') -ge 0 -or
+        $directory.IndexOfAny([IO.Path]::GetInvalidFileNameChars()) -ge 0) {
+        throw 'Retained build directory must be a nonempty directory name.'
+    }
+    Write-Host 'Retained build ledger directory: valid'
+    return
 }
 
 if (-not (Test-Path -LiteralPath $BuildRoot -PathType Container)) {

@@ -32,3 +32,28 @@ initiated by the lead, not evidence of a physical Escape press. No prompt was
 clicked, setting changed or screenshot captured. The launch outcome is
 unknown, and no further UI input was issued. Continue code and worker checks;
 native settings and workflow acceptance remain unresolved.
+
+## Retained 449 launcher defect
+
+The maintainer subsequently double-clicked the primary checkout launcher and
+reported no response. Normal-host process inspection and Computer Use window
+listing both found no Graph Auto Reader process or window. The retained 449
+ledger entry omitted `directory`, which the launcher's strict identity check
+requires. A read-only strict-mode check reproduced `The property 'directory'
+cannot be found on this object.` The CMD wrapper then closed without starting
+the application. This identifies a concrete metadata defect for this attempt;
+it does not explain the earlier stalled Computer Use launch calls.
+
+The entry now names the verified directory
+`0.4.49-20261114T202631548Z-2aea386b`. The existing pointer, source commit,
+executable SHA-256 and package contents are unchanged. The actual copied launcher
+was tested using the corrected ledger with `-PortableSmoke -Wait` and exited 0
+in 3,977.801 ms, including PowerShell startup. It used the existing shared
+`artifacts/dev-portable/Data` directory. This is a launcher/headless check;
+native interactions remain pending under REV-011.
+
+The existing ledger test now validates the tracked retained directory even on
+CI hosts without local packages. `Generate-BuildLedger.ps1
+-ValidateRetainedLedger` is read-only and rejects a missing, empty or whitespace
+directory. The focused `packaging/tests/Test-GenerateBuildLedger.Tests.ps1`
+script passed all 6 checks, including valid and invalid retained-entry fixtures.

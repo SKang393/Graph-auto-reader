@@ -69,6 +69,22 @@ try {
     Assert-True ($errors.Count -eq 0) "PowerShell parser errors: $($errors -join ' | ')"
     $passed++
 
+    # CI has no retained build directory; validate the tracked ledger itself.
+    Invoke-Child -Arguments @('-ValidateRetainedLedger', '-OutputPath', (Join-Path $repositoryRoot 'docs\BUILD_LEDGER.json')) -ShouldPass $true
+    New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
+    $retainedFixture = Join-Path $testRoot 'retained-validation.json'
+    foreach ($entry in @(
+            [ordered]@{ retained = $true },
+            [ordered]@{ retained = $true; directory = '' },
+            [ordered]@{ retained = $true; directory = '   ' })) {
+        [IO.File]::WriteAllText($retainedFixture, (@{ schemaVersion = 1; builds = @($entry) } | ConvertTo-Json -Depth 5))
+        Invoke-Child -Arguments @('-ValidateRetainedLedger', '-OutputPath', $retainedFixture) -ShouldPass $false `
+            -ExpectedMessage 'Retained build directory must be a nonempty directory name.'
+    }
+    [IO.File]::WriteAllText($retainedFixture, (@{ schemaVersion = 1; builds = @(@{ retained = $true; directory = '0.4.49-example' }) } | ConvertTo-Json -Depth 5))
+    Invoke-Child -Arguments @('-ValidateRetainedLedger', '-OutputPath', $retainedFixture) -ShouldPass $true
+    $passed++
+
     $realBuildRoot = Join-Path $repositoryRoot 'artifacts\dev-portable\builds'
     $realLatestPath = Join-Path $repositoryRoot 'artifacts\dev-portable\latest.json'
     if ((Test-Path -LiteralPath $realBuildRoot -PathType Container) -and

@@ -8257,6 +8257,7 @@
 {
   "buildNumber": 449,
   "version": "0.4.49",
+  "directory": "0.4.49-20261114T202631548Z-2aea386b",
   "commit": "2aea386bf24300416aa773a4cbf874717cf12752",
   "buildTimeUtc": "2026-11-14T20:26:31.5481703+00:00",
   "executableSha256": "f95dc00c01166c67656b8bfd165c7b6d92ca15bf489b874e85cdd36824b2f2fa",
