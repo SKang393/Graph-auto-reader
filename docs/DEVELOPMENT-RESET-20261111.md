@@ -341,6 +341,9 @@ stroke/separation checks and the legacy endpoint filter. All 49 Rust tests
 passed, and an owned actual OCR control paired X values 1/2/5 to pixels
 140/240/540 with six measured pairs and zero estimated positions. This does
 not establish real-data accuracy; the proposed calibration was not applied.
+Integration CI [43631763261](https://github.com/SKang393/Graph-auto-reader/actions/runs/43631763261)
+passed on `461f3517`: 2,706 .NET tests, 30 skipped, zero failed across 13 suites;
+49 Rust tests and all 62 version-policy checks passed. Release jobs were skipped.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.
@@ -385,6 +388,13 @@ the publisher's JSON response contract. The diagnostic call emitted
 `-nan(ind)` in a text confidence field and took 14.738 seconds. Defer Cactus
 integration for this batch and continue the existing licensed OCR reader.
 This is an interface failure on one owned image, not an OCR accuracy comparison.
+
+Windows' built-in OCR was also considered as a local alternative. Microsoft
+documents that [Windows.Media.Ocr desktop use requires package identity](https://learn.microsoft.com/en-us/uwp/api/windows.media.ocr?view=winrt-26100).
+Adding package registration would change the current unpackaged portable
+workflow, so no latency probe, Windows component installation or integration
+was performed. Continue the existing reviewed reader while fixing observed
+geometry and proposal defects.
 
 ## Storage and completion
 

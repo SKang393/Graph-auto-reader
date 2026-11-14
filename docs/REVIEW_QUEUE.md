@@ -214,9 +214,12 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   already passed, so repeating those is unnecessary. On 2026-11-14 the
   maintainer authorized resuming checks, but the first window-list call
   immediately reported a physical Escape stop. Native inputs stopped again;
-  this is an execution interruption, not a failed product interaction. The
-  later resumed tool session has no Computer Use tools available; owned
-  headless package checks passed, but do not replace these visual checks
+  this is an execution interruption, not a failed product interaction. A later
+  tool check found Computer Use through its JavaScript runtime; the earlier
+  unavailable-tool statement was incorrect. The 0.4.48 launch then stalled
+  for about 479 seconds and the lead interrupted it. No App process or window
+  was established. See the [native attempt](NATIVE-PREVIEW-448-CHECK-20261114.md).
+  Owned headless package checks passed, but do not replace these visual checks
 - **Files:** [hardware and worker outcome](OCR-HARDWARE-CHECK-20261113.md),
   [automatic device-profile outcome](OCR-AUTOMATIC-DEVICE-20261113.md),
   [measured-tick proposal outcome](CALIBRATION-TICK-PROPOSALS-20261113.md),

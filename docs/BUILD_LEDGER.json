@@ -8233,7 +8233,7 @@
     "sourceCiVersionPolicyChecksPassed": 62,
     "packageUploadRunConclusion": "success",
     "visualWorkflowChecked": false,
-    "visualWorkflowScope": "Native interaction remains unverified; Computer Use is unavailable in this resumed tool session (REV-011).",
+    "visualWorkflowScope": "Native interaction remains unverified; the Computer Use JavaScript runtime was found, but the 0.4.48 launch stalled and the lead interrupted it after about 479 seconds (REV-011).",
     "bundledManualAxisDraftChecked": true,
     "bundledPreparedCropManualAxisWorkflowChecked": true,
     "sourceManualAxisDraftTestsPassed": 6,
