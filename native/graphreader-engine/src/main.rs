@@ -1233,6 +1233,40 @@ mod tests {
         }
     }
     #[test]
+    fn antialiased_axis_bands_preserve_observed_outward_ticks() {
+        let (width, height) = (640, 480);
+        for (first, second) in [(0, 255), (63, 191), (127, 127), (191, 63)] {
+            let mut pixels = vec![255; width * height];
+            for x in 99..=540 {
+                pixels[379 * width + x] = first;
+                pixels[380 * width + x] = second;
+            }
+            for y in 80..=380 {
+                pixels[y * width + 99] = pixels[y * width + 99].min(first);
+                pixels[y * width + 100] = pixels[y * width + 100].min(second);
+            }
+            for x in [140, 340, 540] {
+                for y in 380..=385 {
+                    pixels[y * width + x] = pixels[y * width + x].min(first);
+                    pixels[y * width + x + 1] = pixels[y * width + x + 1].min(second);
+                }
+            }
+            for y in [100, 230, 360] {
+                for x in 94..=100 {
+                    pixels[y * width + x] = pixels[y * width + x].min(first);
+                    pixels[(y + 1) * width + x] = pixels[(y + 1) * width + x].min(second);
+                }
+            }
+            let proposal = propose(width, height, 1, &pixels).expect("antialiased axes");
+            for (actual, expected) in [(&proposal.x_ticks, [140, 340, 540]), (&proposal.y_ticks, [100, 230, 360])] {
+                assert_eq!(actual.len(), expected.len(), "phase {first}/{second}: {actual:?}");
+                for (&position, expected) in actual.iter().zip(expected) {
+                    assert!(position.abs_diff(expected) <= 1, "phase {first}/{second}: {actual:?}");
+                }
+            }
+        }
+    }
+    #[test]
     fn faint_strokes_and_gray_competing_axes_remain_rejected() {
         assert!(is_dark(&[127], 0, 1));
         assert!(!is_dark(&[128], 0, 1));
