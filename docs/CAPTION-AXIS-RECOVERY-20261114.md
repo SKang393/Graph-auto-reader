@@ -71,8 +71,9 @@ The source report records panel SHA-256
 record `76204ba4231d3c05236c03fe7adae6b29fd51677` was pushed and the scoped
 process check returned zero. Cleanup completed at
 `2026-11-14T09:36:17.7157569Z`; the journal records 23 files and 21,418,652
-path bytes total. Keep the under-100-KB `artifacts/caption-recovery-check`
-control for the assigned 0.4.47 package consumer. Preserve original data,
+path bytes total. The caption recovery control (eight files, 11,221 bytes)
+was also retired at 2026-11-14T17:16:30Z after the 0.4.47 package consumer
+passed and record `3cb620fa` reached main. Preserve original data,
 current models, and shared QA data. No package was created by this check. The
 broader packaged workflow and real-dev confirmation remain separate evidence.
 No dependency, license, model or scientific-value default changed.

@@ -94,3 +94,7 @@ reached main and readers finished, in the 2026-11-14T08:57:44Z cleanup. The
 real-dev source data and sole retained 0.4.46 package were preserved.
 No installer, public release, production approval, or
 independent accuracy claim is implied.
+
+The historical 0.4.46 build/ZIP was subsequently retired in the verified
+0.4.47 replacement at 2026-11-14T17:16:30Z. Its source and artifact identities
+remain in the pushed build ledger; the original corpus was preserved.

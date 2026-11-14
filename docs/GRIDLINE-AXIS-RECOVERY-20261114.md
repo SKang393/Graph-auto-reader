@@ -105,18 +105,17 @@ Runtime identities:
 
 ## Limits and retention
 
-This source change is not packaged yet. Delivered 0.4.46 remains the verified
-build. This is one owned control, not native GUI acceptance, private-corpus
+This source change is included in verified preview 0.4.47. The historical
+0.4.46 baseline build has been retired after replacement. This is one owned control, not native GUI acceptance, private-corpus
 coverage, an accuracy estimate or production approval. Dense searches over
 128 pairs, inward-only ambiguous grids, interrupted axis strokes and other
 unsupported layouts can still require manual review/cropping. No universal
 multi-panel or padding-invariance guarantee is made. No model, license,
 dependency, threshold constant or scientific-value default changed.
 
-`artifacts/grid-recovery-check` contains eight disposable owned files totaling
-13,649 bytes. Retain this under-100-KB scratch for the assigned 0.4.47 packaged
-control, then retire it after that consumer and its pushed outcome finish,
-under [ARTIFACT-RETENTION.md](ARTIFACT-RETENTION.md). Do not commit the PNG,
-requests or raw reports. Current runtime/model inputs and the active Rust target
+`artifacts/grid-recovery-check` (eight owned files, 13,649 bytes) was retired
+at 2026-11-14T17:16:30Z after its 0.4.47 packaged consumer passed and record
+`3cb620fa` reached main, under [ARTIFACT-RETENTION.md](ARTIFACT-RETENTION.md).
+The PNG, requests and raw reports were not committed. Current runtime/model inputs and the active Rust target
 cache remain available to their consumers. No original or private data was read
 or modified for this batch.

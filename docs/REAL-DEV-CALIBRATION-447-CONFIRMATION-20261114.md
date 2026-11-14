@@ -86,6 +86,7 @@ $build = 'E:\Graph-auto-reader\artifacts\dev-portable\builds\0.4.47-20261114T093
 
 The 6,650-byte aggregate and metadata in
 `artifacts/real-dev-calibration-447-check` contain no per-case output or images.
-Retire this scratch after this record is pushed and active consumers finish.
+This scratch was retired at 2026-11-14T17:16:30Z after record `3cb620fa`
+reached main and the consumer/process checks were clear.
 Preserve the original corpus and current package. This diagnostic is not an
 independent accuracy evaluation or production approval.

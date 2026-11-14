@@ -92,12 +92,13 @@ Actual worker command, launched hidden with a 60-second owned watchdog
 
 ## Completion and retention
 
-Delivery acceptance remains pending the pushed source/outcome, a fresh full
-hosted CI suite and verified 0.4.47 packaging. No package was produced by these
-routine compiler checks.
+Source and hosted validation plus downloaded 0.4.47 packaging are recorded in
+[the delivery outcome](HOSTED-INTERNAL-PREVIEW-20261113.md#verified-build-447-delivery).
+Native interaction remains unverified; routine compiler checks did not create
+a separate package.
 
-Temporary `artifacts/calibration-refit-check` contains metadata, TRXs, owned
-image and workflow outputs, approximately 1.5 MB. Retain it for the 0.4.47
-packaged consumer, then retire it after that consumer finishes and this record
-is pushed. Keep active packaged model/runtime assets; do not retain scratch
-outputs as a substitute for this record.
+`artifacts/calibration-refit-check` (22 files, 1,453,326 bytes) and the eight
+owned off-screen PNGs were retired at 2026-11-14T17:16:30Z after the packaged
+consumer passed and delivery record `3cb620fa` was pushed. The initial local
+render-host failures and isolated successes remain recorded above. Current
+packaged model/runtime assets and user data were preserved.

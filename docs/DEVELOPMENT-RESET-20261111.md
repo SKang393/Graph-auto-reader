@@ -262,8 +262,9 @@ prepared-crop workflow exported and reopened three points in 4.770 seconds.
 The fixed [447 real-dev confirmation](REAL-DEV-CALIBRATION-447-CONFIRMATION-20261114.md)
 returned geometry/OCR on 37/120, five partial-axis drafts and zero complete
 measured or estimated calibrations; reused OCR median was 2.506 seconds.
-Finish ledger/pointer replacement and storage closeout before another feature
-batch. Additional isolated controls have not established complete real-world
+Delivery record `3cb620fa` is pushed, the latest pointer selects 447, and
+replacement cleanup retired 556 files / 374,054,641 path bytes while preserving
+all 12 shared Data file hashes and current dependencies. Additional isolated controls have not established complete real-world
 calibration coverage.
 
 Next, diagnose the preparation path using the unchanged 447 package. The

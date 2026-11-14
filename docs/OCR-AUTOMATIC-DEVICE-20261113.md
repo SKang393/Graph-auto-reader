@@ -102,7 +102,7 @@ and runtime notices are unchanged; no license or production approval changed.
 Expected temporary output is below 2 MB for logs/profile records. Reuse
 `artifacts/hardware-final-build` for routine compilation. The historical
 `artifacts/hardware-device-assets` staging is no longer a current input:
-current probes load the verified 0.4.46 package's `review-assistance/ocr` assets.
+current probes load the verified 0.4.47 package's `review-assistance/ocr` assets.
 All four staged files (7,867,699 path bytes) matched that keeper, including
 the reader, recognizer manifest and notices. The staging was retired after
 record `76204ba4231d3c05236c03fe7adae6b29fd51677` was pushed and the scoped

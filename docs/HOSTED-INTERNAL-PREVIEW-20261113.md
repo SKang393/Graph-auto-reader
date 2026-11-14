@@ -517,15 +517,18 @@ Packaged grid and caption controls each returned 6 measured pairs: pipeline time
 
 The [fixed real-dev confirmation](REAL-DEV-CALIBRATION-447-CONFIRMATION-20261114.md) completed all 120 inputs in 198.553 seconds: 37 geometry/OCR results, 300 numeric readings, five partial-axis drafts and zero complete measured or estimated calibrations. Reused OCR median was 2.506 seconds. This does not establish automatic calibration readiness or an accuracy improvement. Native UI acceptance remains unverified. This is an internal portable preview only, with no installer, public release, tag, production approval or clean-machine acceptance.
 
-Retention after the delivery ledger is pushed and consumers finish: switch the
-latest pointer to 447, then retire the superseded 446 build/ZIP, hosted-447
-download and validation staging, grid/caption/refit controls, the aggregate
-real-dev-447 scratch, and eight owned off-screen test PNGs under the active
-worktree's .codex/full-build/evidence (1,598,017 bytes). Preserve shared Data,
-private originals, current model/runtime dependencies and separate native QA
-data. The old budget-stop resume checkpoint and compact completed-cleanup
-journal are also disposable after their facts are pushed. Final cleanup will
-be recorded separately after execution.
+After delivery record `3cb620fab125b036c52735642f851aecdeed36e4` reached main,
+the scoped App/probe/Rust inventory was empty at 2026-11-14T17:16:28Z. The latest
+pointer was atomically switched to 447 and guarded cleanup completed at
+2026-11-14T17:16:30Z: **556 files, 374,054,641 path bytes**. This retired the
+superseded 446 build/ZIP, hosted download and validation staging, grid/caption/
+refit controls, real-dev-447 scratch, pointer backup, old budget-stop checkpoint
+and eight owned off-screen test PNGs (1,598,017 bytes). Those source controls
+remain reproducible through their recorded generator commands and Git commits.
+Exactly one extracted build and ZIP remain. All 12 shared Data files retained
+their hashes; private originals, current model/runtime dependencies and separate
+native QA data were preserved. E: had 360,289,001,472 bytes free afterward.
+The compact cleanup journals are disposable after this confirmation is pushed.
 
 The appended 447 ledger passed all 62 existing version-policy checks locally
 in 48.876 seconds with exit 0. No package was rebuilt for diagnostic pins or
