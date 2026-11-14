@@ -16,24 +16,24 @@ namespace GraphReader.CalibrationOcrProbe;
 internal static class RealDevCalibrationCheck
 {
     private const int Denominator = 120;
-    private const string AppDllHash = "86bb16ae0d89c0b12230d009a657120d5430a81992f710aa881ac3d18dc5bd6c";
-    private const string AppExeHash = "8c012440a7a433aff98e5df3cab33a760544b024d920f92cc326ac07d45f7778";
-    private const string RustHash = "4dfab71143dc8d448f8daf4cd6c537c4d98de7573b1faa3139bd8abb85c6cbe4";
-    // Exact delivered 0.4.43 libraries from the ZIP-entry-verified package, not caller-selected identities.
+    private const string AppDllHash = "8b08f23607a9b36f34ee89dc0cbb983f409467cd7bb42c0f1224424ec51c8dab";
+    private const string AppExeHash = "310f4ea2e409fc0e2e88e42774613cd8218d8debf4d10eb14ed4f638e6098510";
+    private const string RustHash = "04d6cca4689c9d93976915c889a4177f67322c79801fb406be2f1ae84ea1ba3a";
+    // Exact delivered 0.4.44 libraries from the ZIP-entry-verified package, not caller-selected identities.
     private static readonly FrozenDictionary<string, string> DeliveredLibraries = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["GraphReader.App.dll"] = AppDllHash,
-        ["GraphReader.Axis.dll"] = "393bf269ef388120fde3b467beefa49373788fdf11bd8f5aa8d3f557fbdac423",
-        ["GraphReader.Domain.dll"] = "06b1de80d3c084de6697c28fc332f52179b6ece5cdc9396e4b77ca8f38f51012",
-        ["GraphReader.Export.dll"] = "f000a58a7e0fa56491abe15334fcbdb0552a0b9e9a4acef4e217e90dd81bb6db",
-        ["GraphReader.Imaging.dll"] = "f1bb2306cbe30a207a0d42133646eb7d0184a35231a01eb03ce28ed8a48d9b66",
-        ["GraphReader.Inference.dll"] = "de55a281070252965e52f8ad5035286bc9647a6c9041f92d6f67b0c604215f14",
-        ["GraphReader.Legends.dll"] = "49ba751839209b07b3adceb7778e5bcf85fdd9d99d7e57be616086a3857fb701",
-        ["GraphReader.Markers.dll"] = "d5440c3cac32b9d8562521f4c209c2637b044ef31254b370158c145d48161932",
-        ["GraphReader.Ocr.dll"] = "8ec36eb2d7a6d5a5dd5bc7370f45689dccb62b11087c98833c13d3ab8edea261",
-        ["GraphReader.Pdf.dll"] = "795889877370fb1349ffe75b4c9d7815f9301607d2c295c592322f1fd521b979",
-        ["GraphReader.Phases.dll"] = "bad5a68fe69c646dfe78c29c29e850fa6b3dcfeef8bee7b29f87d78e52faca16",
-        ["GraphReader.SuperResolution.dll"] = "b1151d6e4c46913e1dae453e51bada219bd79cd1e9b9cfad1499f65116796458",
+        ["GraphReader.Axis.dll"] = "4b1007fedf5df3d1b0707235ff22cf29b09ce13e02c2dfa2836031f404ce2bac",
+        ["GraphReader.Domain.dll"] = "662bd681e0fc80355a0ee1ffefd6dac8aadd606b1fcc39ca59e6d628586b6bda",
+        ["GraphReader.Export.dll"] = "ce0342e7e80cc2b1e91f3a8de73356f3388335095306ef9a1d7c228b3330449e",
+        ["GraphReader.Imaging.dll"] = "19c7aea9f26937ef0fba60ad8f2d3d454df8b65e7923571c3253724235f13b37",
+        ["GraphReader.Inference.dll"] = "3d1f54729b9e9e5455afd6b3c735c22a783a2bf451c5e1110550cccd317fcb88",
+        ["GraphReader.Legends.dll"] = "85206db19e15b4f1dc442344e0ee21f1d29c4c50fd0166c79de0426621b89cda",
+        ["GraphReader.Markers.dll"] = "ce904d4577baf875582558998b8af1af45130221102310e9ffd89af4b3867d55",
+        ["GraphReader.Ocr.dll"] = "ec0c361624c71359a7ebb43aeaf2245e7be6f2cfa4a3d55232695ad4b3e11c53",
+        ["GraphReader.Pdf.dll"] = "2f1b85c6fea8bd46b3b8b6c7f80bc59ed70e1c05b1af1be6d6564e79410a7d1e",
+        ["GraphReader.Phases.dll"] = "c0446bb96f6978745c60f35a777989f5e5faca845d5613c89f5d392ba8d070f6",
+        ["GraphReader.SuperResolution.dll"] = "628d2525f0045bb5088e75192d9c8c9035c64e9fa3fc31d071f1b519c8699ff5",
         ["Microsoft.ML.OnnxRuntime.dll"] = "5e83437cb5c97d17fc959f35982ce1f0e90281515dafbacbc158b27bc2e972a3",
         ["onnxruntime.dll"] = "e7eedec6a6f26dc39dc948276a75ef6d2bee3fff944d874ceed0bbd3b97bff40",
         ["onnxruntime_providers_shared.dll"] = "265c8daf29637cb259cac8be9f08f2cd45f3883f0f0e4949cbfddd5b4cbec3b6",
@@ -171,7 +171,7 @@ internal static class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-geometry-properties-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { version = "0.4.43", scope = "all_frozen_real_dev", sealed_payload_reads = 0,
+        protocol = new { version = "0.4.44", scope = "all_frozen_real_dev", sealed_payload_reads = 0,
             ocr_calls = 0, model_selection = false, review_only = true, production_approved = false,
             per_case_output = false, image_writes = false, persistent_cache = false,
             empty_ticks_mean = "unavailable_or_ambiguous_not_absence", case_deadline_seconds = 45, overall_deadline_seconds = 900 },
@@ -360,7 +360,7 @@ internal static class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-calibration-assistance-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { fixed_candidate = true, version = "0.4.43", denominator = Denominator,
+        protocol = new { fixed_candidate = true, version = "0.4.44", denominator = Denominator,
             scope = "all_frozen_real_dev", sealed_payload_reads = 0, train_optimizer_steps = 0, model_selection = false,
             independent_accuracy = false, production_approved = false, review_only = true, applied = false,
             manual_truth_used_for_inference = false, case_deadline_seconds = 45, overall_deadline_seconds = 900,
@@ -410,8 +410,8 @@ internal static class RealDevCalibrationCheck
                 result.Pin(app, AppExeHash, token);
                 string directory = Path.GetDirectoryName(app)!;
                 result.Pin(typeof(CalibrationTickProposal).Assembly.Location, AppDllHash, token);
-                // This adapter uses the new white-background helper. The delivered 443 DLL
-                // lacks it; a later package must be verified and rebound before use.
+                // This adapter requires the verified white-background helper. Older DLLs
+                // must fail before private payload selection, even if pins are rebound.
                 RequireRasterCapability(typeof(CalibrationTickProposal).Assembly);
                 result.Pin(rust, RustHash, token);
                 result.Pin(Path.Combine(assets, "en_PP-OCRv5_mobile_rec.onnx"), Program.ModelHash, token);
@@ -469,6 +469,7 @@ internal static class RealDevCalibrationCheck
 
     internal static object SelfTest()
     {
+        RequireRasterCapability(typeof(CalibrationTickProposal).Assembly);
         bool capabilityRejected = false;
         bool payloadSelectionReached = false;
         try

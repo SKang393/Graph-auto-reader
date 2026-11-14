@@ -194,8 +194,15 @@ controls returned identical complete calibration proposals; the leftward-axis
 control changed from no usable Y ticks to six paired ticks in 3.992 s. Actual
 transparent-marker execution, cancellation and restart also passed. These are
 source-level owned controls, not a revision of the recorded real-dev coverage.
-Deliver them together as the next internal preview, then confirm its fixed
-bytes before any subsequent real-dev diagnostic. Keep UI acceptance queued.
+The integrated [0.4.44 preview](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0444)
+is uploaded and verified: source CI passed 2,646 .NET tests, 24 Rust tests and
+68 packaging checks. Its packaged transparent/inward/continued-axis control
+took 3.884 s. The [fixed real-dev confirmation](REAL-DEV-CALIBRATION-444-CONFIRMATION-20261114.md)
+still returned geometry on 36/120 and complete proposals on 0/120, with the same
+reason counts. It took 163.869 s overall; the separate reused OCR median was
+2.308 s. These fixes have not improved this corpus's complete-proposal coverage.
+Continue source-reproduced geometry repairs on owned controls. Keep native UI
+acceptance queued and preserve explicit review and manual calibration.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

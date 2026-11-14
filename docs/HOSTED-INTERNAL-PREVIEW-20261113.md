@@ -426,3 +426,14 @@ is needed for diagnostic pin or documentation updates.
 The new 443 ledger entry also passed the existing 62 version-policy checks
 locally, with both public and cadence eligibility derived from the policy and
 false. Temporary policy repositories stayed inside the delivery scratch.
+
+## Hosted delivery 0.4.44
+
+Hosted internal preview run [43568619877](https://github.com/SKang393/Graph-auto-reader/actions/runs/43568619877), job `132367873302`, succeeded from source `8c9d73289fb144fd8d155886d3d6a06e880b9a38`. App, Domain and Integration checks passed **1,125 tests, with 7 skipped and 0 failed**. Separate source CI [43568618518](https://github.com/SKang393/Graph-auto-reader/actions/runs/43568618518), job `132367866469`, also passed: 2,646 .NET tests, 30 skipped, 24 Rust tests, 68 packaging checks and 62 version-policy checks. The App build reported zero warnings and errors.
+
+- [Artifact 14103765685](https://github.com/SKang393/Graph-auto-reader/actions/runs/43568619877/artifacts/14103765685), `GraphAutoReader-0.4.44-internal-preview-43568619877`: 87,272,240 bytes, SHA-256 `fbe7eee147b2ef053e588770f0da382e18721ba9e3db6fa50c1b7a9540be9e69`. Created 2026-11-14 06:59:31 UTC; expires 2027-02-12 06:55:03 UTC.
+- The inner `GraphAutoReader-0.4.44-win-x64-internal-preview.zip` is 87,529,296 bytes, SHA-256 `4bf422d3df3bef6d54a11df9e58b9c3d8ee7ed2de735ef29a5434efe7b2d9c01`. Verification checked 477 extracted files against the ZIP. Build source/time: `8c9d73289fb144fd8d155886d3d6a06e880b9a38`, `2026-11-14T06:59:04.9033877Z`. Rust worker SHA-256: `04d6cca4689c9d93976915c889a4177f67322c79801fb406be2f1ae84ea1ba3a`.
+- Reviewed OCR reader, manifest, OpenCV runtime and notices were verified. Isolated portable smoke exited 0; the deliberately unavailable Production-runtime smoke exited 2. No normal UI was opened.
+- Packaged-app tick checks returned complete six-pair proposals for outward and left-axis controls, with observed zero positions retained; neither was applied. Results: outward 3.429 s process / 3,064.729 ms pipeline, SHA-256 `9c3e1d6a9b2eb00772f228203346c84df0f7dd5650500a0443ae40d6afd12501`; left 3.884 s / 3,492.824 ms, SHA-256 `b619ca8c20b5ca404f4b17a301014d2ffbea3984fc7856d9c0bc058f5bb7fa78`. The owned transparent-marker control found two candidates and verified cancellation, child exit and restart; it is not a representative accuracy or native UI check.
+
+The 0.4.44 ledger/pointer update and scratch retirement are pending. After the outcome is pushed and active readers finish, retire the superseded 0.4.43 build/ZIP plus `artifacts/hosted-444-check`, `artifacts/inward-tick-check` and `artifacts/real-dev-calibration-444-check`; preserve shared `Data`, corpus, current assets and native QA data. No installer, public tag/release, production approval or clean-machine acceptance is claimed. REV-011 remains paused after the Computer Use Escape stop.

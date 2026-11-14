@@ -23,12 +23,15 @@ CPU kernels, and pacing is not a GPU utilization cap. CPU mode is unchanged.
 
 `--real-dev-calibration-check <absolute-corpus-root> <absolute-packaged-App-exe> <absolute-assets-root> <absolute-Rust-worker> --explicit-opt-in`
 is one fixed diagnostic of all **120 frozen real-dev projects**, with no sealed
-payload reads. Its denominator is fixed before results. The App 0.4.43 DLL,
+payload reads. Its denominator is fixed before results. The App 0.4.44 DLL,
 packaged executable, Rust worker and existing reader/manifest/license hashes are
 checked before payload reads. All 21 supporting libraries have fixed delivered
 hashes; all 14 managed libraries must also match at their actual loaded paths.
 Restage the packaged libraries after a probe-only compile. No App rebuild or
-replacement candidate is implied. The current adapter requires the new white-background raster helper, which the fixed 0.4.43 DLL lacks; it fails closed before selection until a later verified package is explicitly rebound. The historical 0.4.43 run can be reproduced from source commit `46b6d039`.
+replacement candidate is implied. The adapter requires the verified
+white-background helper and fails closed before selection if it is absent.
+The 0.4.44 binding follows ZIP verification and owned packaged workflow checks.
+The historical 0.4.43 run can be reproduced from source commit `46b6d039`.
 
 The existing metadata selector and locked Engauge reader revalidate membership
 and opened-handle paths before reading each source. A single aggregate digest
