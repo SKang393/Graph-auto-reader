@@ -59,3 +59,28 @@ The original corpus and retained 0.4.48 executable remained present. No source
 worktree, current model store, environment or user Data directory was removed.
 The compact inventory and cleanup receipt are disposable once this
 confirmation is pushed.
+
+## Planned second retirement batch: confidence V32–V37 evaluations
+
+The bounded inventory also identified these six completed evaluation trees
+under `artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/`:
+
+| Output directory | Files | Path bytes | Pushed outcome |
+| --- | ---: | ---: | --- |
+| `frozen-confidence-v32-evaluation-20261002-v2` | 4,674 | 5,578,651,365 | `ml/markers/center/confidence_head_v32/P1_RESULT.json` |
+| `confidence-bce-v33-evaluation-20261002-v1` | 4,303 | 5,464,829,280 | `ml/markers/center/confidence_bce_v33/P1_RESULT.json` |
+| `confidence-residual-v34-evaluation-20261002-v1` | 4,302 | 5,464,180,490 | `ml/markers/center/confidence_residual_v34/P1_RESULT.json` |
+| `confidence-spatial-v35-evaluation-20261002-v1` | 4,198 | 5,455,811,889 | `ml/markers/center/confidence_spatial_v35/P1_RESULT.json` |
+| `confidence-duration-v36-evaluation-20261002-v1` | 4,219 | 5,455,270,241 | `ml/markers/center/confidence_duration_v36/P1_RESULT.json` |
+| `confidence-reflection-v37-evaluation-20261002-v1` | 4,225 | 5,456,124,023 | `ml/markers/center/confidence_reflection_v37/P1_RESULT.json` |
+| **Total** | **25,921** | **32,874,867,288** | |
+
+Each pushed result records `failed_dev_unconsumed`, no production approval, and
+zero private/sealed reads. V37 also has
+[`GOAL-22-CONFIDENCE-REFLECTION-EXPORT-DIAGNOSIS.json`](GOAL-22-CONFIDENCE-REFLECTION-EXPORT-DIAGNOSIS.json).
+No exact current source or package consumer was found. These trees contain
+local replay output; the aggregate outcomes and hashes remain in Git. Current
+V44/V27 and reviewed-parent readiness model keepers are outside these targets.
+
+This is a planned retirement batch, pending the lead's pre-removal process,
+containment, and reparse checks. No deletion is claimed here.
