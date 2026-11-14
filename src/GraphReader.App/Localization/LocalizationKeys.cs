@@ -119,6 +119,7 @@ public static class LocalizationKeys
     public const string ManualMarkerExemplarPanelTooLarge = "Manual.MarkerExemplar.PanelTooLarge";
     public const string ManualMarkerExemplarSearching = "Manual.MarkerExemplar.Searching";
     public const string ManualMarkerExemplarNoMatches = "Manual.MarkerExemplar.NoMatches";
+    public const string ManualMarkerExemplarReviewed = "Manual.MarkerExemplar.Reviewed";
     public const string ManualMarkerExemplarCount = "Manual.MarkerExemplar.Count";
     public const string ManualMarkerExemplarReviewAdvice = "Manual.MarkerExemplar.ReviewAdvice";
     public const string ManualMarkerExemplarAcceptAll = "Manual.MarkerExemplar.AcceptAll";
@@ -266,6 +267,8 @@ public static class LocalizationKeys
     public const string StatusRecoveredFormat = "Status.RecoveredFormat";
     public const string StatusExportedFormat = "Status.ExportedFormat";
     public const string StatusCancelled = "Status.Cancelled";
+    public const string StatusUndoCompleted = "Status.UndoCompleted";
+    public const string StatusRedoCompleted = "Status.RedoCompleted";
     public const string StatusManualEditRejectedFormat = "Status.ManualEditRejectedFormat";
     public const string StatusEnhancementReadyFormat = "Status.EnhancementReadyFormat";
     public const string DialogGraphImages = "Dialog.GraphImages";
@@ -547,6 +550,7 @@ public static class LocalizationKeys
         ManualMarkerExemplarPanelTooLarge,
         ManualMarkerExemplarSearching,
         ManualMarkerExemplarNoMatches,
+        ManualMarkerExemplarReviewed,
         ManualMarkerExemplarCount,
         ManualMarkerExemplarReviewAdvice,
         ManualMarkerExemplarAcceptAll,
@@ -652,6 +656,8 @@ public static class LocalizationKeys
         StatusRecoveredFormat,
         StatusExportedFormat,
         StatusCancelled,
+        StatusUndoCompleted,
+        StatusRedoCompleted,
         StatusManualEditRejectedFormat,
         StatusEnhancementReadyFormat,
         DialogGraphImages,

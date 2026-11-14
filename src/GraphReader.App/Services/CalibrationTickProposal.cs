@@ -14,6 +14,10 @@ public sealed record CalibrationYReviewDraft(int ZeroPixelPosition, int MaximumP
 public sealed record CalibrationPairedTick(string Axis, int PixelPosition, double Value, CalibrationOcrProposal Label)
 {
     public bool IsEstimated { get; init; }
+    internal bool IsUserCorrected { get; init; }
+    // Unit support counts an explicit human-entered sample for validation only.
+    // It never replaces the OCR confidence in Label or any raw response.
+    internal double ValidationSupportWeight => IsUserCorrected ? 1d : Label.Confidence;
 }
 public sealed record CalibrationTickProposalResult(CalibrationTickAnchors? Anchors, int? FirstSession,
     double? FinalSession, double? YMaximum, IReadOnlyList<CalibrationPairedTick> PairedTicks, IReadOnlyList<string> Reasons)
@@ -52,8 +56,29 @@ public static class CalibrationTickProposal
     public static CalibrationTickProposalResult CreateReviewDraft(RustAxisGeometry geometry, CalibrationOcrResponse response) =>
         CreateCore(geometry, response, estimateEmptyAxes: true, publishPartialAxes: true);
 
+    internal static CalibrationTickProposalResult CreateReviewDraft(RustAxisGeometry geometry, CalibrationOcrResponse response,
+        IReadOnlyList<CalibrationTickFitEvidence> evidence)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentNullException.ThrowIfNull(evidence);
+        var effective = new List<CalibrationOcrProposal>(evidence.Count);
+        var userCorrected = new HashSet<CalibrationOcrProposal>(ReferenceEqualityComparer.Instance);
+        foreach (CalibrationTickFitEvidence item in evidence)
+        {
+            if (!response.Proposals.Any(raw => ReferenceEquals(raw, item.RawProposal)))
+                return Failure([], [CalibrationTickProposalReasons.InvalidEvidence]);
+            if (item.HasCorrection && !item.HasValidCorrection)
+                return Failure([], [CalibrationTickProposalReasons.InvalidNumericLabel]);
+            CalibrationOcrProposal row = item.EffectiveProposal;
+            effective.Add(row);
+            if (item.HasCorrection) userCorrected.Add(row);
+        }
+        return CreateCore(geometry, response with { Proposals = effective.AsReadOnly() },
+            estimateEmptyAxes: true, publishPartialAxes: true, userCorrected: userCorrected);
+    }
+
     private static CalibrationTickProposalResult CreateCore(RustAxisGeometry geometry, CalibrationOcrResponse response,
-        bool estimateEmptyAxes, bool publishPartialAxes = false)
+        bool estimateEmptyAxes, bool publishPartialAxes = false, HashSet<CalibrationOcrProposal>? userCorrected = null)
     {
         ArgumentNullException.ThrowIfNull(geometry);
         ArgumentNullException.ThrowIfNull(response);
@@ -75,6 +100,7 @@ public static class CalibrationTickProposal
         var estimatedIntervals = new Dictionary<string, List<(double Start, double End)>>(StringComparer.Ordinal);
         foreach (CalibrationOcrProposal row in response.Proposals.Where(row => row.Role is "XTick" or "YTick"))
         {
+            bool isUserCorrected = userCorrected?.Contains(row) == true;
             string axis = row.Role == "XTick" ? "X" : "Y";
             List<string> axisReasons = axis == "X" ? xReasons : yReasons;
             void AddReason(string reason)
@@ -95,7 +121,7 @@ public static class CalibrationTickProposal
             }
             if (!row.NumericLiteral || row.FailureCode is not null || !CalibrationNumericLiteral.IsLiteral(row.Text) ||
                 row.NumericValue is not { } value || !double.IsFinite(value) ||
-                !double.IsFinite(row.Confidence) || row.Confidence is <= 0 or > 1 ||
+                !double.IsFinite(row.Confidence) || row.Confidence is < 0 or > 1 || (!isUserCorrected && row.Confidence == 0) ||
                 GraphNumericParser.Parse(row.Text).Value != value || row.Polygon.Count < 3 ||
                 row.Polygon.Any(point => !double.IsFinite(point.X) || !double.IsFinite(point.Y) ||
                     point.X < 0 || point.Y < 0 || point.X > request.Width || point.Y > request.Height))
@@ -133,7 +159,8 @@ public static class CalibrationTickProposal
                 { AddReason(CalibrationTickProposalReasons.AmbiguousAssociation); continue; }
                 intervals.Add((start, end));
                 paired.Add(new CalibrationPairedTick(axis, center, value,
-                    row with { Polygon = Array.AsReadOnly(row.Polygon.ToArray()) }) { IsEstimated = true });
+                    row with { Polygon = Array.AsReadOnly(row.Polygon.ToArray()) })
+                    { IsEstimated = true, IsUserCorrected = isUserCorrected });
                 continue;
             }
             double position = axis == "X" ? (left + right) / 2 : (top + bottom) / 2;
@@ -156,7 +183,8 @@ public static class CalibrationTickProposal
             }
             if (paired.Any(pair => pair.Axis == axis && pair.PixelPosition == nearest[0]))
                 AddReason(CalibrationTickProposalReasons.DuplicateAssociation);
-            paired.Add(new(axis, nearest[0], value, row with { Polygon = Array.AsReadOnly(row.Polygon.ToArray()) }));
+            paired.Add(new(axis, nearest[0], value, row with { Polygon = Array.AsReadOnly(row.Polygon.ToArray()) })
+                { IsUserCorrected = isUserCorrected });
         }
 
         CalibrationPairedTick[] x = paired.Where(pair => pair.Axis == "X").OrderBy(pair => pair.PixelPosition).ToArray();
@@ -205,14 +233,14 @@ public static class CalibrationTickProposal
             reasons.Add(CalibrationTickProposalReasons.InsufficientPairs);
             return;
         }
-        TickCandidate[] candidates = pairs.Select(pair => new TickCandidate(pair.Label.RegionId, pair.PixelPosition, pair.Value, pair.Label.Confidence)).ToArray();
+        TickCandidate[] candidates = pairs.Select(pair => new TickCandidate(pair.Label.RegionId, pair.PixelPosition, pair.Value, pair.ValidationSupportWeight)).ToArray();
         TickResolutionResult sequence = MonotonicTickResolver.Resolve(candidates,
             xAxis ? TickAxisDirection.IncreasingWithPixels : TickAxisDirection.DecreasingWithPixels);
         if (sequence.NeedsReview || sequence.RejectedTicks.Count > 0)
             reasons.Add(CalibrationTickProposalReasons.Nonmonotonic);
         LinearTransformFitResult fit = xAxis
-            ? RobustCalibration.FitX(pairs.Select(pair => new PrintedXTickEvidence(pair.Label.RegionId, pair.PixelPosition, pair.Value, pair.Label.Confidence)).ToArray())
-            : RobustCalibration.FitY(pairs.Select(pair => new NumericTickEvidence(pair.Label.RegionId, pair.PixelPosition, pair.Value, pair.Label.Confidence)).ToArray());
+            ? RobustCalibration.FitX(pairs.Select(pair => new PrintedXTickEvidence(pair.Label.RegionId, pair.PixelPosition, pair.Value, pair.ValidationSupportWeight)).ToArray())
+            : RobustCalibration.FitY(pairs.Select(pair => new NumericTickEvidence(pair.Label.RegionId, pair.PixelPosition, pair.Value, pair.ValidationSupportWeight)).ToArray());
         if (!fit.IsValid || fit.Diagnostics.OutlierIds.Count > 0 || fit.Diagnostics.InlierIds.Count != pairs.Length)
             reasons.Add(CalibrationTickProposalReasons.InconsistentSpacing);
     }

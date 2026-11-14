@@ -70,12 +70,34 @@ public sealed class MarkerExemplarBackendTests
         Assert.IsTrue(result.Any(candidate => candidate.Center == new MarkerExemplarPoint(80.25, 30.5)));
         MarkerExemplarRequest cutoff = request with { Plot = new(20, 30, 61, 2) };
         IReadOnlyList<MarkerExemplarCandidate> restricted = MarkerExemplarMatcher.Find(cutoff, Pixels(), CancellationToken.None);
-        Assert.HasCount(1, restricted);
-        Assert.AreEqual(new MarkerExemplarPoint(20.25, 30.5), restricted[0].Center,
-            "A fractional center at 80.25 is beyond the confirmed last pixel 80.");
-        var response = new MarkerExemplarResponse(cutoff, [new("outside", new(80.25, 30.5), .99)],
+        Assert.HasCount(2, restricted, "80.25 remains in boundary pixel 80.");
+        var response = new MarkerExemplarResponse(cutoff, [new("outside", new(80.5, 30.5), .99)],
             new(1, 1, 2), new(new(2, 2500, .5, true), 1, MarkerExemplarValidation.Algorithm), null);
         Assert.IsFalse(MarkerExemplarWorkerClient.IsValidResponse(cutoff, response));
+    }
+
+    [TestMethod]
+    public void FractionalBoundarySeedsMatchOppositeEndpointWithoutAdmittingNeighborPixels()
+    {
+        var plot = new MarkerExemplarRectangle(20, 30, 61, 2);
+        Assert.IsTrue(MarkerExemplarGeometry.ContainsCenter(plot, new(19.5, 30)));
+        Assert.IsFalse(MarkerExemplarGeometry.ContainsCenter(plot, new(19.499, 30)));
+        Assert.IsTrue(MarkerExemplarGeometry.ContainsCenter(plot, new(80.499, 30)));
+        Assert.IsFalse(MarkerExemplarGeometry.ContainsCenter(plot, new(80.5, 30)));
+        foreach (double phase in new[] { -0.25, 0.25 })
+        foreach (int seed in new[] { 20, 80 })
+        {
+            MarkerExemplarRequest request = Request([1]) with
+            {
+                Plot = plot, Exemplar = new(seed - 4, 26, 9, 9), SelectedPoint = new(seed + phase, 30.25),
+            };
+            Assert.IsTrue(MarkerExemplarValidation.ValidMetadata(request));
+            var result = MarkerExemplarMatcher.Find(request, Pixels(), CancellationToken.None);
+            double opposite = (seed == 20 ? 80 : 20) + phase;
+            Assert.IsTrue(result.Any(candidate => candidate.Center == new MarkerExemplarPoint(opposite, 30.25)),
+                $"seed {seed}, phase {phase}");
+            Assert.IsTrue(result.All(candidate => MarkerExemplarGeometry.ContainsCenter(plot, candidate.Center)));
+        }
     }
 
     [TestMethod]

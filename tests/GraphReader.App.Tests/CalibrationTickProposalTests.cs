@@ -173,6 +173,66 @@ public sealed class CalibrationTickProposalTests
     [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
+    public void ExplicitHumanCorrectionSuppliesValidationSupportWithoutChangingOcrConfidence(bool estimated)
+    {
+        CalibrationOcrProposal[] labels = Labels();
+        labels[4] = labels[4] with { Text = "", NumericValue = null, NormalizedText = null, NumericLiteral = false,
+            Confidence = 0, Role = "Other", FailureCode = CalibrationOcrReasonCodes.RecognitionFailed };
+        CalibrationOcrResponse response = Response(labels);
+        CalibrationTickFitEvidence[] evidence = labels.Select((row, index) => new CalibrationTickFitEvidence(row, index == 4 ? "5" : null)).ToArray();
+        RustAxisGeometry geometry = estimated ? Geometry() with { XTickPositions = [], YTickPositions = [] } : Geometry();
+
+        CalibrationTickProposalResult draft = CalibrationTickProposal.CreateReviewDraft(geometry, response, evidence);
+
+        Assert.IsTrue(draft.IsComplete, string.Join(",", draft.Reasons));
+        CalibrationPairedTick corrected = draft.PairedTicks.Single(pair => pair.Label.RegionId == labels[4].RegionId);
+        Assert.IsTrue(corrected.IsUserCorrected);
+        Assert.AreEqual(0d, corrected.Label.Confidence, "The human support weight is not an OCR confidence.");
+        Assert.AreEqual(5d, corrected.Value);
+        Assert.AreSame(labels[4], response.Proposals[4]);
+        Assert.AreEqual("", labels[4].Text);
+        Assert.AreEqual(0d, labels[4].Confidence);
+        Assert.AreEqual(CalibrationOcrReasonCodes.RecognitionFailed, labels[4].FailureCode);
+        Assert.IsFalse(CalibrationTickProposal.CreateReviewDraft(geometry, response).IsComplete,
+            "The untouched failed OCR receipt still cannot establish calibration.");
+    }
+
+    [TestMethod]
+    public void UncorrectedZeroConfidenceAndDetachedCorrectionEvidenceRemainRejected()
+    {
+        CalibrationOcrProposal[] labels = Labels();
+        labels[4] = labels[4] with { Confidence = 0 };
+        AssertRejected(Geometry(), labels, CalibrationTickProposalReasons.InvalidNumericLabel);
+        CalibrationOcrResponse response = Response(labels);
+        CalibrationTickFitEvidence[] evidence = labels.Select(row => new CalibrationTickFitEvidence(row, null)).ToArray();
+        evidence[4] = new(labels[4] with { }, "5");
+
+        CalibrationTickProposalResult detached = CalibrationTickProposal.CreateReviewDraft(Geometry(), response, evidence);
+
+        Assert.IsFalse(detached.IsComplete);
+        CollectionAssert.Contains(detached.Reasons.ToArray(), CalibrationTickProposalReasons.InvalidEvidence);
+        Assert.AreEqual(0d, labels[4].Confidence);
+    }
+
+    [TestMethod]
+    [DataRow("8", CalibrationTickProposalReasons.InconsistentSpacing)]
+    [DataRow("0", CalibrationTickProposalReasons.InsufficientPairs)]
+    public void HumanCorrectionCannotHideNumericConflicts(string value, string expectedReason)
+    {
+        CalibrationOcrProposal[] labels = Labels();
+        labels[4] = labels[4] with { Confidence = 0 };
+        CalibrationTickFitEvidence[] evidence = labels.Select((row, index) => new CalibrationTickFitEvidence(row, index == 4 ? value : null)).ToArray();
+
+        CalibrationTickProposalResult draft = CalibrationTickProposal.CreateReviewDraft(Geometry(), Response(labels), evidence);
+
+        Assert.IsFalse(draft.IsComplete);
+        Assert.IsNull(draft.YReviewDraft);
+        CollectionAssert.Contains(draft.Reasons.ToArray(), expectedReason);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
     public void ReviewDraftRetainsValidXWhenYHasNoObservedZero(bool estimatedX)
     {
         CalibrationOcrProposal[] labels = Labels().Select(row => row.SuggestedAxis == "Y"

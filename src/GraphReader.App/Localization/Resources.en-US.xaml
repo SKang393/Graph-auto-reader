@@ -122,6 +122,7 @@
   <sys:String x:Key="Manual.MarkerExemplar.PanelTooLarge">This panel exceeds the marker search limit (4096 pixels per side or 4,194,304 pixels total). Use Crop panel to create a smaller child tab; the original stays unchanged.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Searching">Searching the original panel for similar markers…</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.NoMatches">No similar positions were found. Try a smaller sample that includes the whole marker, another placed example, or add the point manually.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.Reviewed">No unreviewed matches remain.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Count">{0} possible matches found.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.ReviewAdvice">Review outlines and remove incorrect positions before adding. Added points remain editable with Move Point.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.AcceptAll">Add remaining matches ({0})</sys:String>
@@ -269,6 +270,8 @@
   <sys:String x:Key="Status.RecoveredFormat">Recovered autosave to '{0}'.</sys:String>
   <sys:String x:Key="Status.ExportedFormat">Exported {0} file(s).</sys:String>
   <sys:String x:Key="Status.Cancelled">Operation cancelled.</sys:String>
+  <sys:String x:Key="Status.UndoCompleted">Last change undone.</sys:String>
+  <sys:String x:Key="Status.RedoCompleted">Change redone.</sys:String>
   <sys:String x:Key="Status.ManualEditRejectedFormat">Manual edit was not applied: {0}</sys:String>
   <sys:String x:Key="Status.EnhancementReadyFormat">Enhanced preview ready with {0} at 2x. The original image is unchanged.</sys:String>
   <sys:String x:Key="Dialog.GraphImages">Graph images and PDFs</sys:String>

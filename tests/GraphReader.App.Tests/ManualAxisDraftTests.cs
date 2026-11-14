@@ -63,6 +63,11 @@ public sealed class ManualAxisDraftTests
             Assert.IsTrue(vm.UndoCommand.CanExecute(null));
             vm.UndoCommand.Execute(null);
             Assert.IsNull(tab.Calibration);
+            Assert.AreEqual("Status.UndoCompleted", vm.StatusMessage);
+            Assert.IsTrue(vm.RedoCommand.CanExecute(null));
+            vm.RedoCommand.Execute(null);
+            Assert.IsNotNull(tab.Calibration);
+            Assert.AreEqual("Status.RedoCompleted", vm.StatusMessage);
         });
     }
 

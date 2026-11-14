@@ -27,10 +27,11 @@ internal static class MarkerExemplarMatcher
         if (!double.IsFinite(deviation.Val0) || deviation.Val0 <= 0)
             throw new MarkerExemplarException(MarkerExemplarReasonCodes.UninformativeExemplar);
         double offsetX = request.SelectedPoint.X - exemplar.X, offsetY = request.SelectedPoint.Y - exemplar.Y;
-        int x0 = Math.Max(0, (int)Math.Ceiling(plot.X - offsetX));
-        int y0 = Math.Max(0, (int)Math.Ceiling(plot.Y - offsetY));
-        int x1 = Math.Min(request.Width - exemplar.Width, (int)Math.Floor((long)plot.X + plot.Width - 1 - offsetX));
-        int y1 = Math.Min(request.Height - exemplar.Height, (int)Math.Floor((long)plot.Y + plot.Height - 1 - offsetY));
+        // Same half-open boundary-pixel cells as ContainsCenter; origins are integral.
+        int x0 = Math.Max(0, (int)Math.Ceiling(plot.X - 0.5 - offsetX));
+        int y0 = Math.Max(0, (int)Math.Ceiling(plot.Y - 0.5 - offsetY));
+        int x1 = Math.Min(request.Width - exemplar.Width, (int)Math.Ceiling((long)plot.X + plot.Width - 0.5 - offsetX) - 1);
+        int y1 = Math.Min(request.Height - exemplar.Height, (int)Math.Ceiling((long)plot.Y + plot.Height - 0.5 - offsetY) - 1);
         if (x1 < x0 || y1 < y0) return Array.Empty<MarkerExemplarCandidate>();
         using var search = new Mat(original, new Rect(x0, y0, x1 - x0 + exemplar.Width, y1 - y0 + exemplar.Height));
         using var correlation = new Mat();

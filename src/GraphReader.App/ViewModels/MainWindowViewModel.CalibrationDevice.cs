@@ -13,6 +13,7 @@ public sealed partial class MainWindowViewModel
 {
     private CalibrationOcrDeviceSettings? _calibrationOcrDevices;
     private CalibrationOcrDeviceChoice? _selectedCalibrationOcrDevice;
+    private bool _refreshingCalibrationDeviceChoices;
     private string? _calibrationDeviceWarningCode;
     private bool _calibrationDeviceSaved;
     private CalibrationOcrRuntime? _lastCalibrationDeviceRuntime;
@@ -35,6 +36,7 @@ public sealed partial class MainWindowViewModel
         get => _selectedCalibrationOcrDevice;
         set
         {
+            if (_refreshingCalibrationDeviceChoices) return;
             if (Equals(value, _selectedCalibrationOcrDevice)) return;
             if (!CanChangeCalibrationOcrDevice || value is null ||
                 !CalibrationOcrDeviceChoices.Contains(value))
@@ -150,7 +152,9 @@ public sealed partial class MainWindowViewModel
                         DeviceLabel(_calibrationOcrDevices?.SelectedDevice ?? CalibrationOcrDeviceSelection.Cpu))
                 : DeviceLabel(device))).ToArray();
         _selectedCalibrationOcrDevice = CalibrationOcrDeviceChoices.FirstOrDefault(choice => choice.Device == selected);
-        OnPropertyChanged(nameof(CalibrationOcrDeviceChoices));
+        _refreshingCalibrationDeviceChoices = true;
+        try { OnPropertyChanged(nameof(CalibrationOcrDeviceChoices)); }
+        finally { _refreshingCalibrationDeviceChoices = false; }
         OnPropertyChanged(nameof(SelectedCalibrationOcrDevice));
     }
 

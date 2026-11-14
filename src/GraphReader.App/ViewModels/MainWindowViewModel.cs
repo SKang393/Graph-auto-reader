@@ -517,6 +517,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             if (SetProperty(ref _isBusy, value))
             {
+                OnPropertyChanged(nameof(AcceptAllMarkerExemplarsText));
                 AsyncRelayCommand.RaiseCanExecuteChanged();
                 RelayCommand.RaiseCanExecuteChanged();
             }
@@ -2686,6 +2687,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
+        SetStatus(GetLocalizedString(LocalizationKeys.StatusUndoCompleted));
         QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "undo", markDirty: false);
     }
 
@@ -2707,6 +2709,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
+        SetStatus(GetLocalizedString(LocalizationKeys.StatusRedoCompleted));
         QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "redo", markDirty: false);
     }
 

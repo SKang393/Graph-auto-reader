@@ -6,7 +6,6 @@ using System.Windows;
 using System.Windows.Input;
 using GraphReader.App.Localization;
 using GraphReader.App.Services;
-using GraphReader.Ocr;
 
 namespace GraphReader.App.ViewModels;
 
@@ -377,19 +376,8 @@ public sealed class CalibrationLabelRowViewModel(CalibrationOcrProposal proposal
     }
     public ICommand ResetCorrectionCommand => new RelayCommand(_ => CorrectedText = Proposal.Text,
         _ => CanEditCorrection && HasCorrection && canChangeInclusion?.Invoke(this) != false);
-    internal CalibrationOcrProposal EffectiveProposal
-    {
-        get
-        {
-            if (!HasCorrection) return Proposal;
-            bool literal = CalibrationNumericLiteral.IsLiteral(CorrectedText);
-            NumericParseResult parsed = GraphNumericParser.Parse(CorrectedText);
-            bool valid = literal && parsed.IsSuccess && parsed.Value is double value && double.IsFinite(value);
-            return Proposal with { Text = CorrectedText, NumericLiteral = valid, NumericValue = valid ? parsed.Value : null,
-                NormalizedText = valid ? parsed.NormalizedText : null, FailureCode = valid ? null : Proposal.FailureCode,
-                Role = valid ? Proposal.SuggestedAxis == "X" ? "XTick" : "YTick" : Proposal.Role };
-        }
-    }
+    internal CalibrationTickFitEvidence FitEvidence => new(Proposal, HasCorrection ? CorrectedText : null);
+    internal CalibrationOcrProposal EffectiveProposal => FitEvidence.EffectiveProposal;
     public bool IsIncluded
     {
         get => _isIncluded;

@@ -2,6 +2,9 @@
 // Copyright 2026 Sungwoo Kang
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Threading;
 using GraphReader.App.Localization;
 using GraphReader.App.Services;
@@ -88,6 +91,10 @@ public sealed class CalibrationDeviceViewModelTests
             _ => Task.FromResult(new string('a', 64)), token => Task.Delay(Timeout.Infinite, token));
         using var vm = new MainWindowViewModel(new FakeWorkspaceService(), Localizer(),
             calibrationOcrDevices: settings, calibrationDeviceOptimizer: optimizer);
+        var combo = new ComboBox { DataContext = vm, DisplayMemberPath = nameof(CalibrationOcrDeviceChoice.Label) };
+        combo.SetBinding(ItemsControl.ItemsSourceProperty, new Binding(nameof(vm.CalibrationOcrDeviceChoices)));
+        combo.SetBinding(Selector.SelectedItemProperty, new Binding(nameof(vm.SelectedCalibrationOcrDevice)) { Mode = BindingMode.TwoWay });
+        Assert.AreEqual(vm.SelectedCalibrationOcrDevice, combo.SelectedItem);
         int uiThread = Environment.CurrentManagedThreadId;
         int notificationThread = 0;
         var refreshed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -103,6 +110,8 @@ public sealed class CalibrationDeviceViewModelTests
         Assert.AreEqual(uiThread, notificationThread);
         Assert.AreEqual(CalibrationOcrDeviceSelection.Automatic, vm.SelectedCalibrationOcrDevice!.Device);
         StringAssert.Contains(vm.SelectedCalibrationOcrDevice.Label, "Discrete test GPU");
+        Assert.AreSame(vm.SelectedCalibrationOcrDevice, combo.SelectedItem);
+        StringAssert.Contains(((CalibrationOcrDeviceChoice)combo.SelectedItem).Label, "Discrete test GPU");
         Assert.AreEqual(gpu, settings.SelectedDevice);
         Assert.IsTrue(vm.CheckCalibrationDevicesCommand.CanExecute(null));
     });

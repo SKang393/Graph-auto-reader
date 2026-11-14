@@ -3,10 +3,14 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using GraphReader.App.Integration.MarkerExemplar;
+using GraphReader.App.Localization;
 using GraphReader.App.Services;
 using GraphReader.App.ViewModels;
 using GraphReader.Domain;
@@ -17,6 +21,24 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class MarkerExemplarBatchViewModelTests
 {
+    [TestMethod]
+    public void RemainingCountBindingRefreshesAfterSearchAndLastRowHasAccurateStatus() => WithFixture(fixture =>
+    {
+        var text = new TextBlock { DataContext = fixture.Vm };
+        text.SetBinding(TextBlock.TextProperty, new Binding(nameof(fixture.Vm.AcceptAllMarkerExemplarsText)));
+        fixture.Matcher.Candidates = Candidates(1);
+        fixture.Find();
+        StringAssert.Contains(text.Text, "1");
+        Assert.IsTrue(fixture.Vm.AcceptAllMarkerExemplarCandidatesCommand.CanExecute(null));
+        fixture.Vm.AcceptMarkerExemplarCandidateCommand.Execute(fixture.Vm.MarkerExemplarCandidates.Single());
+        StringAssert.Contains(fixture.Vm.MarkerExemplarStatusText, "Added 1");
+        fixture.Find();
+        fixture.Vm.RemoveMarkerExemplarCandidateCommand.Execute(fixture.Vm.MarkerExemplarCandidates.Single());
+        Assert.AreEqual("No unreviewed matches remain.", fixture.Vm.MarkerExemplarStatusText);
+        fixture.Matcher.Candidates = [];
+        fixture.Find();
+        StringAssert.Contains(fixture.Vm.MarkerExemplarStatusText, "No similar positions were found");
+    });
     [TestMethod]
     public void ExplicitBatchSkipsExistingDuplicatesAndUsesSelectedSeriesWithOneUndoAndAutosave() => WithFixture(fixture =>
     {
@@ -168,7 +190,8 @@ public sealed class MarkerExemplarBatchViewModelTests
             SeriesId = Workspace.AddSeries(Tab.TabId,
                 new("Selected", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention)).SeriesId;
             Seed = Workspace.AddPoint(Tab.TabId, SeriesId, 30, 30);
-            Vm = new(Workspace) { SelectedSeriesId = SeriesId, SelectedPointId = Seed.PointId };
+            Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+            Vm = new(Workspace, new LocalizationService(new ResourceDictionary())) { SelectedSeriesId = SeriesId, SelectedPointId = Seed.PointId };
         }
 
         internal void Find() => Pump(Vm.FindMarkerExemplarsAsync(CancellationToken.None));

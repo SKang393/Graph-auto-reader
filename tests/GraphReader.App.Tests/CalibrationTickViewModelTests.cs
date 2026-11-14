@@ -385,6 +385,57 @@ public sealed class CalibrationTickViewModelTests
     }
 
     [TestMethod]
+    public void FailedZeroConfidenceRowCanBeCorrectedAndRefittedWithoutRereadingOrAutomaticApply()
+    {
+        WithImage(path =>
+        {
+            CalibrationOcrProposal[] proposals = ValidProposals();
+            proposals[4] = proposals[4] with { Text = "", NumericValue = null, NormalizedText = null, NumericLiteral = false,
+                Confidence = 0, Role = "Other", FailureCode = CalibrationOcrReasonCodes.RecognitionFailed };
+            var reader = new OcrStub(proposals);
+            var axis = new AxisStub(MeasuredGeometry());
+            using var workspace = CreateWorkspace(path, reader, axis: axis);
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            CalibrationOcrResponse raw = reader.LastResponse!;
+            CalibrationLabelRowViewModel row = vm.CalibrationLabelRows.Single(item => item.Proposal.RegionId == "y-mid");
+            row.CorrectedText = "5";
+            Assert.IsTrue(row.HasValidCorrection);
+            Assert.AreEqual(0d, row.EffectiveProposal.Confidence);
+
+            vm.RefitSelectedCalibrationLabels();
+
+            Assert.AreEqual("10", vm.SuggestedYMaximum);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            row.CorrectedText = "";
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            row.CorrectedText = "5";
+            vm.RefitSelectedCalibrationLabels();
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            vm.AxisSuggestionReviewed = true;
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.IsNotNull(vm.SelectedTab!.Calibration);
+            var calibration = workspace.CurrentProject.Panels.Single().Calibration!;
+            Assert.IsTrue(calibration.UserConfirmed);
+            Assert.IsNotNull(calibration.SessionLattice);
+            Assert.AreEqual("manual_three_anchor", calibration.SessionLattice.Source);
+            Assert.IsTrue(calibration.Anchors.All(anchor => anchor.EvidenceRegionId is null));
+            Assert.AreSame(raw, reader.LastResponse);
+            Assert.AreEqual("", raw.Proposals[4].Text);
+            Assert.AreEqual(0d, raw.Proposals[4].Confidence);
+            Assert.AreEqual(CalibrationOcrReasonCodes.RecognitionFailed, raw.Proposals[4].FailureCode);
+            Assert.AreEqual(1, reader.CallCount);
+            Assert.AreEqual(1, axis.CallCount);
+            vm.UndoCommand.Execute(null);
+            Assert.IsNull(vm.SelectedTab.Calibration);
+        });
+    }
+
+    [TestMethod]
     public void ExplicitCorrectionPromotesOnlyTheLocalAxisRowAndValueCopyUsesIt()
     {
         WithImage(path =>

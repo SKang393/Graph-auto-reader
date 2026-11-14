@@ -249,7 +249,7 @@ public sealed partial class MainWindowViewModel
             MarkerExemplarCandidates.Remove(row);
             RefreshMarkerExemplarDuplicates(tab, suggestion.Request.SelectedSeriesId);
             SetMarkerExemplarStatus(MarkerExemplarCandidates.Count == 0
-                ? GetLocalizedString(LocalizationKeys.ManualMarkerExemplarNoMatches)
+                ? FormatLocalizedString(LocalizationKeys.ManualMarkerExemplarBatchAdded, 1, 0)
                 : FormatLocalizedString(LocalizationKeys.ManualMarkerExemplarCount, MarkerExemplarCandidates.Count));
             UpdateMarkerExemplarOverlay();
             OnPropertyChanged(nameof(HasMarkerExemplarCandidates));
@@ -362,6 +362,9 @@ public sealed partial class MainWindowViewModel
         if (parameter is not MarkerExemplarCandidateViewModel row || !MarkerExemplarCandidates.Remove(row)) return;
         if (_markerExemplarSuggestion is { } suggestion && SelectedTab is { } tab && tab.TabId == suggestion.TabId)
             RefreshMarkerExemplarDuplicates(tab, suggestion.Request.SelectedSeriesId);
+        SetMarkerExemplarStatus(MarkerExemplarCandidates.Count == 0
+            ? GetLocalizedString(LocalizationKeys.ManualMarkerExemplarReviewed)
+            : FormatLocalizedString(LocalizationKeys.ManualMarkerExemplarCount, MarkerExemplarCandidates.Count));
         UpdateMarkerExemplarOverlay();
         OnPropertyChanged(nameof(HasMarkerExemplarCandidates));
         OnPropertyChanged(nameof(AcceptAllMarkerExemplarsText));

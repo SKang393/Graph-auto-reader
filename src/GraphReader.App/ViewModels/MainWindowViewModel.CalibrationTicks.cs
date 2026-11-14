@@ -58,8 +58,8 @@ public sealed partial class MainWindowViewModel
             _workspaceService is not ICalibrationLabelSuggestionWorkspace labels)
             return;
         int generation = _calibrationLabelGeneration;
-        CalibrationOcrProposal[] included = CalibrationLabelRows.Where(row => row.IsIncluded)
-            .Select(row => row.EffectiveProposal).ToArray();
+        CalibrationTickFitEvidence[] included = CalibrationLabelRows.Where(row => row.IsIncluded)
+            .Select(row => row.FitEvidence).ToArray();
         _refittingCalibrationLabels = true;
         try
         {
@@ -72,7 +72,7 @@ public sealed partial class MainWindowViewModel
                 return;
             }
             CalibrationTickProposalResult proposal = CalibrationTickProposal.CreateReviewDraft(suggestion.Geometry,
-                original.Response with { Proposals = Array.AsReadOnly(included) });
+                original.Response, included);
             if (generation != _calibrationLabelGeneration || !ReferenceEquals(_calibrationLabelSuggestion, original) ||
                 !ReferenceEquals(_axisSuggestion, suggestion) || !labels.IsCalibrationLabelSuggestionCurrent(original) ||
                 !CanRefitCalibrationLabelsCore())
