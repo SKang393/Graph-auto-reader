@@ -186,6 +186,16 @@ usable Y arrays. Those counts overlap and do not prove printed ticks are absent.
 Prioritize source-reproduced geometry gaps, with owned regression controls,
 instead of further reader optimization or training. Preserve the frozen reader,
 scientific cross-checks, explicit review and manual fallback.
+The [inward-tick and transparent-image batch](INWARD-TICKS-AND-TRANSPARENCY-20261114.md)
+repairs owned reproductions of three gaps: inward ticks, a leftward baseline
+continuation discarding measured Y ticks, and transparent pixels becoming black.
+All 24 Rust tests and 48 focused App tests passed. Transparent and opaque graph
+controls returned identical complete calibration proposals; the leftward-axis
+control changed from no usable Y ticks to six paired ticks in 3.992 s. Actual
+transparent-marker execution, cancellation and restart also passed. These are
+source-level owned controls, not a revision of the recorded real-dev coverage.
+Deliver them together as the next internal preview, then confirm its fixed
+bytes before any subsequent real-dev diagnostic. Keep UI acceptance queued.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

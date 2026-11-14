@@ -85,10 +85,10 @@ $build = 'E:\Graph-auto-reader\artifacts\dev-portable\builds\0.4.43-20261114T055
 & $probe --real-dev-calibration-check 'E:\Graph-auto-reader\data\manual data' (Join-Path $build 'GraphReader.App.exe') (Join-Path $build 'review-assistance\ocr') (Join-Path $build 'native\graphreader-engine.exe') --explicit-opt-in
 ```
 
-The output scratch at `artifacts/real-dev-calibration-443-check` is retained
-until this outcome and adapter update are pushed and active readers finish.
-Then retire its disposable outputs under `ARTIFACT-RETENTION.md`; preserve the
-delivered package, model, and active native QA dependencies.
+After record `46b6d039` was pushed and readers finished, the output scratch at
+`artifacts/real-dev-calibration-443-check` was retired: 11 files, 11,144 path
+bytes. The original corpus, delivered package, model and native QA data were
+preserved. Commands here describe the adapter at that historical commit.
 
 ## Geometry-only diagnosis
 

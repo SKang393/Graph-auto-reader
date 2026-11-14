@@ -125,6 +125,6 @@ format, or license changed. No model training or accuracy claim is made.
 | OCR manifest | `17d44e8e86fa60183c30531c05c02e8da463ea9632dd494cf039227e3c4b0b2a` |
 
 This source batch is based on `d7fe8b1046102af7d2bedb636b45d4d464951db7`.
-`artifacts/ocr-padding-check` remains active for the packaged parity check;
-retire its disposable reports and scratch after the delivery record is pushed
-and consumers finish, following [`ARTIFACT-RETENTION.md`](ARTIFACT-RETENTION.md).
+After the 0.4.43 packaged check and pushed record `46b6d039`,
+`artifacts/ocr-padding-check` was retired: 34 files, 312,971 path bytes.
+Current runtime inputs remain available in the retained package.

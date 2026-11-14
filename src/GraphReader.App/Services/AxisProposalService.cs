@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GraphReader.Axis;
+using GraphReader.App.Integration;
 
 namespace GraphReader.App.Services;
 
@@ -24,7 +25,7 @@ public sealed class RustAxisProposalService(string workerPath) : IAxisProposalSe
             if (frame.PixelWidth is < 32 or > 4096 || frame.PixelHeight is < 32 or > 4096 ||
                 (long)frame.PixelWidth * frame.PixelHeight > 16_777_216)
                 return new RustAxisProposalResult(null, "INVALID_INPUT");
-            var gray = new FormatConvertedBitmap(frame, PixelFormats.Gray8, null, 0);
+            var gray = new FormatConvertedBitmap(WhiteBackgroundRaster.Normalize(frame, cancellationToken), PixelFormats.Gray8, null, 0);
             byte[] pixels = new byte[checked(gray.PixelWidth * gray.PixelHeight)];
             gray.CopyPixels(pixels, gray.PixelWidth, 0);
             return await RustAxisProposal.RunAsync(workerPath, gray.PixelWidth, gray.PixelHeight,

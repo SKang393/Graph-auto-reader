@@ -16,6 +16,21 @@ struct Proposal {
     y_ticks: Vec<u32>,
 }
 
+enum TickScan {
+    Absent,
+    Rejected,
+    Positions(Vec<u32>),
+}
+
+impl TickScan {
+    fn positions(self) -> Vec<u32> {
+        match self {
+            Self::Positions(positions) => positions,
+            Self::Absent | Self::Rejected => Vec::new(),
+        }
+    }
+}
+
 fn x_tick_positions(
     pixels: &[u8],
     width: usize,
@@ -27,32 +42,39 @@ fn x_tick_positions(
     bottom: usize,
     rows: &[usize],
     legacy: bool,
-) -> Vec<u32> {
+    inward: bool,
+) -> TickScan {
     let mut edge = bottom;
-    while edge + 1 < height && rows[edge + 1] * 5 >= rows[bottom] * 4 {
-        edge += 1;
+    if inward {
+        while edge > 0 && rows[edge - 1] * 5 >= rows[bottom] * 4 { edge -= 1; }
+    } else {
+        while edge + 1 < height && rows[edge + 1] * 5 >= rows[bottom] * 4 { edge += 1; }
     }
     let limit = (height / 20).clamp(3, 32);
-    if edge + 2 >= height {
-        return Vec::new();
+    if (!inward && edge + 2 >= height) || (inward && edge < 2) {
+        return TickScan::Absent;
     }
+    let dark = |x: usize, dy: usize| {
+        let y = if inward { edge.checked_sub(dy) } else { edge.checked_add(dy) };
+        y.filter(|&y| y < height)
+            .is_some_and(|y| is_dark(pixels, (y * width + x) * channels, channels))
+    };
     let mut positions = Vec::new();
     let mut x = if legacy { left.saturating_add(3) } else { left };
     while x <= right {
+        // On the inward side the Y axis itself is not evidence of an X tick.
+        if inward && x <= y_axis_right { x = y_axis_right + 1; continue; }
         let length = (1..=limit + 1)
-            .take_while(|&dy| {
-                edge + dy < height
-                    && is_dark(pixels, ((edge + dy) * width + x) * channels, channels)
-            })
+            .take_while(|&dy| dark(x, dy))
             .count();
         if length > limit {
             // The identified Y-axis can continue below the horizontal axis.
             // Its long downward run is not a tick and must not erase other measured ticks.
-            if legacy || x <= y_axis_right {
+            if !inward && (legacy || x <= y_axis_right) {
                 x += 1;
                 continue;
             }
-            return Vec::new();
+            return TickScan::Rejected;
         }
         if length < 2 {
             x += 1;
@@ -61,21 +83,28 @@ fn x_tick_positions(
         let start = x;
         x += 1;
         while x <= right
-            && (1..=2).all(|dy| is_dark(pixels, ((edge + dy) * width + x) * channels, channels))
+            && (1..=2).all(|dy| dark(x, dy))
         {
+            // A long adjacent grid stroke must not hide behind a short group
+            // member. The historical endpoint-only scan deliberately retains
+            // its previous grouping behavior; full tick evidence stays strict.
+            if !legacy && (1..=limit + 1).take_while(|&dy| dark(x, dy)).count() > limit {
+                return TickScan::Rejected;
+            }
             x += 1;
         }
         if x - start > 6 {
-            return Vec::new();
+            return TickScan::Rejected;
         }
         positions.push((start + x - 1) / 2);
     }
     validate_positions(positions)
 }
 
-fn validate_positions(positions: Vec<usize>) -> Vec<u32> {
+fn validate_positions(positions: Vec<usize>) -> TickScan {
+    if positions.is_empty() { return TickScan::Absent; }
     if positions.len() < 3 || positions.len() > 128 {
-        return Vec::new();
+        return TickScan::Rejected;
     }
     let gaps: Vec<usize> = positions.windows(2).map(|p| p[1] - p[0]).collect();
     let mut sorted = gaps.clone();
@@ -86,40 +115,64 @@ fn validate_positions(positions: Vec<usize>) -> Vec<u32> {
             .iter()
             .any(|&gap| gap * 2 < typical || gap * 2 > typical * 3)
     {
-        return Vec::new();
+        return TickScan::Rejected;
     }
-    positions.into_iter().map(|p| p as u32).collect()
+    TickScan::Positions(positions.into_iter().map(|p| p as u32).collect())
 }
 
 fn y_tick_positions(
     pixels: &[u8], width: usize, channels: usize,
-    left: usize, top: usize, bottom: usize, cols: &[usize],
-) -> Vec<u32> {
+    left: usize, top: usize, bottom: usize, x_axis_top: usize, cols: &[usize], inward: bool,
+) -> TickScan {
     let mut edge = left;
-    while edge > 0 && cols[edge - 1] * 5 >= cols[left] * 4 {
-        edge -= 1;
+    if inward {
+        while edge + 1 < width && cols[edge + 1] * 5 >= cols[left] * 4 { edge += 1; }
+    } else {
+        while edge > 0 && cols[edge - 1] * 5 >= cols[left] * 4 { edge -= 1; }
     }
     let limit = (width / 20).clamp(3, 32);
-    if edge < 2 { return Vec::new(); }
+    if (!inward && edge < 2) || (inward && edge + 2 >= width) { return TickScan::Absent; }
+    let dark = |y: usize, dx: usize| {
+        let x = if inward { edge.checked_add(dx) } else { edge.checked_sub(dx) };
+        x.filter(|&x| x < width)
+            .is_some_and(|x| is_dark(pixels, (y * width + x) * channels, channels))
+    };
     let mut positions = Vec::new();
     let mut y = top;
     while y <= bottom {
-        let length = (1..=limit + 1).take_while(|&dx| dx <= edge &&
-            is_dark(pixels, (y * width + edge - dx) * channels, channels)).count();
-        if length > limit { return Vec::new(); }
+        // Only the fully observed horizontal axis band is excluded. It cannot
+        // establish a Y tick at the intersection without a separate stroke.
+        if inward && y >= x_axis_top { break; }
+        let length = (1..=limit + 1).take_while(|&dx| dark(y, dx)).count();
+        if length > limit {
+            // The observed horizontal axis may continue left of the Y axis.
+            // Its long run is not a Y tick and must not erase separate ticks.
+            if !inward && y >= x_axis_top { y += 1; continue; }
+            return TickScan::Rejected;
+        }
         if length < 2 { y += 1; continue; }
         let start = y;
         y += 1;
-        while y <= bottom && (1..=2).all(|dx|
-            is_dark(pixels, (y * width + edge - dx) * channels, channels)) { y += 1; }
-        if y - start > 6 { return Vec::new(); }
+        while y <= bottom && (!inward || y < x_axis_top)
+            && (1..=2).all(|dx| dark(y, dx))
+        {
+            if (1..=limit + 1).take_while(|&dx| dark(y, dx)).count() > limit {
+                // Finish the real short group before the known axis band;
+                // the outer scan will skip that band without inventing a tick.
+                if !inward && y >= x_axis_top { break; }
+                return TickScan::Rejected;
+            }
+            y += 1;
+        }
+        if y - start > 6 { return TickScan::Rejected; }
         positions.push((start + y - 1) / 2);
     }
+    if positions.is_empty() { return TickScan::Absent; }
     if positions.len() < 3 || positions.len() > 128 ||
         positions.windows(2).any(|pair| pair[1] - pair[0] < 4) {
-        return Vec::new();
+        return TickScan::Rejected;
     }
-    positions.into_iter().map(|position| position as u32).collect()
+    TickScan::Positions(positions.into_iter().map(|position| position as u32).collect())
 }
 
 fn is_dark(pixels: &[u8], i: usize, channels: usize) -> bool {
@@ -201,10 +254,24 @@ fn propose(
     {
         y_axis_right += 1;
     }
-    let x_ticks = x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false);
-    let y_ticks = y_tick_positions(pixels, width, channels, left, top, bottom, &cols);
+    let mut x_axis_top = bottom;
+    while x_axis_top > top
+        && (left..=right).all(|x| is_dark(pixels, ((x_axis_top - 1) * width + x) * channels, channels))
+    {
+        x_axis_top -= 1;
+    }
+    // Prefer outward ticks. Inward strokes are considered only if that side
+    // has no evidence, never to rescue rejected or conflicting outward marks.
+    let x_ticks = match x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, false) {
+        TickScan::Absent => x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, true).positions(),
+        scan => scan.positions(),
+    };
+    let y_ticks = match y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, false) {
+        TickScan::Absent => y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, true).positions(),
+        scan => scan.positions(),
+    };
     let legacy_ticks = if x_ticks.is_empty() {
-        x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, true)
+        x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, true, false).positions()
     } else { Vec::new() };
     let endpoints = if x_ticks.is_empty() { &legacy_ticks } else { &x_ticks };
     let ticks = endpoints.first().zip(endpoints.last()).map(|(&a, &b)| (a, b));
@@ -357,6 +424,157 @@ mod tests {
         assert!((0.0..=1.0).contains(&p.confidence));
     }
     #[test]
+    fn short_inward_ticks_are_measured_without_inventing_axis_intersections() {
+        let a = inward_tick_pixels();
+        let p = propose(128, 128, 1, &a).unwrap();
+        assert_eq!((p.left, p.bottom, p.right, p.top), (20, 100, 115, 10));
+        assert_eq!(p.x_ticks, vec![30, 50, 70, 90, 110]);
+        assert_eq!(p.y_ticks, vec![20, 40, 60, 80]);
+        assert_eq!(p.ticks, Some((30, 110)));
+        assert!(!p.x_ticks.contains(&20));
+        assert!(!p.y_ticks.contains(&100));
+    }
+    fn inward_tick_pixels() -> Vec<u8> {
+        let mut a = vec![255; 128 * 128];
+        for x in 20..=115 { a[100 * 128 + x] = 0; }
+        for y in 10..=100 { a[y * 128 + 20] = 0; }
+        for x in [30, 50, 70, 90, 110] {
+            for y in 96..100 { a[y * 128 + x] = 0; }
+        }
+        for y in [20, 40, 60, 80] {
+            for x in 21..=24 { a[y * 128 + x] = 0; }
+        }
+        a
+    }
+    #[test]
+    fn axes_without_tick_strokes_remain_empty_on_both_sides() {
+        let mut a = vec![255; 128 * 128];
+        for x in 20..=115 { a[100 * 128 + x] = 0; }
+        for y in 10..=100 { a[y * 128 + 20] = 0; }
+        let p = propose(128, 128, 1, &a).unwrap();
+        assert!(p.x_ticks.is_empty());
+        assert!(p.y_ticks.is_empty());
+        assert_eq!(p.ticks, None);
+    }
+    #[test]
+    fn inward_x_ticks_work_with_ordinary_outward_y_ticks() {
+        let mut a = inward_tick_pixels();
+        // Remove inward Y ticks, retaining the actual vertical axis.
+        for y in [20, 40, 60, 80] {
+            for x in 21..=24 { a[y * 128 + x] = 255; }
+        }
+        for y in [20, 50, 80] {
+            for x in 16..20 { a[y * 128 + x] = 0; }
+        }
+        let p = propose(128, 128, 1, &a).unwrap();
+        assert_eq!(p.x_ticks, vec![30, 50, 70, 90, 110]);
+        assert_eq!(p.y_ticks, vec![20, 50, 80]);
+    }
+    #[test]
+    fn long_inward_grid_strokes_reject_instead_of_becoming_ticks() {
+        let mut a = inward_tick_pixels();
+        for y in 80..100 { a[y * 128 + 70] = 0; }
+        for x in 21..=40 { a[40 * 128 + x] = 0; }
+        let p = propose(128, 128, 1, &a).unwrap();
+        assert!(p.x_ticks.is_empty());
+        assert!(p.y_ticks.is_empty());
+        assert_eq!(p.ticks, None);
+    }
+    #[test]
+    fn adjacent_long_group_members_reject_on_both_axes_and_directions() {
+        for inward in [true, false] {
+            let mut a = vec![255; 128 * 128];
+            for x in 20..=115 { a[100 * 128 + x] = 0; }
+            for y in 10..=100 { a[y * 128 + 20] = 0; }
+            for x in [30, 50, 70, 71, 90, 110] {
+                for d in 1..=4 {
+                    let y = if inward { 100 - d } else { 100 + d };
+                    a[y * 128 + x] = 0;
+                }
+            }
+            for y in [20, 40, 41, 60, 80] {
+                for d in 1..=4 {
+                    let x = if inward { 20 + d } else { 20 - d };
+                    a[y * 128 + x] = 0;
+                }
+            }
+            let short = propose(128, 128, 1, &a).unwrap();
+            assert_eq!(short.x_ticks, vec![30, 50, 70, 90, 110]);
+            assert_eq!(short.y_ticks, vec![20, 40, 60, 80]);
+            // Only the second member of each two-pixel group becomes long.
+            for d in 1..=10 {
+                let y = if inward { 100 - d } else { 100 + d };
+                let x = if inward { 20 + d } else { 20 - d };
+                a[y * 128 + 71] = 0;
+                a[41 * 128 + x] = 0;
+            }
+            let long = propose(128, 128, 1, &a).unwrap();
+            assert!(long.x_ticks.is_empty(), "inward={inward}");
+            assert!(long.y_ticks.is_empty(), "inward={inward}");
+            // Preserve the old outward endpoint-only fallback, without exposing
+            // that legacy grouping as full measured tick evidence.
+            assert_eq!(long.ticks, if inward { None } else { Some((30, 110)) });
+        }
+    }
+    #[test]
+    fn rejected_outward_strokes_cannot_be_rescued_by_inward_ticks() {
+        for kind in 0..4 {
+            let mut a = inward_tick_pixels();
+            match kind {
+                0 => {
+                    for x in [30, 50] { for y in 101..=104 { a[y * 128 + x] = 0; } }
+                    for y in [20, 40] { for x in 16..20 { a[y * 128 + x] = 0; } }
+                }
+                1 => {
+                    for x in 30..=36 { for y in 101..=104 { a[y * 128 + x] = 0; } }
+                    for y in 20..=26 { for x in 16..20 { a[y * 128 + x] = 0; } }
+                }
+                2 => {
+                    for y in 101..=110 { a[y * 128 + 70] = 0; }
+                    for x in 10..20 { a[40 * 128 + x] = 0; }
+                }
+                _ => {
+                    for x in [30, 40, 110] { for y in 101..=104 { a[y * 128 + x] = 0; } }
+                    for y in [20, 22, 60] { for x in 16..20 { a[y * 128 + x] = 0; } }
+                }
+            }
+            let p = propose(128, 128, 1, &a).unwrap();
+            assert!(p.x_ticks.is_empty(), "outward case {kind}");
+            assert!(p.y_ticks.is_empty(), "outward case {kind}");
+            assert_eq!(p.ticks, None, "outward case {kind}");
+        }
+    }
+    #[test]
+    fn valid_outward_ticks_are_not_merged_with_conflicting_inward_ticks() {
+        let mut a = inward_tick_pixels();
+        for x in [40, 60, 80] { for y in 101..=104 { a[y * 128 + x] = 0; } }
+        for y in [30, 50, 70] { for x in 16..20 { a[y * 128 + x] = 0; } }
+        let p = propose(128, 128, 1, &a).unwrap();
+        assert_eq!(p.x_ticks, vec![40, 60, 80]);
+        assert_eq!(p.y_ticks, vec![30, 50, 70]);
+        assert_eq!(p.ticks, Some((40, 80)));
+    }
+    #[test]
+    fn inward_ticks_skip_observed_axis_bands_without_inventing_endpoints() {
+        for thickness in 1..=3 {
+            let mut a = vec![255; 128 * 128];
+            let axis_top = 101 - thickness;
+            for y in axis_top..=100 { for x in 20..=115 { a[y * 128 + x] = 0; } }
+            for x in 20..20 + thickness { for y in 10..=100 { a[y * 128 + x] = 0; } }
+            for x in [30, 50, 70, 90, 110] {
+                for y in axis_top - 4..axis_top { a[y * 128 + x] = 0; }
+            }
+            for y in [20, 40, 60, 80] {
+                for x in 20 + thickness..24 + thickness { a[y * 128 + x] = 0; }
+            }
+            let p = propose(128, 128, 1, &a).unwrap();
+            assert_eq!(p.x_ticks, vec![30, 50, 70, 90, 110]);
+            assert_eq!(p.y_ticks, vec![20, 40, 60, 80]);
+            assert!(!p.x_ticks.contains(&p.left));
+            assert!(!p.y_ticks.contains(&p.bottom));
+        }
+    }
+    #[test]
     fn ticks_use_outward_strokes_not_axis_extensions_or_above_baseline_marks() {
         let mut a = vec![255; 128 * 128];
         for x in 8..=115 {
@@ -419,6 +637,63 @@ mod tests {
         assert_eq!(p.x_ticks, vec![30, 50, 70, 90, 110]);
         assert!(!p.x_ticks.contains(&20));
         assert_eq!(p.ticks, Some((30, 110)));
+    }
+    fn left_extended_axis_pixels(thickness: usize) -> Vec<u8> {
+        let mut a = vec![255; 128 * 128];
+        for y in 101 - thickness..=100 {
+            for x in 8..=115 { a[y * 128 + x] = 0; }
+        }
+        for y in 10..=100 { a[y * 128 + 20] = 0; }
+        for x in [30, 70, 110] {
+            for y in 101..=104 { a[y * 128 + x] = 0; }
+        }
+        for y in [20, 50, 80] {
+            for x in 16..20 { a[y * 128 + x] = 0; }
+        }
+        a
+    }
+    #[test]
+    fn leftward_horizontal_axis_continuation_preserves_measured_y_ticks() {
+        for thickness in 1..=3 {
+            let a = left_extended_axis_pixels(thickness);
+            let p = propose(128, 128, 1, &a).unwrap();
+            assert_eq!((p.left, p.bottom, p.right, p.top), (20, (101 - thickness) as u32, 115, 10));
+            assert_eq!(p.x_ticks, vec![30, 70, 110]);
+            assert_eq!(p.y_ticks, vec![20, 50, 80]);
+            assert!(!p.y_ticks.contains(&p.bottom));
+            assert_eq!(p.ticks, Some((30, 110)));
+        }
+    }
+    #[test]
+    fn horizontal_axis_band_does_not_hide_unrelated_long_y_strokes() {
+        for long_row in [50, 51] {
+            let mut a = left_extended_axis_pixels(1);
+            // Row 50 is a tick's first member; row 51 is an adjacent member.
+            // Neither belongs to the observed horizontal axis band.
+            for x in 8..20 { a[long_row * 128 + x] = 0; }
+            let p = propose(128, 128, 1, &a).unwrap();
+            assert!(p.y_ticks.is_empty(), "long row {long_row}");
+            assert_eq!(p.x_ticks, vec![30, 70, 110]);
+        }
+    }
+    #[test]
+    fn horizontal_axis_continuation_cannot_supply_a_missing_third_y_tick() {
+        let mut a = left_extended_axis_pixels(1);
+        for x in 16..20 { a[80 * 128 + x] = 255; }
+        let p = propose(128, 128, 1, &a).unwrap();
+        assert!(p.y_ticks.is_empty());
+        assert_eq!(p.x_ticks, vec![30, 70, 110]);
+    }
+    #[test]
+    fn short_y_tick_next_to_long_axis_band_retains_its_actual_position() {
+        for thickness in 1..=3 {
+            let mut a = left_extended_axis_pixels(thickness);
+            let tick_y = 100 - thickness;
+            for x in 16..20 { a[tick_y * 128 + x] = 0; }
+            let p = propose(128, 128, 1, &a).unwrap();
+            assert_eq!(p.y_ticks, vec![20, 50, 80, tick_y as u32]);
+            assert!(!p.y_ticks.contains(&p.bottom));
+        }
     }
     #[test]
     fn contiguous_y_axis_stroke_columns_do_not_erase_observed_x_ticks() {

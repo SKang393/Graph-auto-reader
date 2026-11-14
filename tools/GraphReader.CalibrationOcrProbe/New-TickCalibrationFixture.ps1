@@ -1,7 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Sungwoo Kang
 [CmdletBinding()]
-param([Parameter(Mandatory = $true)][string]$OutputPath)
+param(
+    [Parameter(Mandatory = $true)][string]$OutputPath,
+    [switch]$InwardXTicks,
+    [switch]$TransparentBackground,
+    [switch]$LeftAxisContinuation
+)
 $ErrorActionPreference = 'Stop'
 if (-not [IO.Path]::IsPathRooted($OutputPath) -or (Test-Path -LiteralPath $OutputPath)) {
     throw 'An absolute, unused output path is required.'
@@ -21,17 +26,19 @@ try {
     $graphics.TextRenderingHint = [Drawing.Text.TextRenderingHint]::AntiAliasGridFit
     $format.Alignment = [Drawing.StringAlignment]::Center
     $format.LineAlignment = [Drawing.StringAlignment]::Center
-    $graphics.DrawLine($pen, 100, 380, 580, 380)
+    $axisStart = if ($LeftAxisContinuation) { 50 } else { 100 }
+    $graphics.DrawLine($pen, $axisStart, 380, 580, 380)
     $graphics.DrawLine($pen, 100, 80, 100, 380)
     $xPositions = @(140, 340, 540)
     $xLabels = @('1', '2', '3')
     for ($index = 0; $index -lt $xPositions.Count; $index++) {
         $x = $xPositions[$index]
-        $graphics.DrawLine($pen, $x, 380, $x, 385)
+        $tickEnd = if ($InwardXTicks) { 375 } else { 385 }
+        $graphics.DrawLine($pen, $x, 380, $x, $tickEnd)
         $graphics.DrawString($xLabels[$index], $font, [Drawing.Brushes]::Black,
             [Drawing.PointF]::new($x, 403), $format)
     }
-    $yPositions = @(80, 230, 380)
+    $yPositions = if ($LeftAxisContinuation) { @(80, 215, 350) } else { @(80, 230, 380) }
     $yLabels = @('10', '5', '0')
     for ($index = 0; $index -lt $yPositions.Count; $index++) {
         $y = $yPositions[$index]
@@ -39,6 +46,7 @@ try {
         $graphics.DrawString($yLabels[$index], $font, [Drawing.Brushes]::Black,
             [Drawing.PointF]::new(74, $y), $format)
     }
+    if ($TransparentBackground) { $bitmap.MakeTransparent([Drawing.Color]::White) }
     $bitmap.Save($OutputPath, [Drawing.Imaging.ImageFormat]::Png)
 }
 finally {
@@ -51,5 +59,8 @@ finally {
     bytes = (Get-Item -LiteralPath $OutputPath).Length
     width = 640
     height = 480
+    x_tick_direction = if ($InwardXTicks) { 'inward' } else { 'outward' }
+    transparent_background = [bool]$TransparentBackground
+    left_axis_continuation = [bool]$LeftAxisContinuation
     renderer = 'Windows System.Drawing with installed Segoe UI; no font binary copied'
 } | ConvertTo-Json -Compress

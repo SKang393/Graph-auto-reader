@@ -22,14 +22,7 @@ internal static class TickProposalCheck
         var total = Stopwatch.StartNew();
         byte[] original = Program.ReadBounded(source.ImagePath, 64 * 1024 * 1024);
         Program.RequireHash(original, source.ImageSha256);
-        var (image, _, _) = Program.Decode(original, crop);
-        var stage = Stopwatch.StartNew();
-        RustAxisProposalResult axis = await RustAxisProposal.RunAsync(rustExe, image.Width, image.Height,
-            image.Pixels, cancellationToken: token);
-        double geometryMilliseconds = stage.Elapsed.TotalMilliseconds;
-        if (axis.Geometry is not { } geometry)
-            return new { review_only = true, axis.ErrorCode, geometry_milliseconds = geometryMilliseconds };
-
+        var (image, _, _) = Program.Decode(original, crop, token);
         byte[] panel;
         using (var input = new MemoryStream(original, writable: false))
         {
@@ -41,6 +34,11 @@ internal static class TickProposalCheck
             encoder.Save(output);
             panel = output.ToArray();
         }
+        var stage = Stopwatch.StartNew();
+        RustAxisProposalResult axis = await new RustAxisProposalService(rustExe).SuggestAsync(panel, token);
+        double geometryMilliseconds = stage.Elapsed.TotalMilliseconds;
+        if (axis.Geometry is not { } geometry)
+            return new { review_only = true, axis.ErrorCode, geometry_milliseconds = geometryMilliseconds };
         var request = new CalibrationOcrRequest("tick-proposal-check", binding, source.ImageSha256,
             Program.Hash(panel), image.Width, image.Height,
             new(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom));

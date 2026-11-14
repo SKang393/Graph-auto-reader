@@ -159,7 +159,7 @@ internal static class HardwareCheck
         Program.RequireHash(Program.ReadBounded(request.ManifestPath, 128 * 1024), Program.ManifestHash);
         Program.RequireHash(Program.ReadBounded(request.LicensePath, 128 * 1024), "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4");
         Program.RequireHash(Program.ReadBounded(request.NoticePath, 128 * 1024), "8d81f5d0c58547cce471c24f82efe768a9d907d06764f67e90cc680c6d777729");
-        (OcrImage image, _, _) = Program.Decode(encoded, request.SourceCropXywh);
+        (OcrImage image, _, _) = Program.Decode(encoded, request.SourceCropXywh, token);
         double[] p = request.PlotLtrb;
         var plot = new OcrRectangle(p[0], p[1], p[2] - p[0], p[3] - p[1]);
         if (!plot.IsValid || p.Any(value => !double.IsFinite(value)) || plot.Left < 0 || plot.Top < 0 ||

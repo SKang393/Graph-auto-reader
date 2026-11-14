@@ -62,7 +62,7 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             var before = MemorySnapshot();
             bool reused = reader is not null;
             var stage = Stopwatch.StartNew();
-            OcrImage image = Decode(item);
+            OcrImage image = Decode(item, token);
             double decode = stage.Elapsed.TotalMilliseconds;
             CalibrationOcrPlot plot = item.Request.Plot;
             var bounds = new OcrRectangle(plot.Left, plot.Top, plot.Right - plot.Left, plot.Bottom - plot.Top);
@@ -202,13 +202,13 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             throw new CalibrationOcrException(CalibrationOcrReasonCodes.InvalidInput);
     }
 
-    private static OcrImage Decode(CalibrationOcrWorkItem item)
+    private static OcrImage Decode(CalibrationOcrWorkItem item, CancellationToken token)
     {
         using var stream = new MemoryStream(item.EncodedImage, writable: false);
         BitmapDecoder decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
         if (decoder.Frames.Count != 1 || decoder.Frames[0].PixelWidth != item.Request.Width || decoder.Frames[0].PixelHeight != item.Request.Height)
             throw new CalibrationOcrException(CalibrationOcrReasonCodes.InvalidInput);
-        BitmapFrame frame = decoder.Frames[0];
+        BitmapSource frame = WhiteBackgroundRaster.Normalize(decoder.Frames[0], token);
         var gray = new FormatConvertedBitmap(frame, PixelFormats.Gray8, null, 0);
         var bgr = new FormatConvertedBitmap(frame, PixelFormats.Bgr24, null, 0);
         int width = item.Request.Width, height = item.Request.Height;

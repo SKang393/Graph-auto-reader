@@ -28,7 +28,7 @@ packaged executable, Rust worker and existing reader/manifest/license hashes are
 checked before payload reads. All 21 supporting libraries have fixed delivered
 hashes; all 14 managed libraries must also match at their actual loaded paths.
 Restage the packaged libraries after a probe-only compile. No App rebuild or
-replacement candidate is implied.
+replacement candidate is implied. The current adapter requires the new white-background raster helper, which the fixed 0.4.43 DLL lacks; it fails closed before selection until a later verified package is explicitly rebound. The historical 0.4.43 run can be reproduced from source commit `46b6d039`.
 
 The existing metadata selector and locked Engauge reader revalidate membership
 and opened-handle paths before reading each source. A single aggregate digest
@@ -100,6 +100,11 @@ It then observes the next owned child process, cancels its request, requires
 seconds. A final normal request reports restart results. Finishing before the
 child can be observed fails the lifecycle check rather than claiming cancellation.
 The parent cancels at 43 seconds and has a 45-second hard watchdog.
+The optional `transparent-background` argument encodes the same black strokes
+over transparent black pixels to exercise the worker's alpha normalization.
+`New-TickCalibrationFixture.ps1 -InwardXTicks -TransparentBackground` similarly
+creates an owned calibration control with inward X ticks and a transparent
+background; white compositing restores the original control pixels.
 
 `--tick-proposal-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker>`
 runs the Rust geometry worker and the actual OCR child against the same owned

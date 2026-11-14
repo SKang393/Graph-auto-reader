@@ -141,7 +141,7 @@ internal static class RealDevCalibrationCheck
                 if (payload.Width is < 32 or > 4096 || payload.Height is < 32 or > 4096 ||
                     (long)payload.Width * payload.Height > 16_777_216)
                 { totals.Reason("UNSUPPORTED_IMAGE_DIMENSIONS"); continue; }
-                var (image, _, _) = Program.Decode(payload.Image, [0, 0, payload.Width, payload.Height]);
+                var (image, _, _) = Program.Decode(payload.Image, [0, 0, payload.Width, payload.Height], deadline.Token);
                 RustAxisProposalResult axis = await RustAxisProposal.RunAsync(rustExe, payload.Width, payload.Height, image.Pixels,
                     cancellationToken: deadline.Token).ConfigureAwait(false);
                 if (axis.Geometry is not { } geometry)
@@ -228,7 +228,7 @@ internal static class RealDevCalibrationCheck
         Candidate candidate, Totals totals, CancellationToken token)
     {
         var stage = Stopwatch.StartNew();
-        var (image, _, _) = Program.Decode(encoded, [0, 0, width, height]);
+        var (image, _, _) = Program.Decode(encoded, [0, 0, width, height], token);
         totals.DecodeMilliseconds.Add(stage.Elapsed.TotalMilliseconds);
         SampleMemory(totals, 0);
         stage.Restart();
@@ -410,6 +410,9 @@ internal static class RealDevCalibrationCheck
                 result.Pin(app, AppExeHash, token);
                 string directory = Path.GetDirectoryName(app)!;
                 result.Pin(typeof(CalibrationTickProposal).Assembly.Location, AppDllHash, token);
+                // This adapter uses the new white-background helper. The delivered 443 DLL
+                // lacks it; a later package must be verified and rebound before use.
+                RequireRasterCapability(typeof(CalibrationTickProposal).Assembly);
                 result.Pin(rust, RustHash, token);
                 result.Pin(Path.Combine(assets, "en_PP-OCRv5_mobile_rec.onnx"), Program.ModelHash, token);
                 result.Pin(Path.Combine(assets, "recognizer.json"), Program.ManifestHash, token);
@@ -444,6 +447,14 @@ internal static class RealDevCalibrationCheck
         public void Dispose() { foreach (FileStream stream in held) stream.Dispose(); GC.SuppressFinalize(this); }
     }
 
+    private static void RequireRasterCapability(Assembly assembly)
+    {
+        Type? type = assembly.GetType("GraphReader.App.Integration.WhiteBackgroundRaster", throwOnError: false);
+        MethodInfo? method = type?.GetMethod("Normalize", BindingFlags.Static | BindingFlags.NonPublic,
+            binder: null, types: [typeof(System.Windows.Media.Imaging.BitmapSource), typeof(CancellationToken)], modifiers: null);
+        if (method?.ReturnType != typeof(System.Windows.Media.Imaging.BitmapSource)) throw new InvalidDataException();
+    }
+
     private static void EnsureAggregateOnly(JsonElement value)
     {
         if (value.ValueKind == JsonValueKind.Object)
@@ -458,6 +469,15 @@ internal static class RealDevCalibrationCheck
 
     internal static object SelfTest()
     {
+        bool capabilityRejected = false;
+        bool payloadSelectionReached = false;
+        try
+        {
+            RequireRasterCapability(typeof(string).Assembly); // Owned assembly deliberately lacks the helper.
+            payloadSelectionReached = true;
+        }
+        catch (InvalidDataException) { capabilityRejected = true; }
+        if (!capabilityRejected || payloadSelectionReached) throw new InvalidDataException();
         EngaugeDigAxisAnchor[] anchors = [new(10, 90, 1, 0), new(10, 10, 1, 10), new(90, 90, 5, 0)];
         var proposal = new CalibrationTickProposalResult(new(new(10, 90), new(10, 10), new(90, 90)), 1, 5, 10, [], []);
         var x = new List<double>(); var y = new List<double>();
@@ -490,7 +510,7 @@ internal static class RealDevCalibrationCheck
             geometryJson.GetProperty("tick_counts").GetProperty("x").GetProperty("one").GetInt32() != 1 ||
             JsonSerializer.SerializeToUtf8Bytes(geometry, Program.Json).Length >= 1_000_000) throw new InvalidDataException();
         var output = new { schema = "graphreader.real-dev-calibration-assistance-self-test.v1", source_payload_reads = 0,
-            affine_residual_checks = 2, forbidden_output_rejected = rejected, fixed_denominator = Denominator };
+            affine_residual_checks = 2, forbidden_output_rejected = rejected, missing_capability_rejected_before_selection = capabilityRejected, fixed_denominator = Denominator };
         EnsureAggregateOnly(JsonSerializer.SerializeToElement(output, Program.Json));
         return output;
     }

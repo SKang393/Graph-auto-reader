@@ -69,7 +69,7 @@ internal static class MarkerExemplarWorker
         // Read dimensions before conversion or pixel allocation.
         if (frame.PixelWidth != request.Width || frame.PixelHeight != request.Height)
             throw new MarkerExemplarException(MarkerExemplarReasonCodes.InvalidInput);
-        var gray = new FormatConvertedBitmap(frame, PixelFormats.Gray8, null, 0);
+        var gray = new FormatConvertedBitmap(WhiteBackgroundRaster.Normalize(frame, token), PixelFormats.Gray8, null, 0);
         byte[] pixels = new byte[checked(request.Width * request.Height)];
         gray.CopyPixels(pixels, request.Width, 0);
         double decode = total.Elapsed.TotalMilliseconds;

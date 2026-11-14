@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using GraphReader.App.Integration;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Services;
 using GraphReader.Inference;
@@ -130,7 +131,12 @@ internal static class Program
                 Emit(await MarkerExemplarCheck.RunAsync(largeMarkerApp, deadline.Token, nearPixelLimit: true));
                 return 0;
             }
-            if (markerCheck) throw new InvalidDataException("Usage: --marker-exemplar-check <absolute-App-exe> [near-pixel-limit]");
+            if (args is ["--marker-exemplar-check", var transparentMarkerApp, "transparent-background"])
+            {
+                Emit(await MarkerExemplarCheck.RunAsync(transparentMarkerApp, deadline.Token, transparentBackground: true));
+                return 0;
+            }
+            if (markerCheck) throw new InvalidDataException("Usage: --marker-exemplar-check <absolute-App-exe> [near-pixel-limit|transparent-background]");
             if (args is ["--tick-proposal-check", var tickRequest, var tickApp, var tickAssets, var tickWorker])
             {
                 byte[] input = ReadBounded(tickRequest, 32_768);
@@ -251,7 +257,7 @@ internal static class Program
         RequireHash(ReadBounded(request.NoticePath, 128 * 1024), "8d81f5d0c58547cce471c24f82efe768a9d907d06764f67e90cc680c6d777729");
 
         var stage = Stopwatch.StartNew();
-        (OcrImage image, int sourceWidth, int sourceHeight) = Decode(encoded, request.SourceCropXywh);
+        (OcrImage image, int sourceWidth, int sourceHeight) = Decode(encoded, request.SourceCropXywh, token);
         double decodeMilliseconds = stage.Elapsed.TotalMilliseconds;
         double[] plot = request.PlotLtrb;
         var bounds = new OcrRectangle(plot[0], plot[1], plot[2] - plot[0], plot[3] - plot[1]);
@@ -345,7 +351,7 @@ internal static class Program
         };
     }
 
-    internal static (OcrImage Image, int Width, int Height) Decode(byte[] encoded, int[] crop)
+    internal static (OcrImage Image, int Width, int Height) Decode(byte[] encoded, int[] crop, CancellationToken token = default)
     {
         using var stream = new MemoryStream(encoded, writable: false);
         BitmapFrame frame = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad).Frames[0];
@@ -353,8 +359,9 @@ internal static class Program
             (long)crop[0] + crop[2] > frame.PixelWidth || (long)crop[1] + crop[3] > frame.PixelHeight)
             throw new InvalidDataException("Invalid original image or source crop dimensions.");
         var cropped = new CroppedBitmap(frame, new Int32Rect(crop[0], crop[1], crop[2], crop[3]));
-        var gray = new FormatConvertedBitmap(cropped, PixelFormats.Gray8, null, 0);
-        var bgr = new FormatConvertedBitmap(cropped, PixelFormats.Bgr24, null, 0);
+        BitmapSource normalized = WhiteBackgroundRaster.Normalize(cropped, token);
+        var gray = new FormatConvertedBitmap(normalized, PixelFormats.Gray8, null, 0);
+        var bgr = new FormatConvertedBitmap(normalized, PixelFormats.Bgr24, null, 0);
         byte[] pixels = new byte[checked(crop[2] * crop[3])], color = new byte[checked(pixels.Length * 3)];
         gray.CopyPixels(pixels, crop[2], 0);
         bgr.CopyPixels(color, crop[2] * 3, 0);

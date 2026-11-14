@@ -12,7 +12,7 @@ namespace GraphReader.CalibrationOcrProbe;
 internal static class MarkerExemplarCheck
 {
     internal static async Task<object> RunAsync(string appExe, CancellationToken cancellationToken,
-        bool nearPixelLimit = false)
+        bool nearPixelLimit = false, bool transparentBackground = false)
     {
         if (!Path.IsPathFullyQualified(appExe) || !File.Exists(appExe))
             throw new InvalidDataException("An existing absolute App executable is required.");
@@ -27,6 +27,13 @@ internal static class MarkerExemplarCheck
             for (int x = 1037; x <= 1043; x++)
                 if (x == 1037 || x == 1043 || y == 247 || y == 253) pixels[y * width + x] = 0;
         BitmapSource image = BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, pixels, width);
+        if (transparentBackground)
+        {
+            byte[] bgra = new byte[checked(pixels.Length * 4)];
+            for (int i = 0; i < pixels.Length; i++)
+                bgra[i * 4 + 3] = pixels[i] == 0 ? (byte)255 : (byte)0;
+            image = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, bgra, width * 4);
+        }
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(image));
         using var stream = new MemoryStream();
@@ -86,7 +93,8 @@ internal static class MarkerExemplarCheck
             restarted.Runtime is null || restarted.Timings is null)
             throw new InvalidDataException(restarted.FailureCode ?? "Restarted worker returned an invalid response.");
         return new { schema = "graphreader.marker-exemplar-owned-check.v1", review_only = true,
-            production_approved = false, input_sha256 = hash, request.Width, request.Height, request.Exemplar, request.Plot,
+            production_approved = false, transparent_background = transparentBackground,
+            input_sha256 = hash, request.Width, request.Height, request.Exemplar, request.Plot,
             seed = request.SelectedPoint, wall_milliseconds = wall.Elapsed.TotalMilliseconds,
             response.Timings, response.Runtime, candidate_count = response.Candidates.Count,
             response.Candidates, control_errors = errors,

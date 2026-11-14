@@ -414,14 +414,15 @@ This is one owned execution control, not representative accuracy or native UI
 acceptance. Native interaction remains waiting under REV-011. No installer,
 public release, tag, clean-machine pass or production activation is claimed.
 
-The ledger makes 443 the sole retained identity and the next hosted workflow
-uses this verified artifact. After this delivery record is pushed, switch the
-latest pointer to `0.4.43-20261114T055422359Z-bf0d0a56`, then retire the old
-442 build/ZIP and completed `artifacts/hosted-443-check` and
-`artifacts/ocr-padding-check` scratch after their current verification readers
-finish. Preserve shared user Data, current runtime/model dependencies and the
-separate active native QA App. No replacement package is needed for diagnostic
-pin or documentation updates.
+After delivery record `46b6d039` reached main, the latest pointer was switched
+to `0.4.43-20261114T055422359Z-bf0d0a56`. Containment, reparse and inactive-reader
+checks preceded removal of the old 442 build/ZIP, pointer backup and completed
+`artifacts/hosted-443-check`, `artifacts/ocr-padding-check` and
+`artifacts/real-dev-calibration-443-check` scratch. Cleanup completed at
+2026-11-14T06:24:02Z: **535 files, 371,203,628 path bytes**. One extracted
+build and ZIP remained. Shared user Data, original corpus, current runtime/model
+dependencies and separate native QA data were preserved. No replacement package
+is needed for diagnostic pin or documentation updates.
 The new 443 ledger entry also passed the existing 62 version-policy checks
 locally, with both public and cadence eligibility derived from the policy and
 false. Temporary policy repositories stayed inside the delivery scratch.

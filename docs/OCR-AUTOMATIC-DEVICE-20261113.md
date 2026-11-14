@@ -176,8 +176,8 @@ untouched. No owned probe remained after completion; stderr was empty.
 - Probe DLL: `dfc7e7cc2e984fbbb5eed43e58ccd6a84f8ab61c74cc82b677ef53567d6fae29`.
 - Profile identity: `03c9290b6ad5629f45bd1e184b3c4890d31249641b30fd5b5d47a0672d8f20e6`.
 
-The 281-byte settings file, report, abort/recheck TRXs and metadata are temporary
-under `artifacts/ocr-padding-check`. Retire them with that batch after its
-pushed outcome and packaged consumers finish. The original corpus and active
+The 281-byte settings file, report, abort/recheck TRXs and metadata under
+`artifacts/ocr-padding-check` were retired after the packaged consumers finished
+and record `46b6d039` was pushed. The original corpus and active
 native QA dependencies remain untouched. No new dependency, model, training,
 private/sealed read, native-interaction pass or production approval is implied.
