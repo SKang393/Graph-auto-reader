@@ -128,23 +128,23 @@ fn x_tick_positions(
         }
         positions.push((start + x - 1) / 2);
     }
-    validate_positions(positions)
+    validate_positions(positions, legacy)
 }
 
-fn validate_positions(positions: Vec<usize>) -> TickScan {
+fn validate_positions(positions: Vec<usize>, legacy: bool) -> TickScan {
     if positions.is_empty() { return TickScan::Absent; }
     if positions.len() < 3 || positions.len() > 128 {
         return TickScan::Rejected;
     }
     let gaps: Vec<usize> = positions.windows(2).map(|p| p[1] - p[0]).collect();
-    let mut sorted = gaps.clone();
-    sorted.sort_unstable();
-    let typical = sorted[sorted.len() / 2];
-    if typical < 4
-        || gaps
-            .iter()
-            .any(|&gap| gap * 2 < typical || gap * 2 > typical * 3)
-    {
+    if legacy {
+        let mut sorted = gaps.clone();
+        sorted.sort_unstable();
+        let typical = sorted[sorted.len() / 2];
+        if typical < 4 || gaps.iter().any(|&gap| gap * 2 < typical || gap * 2 > typical * 3) {
+            return TickScan::Rejected;
+        }
+    } else if gaps.iter().any(|&gap| gap < 4) {
         return TickScan::Rejected;
     }
     TickScan::Positions(positions.into_iter().map(|p| p as u32).collect())
@@ -991,7 +991,7 @@ mod tests {
                     for x in 10..20 { a[40 * 128 + x] = 0; }
                 }
                 _ => {
-                    for x in [30, 40, 110] { for y in 101..=104 { a[y * 128 + x] = 0; } }
+                    for x in [30, 33, 110] { for y in 101..=104 { a[y * 128 + x] = 0; } }
                     for y in [20, 22, 60] { for x in 16..20 { a[y * 128 + x] = 0; } }
                 }
             }
@@ -1209,6 +1209,19 @@ mod tests {
             }
         }
         assert_eq!(propose(128, 128, 1, &a).unwrap().ticks, None);
+    }
+    #[test]
+    fn irregular_measured_x_ticks_preserve_original_positions() {
+        let mut a = vec![255; 128 * 128];
+        for x in 8..=115 { a[100 * 128 + x] = 0; }
+        for y in 10..=100 { a[y * 128 + 8] = 0; }
+        for x in [20, 40, 100] { for y in 101..=104 { a[y * 128 + x] = 0; } }
+        let p = propose(128, 128, 1, &a).unwrap();
+        assert_eq!(p.x_ticks, vec![20, 40, 100]);
+        assert_eq!(p.ticks, Some((20, 100)));
+        assert!(matches!(validate_positions(vec![20, 40, 100], true), TickScan::Rejected));
+        assert!(matches!(validate_positions(vec![20, 40, 43, 93], false), TickScan::Rejected));
+        assert!(matches!(validate_positions(vec![20, 40, 60, 100], false), TickScan::Positions(_)));
     }
     fn small_plot_with_dotted_caption() -> Vec<u8> {
         let mut image = vec![255; 512 * 512];
