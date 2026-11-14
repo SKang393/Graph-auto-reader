@@ -30,3 +30,24 @@ directories. Its TRX SHA-256 was
 The test artifacts are disposable after this record is pushed and their active
 consumers finish. This is source test evidence, not native UI verification,
 packaged-build verification, model approval, or production release approval.
+
+## CI test synchronization correction
+
+Windows CI run `43653973013`, job `132628327191`, at source `15619ac7`
+reported 1,046 App tests passed and one failed:
+`BackgroundProfileChangesRefreshTheViewModelOnItsStaContext`. Its status
+notification could arrive after settings became current but before the queued
+selected-choice refresh. The test now waits for the selected-choice notification
+with the expected GPU label; the WPF ComboBox identity and label assertions remain.
+This change fixes the test's completion condition and does not establish a
+separate production race.
+
+```powershell
+dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore -m:1 -nr:false -p:UseSharedCompilation=false -p:NuGetAudit=false --filter FullyQualifiedName~CalibrationDeviceViewModelTests --verbosity minimal
+# 4 passed, 0 failed; test duration 514 ms.
+```
+
+The focused command ran with normal host access and E-local .NET, NuGet and
+temporary paths. During concurrent local compilation MSBuild issued `MSB3026`
+for `GraphReader.Ocr.dll`; its first retry succeeded. The full suite has not
+been rerun after the synchronization correction.

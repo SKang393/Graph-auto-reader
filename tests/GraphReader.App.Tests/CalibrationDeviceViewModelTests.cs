@@ -100,7 +100,8 @@ public sealed class CalibrationDeviceViewModelTests
         var refreshed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         vm.PropertyChanged += (_, args) =>
         {
-            if (args.PropertyName == nameof(MainWindowViewModel.CalibrationDeviceStatusText) && settings.ProfileIsCurrent)
+            if (args.PropertyName == nameof(MainWindowViewModel.SelectedCalibrationOcrDevice) &&
+                settings.ProfileIsCurrent && vm.SelectedCalibrationOcrDevice?.Label.Contains("Discrete test GPU", StringComparison.Ordinal) == true)
             {
                 notificationThread = Environment.CurrentManagedThreadId;
                 refreshed.TrySetResult();
