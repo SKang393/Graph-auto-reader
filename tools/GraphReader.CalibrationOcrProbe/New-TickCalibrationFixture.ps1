@@ -5,7 +5,9 @@ param(
     [Parameter(Mandatory = $true)][string]$OutputPath,
     [switch]$InwardXTicks,
     [switch]$TransparentBackground,
-    [switch]$LeftAxisContinuation
+    [switch]$LeftAxisContinuation,
+    [switch]$NoTickMarks,
+    [ValidateRange(0, 1700)][int]$WhiteMarginPixels = 0
 )
 $ErrorActionPreference = 'Stop'
 if (-not [IO.Path]::IsPathRooted($OutputPath) -or (Test-Path -LiteralPath $OutputPath)) {
@@ -34,7 +36,7 @@ try {
     for ($index = 0; $index -lt $xPositions.Count; $index++) {
         $x = $xPositions[$index]
         $tickEnd = if ($InwardXTicks) { 375 } else { 385 }
-        $graphics.DrawLine($pen, $x, 380, $x, $tickEnd)
+        if (-not $NoTickMarks) { $graphics.DrawLine($pen, $x, 380, $x, $tickEnd) }
         $graphics.DrawString($xLabels[$index], $font, [Drawing.Brushes]::Black,
             [Drawing.PointF]::new($x, 403), $format)
     }
@@ -42,12 +44,23 @@ try {
     $yLabels = @('10', '5', '0')
     for ($index = 0; $index -lt $yPositions.Count; $index++) {
         $y = $yPositions[$index]
-        $graphics.DrawLine($pen, 95, $y, 100, $y)
+        if (-not $NoTickMarks) { $graphics.DrawLine($pen, 95, $y, 100, $y) }
         $graphics.DrawString($yLabels[$index], $font, [Drawing.Brushes]::Black,
             [Drawing.PointF]::new(74, $y), $format)
     }
     if ($TransparentBackground) { $bitmap.MakeTransparent([Drawing.Color]::White) }
-    $bitmap.Save($OutputPath, [Drawing.Imaging.ImageFormat]::Png)
+    if ($WhiteMarginPixels -eq 0) {
+        $bitmap.Save($OutputPath, [Drawing.Imaging.ImageFormat]::Png)
+    } else {
+        $padded = New-Object Drawing.Bitmap((640 + 2 * $WhiteMarginPixels), (480 + 2 * $WhiteMarginPixels))
+        $paddedGraphics = [Drawing.Graphics]::FromImage($padded)
+        try {
+            $paddedGraphics.Clear([Drawing.Color]::White)
+            $paddedGraphics.CompositingMode = [Drawing.Drawing2D.CompositingMode]::SourceCopy
+            $paddedGraphics.DrawImageUnscaled($bitmap, $WhiteMarginPixels, $WhiteMarginPixels)
+            $padded.Save($OutputPath, [Drawing.Imaging.ImageFormat]::Png)
+        } finally { $paddedGraphics.Dispose(); $padded.Dispose() }
+    }
 }
 finally {
     $format.Dispose(); $font.Dispose(); $pen.Dispose(); $graphics.Dispose(); $bitmap.Dispose()
@@ -57,10 +70,12 @@ finally {
     path = $OutputPath
     sha256 = (Get-FileHash -LiteralPath $OutputPath -Algorithm SHA256).Hash.ToLowerInvariant()
     bytes = (Get-Item -LiteralPath $OutputPath).Length
-    width = 640
-    height = 480
+    width = 640 + 2 * $WhiteMarginPixels
+    height = 480 + 2 * $WhiteMarginPixels
     x_tick_direction = if ($InwardXTicks) { 'inward' } else { 'outward' }
     transparent_background = [bool]$TransparentBackground
     left_axis_continuation = [bool]$LeftAxisContinuation
+    white_margin_pixels = $WhiteMarginPixels
+    tick_marks_drawn = -not $NoTickMarks
     renderer = 'Windows System.Drawing with installed Segoe UI; no font binary copied'
 } | ConvertTo-Json -Compress

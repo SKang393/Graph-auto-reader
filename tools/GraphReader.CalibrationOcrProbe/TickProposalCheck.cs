@@ -47,11 +47,12 @@ internal static class TickProposalCheck
         CalibrationOcrResponse response = await reader.SuggestAsync(request, panel, token);
         if (response.FailureCode is not null) throw new InvalidDataException(response.FailureCode);
         stage.Restart();
-        CalibrationTickProposalResult proposal = CalibrationTickProposal.Create(geometry, response);
+        CalibrationTickProposalResult proposal = CalibrationTickProposal.CreateReviewDraft(geometry, response);
         double pairingMilliseconds = stage.Elapsed.TotalMilliseconds;
         return new
         {
             review_only = true, production_approved = false, applied = false,
+            position_evidence = proposal.UsesEstimatedPositions ? "label-position-estimate" : "measured-ticks",
             source_sha256 = source.ImageSha256, source_crop_xywh = crop,
             coordinate_space = "original_panel_pixels", panel_sha256 = request.PanelImageSha256,
             geometry, geometry_milliseconds = geometryMilliseconds,

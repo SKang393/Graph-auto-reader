@@ -436,4 +436,13 @@ Hosted internal preview run [43568619877](https://github.com/SKang393/Graph-auto
 - Reviewed OCR reader, manifest, OpenCV runtime and notices were verified. Isolated portable smoke exited 0; the deliberately unavailable Production-runtime smoke exited 2. No normal UI was opened.
 - Packaged-app tick checks returned complete six-pair proposals for outward and left-axis controls, with observed zero positions retained; neither was applied. Results: outward 3.429 s process / 3,064.729 ms pipeline, SHA-256 `9c3e1d6a9b2eb00772f228203346c84df0f7dd5650500a0443ae40d6afd12501`; left 3.884 s / 3,492.824 ms, SHA-256 `b619ca8c20b5ca404f4b17a301014d2ffbea3984fc7856d9c0bc058f5bb7fa78`. The owned transparent-marker control found two candidates and verified cancellation, child exit and restart; it is not a representative accuracy or native UI check.
 
-The 0.4.44 ledger/pointer update and scratch retirement are pending. After the outcome is pushed and active readers finish, retire the superseded 0.4.43 build/ZIP plus `artifacts/hosted-444-check`, `artifacts/inward-tick-check` and `artifacts/real-dev-calibration-444-check`; preserve shared `Data`, corpus, current assets and native QA data. No installer, public tag/release, production approval or clean-machine acceptance is claimed. REV-011 remains paused after the Computer Use Escape stop.
+After record `11b24b0f` was pushed, the pointer was atomically switched to
+`0.4.44-20261114T065904903Z-8c9d7328`. The scoped process inventory found no
+active App, probe or Rust worker. Containment/reparse checks preceded retirement
+of the old 443 build/ZIP, pointer backup and completed `artifacts/hosted-444-check`,
+`artifacts/inward-tick-check` and `artifacts/real-dev-calibration-444-check`.
+Cleanup completed at 2026-11-14T07:18:53Z: **544 files, 371,043,696 path bytes**.
+One build/ZIP remained. Shared `Data`, original corpus, current assets, native
+QA data and active white-margin controls were preserved. No installer, public
+tag/release, production approval or clean-machine acceptance is claimed.
+REV-011 remains waiting after the Computer Use Escape stop.

@@ -95,7 +95,10 @@
   <sys:String x:Key="Manual.CalibrationTicks.Complete">{0} tick labels matched. Check the anchors and values, then confirm and apply.</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.Incomplete">Some tick labels are missing or inconsistent. Review the image and enter the calibration values.</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.PairedRows">Paired axis tick values and source pixel positions</sys:String>
-  <sys:String x:Key="Manual.CalibrationTicks.PairedRow">{0} tick value {1} at original pixel coordinate {2}</sys:String>
+  <sys:String x:Key="Manual.CalibrationTicks.PairedRow">{0} value {1}, measured tick at original pixel coordinate {2}</sys:String>
+  <sys:String x:Key="Manual.CalibrationTicks.EstimatedRow">{0} value {1}, position estimated from label at original pixel coordinate {2}</sys:String>
+  <sys:String x:Key="Manual.CalibrationTicks.EstimatedComplete">{0} axis labels form a draft. Check and adjust the anchor pixels and confirm the values before applying.</sys:String>
+  <sys:String x:Key="Manual.CalibrationTicks.EstimatedWarning">Positions estimated from labels. Check and adjust each anchor before applying.</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.AxisX">X-axis</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.AxisY">Y-axis</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Title">Find similar markers</sys:String>

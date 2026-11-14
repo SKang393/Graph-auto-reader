@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using GraphReader.App.Localization;
 using GraphReader.App.Services;
 using GraphReader.App.ViewModels;
 using GraphReader.Axis;
@@ -28,6 +29,7 @@ public sealed class CalibrationTickViewModelTests
 
             Assert.IsTrue(vm.HasAxisSuggestion);
             Assert.IsTrue(vm.HasCalibrationTickProposal);
+            Assert.IsFalse(vm.HasEstimatedCalibrationPositions);
             Assert.AreEqual("10", vm.SuggestedYMaximum);
             Assert.AreEqual("1", vm.SuggestedFirstSession);
             Assert.AreEqual("24", vm.SuggestedFinalSession);
@@ -38,6 +40,119 @@ public sealed class CalibrationTickViewModelTests
             vm.AxisSuggestionReviewed = true;
             Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null), "The existing explicit review step enables Apply.");
             Assert.IsNull(tab.Calibration, "Reviewing the proposal alone must not apply it.");
+        });
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void EstimatedDraftLabelsPositionsAndRequiresExplicitReviewAndApply(bool estimateBothAxes)
+    {
+        WithImage(path =>
+        {
+            using var workspace = CreateWorkspace(path, ValidProposals(), EstimatedGeometry(estimateBothAxes));
+            Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+            var localization = new LocalizationService(new ResourceDictionary());
+            using var vm = new MainWindowViewModel(workspace, localization);
+            WorkspaceTabViewModel tab = vm.SelectedTab!;
+
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+
+            Assert.IsTrue(vm.HasEstimatedCalibrationPositions);
+            Assert.IsTrue(vm.HasCalibrationTickProposal);
+            Assert.AreEqual("10", vm.SuggestedYMaximum);
+            Assert.AreEqual("1", vm.SuggestedFirstSession);
+            Assert.AreEqual("24", vm.SuggestedFinalSession);
+            CollectionAssert.Contains(vm.CalibrationPairedTickRows, string.Format(CultureInfo.CurrentCulture,
+                localization.GetString(LocalizationKeys.ManualCalibrationTicksEstimatedRow),
+                localization.GetString(LocalizationKeys.ManualCalibrationTicksAxisX), "1", 20));
+            CollectionAssert.Contains(vm.CalibrationPairedTickRows, string.Format(CultureInfo.CurrentCulture,
+                localization.GetString(estimateBothAxes ? LocalizationKeys.ManualCalibrationTicksEstimatedRow
+                    : LocalizationKeys.ManualCalibrationTicksPairedRow),
+                localization.GetString(LocalizationKeys.ManualCalibrationTicksAxisY), "10", 20));
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(tab.Calibration);
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(tab.Calibration, "Confirming review alone must not change calibration.");
+
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+
+            Assert.AreEqual(10d, tab.Calibration!.YMaximum);
+            Assert.AreEqual(24d, tab.Calibration.XMaximum);
+            Assert.AreEqual(new PixelPoint(140, 100), tab.Calibration.SessionMaximumY0);
+            Assert.IsFalse(vm.HasEstimatedCalibrationPositions);
+            Assert.IsFalse(vm.HasAxisSuggestion);
+        });
+    }
+
+    [TestMethod]
+    public void EstimatedWarningSurvivesValueAndAnchorCorrectionsUntilDismissed()
+    {
+        WithImage(path =>
+        {
+            using var workspace = CreateWorkspace(path, ValidProposals(), EstimatedGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            WorkspaceTabViewModel tab = vm.SelectedTab!;
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            vm.AxisSuggestionReviewed = true;
+
+            vm.SuggestedYMaximum = "12";
+
+            Assert.IsTrue(vm.HasEstimatedCalibrationPositions);
+            Assert.IsFalse(vm.HasCalibrationTickProposal, "Editing clears the old fit proof, not the position warning.");
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            vm.StartCalibrationCommand.Execute(null);
+            Pump(vm.HandleCanvasPointAsync(new Point(21, 100)));
+            Assert.IsTrue(vm.HasEstimatedCalibrationPositions);
+            Pump(vm.HandleCanvasPointAsync(new Point(21, 20)));
+            Pump(vm.HandleCanvasPointAsync(new Point(140, 100)));
+            Assert.IsTrue(vm.HasEstimatedCalibrationPositions);
+            Assert.AreEqual(ManualEditorMode.Select, vm.EditorMode);
+            Assert.IsNull(tab.Calibration);
+            vm.SuggestedYMaximum = "10";
+            vm.SuggestedFirstSession = "1";
+            vm.SuggestedFinalSession = "24";
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsTrue(vm.HasEstimatedCalibrationPositions);
+
+            vm.DismissAxisSuggestionCommand.Execute(null);
+
+            Assert.IsFalse(vm.HasEstimatedCalibrationPositions);
+            Assert.IsNull(tab.Calibration);
+            Pump(vm.SuggestAxesAsync(CancellationToken.None));
+            Assert.IsTrue(vm.HasAxisSuggestion);
+            Assert.IsFalse(vm.HasEstimatedCalibrationPositions, "New geometry alone is not an estimated label draft.");
+        });
+    }
+
+    [TestMethod]
+    public void EstimatedDraftCannotApplyAfterBindingOrTabChanges()
+    {
+        WithImage(path =>
+        {
+            using var workspace = CreateWorkspace(path, ValidProposals(), EstimatedGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            WorkspaceTabViewModel tab = vm.SelectedTab!;
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+
+            workspace.Calibrate(tab.TabId, new(new(10, 100), new(10, 20), new(150, 100), 20, 30, 1));
+            var changed = tab.Calibration;
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.AreSame(changed, tab.Calibration);
+
+            vm.SelectedTab = null;
+            vm.SelectedTab = tab;
+
+            Assert.IsFalse(vm.HasEstimatedCalibrationPositions);
+            Assert.IsFalse(vm.HasAxisSuggestion);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.AreSame(changed, tab.Calibration);
         });
     }
 
@@ -66,12 +181,14 @@ public sealed class CalibrationTickViewModelTests
     }
 
     [TestMethod]
-    public void StaleBindingDuringTickReadCannotPublishOrApplyProposal()
+    [DataRow(false)]
+    [DataRow(true)]
+    public void StaleBindingDuringTickReadCannotPublishOrApplyProposal(bool estimated)
     {
         WithImage(path =>
         {
             var reader = new OcrStub(ValidProposals()) { Pending = new(TaskCreationOptions.RunContinuationsAsynchronously) };
-            using var workspace = CreateWorkspace(path, reader);
+            using var workspace = CreateWorkspace(path, reader, estimated ? EstimatedGeometry() : null);
             using var vm = new MainWindowViewModel(workspace);
             WorkspaceTabViewModel tab = vm.SelectedTab!;
             workspace.Calibrate(tab.TabId, new(new(10, 100), new(10, 20), new(150, 100), 10, 24, 1));
@@ -84,6 +201,7 @@ public sealed class CalibrationTickViewModelTests
             Pump(pending);
 
             Assert.IsFalse(vm.HasCalibrationTickProposal);
+            Assert.IsFalse(vm.HasEstimatedCalibrationPositions);
             Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
             Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
             Assert.AreEqual(string.Empty, vm.SuggestedFinalSession);
@@ -139,16 +257,19 @@ public sealed class CalibrationTickViewModelTests
         });
     }
 
-    private static ManualPreviewWorkspaceService CreateWorkspace(string path, IReadOnlyList<CalibrationOcrProposal> proposals) =>
-        CreateWorkspace(path, new OcrStub(proposals));
+    private static ManualPreviewWorkspaceService CreateWorkspace(string path, IReadOnlyList<CalibrationOcrProposal> proposals,
+        RustAxisGeometry? geometry = null) => CreateWorkspace(path, new OcrStub(proposals), geometry);
 
-    private static ManualPreviewWorkspaceService CreateWorkspace(string path, OcrStub reader)
+    private static RustAxisGeometry EstimatedGeometry(bool estimateY = true) => new(8, 110, 155, 5, .9)
     {
-        var geometry = new RustAxisGeometry(8, 110, 155, 5, .9)
-        {
-            XTickPositions = [20, 80, 140],
-            YTickPositions = [20, 60, 100],
-        };
+        XTickPositions = [],
+        YTickPositions = estimateY ? [] : [20, 60, 100],
+    };
+
+    private static ManualPreviewWorkspaceService CreateWorkspace(string path, OcrStub reader, RustAxisGeometry? geometry = null)
+    {
+        geometry ??= new RustAxisGeometry(8, 110, 155, 5, .9)
+            { XTickPositions = [20, 80, 140], YTickPositions = [20, 60, 100] };
         var workspace = new ManualPreviewWorkspaceService(axisProposalService: new AxisStub(geometry),
             calibrationOcrSuggestionService: reader);
         Pump(workspace.ImportImagesAsync([path], CancellationToken.None));

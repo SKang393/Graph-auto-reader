@@ -148,6 +148,7 @@ has only the owned synthetic reproduction described above; broader automatic
 calibration acceptance remains open.
 
 Source and outcome are based on `46b6d039`. The only new local fixture/report
-scratch is `artifacts/inward-tick-check`, below 1 MB. Keep it until the 0.4.44
-package consumers finish and this outcome is pushed, then retire it under
-`ARTIFACT-RETENTION.md`. Preserve the original corpus and current runtime assets.
+scratch was `artifacts/inward-tick-check`, below 1 MB. After the 0.4.44 package
+consumers finished and delivery record `11b24b0f` was pushed, its 40 disposable
+files totaling 142,837 path bytes were retired. The original corpus and current
+runtime assets were preserved.

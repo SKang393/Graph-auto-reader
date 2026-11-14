@@ -152,6 +152,56 @@ public sealed class CalibrationTickProposalTests
         AssertRejected(Geometry(), Labels().Where(row => row.RegionId != "y-middle").ToArray(), CalibrationTickProposalReasons.InsufficientPairs);
     }
 
+    [TestMethod]
+    public void ReviewDraftEstimatesOnlyMissingAxesAndPrefersMeasuredResult()
+    {
+        CalibrationOcrResponse response = Response(Labels());
+        RustAxisGeometry geometry = Geometry() with { XTickPositions = [], YTickPositions = [] };
+        Assert.IsFalse(CalibrationTickProposal.Create(geometry, response).IsComplete);
+        CalibrationTickProposalResult draft = CalibrationTickProposal.CreateReviewDraft(geometry, response);
+        Assert.IsTrue(draft.IsComplete, string.Join(",", draft.Reasons));
+        Assert.IsTrue(draft.UsesEstimatedPositions);
+        Assert.IsTrue(draft.PairedTicks.All(row => row.IsEstimated));
+        Assert.AreEqual(new CalibrationOcrPoint(100, 250), draft.Anchors!.FirstSessionY0);
+        geometry = Geometry() with { XTickPositions = [] };
+        draft = CalibrationTickProposal.CreateReviewDraft(geometry, response);
+        Assert.IsTrue(draft.IsComplete, string.Join(",", draft.Reasons));
+        Assert.IsTrue(draft.PairedTicks.Where(row => row.Axis == "X").All(row => row.IsEstimated));
+        Assert.IsTrue(draft.PairedTicks.Where(row => row.Axis == "Y").All(row => !row.IsEstimated));
+        draft = CalibrationTickProposal.CreateReviewDraft(Geometry(), response);
+        Assert.IsTrue(draft.IsComplete);
+        Assert.IsFalse(draft.UsesEstimatedPositions);
+    }
+
+    [TestMethod]
+    public void ReviewDraftRejectsMissingZeroNonlinearAndWrongRole()
+    {
+        RustAxisGeometry geometry = Geometry() with { XTickPositions = [], YTickPositions = [] };
+        CalibrationOcrProposal[] labels = Labels();
+        labels[5] = Value(labels[5], 1);
+        Assert.IsFalse(CalibrationTickProposal.CreateReviewDraft(geometry, Response(labels)).IsComplete);
+        labels = Labels(); labels[2] = Value(labels[2], 12);
+        Assert.IsFalse(CalibrationTickProposal.CreateReviewDraft(geometry, Response(labels)).IsComplete);
+        labels = Labels(); labels[0] = labels[0] with { SuggestedAxis = "Y" };
+        Assert.IsFalse(CalibrationTickProposal.CreateReviewDraft(geometry, Response(labels)).IsComplete);
+    }
+
+    [TestMethod]
+    public void ReviewDraftRejectsOverlapDuplicateConflictingMeasuredTicksAndStaleGeometry()
+    {
+        RustAxisGeometry geometry = Geometry() with { XTickPositions = [], YTickPositions = [] };
+        CalibrationOcrProposal[] labels = Labels();
+        labels[1] = labels[1] with { Polygon = labels[0].Polygon };
+        Assert.IsFalse(CalibrationTickProposal.CreateReviewDraft(geometry, Response(labels)).IsComplete);
+        labels = Labels(); labels[1] = labels[1] with { RegionId = labels[0].RegionId };
+        Assert.IsFalse(CalibrationTickProposal.CreateReviewDraft(geometry, Response(labels)).IsComplete);
+        geometry = Geometry() with { XTickPositions = [100, 200, 340], YTickPositions = [] };
+        Assert.IsFalse(CalibrationTickProposal.CreateReviewDraft(geometry, Response(Labels())).IsComplete);
+        CalibrationOcrResponse stale = Response(Labels());
+        stale = stale with { Request = stale.Request! with { Plot = new(71, 20, 350, 280) } };
+        Assert.IsFalse(CalibrationTickProposal.CreateReviewDraft(geometry, stale).IsComplete);
+    }
+
     private static void AssertRejected(RustAxisGeometry geometry, CalibrationOcrProposal[] labels, string reason)
     {
         CalibrationTickProposalResult result = CalibrationTickProposal.Create(geometry, Response(labels));

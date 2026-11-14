@@ -183,6 +183,7 @@ public sealed partial class MainWindowViewModel
     private void ClearAxisSuggestion()
     {
         _axisSuggestionGeneration++;
+        SetEstimatedCalibrationPositions(false);
         ClearCalibrationLabelResults(clearPickedValues: true);
         if (HasAxisSuggestion)
         {

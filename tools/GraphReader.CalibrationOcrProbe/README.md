@@ -116,6 +116,13 @@ It uses detected geometry rather than the request's diagnostic plot. Nothing is
 applied, saved as scientific data or exported. The parent has an 80-second hard
 deadline and writes no image. An incomplete proposal is a reported outcome,
 not an automatic-calibration accuracy pass.
+The current owned probe follows `CreateReviewDraft`, including explicitly marked
+label-position estimates only for axes without measured ticks. These estimates
+still require the application's review and Apply step. Use a current App DLL
+that implements this API; historical packaged controls used their recorded
+adapter versions. `New-TickCalibrationFixture.ps1 -NoTickMarks` creates an owned
+tickless control; `-WhiteMarginPixels 640` translates the ordinary control
+inside white margins without resampling it.
 
 `--automatic-device-check <absolute-App-exe> <absolute-assets> <absolute-empty-settings-root>`
 uses the real in-memory owned benchmark and checks automatic profile persistence,

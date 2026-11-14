@@ -1004,6 +1004,13 @@
                     automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationTicks.Suggest}" />
             <StackPanel Visibility="{Binding HasAxisSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
               <TextBlock Text="{DynamicResource Manual.AxisReview}" TextWrapping="Wrap" />
+              <TextBlock Margin="0,4,0,6"
+                         Text="{DynamicResource Manual.CalibrationTicks.EstimatedWarning}"
+                         Foreground="{DynamicResource App.Brush.Warning}"
+                         TextWrapping="Wrap"
+                         Visibility="{Binding HasEstimatedCalibrationPositions, Converter={StaticResource BooleanToVisibilityConverter}}"
+                         automation:AutomationProperties.AutomationId="Manual.CalibrationTicks.EstimatedWarning"
+                         automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationTicks.EstimatedWarning}" />
               <TextBlock Margin="0,0,0,6"
                          Text="{Binding CalibrationTickProposalStatusText}"
                          TextWrapping="Wrap"

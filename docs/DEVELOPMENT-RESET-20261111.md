@@ -203,6 +203,17 @@ reason counts. It took 163.869 s overall; the separate reused OCR median was
 2.308 s. These fixes have not improved this corpus's complete-proposal coverage.
 Continue source-reproduced geometry repairs on owned controls. Keep native UI
 acceptance queued and preserve explicit review and manual calibration.
+The [white-margin and label-position draft batch](LABEL-POSITION-DRAFTS-AND-WHITE-MARGINS-20261114.md)
+adds a guarded Rust fallback only after `NO_AXIS` and a separate review draft
+when an axis has no measured ticks. The latter labels estimated positions
+persistently, preserves scientific checks, and still requires explicit review
+and Apply. All 31 Rust tests and 64 focused App tests passed. Owned controls
+returned six measured pairs through 640-pixel white margins and six estimated
+pairs without tick marks, in 3.397 s and 3.476 s process time respectively.
+The tickless anchors differ by one pixel from the printed axis; this is a
+review aid, not measured-tick accuracy. Preview 0.4.45 is prepared for packaging.
+Record measured proposals and estimated review drafts separately in its fixed
+confirmation. No private candidate run or native visual acceptance is implied.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

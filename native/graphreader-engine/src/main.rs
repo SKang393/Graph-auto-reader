@@ -43,6 +43,7 @@ fn x_tick_positions(
     rows: &[usize],
     legacy: bool,
     inward: bool,
+    limit: usize,
 ) -> TickScan {
     let mut edge = bottom;
     if inward {
@@ -50,7 +51,6 @@ fn x_tick_positions(
     } else {
         while edge + 1 < height && rows[edge + 1] * 5 >= rows[bottom] * 4 { edge += 1; }
     }
-    let limit = (height / 20).clamp(3, 32);
     if (!inward && edge + 2 >= height) || (inward && edge < 2) {
         return TickScan::Absent;
     }
@@ -122,7 +122,7 @@ fn validate_positions(positions: Vec<usize>) -> TickScan {
 
 fn y_tick_positions(
     pixels: &[u8], width: usize, channels: usize,
-    left: usize, top: usize, bottom: usize, x_axis_top: usize, cols: &[usize], inward: bool,
+    left: usize, top: usize, bottom: usize, x_axis_top: usize, cols: &[usize], inward: bool, limit: usize,
 ) -> TickScan {
     let mut edge = left;
     if inward {
@@ -130,7 +130,6 @@ fn y_tick_positions(
     } else {
         while edge > 0 && cols[edge - 1] * 5 >= cols[left] * 4 { edge -= 1; }
     }
-    let limit = (width / 20).clamp(3, 32);
     if (!inward && edge < 2) || (inward && edge + 2 >= width) { return TickScan::Absent; }
     let dark = |y: usize, dx: usize| {
         let x = if inward { edge.checked_add(dx) } else { edge.checked_sub(dx) };
@@ -228,8 +227,28 @@ fn propose(
             }
         }
     }
-    let bottom = select(&rows, width * 2 / 5)?;
-    let left = select(&cols, height * 2 / 5)?;
+    let mut tick_width = width;
+    let mut tick_height = height;
+    let mut fallback = false;
+    let (bottom, left) = match select(&rows, width * 2 / 5)
+        .and_then(|bottom| select(&cols, height * 2 / 5).map(|left| (bottom, left)))
+    {
+        Ok(axes) => axes,
+        Err("NO_AXIS") => {
+            // Only a missing primary axis can use content-relative geometry.
+            // Reuse projections without copying, cropping or resampling pixels.
+            let first_row = rows.iter().position(|&n| n > 0).ok_or("NO_AXIS")?;
+            let last_row = rows.iter().rposition(|&n| n > 0).ok_or("NO_AXIS")?;
+            let first_col = cols.iter().position(|&n| n > 0).ok_or("NO_AXIS")?;
+            let last_col = cols.iter().rposition(|&n| n > 0).ok_or("NO_AXIS")?;
+            tick_width = last_col - first_col + 1;
+            tick_height = last_row - first_row + 1;
+            let axes = (select(&rows, tick_width * 2 / 5)?, select(&cols, tick_height * 2 / 5)?);
+            fallback = true;
+            axes
+        }
+        Err(reason) => return Err(reason),
+    };
     // Require the two proposals to actually meet; avoid reporting independent text strokes.
     if !is_dark(pixels, (bottom * width + left) * channels, channels) {
         return Err("NO_INTERSECTION");
@@ -244,6 +263,11 @@ fn propose(
         .find(|&y| is_dark(pixels, (y * width + left) * channels, channels))
         .ok_or("NO_AXIS")?;
     if right <= left || top >= bottom {
+        return Err("NO_AXIS");
+    }
+    if fallback && (!(left..=right).all(|x| is_dark(pixels, (bottom * width + x) * channels, channels))
+        || !(top..=bottom).all(|y| is_dark(pixels, (y * width + left) * channels, channels)))
+    {
         return Err("NO_AXIS");
     }
     // Only include immediately adjacent columns with a fully observed vertical
@@ -262,16 +286,22 @@ fn propose(
     }
     // Prefer outward ticks. Inward strokes are considered only if that side
     // has no evidence, never to rescue rejected or conflicting outward marks.
-    let x_ticks = match x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, false) {
-        TickScan::Absent => x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, true).positions(),
+    // Fallback uses the same content extent for minima and run limits. Primary
+    // success retains its canvas-relative limits, so this is not universal
+    // padding invariance. Bounds and returned coordinates stay in original pixels.
+    let x_limit = (tick_height / 20).clamp(3, 32);
+    let y_limit = (tick_width / 20).clamp(3, 32);
+    let x_ticks = match x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, false, x_limit) {
+        TickScan::Absent => x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, true, x_limit).positions(),
         scan => scan.positions(),
     };
-    let y_ticks = match y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, false) {
-        TickScan::Absent => y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, true).positions(),
+    let y_ticks = match y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, false, y_limit) {
+        TickScan::Absent => y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, true, y_limit).positions(),
         scan => scan.positions(),
     };
-    let legacy_ticks = if x_ticks.is_empty() {
-        x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, true, false).positions()
+    if fallback && (x_ticks.len() < 3 || y_ticks.len() < 3) { return Err("NO_AXIS"); }
+    let legacy_ticks = if !fallback && x_ticks.is_empty() {
+        x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, true, false, x_limit).positions()
     } else { Vec::new() };
     let endpoints = if x_ticks.is_empty() { &legacy_ticks } else { &x_ticks };
     let ticks = endpoints.first().zip(endpoints.last()).map(|(&a, &b)| (a, b));
@@ -445,6 +475,113 @@ mod tests {
             for x in 21..=24 { a[y * 128 + x] = 0; }
         }
         a
+    }
+    fn padded_pixels(source: &[u8], side: usize, offset_x: usize, offset_y: usize) -> Vec<u8> {
+        let mut padded = vec![255; side * side];
+        for y in 0..128 {
+            let start = (y + offset_y) * side + offset_x;
+            padded[start..start + 128].copy_from_slice(&source[y * 128..(y + 1) * 128]);
+        }
+        padded
+    }
+    #[test]
+    fn white_margin_fallback_retains_measured_original_pixel_geometry() {
+        let source = inward_tick_pixels();
+        let original = propose(128, 128, 1, &source).unwrap();
+        for (side, dx, dy) in [(256, 64, 64), (512, 150, 200)] {
+            let padded = padded_pixels(&source, side, dx, dy);
+            let p = propose(side, side, 1, &padded).unwrap();
+            assert_eq!((p.left, p.bottom, p.right, p.top),
+                (original.left + dx as u32, original.bottom + dy as u32,
+                 original.right + dx as u32, original.top + dy as u32));
+            assert_eq!(p.x_ticks, original.x_ticks.iter().map(|x| x + dx as u32).collect::<Vec<_>>());
+            assert_eq!(p.y_ticks, original.y_ticks.iter().map(|y| y + dy as u32).collect::<Vec<_>>());
+            assert_eq!(p.ticks, Some((30 + dx as u32, 110 + dx as u32)));
+        }
+    }
+    #[test]
+    fn white_margin_fallback_does_not_promote_tiny_l_or_text_strokes() {
+        for text in [false, true] {
+            let mut source = vec![255; 128 * 128];
+            if text {
+                for left in [20, 40, 60] {
+                    for x in left..left + 9 { source[20 * 128 + x] = 0; }
+                    for y in 20..32 { source[y * 128 + left + 4] = 0; }
+                }
+            } else {
+                for x in 60..72 { source[71 * 128 + x] = 0; }
+                for y in 60..72 { source[y * 128 + 60] = 0; }
+            }
+            let padded = padded_pixels(&source, 256, 64, 64);
+            assert!(propose(256, 256, 1, &padded).is_err());
+        }
+    }
+    #[test]
+    fn fallback_requires_connected_spans_without_changing_primary_success() {
+        let mut source = inward_tick_pixels();
+        source[100 * 128 + 60] = 255;
+        source[55 * 128 + 20] = 255;
+        // Primary success intentionally retains its historical behavior.
+        assert!(propose(128, 128, 1, &source).is_ok());
+        let padded = padded_pixels(&source, 256, 64, 64);
+        assert_eq!(propose(256, 256, 1, &padded), Err("NO_AXIS"));
+    }
+    #[test]
+    fn fallback_rejects_competing_panels_without_searching_for_an_alternative() {
+        let source = inward_tick_pixels();
+        let mut padded = padded_pixels(&source, 512, 100, 100);
+        for y in 0..128 {
+            let start = (y + 228) * 512 + 100;
+            padded[start..start + 128].copy_from_slice(&source[y * 128..(y + 1) * 128]);
+        }
+        assert_eq!(propose(512, 512, 1, &padded), Err("AMBIGUOUS_AXIS"));
+    }
+    #[test]
+    fn fallback_needs_three_actual_ticks_on_each_axis() {
+        for sparse_x in [false, true] {
+            let mut source = inward_tick_pixels();
+            if sparse_x {
+                for x in [70, 90, 110] { for y in 96..100 { source[y * 128 + x] = 255; } }
+            } else {
+                for y in [60, 80] { for x in 21..=24 { source[y * 128 + x] = 255; } }
+            }
+            let padded = padded_pixels(&source, 256, 64, 64);
+            assert_eq!(propose(256, 256, 1, &padded), Err("NO_AXIS"));
+        }
+    }
+    #[test]
+    fn fallback_run_limits_reject_long_and_adjacent_long_strokes_after_padding() {
+        for inward in [false, true] {
+            for x_axis in [false, true] {
+                for adjacent in [false, true] {
+                    let mut source = if inward { inward_tick_pixels() } else { left_extended_axis_pixels(1) };
+                    for d in 1..=10 {
+                        if x_axis {
+                            let x = if adjacent { 71 } else { 70 };
+                            let y = if inward { 100 - d } else { 100 + d };
+                            source[y * 128 + x] = 0;
+                        } else {
+                            let y = if inward { 40 } else { 50 } + usize::from(adjacent);
+                            let x = if inward { 20 + d } else { 20 - d };
+                            source[y * 128 + x] = 0;
+                        }
+                    }
+                    // Ten pixels would fit a 256/512 canvas-derived run cap,
+                    // but must still exceed the unchanged content-relative cap.
+                    for side in [256, 512] {
+                        let padded = padded_pixels(&source, side, 64, 64);
+                        assert_eq!(propose(side, side, 1, &padded), Err("NO_AXIS"),
+                            "inward={inward}, x_axis={x_axis}, adjacent={adjacent}, side={side}");
+                    }
+                }
+            }
+        }
+    }
+    #[test]
+    fn primary_no_intersection_does_not_enter_fallback() {
+        let mut source = inward_tick_pixels();
+        source[100 * 128 + 20] = 255;
+        assert_eq!(propose(128, 128, 1, &source), Err("NO_INTERSECTION"));
     }
     #[test]
     fn axes_without_tick_strokes_remain_empty_on_both_sides() {

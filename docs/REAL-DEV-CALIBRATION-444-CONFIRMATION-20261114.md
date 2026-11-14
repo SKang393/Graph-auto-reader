@@ -91,7 +91,7 @@ accuracy or production readiness. Known dev exposure and imperfect manual
 truth remain; no independent accuracy result or real tick-transcription truth
 is available. The run is diagnostic only and does not authorize production.
 
-The under-1-MB `artifacts/real-dev-calibration-444-check` scratch contains
-aggregate and metadata only. Retire it after
-this record is pushed and active readers finish. Preserve the original corpus
-and current packaged/runtime inputs.
+The under-1-MB `artifacts/real-dev-calibration-444-check` scratch contained
+aggregate and metadata only. After record `11b24b0f` was pushed and readers
+finished, its four files totaling 6,592 path bytes were retired. The original
+corpus and current packaged/runtime inputs were preserved.

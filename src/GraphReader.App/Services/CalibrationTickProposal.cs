@@ -7,10 +7,14 @@ namespace GraphReader.App.Services;
 
 public sealed record CalibrationTickAnchors(CalibrationOcrPoint FirstSessionY0,
     CalibrationOcrPoint FirstSessionYMaximum, CalibrationOcrPoint FinalSessionY0);
-public sealed record CalibrationPairedTick(string Axis, int PixelPosition, double Value, CalibrationOcrProposal Label);
+public sealed record CalibrationPairedTick(string Axis, int PixelPosition, double Value, CalibrationOcrProposal Label)
+{
+    public bool IsEstimated { get; init; }
+}
 public sealed record CalibrationTickProposalResult(CalibrationTickAnchors? Anchors, int? FirstSession,
     double? FinalSession, double? YMaximum, IReadOnlyList<CalibrationPairedTick> PairedTicks, IReadOnlyList<string> Reasons)
 {
+    public bool UsesEstimatedPositions => PairedTicks.Any(pair => pair.IsEstimated);
     public bool IsComplete => Anchors is not null && FirstSession is not null && FinalSession is not null &&
         YMaximum is not null && Reasons.Count == 0;
 }
@@ -35,7 +39,20 @@ public static class CalibrationTickProposalReasons
 /// <summary>Associates observed numeric labels with measured ticks, without applying calibration.</summary>
 public static class CalibrationTickProposal
 {
-    public static CalibrationTickProposalResult Create(RustAxisGeometry geometry, CalibrationOcrResponse response)
+    public static CalibrationTickProposalResult Create(RustAxisGeometry geometry, CalibrationOcrResponse response) =>
+        CreateCore(geometry, response, estimateEmptyAxes: false);
+
+    /// <summary>Creates a review-only draft using glyph centers only where no measured ticks exist.</summary>
+    public static CalibrationTickProposalResult CreateReviewDraft(RustAxisGeometry geometry, CalibrationOcrResponse response)
+    {
+        CalibrationTickProposalResult measured = Create(geometry, response);
+        if (measured.IsComplete || measured.Reasons.Count == 0 || measured.Reasons.Any(reason =>
+            reason is not CalibrationTickProposalReasons.UnpairedLabel and not CalibrationTickProposalReasons.InsufficientPairs))
+            return measured;
+        return CreateCore(geometry, response, estimateEmptyAxes: true);
+    }
+
+    private static CalibrationTickProposalResult CreateCore(RustAxisGeometry geometry, CalibrationOcrResponse response, bool estimateEmptyAxes)
     {
         ArgumentNullException.ThrowIfNull(geometry);
         ArgumentNullException.ThrowIfNull(response);
@@ -51,6 +68,7 @@ public static class CalibrationTickProposal
             return Failure(paired, [CalibrationTickProposalReasons.InvalidMeasuredTicks]);
 
         var ids = new HashSet<string>(StringComparer.Ordinal);
+        var estimatedIntervals = new Dictionary<string, List<(double Start, double End)>>(StringComparer.Ordinal);
         foreach (CalibrationOcrProposal row in response.Proposals.Where(row => row.Role is "XTick" or "YTick"))
         {
             string axis = row.Role == "XTick" ? "X" : "Y";
@@ -81,7 +99,26 @@ public static class CalibrationTickProposal
             int[] ticks = axis == "X" ? xTicks : yTicks;
             if (ticks.Length == 0)
             {
-                reasons.Add(CalibrationTickProposalReasons.UnpairedLabel);
+                if (!estimateEmptyAxes)
+                {
+                    reasons.Add(CalibrationTickProposalReasons.UnpairedLabel);
+                    continue;
+                }
+                double start = axis == "X" ? left : top, end = axis == "X" ? right : bottom;
+                int axisStart = axis == "X" ? geometry.Left : geometry.Top;
+                int axisEnd = axis == "X" ? geometry.Right : geometry.Bottom;
+                int imageLimit = axis == "X" ? request.Width : request.Height;
+                // Glyph centers are explicitly approximate; they are not measured tick pixels.
+                int center = (int)Math.Round((start + end) / 2, MidpointRounding.AwayFromZero);
+                if (end < axisStart || start > axisEnd || center < 0 || center >= imageLimit)
+                { reasons.Add(CalibrationTickProposalReasons.UnpairedLabel); continue; }
+                if (!estimatedIntervals.TryGetValue(axis, out var intervals))
+                    estimatedIntervals.Add(axis, intervals = []);
+                if (intervals.Count >= 128 || intervals.Any(interval => start <= interval.End && end >= interval.Start))
+                { reasons.Add(CalibrationTickProposalReasons.AmbiguousAssociation); continue; }
+                intervals.Add((start, end));
+                paired.Add(new CalibrationPairedTick(axis, center, value,
+                    row with { Polygon = Array.AsReadOnly(row.Polygon.ToArray()) }) { IsEstimated = true });
                 continue;
             }
             double position = axis == "X" ? (left + right) / 2 : (top + bottom) / 2;
@@ -136,7 +173,8 @@ public static class CalibrationTickProposal
             reasons.Add(CalibrationTickProposalReasons.InsufficientPairs);
             return;
         }
-        if (measured.Length == 0 || pairs[0].PixelPosition != measured[0] || pairs[^1].PixelPosition != measured[^1])
+        bool estimated = measured.Length == 0 && pairs.All(pair => pair.IsEstimated);
+        if (!estimated && (measured.Length == 0 || pairs[0].PixelPosition != measured[0] || pairs[^1].PixelPosition != measured[^1]))
             reasons.Add(CalibrationTickProposalReasons.MissingEndpoint);
         TickCandidate[] candidates = pairs.Select(pair => new TickCandidate(pair.Label.RegionId, pair.PixelPosition, pair.Value, pair.Label.Confidence)).ToArray();
         TickResolutionResult sequence = MonotonicTickResolver.Resolve(candidates,
