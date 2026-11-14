@@ -23,14 +23,17 @@ CPU kernels, and pacing is not a GPU utilization cap. CPU mode is unchanged.
 
 `--real-dev-calibration-check <absolute-corpus-root> <absolute-packaged-App-exe> <absolute-assets-root> <absolute-Rust-worker> --explicit-opt-in`
 is one fixed diagnostic of all **120 frozen real-dev projects**, with no sealed
-payload reads. Its denominator is fixed before results. The App 0.4.44 DLL,
+payload reads. Its denominator is fixed before results. The App 0.4.45 DLL,
 packaged executable, Rust worker and existing reader/manifest/license hashes are
 checked before payload reads. All 21 supporting libraries have fixed delivered
 hashes; all 14 managed libraries must also match at their actual loaded paths.
 Restage the packaged libraries after a probe-only compile. No App rebuild or
 replacement candidate is implied. The adapter requires the verified
 white-background helper and fails closed before selection if it is absent.
-The 0.4.44 binding follows ZIP verification and owned packaged workflow checks.
+The 0.4.45 binding follows ZIP verification and owned packaged workflow checks,
+including tickless prepared-crop calibration, marker acceptance, export and
+save/reopen. The historical 0.4.44 run is reproducible from source commit
+`11b24b0f`.
 The historical 0.4.43 run can be reproduced from source commit `46b6d039`.
 
 The existing metadata selector and locked Engauge reader revalidate membership
@@ -51,6 +54,8 @@ the same fixed reader for a subsequent case, not select another candidate.
 Inference receives only original embedded pixels and Rust-detected geometry.
 Manual anchors are used afterward to report continuous absolute affine graph
 residuals normalized by the manual-anchor graph ranges, without a pass threshold.
+The existing complete proposal count and residual distributions remain measured-tick-only. The 0.4.45 adapter additionally reports complete review drafts using estimated label positions, their separate residuals, and reasons across all incomplete OCR review drafts. It requires the review-draft API in the pinned App assembly before private selection; 0.4.45 identities have been rebound to the verified ZIP; packaged checks remain pending. These drafts remain review-only and are not production approval.
+
 Every unsupported, failed or incomplete case remains in the 120-project
 denominator. The JSON reports reason counts, coverage, separate cold/reused OCR
 latencies and sampled parent/combined memory. Sampling does not prove a hard
@@ -85,6 +90,10 @@ checks the owned control through actual geometry, OCR, explicit simulated review
 marker suggestions, export and save/reopen. The optional `prepared-crop` embeds
 the control in a larger original and verifies its source-coordinate offset and
 unchanged parent. This is headless service evidence, not UI or accuracy approval.
+It follows the review-draft API, reports measured and estimated positions
+separately, and verifies that persisted calibration is user-confirmed manual
+calibration with no tick-measurement evidence IDs. Existing owned coordinate
+tolerances are unchanged.
 
 `--panel-crop-check <absolute-empty-output-root>` runs the real manual crop
 service on an owned 2560×2200 image and checks a 2048×2048 crop, original

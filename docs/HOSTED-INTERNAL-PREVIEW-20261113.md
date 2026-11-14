@@ -446,3 +446,22 @@ One build/ZIP remained. Shared `Data`, original corpus, current assets, native
 QA data and active white-margin controls were preserved. No installer, public
 tag/release, production approval or clean-machine acceptance is claimed.
 REV-011 remains waiting after the Computer Use Escape stop.
+
+## Hosted delivery 0.4.45
+
+Hosted internal preview run [43572199309](https://github.com/SKang393/Graph-auto-reader/actions/runs/43572199309), job `132378792863`, succeeded from source `4e721496c434c209cbf64a4cbc953940dd735e1e`: App 967, Domain 23 and Integration 143, **1,133 passed, 7 skipped, 0 failed**. Source CI [43572199598](https://github.com/SKang393/Graph-auto-reader/actions/runs/43572199598), job `132378791054`, also succeeded on that exact source: 2,654 .NET tests passed, 30 skipped, 0 failed across 13 suites; 31 Rust tests, 68 packaging checks and 62 version-policy checks passed. The App build had zero warnings/errors.
+
+- [Artifact 14105340444](https://github.com/SKang393/Graph-auto-reader/actions/runs/43572199309/artifacts/14105340444), `GraphAutoReader-0.4.45-internal-preview-43572199309`: 87,274,126 bytes, SHA-256 `3a5e7fe467950b1c980c580b1a5d44f94bd9a050503cde3814fe8fc687a9f40b`. Created 2026-11-14 07:46:14 UTC; expires 2027-02-12 07:40:32 UTC.
+- Inner `GraphAutoReader-0.4.45-win-x64-internal-preview.zip`: 87,531,228 bytes, SHA-256 `79f3c3a1ee9cd57ead9282a86e3b8f62206e4e0175c755543de5fc929ec3fe9a`. All 477 extracted entries were verified. Packaged App SHA-256 `0117e966cc3a07dfa8124712c77355810f1cfa9e6cfbce7e09bf0c3274cbce7d`; Rust worker SHA-256 `71455f26d241aec90bf2b88b4267e272028a286dd2b8e7fbc5f86ab8d27fdfa0`.
+- Reviewed OCR and OpenCV pins were verified. Portable smoke exited 0; the deliberately unavailable Production smoke exited 2. No normal application window was opened.
+- The packaged padded control returned six measured pairs in 3.609 s (3,292.4941 ms pipeline), report SHA-256 `7c4ad9f605d8e285f646bc8103bf1da4cf7f2698822ecac1811920bc38b64458`. The tickless control returned six explicitly estimated pairs in 3.500 s (3,137.938 ms pipeline), report SHA-256 `5e60935a5552134771da03533ae55e6cf7f95b54698cd892b5df9fc34fe11268`. Neither applied calibration.
+- The prepared-crop tickless workflow completed review, export and reopen in 4.643 s (4,190.2477 ms pipeline): 3 CSV rows, 3 reopened points and a user-confirmed manual three-anchor calibration; the saved calibration contains zero tick-evidence regions. CSV SHA-256 `249b49a16b036e5be69191a4aea4a867e75d4cdbe0ac6fd31fa2568a23b3edee`; workflow report SHA-256 `12a5342ea85b8c84d584b3f7309b49d0a10712420d8685d91066f52f6d9000c9`.
+
+The packaged probe was built in 7.16 s with zero warnings/errors. Its two owned self-tests passed with zero private reads; the parent and child CPU budget was independently verified at 0.4992 core. An initial artifact-download DNS failure was sandbox-only; the authorized retry completed without a byte mismatch. These are owned controls, not native UI or private accuracy results. The 0.4.45 ledger/pointer update and cleanup remain pending. After this record is pushed and active consumers finish, retire the superseded 0.4.44 build/ZIP and completed `artifacts/hosted-445-check` scratch; preserve shared `Data`, corpus and current assets. No installer, public release, tag, production approval or clean-machine acceptance is claimed. REV-011 remains waiting after the Computer Use Escape stop.
+
+The new ledger also passed its retained-build/hash invariants and the existing
+62 version-policy checks locally. The caller falsely flagged the latter after
+reading an inherited expected-negative-test `LASTEXITCODE`; the PowerShell test
+itself had completed all checks. It was not rerun unchanged. The
+[fixed real-dev confirmation](REAL-DEV-CALIBRATION-445-CONFIRMATION-20261114.md)
+reports zero complete measured proposals and zero complete estimated drafts.

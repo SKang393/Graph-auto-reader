@@ -89,3 +89,19 @@ real calibration accuracy.
 The under-1-MB raw scratch in `artifacts/axis-margin-check` remains until the
 0.4.45 package consumers finish and this record is pushed. Then retire the
 scratch; preserve original data and current runtime assets.
+
+## Packaged 0.4.45 workflow
+
+The hosted package from source `4e721496c434c209cbf64a4cbc953940dd735e1e`
+reproduced both owned controls: six measured padded ticks in 3.609 s and six
+estimated tickless label positions in 3.500 s. Neither proposal was applied.
+The packaged prepared-crop tickless workflow then completed review, CSV export
+and reopen in 4.643 s: three CSV rows, three reopened points, and a saved
+user-confirmed manual three-anchor calibration. The saved calibration has no
+tick-evidence regions, consistent with the fact that all six label positions
+were estimated. CSV SHA-256 is
+`249b49a16b036e5be69191a4aea4a867e75d4cdbe0ac6fd31fa2568a23b3edee`; workflow
+report SHA-256 is `12a5342ea85b8c84d584b3f7309b49d0a10712420d8685d91066f52f6d9000c9`.
+
+This verifies an owned packaged workflow with explicit review, export and
+reopen, not native GUI acceptance, real-data accuracy or production approval.

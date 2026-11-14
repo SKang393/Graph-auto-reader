@@ -211,9 +211,21 @@ and Apply. All 31 Rust tests and 64 focused App tests passed. Owned controls
 returned six measured pairs through 640-pixel white margins and six estimated
 pairs without tick marks, in 3.397 s and 3.476 s process time respectively.
 The tickless anchors differ by one pixel from the printed axis; this is a
-review aid, not measured-tick accuracy. Preview 0.4.45 is prepared for packaging.
-Record measured proposals and estimated review drafts separately in its fixed
-confirmation. No private candidate run or native visual acceptance is implied.
+review aid, not measured-tick accuracy. Preview 0.4.45 is uploaded and verified;
+its owned tickless prepared-crop workflow completed explicit simulated review,
+marker acceptance, CSV export and save/reopen in 4.643 s, retaining three points
+and user-confirmed manual calibration provenance. Source CI passed 2,654 .NET
+tests and 31 Rust tests.
+The [fixed 0.4.45 confirmation](REAL-DEV-CALIBRATION-445-CONFIRMATION-20261114.md)
+still returned geometry/OCR on 36/120, zero complete measured proposals and zero
+complete estimated review drafts. It took 160.359 s overall; reused OCR median
+was 2.314 s. Neither result establishes real calibration readiness. Stop treating
+additional isolated controls as evidence of improved corpus coverage. The next
+batch will retain independently validated single-axis review results when the
+other axis is incomplete, and use measured tick separation for the owned
+reproduction where nearby X labels merge into one OCR crop. Keep every
+scientific check and explicit review; do not tune thresholds or models against
+private answers. Native visual acceptance remains waiting.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

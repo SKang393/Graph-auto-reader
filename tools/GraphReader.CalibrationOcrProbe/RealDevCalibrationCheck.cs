@@ -16,24 +16,24 @@ namespace GraphReader.CalibrationOcrProbe;
 internal static class RealDevCalibrationCheck
 {
     private const int Denominator = 120;
-    private const string AppDllHash = "8b08f23607a9b36f34ee89dc0cbb983f409467cd7bb42c0f1224424ec51c8dab";
-    private const string AppExeHash = "310f4ea2e409fc0e2e88e42774613cd8218d8debf4d10eb14ed4f638e6098510";
-    private const string RustHash = "04d6cca4689c9d93976915c889a4177f67322c79801fb406be2f1ae84ea1ba3a";
-    // Exact delivered 0.4.44 libraries from the ZIP-entry-verified package, not caller-selected identities.
+    private const string AppDllHash = "0117e966cc3a07dfa8124712c77355810f1cfa9e6cfbce7e09bf0c3274cbce7d";
+    private const string AppExeHash = "ef969ee4a3fcf08b0e2715c2339efb58a698a8fa9549aece4596ac9639a4ed88";
+    private const string RustHash = "71455f26d241aec90bf2b88b4267e272028a286dd2b8e7fbc5f86ab8d27fdfa0";
+    // Exact delivered 0.4.45 libraries from the ZIP-entry-verified package, not caller-selected identities.
     private static readonly FrozenDictionary<string, string> DeliveredLibraries = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["GraphReader.App.dll"] = AppDllHash,
-        ["GraphReader.Axis.dll"] = "4b1007fedf5df3d1b0707235ff22cf29b09ce13e02c2dfa2836031f404ce2bac",
-        ["GraphReader.Domain.dll"] = "662bd681e0fc80355a0ee1ffefd6dac8aadd606b1fcc39ca59e6d628586b6bda",
-        ["GraphReader.Export.dll"] = "ce0342e7e80cc2b1e91f3a8de73356f3388335095306ef9a1d7c228b3330449e",
-        ["GraphReader.Imaging.dll"] = "19c7aea9f26937ef0fba60ad8f2d3d454df8b65e7923571c3253724235f13b37",
-        ["GraphReader.Inference.dll"] = "3d1f54729b9e9e5455afd6b3c735c22a783a2bf451c5e1110550cccd317fcb88",
-        ["GraphReader.Legends.dll"] = "85206db19e15b4f1dc442344e0ee21f1d29c4c50fd0166c79de0426621b89cda",
-        ["GraphReader.Markers.dll"] = "ce904d4577baf875582558998b8af1af45130221102310e9ffd89af4b3867d55",
-        ["GraphReader.Ocr.dll"] = "ec0c361624c71359a7ebb43aeaf2245e7be6f2cfa4a3d55232695ad4b3e11c53",
-        ["GraphReader.Pdf.dll"] = "2f1b85c6fea8bd46b3b8b6c7f80bc59ed70e1c05b1af1be6d6564e79410a7d1e",
-        ["GraphReader.Phases.dll"] = "c0446bb96f6978745c60f35a777989f5e5faca845d5613c89f5d392ba8d070f6",
-        ["GraphReader.SuperResolution.dll"] = "628d2525f0045bb5088e75192d9c8c9035c64e9fa3fc31d071f1b519c8699ff5",
+        ["GraphReader.Axis.dll"] = "fb477fac780a764203e7762672944f9115e30a584c636199291233060a7e0e92",
+        ["GraphReader.Domain.dll"] = "4a4019ad787e3dbc25871d51849712ae6f2f7ae2cd997e19c62a5f6a0f3baab1",
+        ["GraphReader.Export.dll"] = "a982ac19e711563ab511031fa969435eb20ef6a8e6dd63db66fe7a6150296b92",
+        ["GraphReader.Imaging.dll"] = "3745d8ec5fdaf4c235b4c4ceb0382bdb9f62efe5516e84aff61a354b170840e0",
+        ["GraphReader.Inference.dll"] = "627e6318c3109b06dd85dd5410cb70221ef1056b21e1b7d69e2f826d990d3ead",
+        ["GraphReader.Legends.dll"] = "31ab51aa93950335856c83b337b3f5e427f25546a95a7c53fe07706e1dbda544",
+        ["GraphReader.Markers.dll"] = "d2b5ececaf50b8b3b4ad34148dcb738ccc72843224853c478926fab42e1f8d49",
+        ["GraphReader.Ocr.dll"] = "34cabd6fbc335e4ef673aa95daa6b278ff2fc032299faa6dadad47acbea0a747",
+        ["GraphReader.Pdf.dll"] = "6509e8fb1c75d42e96acce5f78fcf825a3eeb2c6a1dfef8f34bac6489932feda",
+        ["GraphReader.Phases.dll"] = "f4543a6ea0615a798ef9f7bcc09469641e1a8ee2cb95d960ccf6c16718c793be",
+        ["GraphReader.SuperResolution.dll"] = "d565a158f874096d3a21910152bb82acdadd6031333217918c95b657f942e9ee",
         ["Microsoft.ML.OnnxRuntime.dll"] = "5e83437cb5c97d17fc959f35982ce1f0e90281515dafbacbc158b27bc2e972a3",
         ["onnxruntime.dll"] = "e7eedec6a6f26dc39dc948276a75ef6d2bee3fff944d874ceed0bbd3b97bff40",
         ["onnxruntime_providers_shared.dll"] = "265c8daf29637cb259cac8be9f08f2cd45f3883f0f0e4949cbfddd5b4cbec3b6",
@@ -81,13 +81,21 @@ internal static class RealDevCalibrationCheck
                     (long)payload.Width * payload.Height > 16_777_216)
                 { totals.Reason("UNSUPPORTED_IMAGE_DIMENSIONS"); continue; }
                 // This helper has no manual anchors or values in its signature.
-                CalibrationTickProposalResult? proposal = await InferAsync(payload.Image, payload.Width, payload.Height,
+                var (proposal, draft) = await InferAsync(payload.Image, payload.Width, payload.Height,
                     payload.ProjectHash, payload.ImageHash, rustExe, ocr, candidate, totals, deadline.Token).ConfigureAwait(false);
-                if (proposal is not { IsComplete: true }) continue;
-                totals.Complete++;
-                // Manual calibration is evaluator-only and first used AFTER the complete inference proposal exists.
-                AddResiduals(payload.Anchors, proposal, totals.XResiduals, totals.YResiduals);
-                totals.Scored++;
+                // Manual calibration is evaluator-only and first used AFTER inference proposals exist.
+                if (proposal is { IsComplete: true })
+                {
+                    totals.Complete++;
+                    AddResiduals(payload.Anchors, proposal, totals.XResiduals, totals.YResiduals);
+                    totals.Scored++;
+                }
+                if (draft is { IsComplete: true, UsesEstimatedPositions: true })
+                {
+                    totals.EstimatedComplete++;
+                    AddResiduals(payload.Anchors, draft, totals.EstimatedXResiduals, totals.EstimatedYResiduals);
+                    totals.EstimatedScored++;
+                }
             }
             catch (OperationCanceledException)
             { totals.Reason(token.IsCancellationRequested ? "OVERALL_DEADLINE_CASE" : "CASE_TIMEOUT"); }
@@ -171,7 +179,7 @@ internal static class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-geometry-properties-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { version = "0.4.44", scope = "all_frozen_real_dev", sealed_payload_reads = 0,
+        protocol = new { version = "0.4.45", scope = "all_frozen_real_dev", sealed_payload_reads = 0,
             ocr_calls = 0, model_selection = false, review_only = true, production_approved = false,
             per_case_output = false, image_writes = false, persistent_cache = false,
             empty_ticks_mean = "unavailable_or_ambiguous_not_absence", case_deadline_seconds = 45, overall_deadline_seconds = 900 },
@@ -223,7 +231,7 @@ internal static class RealDevCalibrationCheck
             truth.SourceImageSha256, truth.Anchors.ToArray());
     }
 
-    private static async Task<CalibrationTickProposalResult?> InferAsync(byte[] encoded, int width, int height,
+    private static async Task<(CalibrationTickProposalResult? Measured, CalibrationTickProposalResult? Draft)> InferAsync(byte[] encoded, int width, int height,
         string projectHash, string imageHash, string rustExe, CalibrationOcrWorkerClient ocr,
         Candidate candidate, Totals totals, CancellationToken token)
     {
@@ -236,13 +244,13 @@ internal static class RealDevCalibrationCheck
             cancellationToken: token).ConfigureAwait(false);
         totals.GeometryMilliseconds.Add(stage.Elapsed.TotalMilliseconds);
         if (axis.Geometry is not { } geometry)
-        { totals.Reason(AxisReason(axis.ErrorCode)); return null; }
+        { totals.Reason(AxisReason(axis.ErrorCode)); return (null, null); }
         totals.GeometryReturned++;
         var request = new CalibrationOcrRequest("fixed-real-dev-assistance", projectHash, projectHash, imageHash,
             width, height, new(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom));
         CalibrationOcrResponse response = await ocr.SuggestAsync(request, encoded, token).ConfigureAwait(false);
         if (response.FailureCode is not null)
-        { totals.Reason(response.FailureCode == CalibrationOcrReasonCodes.Timeout ? "OCR_TIMEOUT" : "OCR_READ_FAILED"); return null; }
+        { totals.Reason(response.FailureCode == CalibrationOcrReasonCodes.Timeout ? "OCR_TIMEOUT" : "OCR_READ_FAILED"); return (null, null); }
         CalibrationOcrRuntime runtime = response.Runtime!;
         if (runtime.Provider != "Cpu" || runtime.RequestedProvider != "Cpu" || runtime.ModelSha256 != Program.ModelHash ||
             runtime.ManifestSha256 != Program.ManifestHash || runtime.Files.Any(file => !candidate.Files.TryGetValue(file.Name, out string? expected) || file.Sha256 != expected))
@@ -256,13 +264,20 @@ internal static class RealDevCalibrationCheck
         SampleMemory(totals, Math.Max(runtime.Memory.PrivateBytesBefore, runtime.Memory.PrivateBytesAfter));
         stage.Restart();
         CalibrationTickProposalResult result = CalibrationTickProposal.Create(geometry, response);
+        CalibrationTickProposalResult draft = CalibrationTickProposal.CreateReviewDraft(geometry, response);
         totals.PairingMilliseconds.Add(stage.Elapsed.TotalMilliseconds);
         if (!result.IsComplete)
         {
             totals.Incomplete++;
             foreach (string reason in result.Reasons.Distinct(StringComparer.Ordinal)) totals.Reason(TickReason(reason));
         }
-        return result;
+        if (!draft.IsComplete)
+            foreach (string reason in draft.Reasons.Distinct(StringComparer.Ordinal))
+            {
+                string key = TickReason(reason);
+                totals.DraftReasons[key] = totals.DraftReasons.GetValueOrDefault(key) + 1;
+            }
+        return (result, draft);
     }
 
     private static string AxisReason(string? reason) => reason switch
@@ -328,9 +343,10 @@ internal static class RealDevCalibrationCheck
 
     private sealed class Totals
     {
-        internal int Attempted, PayloadsHashed, ImagesBound, GeometryReturned, OcrReturned, NumericRows, Complete, Incomplete, Scored;
+        internal int Attempted, PayloadsHashed, ImagesBound, GeometryReturned, OcrReturned, NumericRows, Complete, Incomplete, Scored, EstimatedComplete, EstimatedScored;
         internal long PeakSampledParentBytes, PeakParentWorkingSetBytes, PeakSampledCombinedBytes;
         internal Dictionary<string, int> Reasons { get; } = new(StringComparer.Ordinal);
+        internal Dictionary<string, int> DraftReasons { get; } = new(StringComparer.Ordinal);
         internal List<double> CaseMilliseconds { get; } = [];
         internal List<double> DecodeMilliseconds { get; } = [];
         internal List<double> GeometryMilliseconds { get; } = [];
@@ -341,6 +357,8 @@ internal static class RealDevCalibrationCheck
         internal List<double> PairingMilliseconds { get; } = [];
         internal List<double> XResiduals { get; } = [];
         internal List<double> YResiduals { get; } = [];
+        internal List<double> EstimatedXResiduals { get; } = [];
+        internal List<double> EstimatedYResiduals { get; } = [];
         internal void Reason(string key, int count = 1) { if (count > 0) Reasons[key] = Reasons.GetValueOrDefault(key) + count; }
     }
 
@@ -360,7 +378,7 @@ internal static class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-calibration-assistance-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { fixed_candidate = true, version = "0.4.44", denominator = Denominator,
+        protocol = new { fixed_candidate = true, version = "0.4.45", denominator = Denominator,
             scope = "all_frozen_real_dev", sealed_payload_reads = 0, train_optimizer_steps = 0, model_selection = false,
             independent_accuracy = false, production_approved = false, review_only = true, applied = false,
             manual_truth_used_for_inference = false, case_deadline_seconds = 45, overall_deadline_seconds = 900,
@@ -382,6 +400,13 @@ internal static class RealDevCalibrationCheck
         scored_complete_proposals = totals.Scored, failure_or_incomplete_count = Denominator - totals.Complete,
         reason_counts = totals.Reasons.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToDictionary(pair => pair.Key, pair => pair.Value),
         normalized_x_residual = Stats(totals.XResiduals), normalized_y_residual = Stats(totals.YResiduals),
+        estimated_review_draft = new { complete_count = totals.EstimatedComplete, scored_count = totals.EstimatedScored,
+            scope = "complete_drafts_using_estimated_positions_only", denominator = Denominator,
+            evaluated_ocr_response_count = totals.OcrReturned,
+            incomplete_reason_scope = "all_ocr_responses_with_incomplete_review_drafts",
+            incomplete_reason_counts = totals.DraftReasons.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToDictionary(pair => pair.Key, pair => pair.Value),
+            normalized_x_residual = Stats(totals.EstimatedXResiduals), normalized_y_residual = Stats(totals.EstimatedYResiduals),
+            reason_counts_are_not_mutually_exclusive = true },
         timing_milliseconds = new { total_wall = wall, case_total = Stats(totals.CaseMilliseconds), decode = Stats(totals.DecodeMilliseconds),
             geometry = Stats(totals.GeometryMilliseconds), cold_ocr = Stats(totals.ColdOcrMilliseconds), reused_ocr = Stats(totals.ReusedOcrMilliseconds),
             initialization = Stats(totals.InitializationMilliseconds), recognition = Stats(totals.RecognitionMilliseconds), pairing = Stats(totals.PairingMilliseconds) },
@@ -413,6 +438,7 @@ internal static class RealDevCalibrationCheck
                 // This adapter requires the verified white-background helper. Older DLLs
                 // must fail before private payload selection, even if pins are rebound.
                 RequireRasterCapability(typeof(CalibrationTickProposal).Assembly);
+                RequireReviewDraftCapability(typeof(CalibrationTickProposal).Assembly);
                 result.Pin(rust, RustHash, token);
                 result.Pin(Path.Combine(assets, "en_PP-OCRv5_mobile_rec.onnx"), Program.ModelHash, token);
                 result.Pin(Path.Combine(assets, "recognizer.json"), Program.ManifestHash, token);
@@ -455,6 +481,16 @@ internal static class RealDevCalibrationCheck
         if (method?.ReturnType != typeof(System.Windows.Media.Imaging.BitmapSource)) throw new InvalidDataException();
     }
 
+    private static void RequireReviewDraftCapability(Assembly assembly)
+    {
+        Type? type = assembly.GetType("GraphReader.App.Services.CalibrationTickProposal", throwOnError: false);
+        MethodInfo? method = type?.GetMethod("CreateReviewDraft", BindingFlags.Static | BindingFlags.Public,
+            binder: null, types: [typeof(RustAxisGeometry), typeof(CalibrationOcrResponse)], modifiers: null);
+        Type? result = assembly.GetType("GraphReader.App.Services.CalibrationTickProposalResult", throwOnError: false);
+        if (method?.ReturnType != result || result?.GetProperty("UsesEstimatedPositions")?.PropertyType != typeof(bool))
+            throw new InvalidDataException();
+    }
+
     private static void EnsureAggregateOnly(JsonElement value)
     {
         if (value.ValueKind == JsonValueKind.Object)
@@ -470,6 +506,7 @@ internal static class RealDevCalibrationCheck
     internal static object SelfTest()
     {
         RequireRasterCapability(typeof(CalibrationTickProposal).Assembly);
+        RequireReviewDraftCapability(typeof(CalibrationTickProposal).Assembly);
         bool capabilityRejected = false;
         bool payloadSelectionReached = false;
         try
@@ -496,10 +533,17 @@ internal static class RealDevCalibrationCheck
         totals.Reason("OWNED_SELF_TEST", Denominator - 1);
         object aggregate = Report(totals, new string('0', 64), new(new string('1', 64), new string('2', 64), [], false, false),
             new Dictionary<string, string>(StringComparer.Ordinal), new(2, 2500, .5), 1);
+        totals.EstimatedComplete = 1; totals.EstimatedScored = 1;
+        totals.EstimatedXResiduals.AddRange(x); totals.EstimatedYResiduals.AddRange(y);
+        totals.DraftReasons["TICK_INSUFFICIENT_PAIRS"] = 2;
+        aggregate = Report(totals, new string('0', 64), new(new string('1', 64), new string('2', 64), [], false, false),
+            new Dictionary<string, string>(StringComparer.Ordinal), new(2, 2500, .5), 1);
         JsonElement serialized = JsonSerializer.SerializeToElement(aggregate, Program.Json);
         EnsureAggregateOnly(serialized);
         if (serialized.GetProperty("denominator").GetInt32() != Denominator ||
             serialized.GetProperty("complete_proposal_count").GetInt32() != 1 ||
+            serialized.GetProperty("estimated_review_draft").GetProperty("complete_count").GetInt32() != 1 ||
+            serialized.GetProperty("estimated_review_draft").GetProperty("normalized_x_residual").GetProperty("count").GetInt32() != 3 ||
             serialized.GetProperty("normalized_x_residual").GetProperty("count").GetInt32() != 3 ||
             JsonSerializer.SerializeToUtf8Bytes(aggregate, Program.Json).Length >= 1_000_000) throw new InvalidDataException();
         var geometryTotals = new Totals { Attempted = Denominator, PayloadsHashed = Denominator, ImagesBound = Denominator, GeometryReturned = 1 };

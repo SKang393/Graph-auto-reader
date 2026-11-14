@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using GraphReader.App.Integration;
 using GraphReader.App.Services;
 using GraphReader.Domain;
 using GraphReader.Export;
@@ -32,7 +33,8 @@ internal static class MarkerWorkflowCheck
             BitmapDecoder decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
             if (decoder.Frames.Count != 1 || decoder.Frames[0].PixelWidth != 640 || decoder.Frames[0].PixelHeight != 480)
                 throw new InvalidDataException("Owned control dimensions differ.");
-            var gray = new FormatConvertedBitmap(decoder.Frames[0], PixelFormats.Gray8, null, 0);
+            var gray = new FormatConvertedBitmap(WhiteBackgroundRaster.Normalize(decoder.Frames[0], cancellationToken),
+                PixelFormats.Gray8, null, 0);
             pixels = new byte[640 * 480]; gray.CopyPixels(pixels, 640, 0);
         }
         for (int x = 130; x <= 550; x++) pixels[230 * 640 + x] = 0;
@@ -77,8 +79,15 @@ internal static class MarkerWorkflowCheck
         if (axis is null) return new { completed = false, reason = "AXIS_PROPOSAL_UNAVAILABLE", review_only = true };
         WorkspaceCalibrationLabelSuggestion? labels = await workspace.ReadCalibrationLabelsAsync(axis, cancellationToken);
         if (labels is null) return new { completed = false, reason = "OCR_UNAVAILABLE_OR_STALE", review_only = true };
-        CalibrationTickProposalResult proposal = CalibrationTickProposal.Create(axis.Geometry, labels.Response);
-        if (!proposal.IsComplete) return new { completed = false, reason = "CALIBRATION_REQUIRES_REVIEW", proposal.Reasons, review_only = true };
+        CalibrationTickProposalResult proposal = CalibrationTickProposal.CreateReviewDraft(axis.Geometry, labels.Response);
+        var positionEvidence = new
+        {
+            measured_count = proposal.PairedTicks.Count(pair => !pair.IsEstimated),
+            estimated_count = proposal.PairedTicks.Count(pair => pair.IsEstimated),
+            uses_estimated_positions = proposal.UsesEstimatedPositions,
+        };
+        if (!proposal.IsComplete) return new { completed = false, reason = "CALIBRATION_REQUIRES_REVIEW",
+            proposal.Reasons, position_evidence = positionEvidence, review_only = true };
         var anchors = proposal.Anchors!;
         // The controlled fixture has observed labels 1, 2, 3 and 0, 5, 10; reject any differing OCR proposal.
         if (proposal.FirstSession != 1 || proposal.FinalSession != 3 || proposal.YMaximum != 10 ||
@@ -118,15 +127,19 @@ internal static class MarkerWorkflowCheck
             throw new InvalidDataException("CSV coordinates differ from the owned control.");
         string project = Path.Combine(outputRoot, "owned-marker-workflow.garproj");
         if (!(await workspace.SaveProjectAsync(project, cancellationToken)).IsSuccess) throw new InvalidDataException("Project save failed.");
+        RequireConfirmedManualCalibration(workspace.CurrentProject.Panels.Single(item => item.PanelId.Value.ToString("D") == tab.PanelId));
         using var reopened = new ManualPreviewWorkspaceService();
         var reopenedTabs = await reopened.OpenProjectAsync(project, cancellationToken);
         if (reopenedTabs.Count != (preparedCrop ? 2 : 1)) throw new InvalidDataException("Unexpected reopened panel count.");
         var restored = reopenedTabs.Single(item => item.TabId == tab.TabId);
-        if (restored.Points.Count != 3 || restored.Calibration is null || restored.Calibration != tab.Calibration ||
+        if (restored.SourceSha256 != tab.SourceSha256 || restored.Points.Count != 3 ||
+            restored.Calibration is null || restored.Calibration != tab.Calibration ||
             restored.SeriesCards.Count != 1 || restored.Points.Any(point => point.SeriesId != restored.SeriesCards[0].SeriesId) ||
             restored.Points.OrderBy(point => point.GraphX).Zip(ExpectedXValues)
                 .Any(pair => Math.Abs(pair.First.GraphX - pair.Second) > .02 || Math.Abs(pair.First.GraphY - 5) > .05))
             throw new InvalidDataException("Reopened project differs from the accepted control.");
+        CalibrationRecord restoredCalibration = RequireConfirmedManualCalibration(
+            reopened.CurrentProject.Panels.Single(item => item.PanelId.Value.ToString("D") == tab.PanelId));
         if (preparedCrop)
         {
             var restoredParent = reopenedTabs.Single(item => item.TabId == parent.TabId);
@@ -157,7 +170,15 @@ internal static class MarkerWorkflowCheck
         return new { completed = true, review_only = true, production_approved = false,
             source_sha256 = source.ImageSha256, generated_source_sha256 = generatedSourceHash,
             scope = preparedCrop ? "prepared-crop" : "full-panel", crop_milliseconds = cropMilliseconds,
-            panel_sha256 = tab.SourceSha256, proposal,
+            panel_sha256 = tab.SourceSha256, proposal, position_evidence = positionEvidence,
+            explicit_review_simulated = true,
+            saved_reopened_calibration = new
+            {
+                user_confirmed = restoredCalibration.UserConfirmed,
+                source = restoredCalibration.SessionLattice!.Source,
+                anchor_count = restoredCalibration.Anchors.Count,
+                tick_evidence_region_count = restoredCalibration.Anchors.Count(anchor => anchor.EvidenceRegionId is not null),
+            },
             marker_proposals = matches.Response.Candidates.Count, explicitly_accepted = 2,
             remaining_unapplied = matches.Response.Candidates.Count - 2, csv_path = csv.WrittenPath,
             ocr_timings = labels.Response.Timings, marker_timings = matches.Response.Timings,
@@ -166,5 +187,14 @@ internal static class MarkerWorkflowCheck
             project_path = project, reopened_point_count = restored.Points.Count,
             elapsed_milliseconds = elapsed.Elapsed.TotalMilliseconds,
             note = "Owned control with simulated explicit review; no production approval or accuracy claim." };
+    }
+
+    private static CalibrationRecord RequireConfirmedManualCalibration(PanelRecord panel)
+    {
+        if (panel.Calibration is not { Status: CalibrationStatus.Valid, UserConfirmed: true,
+                SessionLattice.Source: "manual_three_anchor", Anchors.Count: 3 } calibration ||
+            calibration.Anchors.Any(anchor => anchor.EvidenceRegionId is not null))
+            throw new InvalidDataException("Saved calibration must remain user-confirmed manual anchors without tick measurement evidence.");
+        return calibration;
     }
 }
