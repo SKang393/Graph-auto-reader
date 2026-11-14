@@ -114,7 +114,9 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         var verticalAxisFamilies = BuildConnectedAxisFamilies(
             verticalFamilies, frameFamilies, options, cancellationToken);
 
+        if (request.MaximumExaminedPairs is <= 0) throw new ArgumentOutOfRangeException(nameof(request));
         var pairCandidates = new List<AxisPair>();
+        int examinedPairs = 0;
         foreach (var horizontalFamily in horizontalAxisFamilies)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -122,6 +124,8 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             foreach (var verticalFamily in verticalAxisFamilies)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                if (request.MaximumExaminedPairs is int maximum && ++examinedPairs > maximum)
+                    throw DetectionFailure("Axis pair examination limit exceeded.");
                 if (!TryIntersect(horizontalFamily, verticalFamily, out var intersection))
                 {
                     continue;

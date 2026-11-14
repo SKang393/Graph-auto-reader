@@ -23,6 +23,10 @@ public sealed partial class MainWindowViewModel
     public ICommand ApplyAxisSuggestionCommand { get; private set; } = null!;
     public ICommand DismissAxisSuggestionCommand { get; private set; } = null!;
     public bool HasAxisSuggestion => _axisSuggestion is not null;
+    public bool HasAxisGeometryReviewWarning => _axisSuggestion is { Provider: "opencv-review" };
+    public string AxisGeometryReviewWarningText => !HasAxisGeometryReviewWarning ? string.Empty : GetLocalizedString(
+        _axisSuggestion!.ReviewReasons.Any(reason => reason is "x_axis_partial" or "y_axis_partial")
+            ? LocalizationKeys.ManualAxisGeometryPartialWarning : LocalizationKeys.ManualAxisGeometryReviewWarning);
     public string SuggestedYMaximum
     {
         get => _suggestedYMaximum;
@@ -132,6 +136,8 @@ public sealed partial class MainWindowViewModel
         OnPropertyChanged(nameof(IsManualAxisDraft));
         OnPropertyChanged(nameof(AxisSuggestionSummary));
         OnPropertyChanged(nameof(CalibrationLabelStatusText));
+        OnPropertyChanged(nameof(HasAxisGeometryReviewWarning));
+        OnPropertyChanged(nameof(AxisGeometryReviewWarningText));
         SetStatus(GetLocalizedString(LocalizationKeys.ManualAxisReview));
     }, cancellationToken);
 
@@ -216,5 +222,7 @@ public sealed partial class MainWindowViewModel
         OnPropertyChanged(nameof(IsManualAxisDraft));
         OnPropertyChanged(nameof(AxisSuggestionSummary));
         OnPropertyChanged(nameof(CalibrationLabelStatusText));
+        OnPropertyChanged(nameof(HasAxisGeometryReviewWarning));
+        OnPropertyChanged(nameof(AxisGeometryReviewWarningText));
     }
 }

@@ -1021,6 +1021,11 @@
               <TextBlock Margin="0,0,0,6" Text="{DynamicResource Manual.AxisDraft.Ready}" TextWrapping="Wrap"
                          Visibility="{Binding IsManualAxisDraft, Converter={StaticResource BooleanToVisibilityConverter}}" />
               <TextBlock Text="{DynamicResource Manual.AxisReview}" TextWrapping="Wrap" />
+              <TextBlock Margin="0,4,0,6" Text="{Binding AxisGeometryReviewWarningText}"
+                         Foreground="{DynamicResource App.Brush.Warning}" TextWrapping="Wrap"
+                         Visibility="{Binding HasAxisGeometryReviewWarning, Converter={StaticResource BooleanToVisibilityConverter}}"
+                         automation:AutomationProperties.AutomationId="Manual.AxisGeometry.ReviewWarning"
+                         automation:AutomationProperties.Name="{Binding AxisGeometryReviewWarningText}" />
               <TextBlock Margin="0,4,0,6"
                          Text="{DynamicResource Manual.CalibrationTicks.EstimatedWarning}"
                          Foreground="{DynamicResource App.Brush.Warning}"

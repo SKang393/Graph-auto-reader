@@ -348,6 +348,20 @@ Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.
 
+The [native axis review fallback](NATIVE-AXIS-REVIEW-FALLBACK-20261114.md)
+has that bounded benefit on owned inputs: a padded tickless graph that Rust
+declines now yields one warned native proposal and six estimated OCR label
+pairs in 6.016 seconds, with no automatic Apply. Rust ambiguity stays refused.
+The full App suite passed 1,034 tests and Axis passed 131 with two existing
+skips. After review found a child-exit race, the fix passed 16 focused tests
+and actual cancellation/restart checks. No new dependency or model was added.
+Prepare internal 0.4.49 with this fallback and the already verified connected-ink,
+unlabelled-tick and strict X-tick repairs. Preserve native UI and real-data
+acceptance gaps; the last fixed 120-case confirmation still has zero complete
+calibrations. Stop adding geometry heuristics without an owned reproduction or
+a concrete preprocessing defect. The next priority remains explaining the
+complete-calibration failure while keeping the usable manual review path.
+
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new
 model accuracy thresholds or run expensive training to compensate for a UI,
@@ -417,8 +431,9 @@ already retired; active package controls and current dependencies remain.
 
 Full pipeline approval work is paused while these product increments advance.
 The [historical closeout](HISTORICAL-ARTIFACT-CLOSEOUT-20261114.md) retired
-40.81 GB of selected completed output after pushing its records, with current
-model hashes preserved. The old `goal22-runs` inventory is complete for its
+67.89 GB of selected completed output across four guarded batches after their
+records were pushed, with current model and OCR keeper hashes preserved. The
+old `goal22-runs` inventory is complete for its
 1,011 immediate directories, but other worktree storage remains outside that
 inventory. Additional closed trees still require outcome and consumer checks;
 no claim of a repository-wide 1 GB disposable-output total is made.

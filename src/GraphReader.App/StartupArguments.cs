@@ -19,6 +19,13 @@ public sealed record StartupArguments(
     {
         ArgumentNullException.ThrowIfNull(arguments);
 
+        if (arguments.Any(argument => string.Equals(argument, "--native-axis-worker", StringComparison.OrdinalIgnoreCase)))
+        {
+            if (arguments.Count != 1 || !string.Equals(arguments[0], "--native-axis-worker", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("--native-axis-worker cannot be combined with other options.", nameof(arguments));
+            return new StartupArguments(false, false, false, null);
+        }
+
         if (arguments.Any(argument => string.Equals(argument, "--calibration-ocr-worker", StringComparison.OrdinalIgnoreCase)))
         {
             if ((arguments.Count != 2 && arguments.Count != 6) ||

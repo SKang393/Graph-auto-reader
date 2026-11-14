@@ -12,7 +12,7 @@ namespace GraphReader.CalibrationOcrProbe;
 internal static class TickProposalCheck
 {
     internal static async Task<object> RunAsync(Program.ProbeRequest source, string binding,
-        string appExe, string assetRoot, string rustExe, CancellationToken token)
+        string appExe, string assetRoot, string rustExe, CancellationToken token, bool useNativeFallback = false)
     {
         if (source.Scope != "owned-synthetic-review-only" || source.SourceCropXywh is not { Length: 4 } crop ||
             !Path.IsPathFullyQualified(source.ImagePath) || !Path.IsPathFullyQualified(appExe) ||
@@ -35,10 +35,12 @@ internal static class TickProposalCheck
             panel = output.ToArray();
         }
         var stage = Stopwatch.StartNew();
-        RustAxisProposalResult axis = await new RustAxisProposalService(rustExe).SuggestAsync(panel, token);
+        IAxisProposalService axisService = new RustAxisProposalService(rustExe);
+        if (useNativeFallback) axisService = new RustFirstAxisProposalService(axisService, new OpenCvAxisProposalService(appExe));
+        RustAxisProposalResult axis = await axisService.SuggestAsync(panel, token);
         double geometryMilliseconds = stage.Elapsed.TotalMilliseconds;
         if (axis.Geometry is not { } geometry)
-            return new { review_only = true, axis.ErrorCode, geometry_milliseconds = geometryMilliseconds };
+            return new { review_only = true, axis.Provider, axis.ReviewReasons, axis.ErrorCode, geometry_milliseconds = geometryMilliseconds };
         var request = new CalibrationOcrRequest("tick-proposal-check", binding, source.ImageSha256,
             Program.Hash(panel), image.Width, image.Height,
             new(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom))
@@ -56,7 +58,7 @@ internal static class TickProposalCheck
             position_evidence = proposal.UsesEstimatedPositions ? "label-position-estimate" : "measured-ticks",
             source_sha256 = source.ImageSha256, source_crop_xywh = crop,
             coordinate_space = "original_panel_pixels", panel_sha256 = request.PanelImageSha256,
-            geometry, geometry_milliseconds = geometryMilliseconds,
+            geometry, axis.Provider, axis.ReviewReasons, geometry_milliseconds = geometryMilliseconds,
             candidate_count = response.Proposals.Count,
             numeric_candidate_count = response.Proposals.Count(row => row.NumericLiteral),
             proposal, pairing_milliseconds = pairingMilliseconds,

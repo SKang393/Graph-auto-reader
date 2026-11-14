@@ -13,7 +13,11 @@ public sealed record RustAxisGeometry(int Left, int Bottom, int Right, int Top, 
     public IReadOnlyList<int> XTickPositions { get; init; } = Array.Empty<int>();
     public IReadOnlyList<int> YTickPositions { get; init; } = Array.Empty<int>();
 }
-public sealed record RustAxisProposalResult(RustAxisGeometry? Geometry, string? ErrorCode);
+public sealed record RustAxisProposalResult(RustAxisGeometry? Geometry, string? ErrorCode)
+{
+    public string Provider { get; init; } = "rust";
+    public IReadOnlyList<string> ReviewReasons { get; init; } = Array.Empty<string>();
+}
 
 public static class RustAxisProposal
 {

@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using GraphReader.App.Services;
+using GraphReader.App.Localization;
 using GraphReader.App.ViewModels;
 using GraphReader.Axis;
 using GraphReader.Domain;
@@ -199,16 +200,82 @@ public sealed class AxisSuggestionTests
         Assert.AreEqual(30d, tab.Calibration!.YMaximum);
     });
 
+    [TestMethod]
+    [DataRow("y_axis_partial", true)]
+    [DataRow("low_geometry_confidence", false)]
+    [DataRow("", false)]
+    public void NativeGeometryWarningPersistsUntilExplicitApplyOrDismiss(string reason, bool partial) => WithImage(path =>
+    {
+        var reasons = new List<string>();
+        if (reason.Length > 0) reasons.Add(reason);
+        var provider = new ProposalStub { Result = new(new(8, 110, 155, 5, .3), null)
+            { Provider = "opencv-review", ReviewReasons = reasons } };
+        using var workspace = new ManualPreviewWorkspaceService(axisProposalService: provider);
+        Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
+        Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+        var localization = new LocalizationService(new ResourceDictionary());
+        using var vm = new MainWindowViewModel(workspace, localization);
+        WorkspaceTabViewModel tab = vm.SelectedTab!;
+        workspace.Calibrate(tab.TabId, Calibration());
+        var old = tab.Calibration;
+
+        Pump(vm.SuggestAxesAsync(CancellationToken.None));
+        reasons.Clear(); // Later producer mutations cannot change the published caution.
+
+        Assert.IsTrue(vm.HasAxisGeometryReviewWarning);
+        Assert.AreEqual(localization.GetString(partial ? LocalizationKeys.ManualAxisGeometryPartialWarning
+            : LocalizationKeys.ManualAxisGeometryReviewWarning), vm.AxisGeometryReviewWarningText);
+        Assert.IsFalse(vm.IsManualAxisDraft);
+        Assert.AreSame(old, tab.Calibration);
+        Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+        vm.SuggestedYMaximum = "10";
+        vm.SuggestedFirstSession = "1";
+        vm.SuggestedFinalSession = "24";
+        Assert.IsTrue(vm.HasAxisGeometryReviewWarning);
+        Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+        vm.AxisSuggestionReviewed = true;
+        Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+        Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+        Assert.AreEqual(10d, tab.Calibration!.YMaximum);
+        Assert.IsFalse(vm.HasAxisGeometryReviewWarning);
+        vm.UndoCommand.Execute(null);
+        Assert.AreEqual(old, tab.Calibration);
+        if (reason.Length > 0) reasons.Add(reason);
+        Pump(vm.SuggestAxesAsync(CancellationToken.None));
+        Assert.IsTrue(vm.HasAxisGeometryReviewWarning);
+        vm.DismissAxisSuggestionCommand.Execute(null);
+        Assert.IsFalse(vm.HasAxisGeometryReviewWarning);
+        Assert.AreEqual(string.Empty, vm.AxisGeometryReviewWarningText);
+    });
+
+    [TestMethod]
+    public void NativeSuggestionMetadataIsSourceBoundAndCannotClaimMeasuredTicks() => WithImage(path =>
+    {
+        var provider = new ProposalStub { Result = new(new(8, 110, 155, 5, .3), null)
+            { Provider = "opencv-review", ReviewReasons = ["needs_review"] } };
+        using var workspace = new ManualPreviewWorkspaceService(axisProposalService: provider);
+        Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
+        string tab = workspace.CreateWorkspace()[0].TabId;
+        WorkspaceAxisSuggestion suggestion = Pump(workspace.SuggestAxesAsync(tab, CancellationToken.None))!;
+        Assert.AreEqual("opencv-review", suggestion.Provider);
+        Assert.AreEqual("needs_review", suggestion.ReviewReasons.Single());
+        workspace.Calibrate(tab, Calibration());
+        Assert.IsFalse(workspace.IsAxisSuggestionCurrent(suggestion));
+        provider.Result = provider.Result! with { Geometry = new(8, 110, 155, 5, .3, 20, 140) };
+        Assert.IsNull(Pump(workspace.SuggestAxesAsync(tab, CancellationToken.None)));
+    });
+
     private static ManualCalibrationRequest Calibration() => new(new(10, 100), new(10, 10), new(150, 100), 100, 20);
     private sealed class ProposalStub : IAxisProposalService
     {
         public RustAxisGeometry Geometry { get; init; } = new(8, 110, 155, 5, .8);
         public byte[]? Input { get; private set; }
         public TaskCompletionSource<RustAxisProposalResult>? Pending { get; set; }
+        public RustAxisProposalResult? Result { get; set; }
         public Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken)
         {
             Input = originalImage;
-            return Pending?.Task ?? Task.FromResult(new RustAxisProposalResult(Geometry, null));
+            return Pending?.Task ?? Task.FromResult(Result ?? new RustAxisProposalResult(Geometry, null));
         }
     }
     private static void WithImage(Action<string> action)

@@ -13,6 +13,24 @@ public interface IAxisProposalService
     Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken);
 }
 
+/// <summary>Uses native review geometry only when Rust found no usable axis intersection.</summary>
+public sealed class RustFirstAxisProposalService(IAxisProposalService primary, IAxisProposalService fallback) : IAxisProposalService
+{
+    private readonly IAxisProposalService _primary = primary ?? throw new ArgumentNullException(nameof(primary));
+    private readonly IAxisProposalService _fallback = fallback ?? throw new ArgumentNullException(nameof(fallback));
+
+    public async Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        RustAxisProposalResult result = await _primary.SuggestAsync(originalImage, cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (result.Geometry is not null || result.ErrorCode is not ("NO_AXIS" or "NO_INTERSECTION")) return result;
+        RustAxisProposalResult review = await _fallback.SuggestAsync(originalImage, cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        return review;
+    }
+}
+
 public sealed class RustAxisProposalService(string workerPath) : IAxisProposalService
 {
     public Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken) =>

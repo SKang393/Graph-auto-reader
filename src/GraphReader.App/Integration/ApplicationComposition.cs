@@ -306,8 +306,9 @@ public static class ApplicationComposition
                     automaticStages: automaticStages,
                     enhancementResolver: enhancementResolver,
                     pdfImportService: pdf.PdfImporter,
-                    axisProposalService: new RustAxisProposalService(
-                        Path.Combine(applicationRoot, "native", "graphreader-engine.exe")),
+                    axisProposalService: new RustFirstAxisProposalService(
+                        new RustAxisProposalService(Path.Combine(applicationRoot, "native", "graphreader-engine.exe")),
+                        new OpenCvAxisProposalService(Path.GetFullPath(Path.Combine(applicationRoot, "GraphReader.App.exe")))),
                     calibrationOcrSuggestionService: calibrationService,
                     markerExemplarSuggestionService: File.Exists(Path.Combine(applicationRoot, "GraphReader.App.exe"))
                         ? new MarkerExemplarWorkerClient(Path.GetFullPath(Path.Combine(applicationRoot, "GraphReader.App.exe"))) : null),

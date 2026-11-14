@@ -12,6 +12,8 @@ public sealed record WorkspaceAxisSuggestion(string TabId, string Binding, RustA
 {
     internal object? OriginalImageIdentity { get; init; }
     public bool IsUserDefined { get; init; }
+    public string Provider { get; init; } = "rust";
+    public IReadOnlyList<string> ReviewReasons { get; init; } = Array.Empty<string>();
 }
 
 public interface IManualAxisDraftWorkspace
@@ -67,7 +69,7 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
             (int)Math.Ceiling(Math.Max(points[0].Y, points[2].Y)), (int)Math.Ceiling(points[2].X),
             (int)Math.Floor(points[1].Y), 0);
         var draft = new WorkspaceAxisSuggestion(tabId, AxisSuggestionBinding(tab), geometry)
-            { OriginalImageIdentity = image, IsUserDefined = true };
+            { OriginalImageIdentity = image, IsUserDefined = true, Provider = "manual" };
         return IsAxisSuggestionCurrent(draft) ? draft : null;
     }
 
@@ -84,7 +86,13 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
             geometry.Top < 0 || geometry.Bottom >= tab.PixelHeight || geometry.Left >= geometry.Right ||
             geometry.Top >= geometry.Bottom || !double.IsFinite(geometry.Confidence) || geometry.Confidence is < 0 or > 1)
             return null;
-        var suggestion = new WorkspaceAxisSuggestion(tabId, binding, geometry) { OriginalImageIdentity = originalImage };
+        if (result.Provider == "opencv-review" && (geometry.FirstTickX is not null || geometry.LastTickX is not null ||
+            geometry.XTickPositions.Count != 0 || geometry.YTickPositions.Count != 0)) return null;
+        var suggestion = new WorkspaceAxisSuggestion(tabId, binding, geometry)
+        {
+            OriginalImageIdentity = originalImage, Provider = result.Provider,
+            ReviewReasons = Array.AsReadOnly(result.ReviewReasons.ToArray()),
+        };
         return IsAxisSuggestionCurrent(suggestion) ? suggestion : null;
     }
 

@@ -3,6 +3,18 @@
 
 # Calibration OCR probe
 
+`--owned-axis-backend-check <absolute-Rust-worker>` compares existing Rust and
+OpenCV axis proposals on six in-memory owned controls. Pair counts and review
+warnings do not establish uniqueness or accuracy; no proposal is applied.
+
+`--owned-native-axis-check <absolute-App-exe> <absolute-Rust-worker>` exercises
+the Rust-first review worker on the same controls, plus cancellation, malformed
+input and the idle worker watchdog. It makes no production or accuracy claim.
+
+`--owned-native-tick-proposal-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker>`
+uses Rust-first review geometry and actual OCR on a hash-bound owned image. It
+reports provider, review reasons and un-applied label pairs; no image is stored.
+
 `--ocr-padding-check <absolute-reviewed-assets-root>` compares the existing
 dynamic batching with the opt-in factor-2 padding bound on seven owned digit
 regions and one wide caption region generated in memory. It verifies the

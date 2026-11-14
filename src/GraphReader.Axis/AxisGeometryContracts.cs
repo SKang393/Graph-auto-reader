@@ -124,6 +124,9 @@ public sealed record AxisGeometryRequest(
     /// Observer failures are isolated and do not affect geometry results.
     /// </summary>
     public IAxisGeometryCandidateObserver? CandidateObserver { get; init; }
+
+    /// <summary>Optional fail-closed limit on examined axis-family pairs.</summary>
+    public int? MaximumExaminedPairs { get; init; }
 }
 
 /// <summary>

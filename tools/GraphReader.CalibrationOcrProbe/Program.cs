@@ -63,6 +63,27 @@ internal static class Program
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--owned-native-tick-proposal-check", var nativeTickRequest, var nativeTickApp, var nativeTickAssets, var nativeTickRust])
+            {
+                byte[] input = ReadBounded(nativeTickRequest, 32_768);
+                ProbeRequest ownedRequest = JsonSerializer.Deserialize<ProbeRequest>(input, Json)
+                    ?? throw new InvalidDataException("Invalid owned request.");
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await TickProposalCheck.RunAsync(ownedRequest, Hash(input), nativeTickApp, nativeTickAssets, nativeTickRust, deadline.Token, useNativeFallback: true));
+                return 0;
+            }
+            if (args is ["--owned-native-axis-check", var nativeAxisApp, var nativeAxisRust])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await OwnedNativeAxisCheck.RunAsync(nativeAxisApp, nativeAxisRust, parentBudget, deadline.Token));
+                return 0;
+            }
+            if (args is ["--owned-axis-backend-check", var ownedAxisWorker])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await OwnedAxisBackendCheck.RunAsync(ownedAxisWorker, parentBudget, deadline.Token));
+                return 0;
+            }
             if (cpuBudgetSelfTest)
             {
                 Emit(await CpuBudgetJob.RunChildBudgetSelfTestAsync(deadline.Token));
