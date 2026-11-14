@@ -304,3 +304,62 @@ checks in 30.806 seconds using contained disposable test repositories. The
 temporary log under `artifacts/version-policy-check` can be retired after this
 record is pushed. No failed application tests are inferred from that early CI
 failure.
+
+## Hosted delivery 0.4.42
+
+The manual Prepare/crop increment is packaged from
+`0558b3fad288a623d49f6e898646083a365f8fd1`. It adds explicit crop preview/create,
+retained original-source lineage, nested image/PDF reopen, a parent-close guard,
+and an actionable size limit before marker assistance. See the
+[source and workflow record](PANEL-CROP-WORKFLOW-20261114.md).
+
+- Hosted run `43554111402`, job `132322954732`, succeeded. App 944, Domain 23,
+  Integration 143: **1,110 passed, 7 skipped, zero failed**.
+- [Source CI 43554461132](https://github.com/SKang393/Graph-auto-reader/actions/runs/43554461132),
+  job `132324049567`, succeeded on `47debc19e50e9f282279cd8f2c042d0fdad8e725`:
+  **2,626 .NET tests passed, 30 skipped, zero failed**, Rust 10/10, and 68
+  packaging checks passed. This source differs from the package commit only in
+  the two ledger/outcome documents; application files are identical. Public
+  release jobs were skipped. Synthetic packaging fixture warnings are separate
+  from the application build, which had zero warnings and errors.
+- [Uploaded artifact 14097702300](https://github.com/SKang393/Graph-auto-reader/actions/runs/43554111402/artifacts/14097702300)
+  is 87,267,519 bytes, SHA-256
+  `0b95cd0e125ec1c0675101234c6f1abc438720ed22b9c847c304a2df9f4a312f`.
+  Created 2026-11-14T04:01:29Z; expiry 2027-02-12T03:56:05Z.
+- The downloaded inner ZIP is 87,524,277 bytes, SHA-256
+  `ddd0c8dd0219c1a2d6b0b59f8b177e529905ffc22d9aa97b22cda6a1f9a3b4d3`.
+  Its 477 files total 196,068,999 bytes. Every safe archive entry matched the
+  staged extraction. Receipt SHA-256:
+  `a7b322d8a00339212a2b3385e3a0aaa807fe3545a6f03ced80b9e5a35b18038a`.
+- Build time 2026-11-14T04:01:00.3170764Z; build-info SHA-256
+  `30694117909e5d157987b4bf8489fd339aa604ed33d3081a8113f36b9a3f86a8`.
+  EXE `da6618656fc0f9f2c02f91c241f42e45081c49b277b9fb9a9d22572354f4e142`;
+  App DLL `0878c2a5e9ee3fcd9261fd0757240374d55d50df643b001be91fa3c852aea26a`.
+- Rust, reviewed OpenCV, OCR reader/manifest and required notices match the
+  verified identities above. Isolated ManualPreview smoke exited 0; unavailable
+  Production smoke exited 2. No normal application window was opened.
+
+The diagnostic output was reused with all 12 managed GraphReader libraries
+copied from this verified package and hash-checked. Its native workers and OCR
+assets came directly from the staged package. The actual prepared-crop workflow
+passed in **5.291919 seconds** process wall time (4.731774 seconds pipeline):
+39.9916 ms crop, 2323.4831 ms OCR and 205.7483 ms marker work. Three accepted
+points exported and reopened, parent pixels stayed unchanged, and saved points
+and anchors retained exactly one original-source offset. CSV hash stayed
+`a5cab504b91b88ae3c3f6ff976e298cc3d75e47139102400dc64c0e335635302`;
+the packaged workflow JSON hash is
+`3a2532b3c0a2e61590ee9883734a2827e8c0ea137b6d8c3d966b6b953fa3a1de`.
+This is owned-input execution with simulated explicit review, not representative
+accuracy, native interaction or production approval.
+
+Native checks remain waiting after the window-list tool reported an Escape stop
+immediately after the maintainer authorized resumption. No subsequent native
+inputs were issued. No installer, public release, tag, clean-machine acceptance
+or production activation is claimed. The temporary package-verification inputs
+remain under `artifacts/hosted-442-check` and `artifacts/panel-crop-check` until
+the ledger is pushed and replacement finishes. The 33-byte version-policy log
+was retired after its tested correction record `47debc19` reached main.
+The new 442 ledger entry passed the existing 62 version-policy checks in
+52.128 seconds. Its public and cadence eligibility are both false, derived
+directly from `VersionPolicy.ps1`. Future hosted builds now consume the verified
+442 artifact identity.

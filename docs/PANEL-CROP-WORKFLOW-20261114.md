@@ -27,6 +27,11 @@ dirty flag; the assertions were corrected. Only the three affected crop tests
 were rerun, and all three passed in 978 ms (3.338 s command elapsed). The 86
 tests were not rerun as a final all-pass suite.
 
+Subsequent hosted package validation passed all 944 App tests, and source CI
+passed 2,626 .NET tests across 13 projects with 30 skipped and no failures.
+The [0.4.42 delivery record](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0442)
+also records actual packaged crop-to-export/reopen verification.
+
 The final App/probe build completed with zero warnings and zero errors. The
 App/probe build step took 29.101 s; App test compilation took 14.869 s. Initial
 compiler/analyzer findings (CS8604, CA1822 and test analyzers) were corrected

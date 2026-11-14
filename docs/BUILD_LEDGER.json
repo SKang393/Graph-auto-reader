@@ -7697,7 +7697,7 @@
   "releaseEligible": false,
   "cadenceEligible": true,
   "releaseStatus": "internal",
-  "retained": true,
+  "retained": false,
   "recordIncomplete": false,
   "missingMetadata": [],
   "purpose": "Internal ManualPreview with one-action reviewed marker batches, plot-boundary examples and center-weighted matching that reduces connecting-line interference.",
@@ -7753,6 +7753,73 @@
     "rustWorkerSha256": "2f72bdaeb1454e1b2b6558e36fc2793e21f2be104a2fcd51c031e1d12754043f",
     "reviewOcrSha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743"
   }
+},
+{
+  "buildNumber": 442,
+  "version": "0.4.42",
+  "directory": "0.4.42-20261114T040100317Z-0558b3fa",
+  "stampedVersion": "0.4.42",
+  "commit": "0558b3fad288a623d49f6e898646083a365f8fd1",
+  "buildTimeUtc": "2026-11-14T04:01:00.3170764+00:00",
+  "executableSha256": "da6618656fc0f9f2c02f91c241f42e45081c49b277b9fb9a9d22572354f4e142",
+  "openCvRuntimeSha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+  "releaseEligible": false,
+  "cadenceEligible": false,
+  "releaseStatus": "internal",
+  "retained": true,
+  "recordIncomplete": false,
+  "missingMetadata": [],
+  "purpose": "Internal ManualPreview with explicit source-preserving panel crops, nested image/PDF reopen, parent close safety and oversized marker guidance.",
+  "packages": [
+    {
+      "name": "GraphAutoReader-0.4.42-win-x64-internal-preview.zip",
+      "sizeBytes": 87524277,
+      "sha256": "ddd0c8dd0219c1a2d6b0b59f8b177e529905ffc22d9aa97b22cda6a1f9a3b4d3",
+      "verificationStatus": "verified-hosted-and-downloaded"
+    }
+  ],
+  "artifactStorage": {
+    "provider": "github-actions",
+    "artifactId": 14097702300,
+    "name": "GraphAutoReader-0.4.42-internal-preview-43554111402",
+    "url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/43554111402/artifacts/14097702300",
+    "workflowRunId": 43554111402,
+    "workflowCommit": "0558b3fad288a623d49f6e898646083a365f8fd1",
+    "sizeInBytes": 87267519,
+    "digest": "sha256:0b95cd0e125ec1c0675101234c6f1abc438720ed22b9c847c304a2df9f4a312f",
+    "createdUtc": "2026-11-14T04:01:29Z",
+    "expiresUtc": "2027-02-12T03:56:05Z",
+    "downloadedPackageVerifiedUtc": "2026-11-14T04:16:36.7485183+00:00"
+  },
+  "verification": {
+    "buildExitCode": 0,
+    "hostedTestsPassed": 1110,
+    "hostedTestsSkipped": 7,
+    "portableSmokeExitCode": 0,
+    "productionRuntimeSmokeExitCode": 2,
+    "nativeProvenanceReview": "passed",
+    "sourceCiRunId": 43554461132,
+    "sourceCiCommit": "47debc19e50e9f282279cd8f2c042d0fdad8e725",
+    "sourceCiApplicationFilesMatchPackage": true,
+    "sourceCiConclusion": "success",
+    "sourceCiTestsPassed": 2626,
+    "sourceCiTestsSkipped": 30,
+    "packageUploadRunConclusion": "success",
+    "visualWorkflowChecked": false,
+    "visualWorkflowScope": "Native checks remain waiting after the first window-list call reported Escape despite maintainer resumption (REV-011).",
+    "bundledPanelCropChecked": true,
+    "preparedCropWorkflowProcessMilliseconds": 5291.9194,
+    "preparedCropWorkflowMilliseconds": 4731.7741,
+    "cropMilliseconds": 39.9916,
+    "reopenedPointCount": 3,
+    "originalSourceOffsetsVerified": true,
+    "packagedAppDllSha256": "0878c2a5e9ee3fcd9261fd0757240374d55d50df643b001be91fa3c852aea26a",
+    "packagedWorkflowJsonSha256": "3a2532b3c0a2e61590ee9883734a2827e8c0ea137b6d8c3d966b6b953fa3a1de",
+    "cleanWindowsVmChecked": false,
+    "productionApproved": false,
+    "rustWorkerSha256": "2f72bdaeb1454e1b2b6558e36fc2793e21f2be104a2fcd51c031e1d12754043f",
+    "reviewOcrSha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743"
+  }
 }
-               ]
+]
 }
