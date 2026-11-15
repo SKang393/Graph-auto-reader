@@ -68,7 +68,10 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             var bounds = new OcrRectangle(plot.Left, plot.Top, plot.Right - plot.Left, plot.Bottom - plot.Top);
 
             stage.Restart();
-            IReadOnlyList<OcrDetectedRegion> components = await new ConnectedComponentTextRegionDetector()
+            // A narrow upright digit is not evidence of a quarter-turn text row.
+            // Keep rotation only when the detector actually grouped vertical glyphs.
+            IReadOnlyList<OcrDetectedRegion> components = await new ConnectedComponentTextRegionDetector(new()
+                { UseObservedVerticalGroupingOrientation = true })
                 .DetectAsync(image, item.Request.MeasuredXTicks is { Length: >= 2 } ticks
                     ? new OcrMeasuredTickGrouping(ticks, item.Request.Plot.Bottom) : null, token).ConfigureAwait(false);
             OcrDetectedRegion[] candidates = components.Where(region => AxisFor(region, bounds) is "X" or "Y").ToArray();

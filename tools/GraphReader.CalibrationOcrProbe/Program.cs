@@ -264,6 +264,11 @@ internal static class Program
             if (workerCheck) throw new InvalidDataException("Usage: --worker-check <request.json> <absolute-App-exe> <asset-root>");
             // Apply and query the aggregate cap before entering any OCR/runtime code.
             using CpuBudgetJob budget = CpuBudgetJob.Apply();
+            if (args is ["--owned-orientation-reading-check", var orientationAssets])
+            {
+                Emit(await CalibrationOrientationReadingCheck.RunAsync(orientationAssets, budget, deadline.Token));
+                return 0;
+            }
             if (args is ["--ocr-padding-adapters"])
             {
                 var inventory = new WindowsDxgiAdapterInventory();

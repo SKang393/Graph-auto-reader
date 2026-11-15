@@ -22,6 +22,9 @@ public sealed record ConnectedComponentTextRegionDetectorOptions
     public byte? ForegroundThreshold { get; init; }
 
     public bool GroupComponentsIntoLines { get; init; } = true;
+
+    /// <summary>Infers quarter turns only from observed vertical glyph grouping, not a single tall glyph.</summary>
+    public bool UseObservedVerticalGroupingOrientation { get; init; }
 }
 
 /// <summary>Optional original-pixel X ticks and plot edge for conservative axis-label grouping.</summary>
@@ -44,7 +47,8 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
     public string ConfigurationFingerprint => string.Create(
         CultureInfo.InvariantCulture,
         $"cc-v3:{_options.MinimumComponentArea}:{_options.MaximumComponentWidthFraction:R}:{_options.MaximumComponentHeightFraction:R}:{_options.MaximumLineGapHeightRatio:R}:{_options.MinimumVerticalOverlapFraction:R}:{_options.ForegroundThreshold?.ToString(CultureInfo.InvariantCulture) ?? "auto"}") +
-        (_options.GroupComponentsIntoLines ? string.Empty : ":ungrouped");
+        (_options.GroupComponentsIntoLines ? string.Empty : ":ungrouped") +
+        (_options.UseObservedVerticalGroupingOrientation ? ":observed-vertical-orientation-v1" : string.Empty);
 
     public ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
         OcrImage image,
@@ -289,7 +293,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                     var maximumGap = Math.Max(line.Width, candidate.Width) * _options.MaximumLineGapHeightRatio;
                     if (overlapFraction >= _options.MinimumVerticalOverlapFraction && verticalGap <= maximumGap)
                     {
-                        line = line.Merge(candidate);
+                        line = line.Merge(candidate) with { ObservedVerticalGrouping = true };
                         remaining.RemoveAt(index);
                         changed = true;
                     }
@@ -307,7 +311,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             component.MarkerLikeComponentCount == 0;
     }
 
-    private static OcrDetectedRegion ToRegion(OcrImage image, ComponentBounds line)
+    private OcrDetectedRegion ToRegion(OcrImage image, ComponentBounds line)
     {
         var topLeft = image.OriginalToImage.MapToOriginal(new OcrPoint(line.Left, line.Top));
         var bottomRight = image.OriginalToImage.MapToOriginal(new OcrPoint(line.Right + 1, line.Bottom + 1));
@@ -323,7 +327,9 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             ? Math.Clamp(0.68 + (line.ComponentCount * 0.06), 0, 0.94)
             : Math.Clamp(0.58 - (line.StructureLikelihood * 0.30), 0.15, 0.65);
         var confidence = Math.Clamp(0.45 + (0.35 * textLikelihood) + (0.10 * Math.Min(1, density * 3)), 0, 0.92);
-        var orientation = line.Height > line.Width * 1.4 ? -90d : 0d;
+        var orientation = _options.UseObservedVerticalGroupingOrientation
+            ? line.ObservedVerticalGrouping ? -90d : 0d
+            : line.Height > line.Width * 1.4 ? -90d : 0d;
         var structureReasons = StructureReasons(line);
         return new OcrDetectedRegion(
             DeterministicRegionId(rectangle),
@@ -495,6 +501,8 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
         double MaximumColumnFillFraction,
         int MarkerLikeComponentCount)
     {
+        public bool ObservedVerticalGrouping { get; init; }
+
         public int Width => Right - Left + 1;
 
         public int Height => Bottom - Top + 1;

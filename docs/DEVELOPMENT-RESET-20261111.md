@@ -451,6 +451,16 @@ to choose heuristics. The two observed display/history defects have a small
 bundle native verification with the next meaningful integrated checkpoint.
 Automatic calibration remains incomplete and the acceptance bars are unchanged.
 
+The [observed-orientation repair](CALIBRATION-OBSERVED-ORIENTATION-20261115.md)
+now prevents an upright narrow calibration glyph from being rotated solely
+because of its aspect ratio. It passes 85 focused OCR and 200 integrated App
+tests. The fixed owned reader comparison read all nine upright digits correctly
+before and after, so no literal-reading gain is established. The rotated control
+retains identical crop bytes. A separate [antialiased-grid control](RUST-ANTIALIASED-GRID-CONTROL-20261115.md)
+passed without a Rust production change. Neither result justifies another
+private-corpus candidate run by itself; retain 451 while the next meaningful
+integrated checkpoint is prepared.
+
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new
 model accuracy thresholds or run expensive training to compensate for a UI,

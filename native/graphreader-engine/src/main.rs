@@ -1372,6 +1372,43 @@ mod tests {
         assert_eq!(p.y_ticks, vec![20, 50, 80]);
         assert_eq!(p.ticks, Some((30, 110)));
     }
+    fn antialiased_grid_pixels() -> Vec<u8> {
+        let original = grid_pixels();
+        let mut pixels = vec![255; 128 * 128];
+        for y in 0..127 {
+            for x in 0..127 {
+                if original[y * 128 + x] == 0 {
+                    for dy in 0..=1 {
+                        for dx in 0..=1 { pixels[(y + dy) * 128 + x + dx] = 127; }
+                    }
+                }
+            }
+        }
+        pixels
+    }
+    #[test]
+    fn antialiased_two_pixel_grid_preserves_unique_axes_and_measured_ticks() {
+        let p = propose(128, 128, 1, &antialiased_grid_pixels()).expect("unique antialiased grid");
+        for (actual, expected) in [(p.left, 20), (p.bottom, 100), (p.right, 115), (p.top, 10)] {
+            assert!(actual.abs_diff(expected) <= 1, "actual {actual}, expected {expected}");
+        }
+        for (actual, expected) in [(&p.x_ticks, [30, 70, 110]), (&p.y_ticks, [20, 50, 80])] {
+            assert_eq!(actual.len(), expected.len(), "unexpected tick set {actual:?}");
+            for (&position, expected) in actual.iter().zip(expected) {
+                assert!(position.abs_diff(expected) <= 1, "unexpected tick set {actual:?}");
+            }
+        }
+    }
+    #[test]
+    fn two_antialiased_tick_supported_grids_remain_ambiguous() {
+        let source = antialiased_grid_pixels();
+        let mut pixels = padded_pixels(&source, 256, 0, 0);
+        for y in 0..128 {
+            let start = (y + 128) * 256 + 128;
+            pixels[start..start + 128].copy_from_slice(&source[y * 128..(y + 1) * 128]);
+        }
+        assert_eq!(propose(256, 256, 1, &pixels), Err("AMBIGUOUS_AXIS"));
+    }
     #[test]
     fn grid_recovery_requires_strict_ticks_on_both_axes() {
         for sparse_x in [false, true] {

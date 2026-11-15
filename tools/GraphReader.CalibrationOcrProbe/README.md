@@ -332,3 +332,23 @@ selection, residual scoring, scientific Apply, training, sealed read or image
 write. Do not execute before the lead authorizes the fixed confirmation. Reuse
 `artifacts/corner-tick-worker-451-check/tool` for the probe-only build and stage
 only verified runtime libraries; keep the completed corner report intact.
+
+## Owned calibration orientation reading comparison
+
+`--owned-orientation-reading-check <absolute-reviewed-ocr-assets>` renders one
+fixed Segoe UI 16 row of digits 1 through 9 and a clockwise-rotated three-glyph
+row entirely in memory. Default and observed-grouping detector modes must retain
+identical region IDs/boxes. The rotated control must also retain identical crop
+hashes. Four recognition passes share one pinned CPU recognizer session with
+the current production crop options, one inference thread and the existing
+verified half-core/BelowNormal job. Model, manifest and license/notices are
+checksum-verified; no model/image is copied or written.
+
+Output includes the actual raw readings, strict numeric interpretation,
+confidence, crop/source identities, runtime identities and timings. Expected
+owned strings are report annotations only, never recognizer inputs or candidate
+selection. This is a bounded preprocessing observation, not representative OCR
+accuracy or a private-data confirmation. Use
+`artifacts/owned-digit-orientation-check` for disposable compiler/report output;
+retain only until the pushed outcome and integrated consumers finish. Existing
+170/175-second probe deadlines and 1 MB output bound apply.

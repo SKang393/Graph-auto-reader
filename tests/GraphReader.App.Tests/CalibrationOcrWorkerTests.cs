@@ -66,6 +66,45 @@ public sealed class CalibrationOcrWorkerTests
     public void PersistentLoopReusesOneReaderRetainsEveryProposalAndDisposesOnEof() => StaTestHost.Run(() => Pump(RunAsync()));
 
     [TestMethod]
+    public void SessionKeepsAnAsymmetricNarrowUprightGlyphInOriginalOrientation() =>
+        StaTestHost.Run(() => Pump(UprightGlyphAsync()));
+
+    private static async Task UprightGlyphAsync()
+    {
+        byte[] pixels = Enumerable.Repeat((byte)255, 96 * 96).ToArray();
+        // One connected, upright asymmetric glyph below the X axis.
+        for (int x = 20; x <= 24; x++) pixels[75 * 96 + x] = 0;
+        for (int y = 75; y <= 86; y++) pixels[y * 96 + 24] = 0;
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(BitmapSource.Create(96, 96, 96, 96, PixelFormats.Gray8, null, pixels, 96)));
+        using var stream = new MemoryStream();
+        encoder.Save(stream);
+        byte[] image = stream.ToArray();
+        var recognizer = new InspectingRecognizer();
+        await using var session = new CalibrationOcrSession(new(12, 416, .4992, true), _ =>
+            Task.FromResult(new CalibrationOcrReader(recognizer,
+                new OcrPipelineOptions { CropWidth = 32, CropHeight = 32 }, new FakeOwner(), [])));
+
+        CalibrationOcrResponse response = await session.RecognizeAsync(new(Request(image), image), CancellationToken.None);
+        Assert.IsNull(response.FailureCode);
+        OcrCrop crop = recognizer.Crops.Single();
+        Assert.AreEqual(20d, crop.OriginalPolygon.Points.Min(point => point.X));
+        Assert.AreEqual(25d, crop.OriginalPolygon.Points.Max(point => point.X));
+        Assert.AreEqual(75d, crop.OriginalPolygon.Points.Min(point => point.Y));
+        Assert.AreEqual(87d, crop.OriginalPolygon.Points.Max(point => point.Y));
+        var ink = Enumerable.Range(0, crop.Width * crop.Height)
+            .Where(index => crop.Pixels.Span[index] < .5f).ToArray();
+        Assert.IsNotEmpty(ink);
+        int inkWidth = ink.Max(index => index % crop.Width) - ink.Min(index => index % crop.Width) + 1;
+        int inkHeight = ink.Max(index => index / crop.Width) - ink.Min(index => index / crop.Width) + 1;
+        Assert.IsGreaterThan(inkWidth, inkHeight, "The tall source glyph must stay upright in the reader crop.");
+        int middleY = (ink.Min(index => index / crop.Width) + ink.Max(index => index / crop.Width)) / 2;
+        Assert.IsGreaterThan(ink.Count(index => index / crop.Width > middleY),
+            ink.Count(index => index / crop.Width <= middleY), "The wider top stroke must remain above the stem.");
+        Assert.AreEqual("1", response.Proposals.Single().Text);
+    }
+
+    [TestMethod]
     public void FailedGpuAttemptCountsBothSessionsAndPreservesTime() => StaTestHost.Run(() => Pump(FailedGpuAttemptAsync()));
 
     private static async Task FailedGpuAttemptAsync()
@@ -262,6 +301,22 @@ public sealed class CalibrationOcrWorkerTests
                 new OcrRecognition(crop.RegionId, OcrSourceImage.Original,
                     [new(index == 0 ? "Outcome" : "1", .9, OcrSourceImage.Original)], 1,
                     index == 0 ? new("test_failure", "error", "test", "test", true, "review") : null)).ToArray());
+        }
+    }
+
+    private sealed class InspectingRecognizer : ITextRecognizer
+    {
+        public string ModelId => "test";
+        public string ModelVersion => "test";
+        public string ModelSha256 => new('a', 64);
+        public List<OcrCrop> Crops { get; } = [];
+        public ValueTask<IReadOnlyList<OcrRecognition>> RecognizeBatchAsync(IReadOnlyList<OcrCrop> crops, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Crops.AddRange(crops);
+            return ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop =>
+                new OcrRecognition(crop.RegionId, OcrSourceImage.Original,
+                    [new("1", .9, OcrSourceImage.Original)], 1, null)).ToArray());
         }
     }
 
