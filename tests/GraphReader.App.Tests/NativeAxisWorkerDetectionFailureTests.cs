@@ -17,14 +17,14 @@ public sealed class NativeAxisWorkerDetectionFailureTests
     {
         var lines = new List<GeometryLineCandidate>
         {
-            new("baseline", new(new(100, 700), new(1700, 700)), LineCandidateSource.RecordedFixture),
+            new("baseline", new(new(100, 700), new(3000, 700)), LineCandidateSource.RecordedFixture),
         };
-        for (int index = 0; index < 129; index++)
+        for (int index = 0; index < NativeAxisWorker.MaximumExaminedPairs + 1; index++)
             lines.Add(new($"vertical-{index}", new(new(100 + 10 * index, 700), new(100 + 10 * index, 100)), LineCandidateSource.RecordedFixture));
-        var within = lines.Take(129).ToArray();
+        var within = lines.Take(NativeAxisWorker.MaximumExaminedPairs + 1).ToArray();
         AxisGeometryResult best = await new AxisGeometryDetector().DetectAsync(
-            new AxisGeometryRequest(1800, 800, within) { MaximumExaminedPairs = 128 }, CancellationToken.None);
-        RustAxisProposalResult result = await NativeAxisWorker.ProcessLinesAsync(within, 1800, 800, null, CancellationToken.None);
+            new AxisGeometryRequest(3200, 800, within) { MaximumExaminedPairs = NativeAxisWorker.MaximumExaminedPairs }, CancellationToken.None);
+        RustAxisProposalResult result = await NativeAxisWorker.ProcessLinesAsync(within, 3200, 800, null, CancellationToken.None);
         Assert.IsNull(result.ErrorCode);
         Assert.IsNotNull(result.Geometry);
         Assert.AreEqual((int)Math.Round(best.PlotPolygon.BottomLeft.X), result.Geometry.Left);
@@ -34,7 +34,7 @@ public sealed class NativeAxisWorkerDetectionFailureTests
         CollectionAssert.Contains(result.ReviewReasons.ToArray(), "native_multiple_ranked_candidates");
         Assert.IsEmpty(result.Geometry.XTickPositions);
         Assert.IsEmpty(result.Geometry.YTickPositions);
-        RustAxisProposalResult exceeded = await NativeAxisWorker.ProcessLinesAsync(lines, 1800, 800, null, CancellationToken.None);
+        RustAxisProposalResult exceeded = await NativeAxisWorker.ProcessLinesAsync(lines, 3200, 800, null, CancellationToken.None);
         Assert.IsNull(exceeded.Geometry);
         CollectionAssert.Contains(exceeded.ReviewReasons.ToArray(), "native_pair_budget_exceeded");
     }

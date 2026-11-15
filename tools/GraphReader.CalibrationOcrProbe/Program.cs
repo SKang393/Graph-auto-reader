@@ -284,6 +284,12 @@ internal static class Program
                 Emit(await OwnedNativeSearchWorkCheck.RunAsync(parentBudget, deadline.Token));
                 return 0;
             }
+            if (args is ["--owned-native-search-capacity-check"])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await OwnedNativeSearchWorkCheck.RunCapacityAsync(parentBudget, deadline.Token));
+                return 0;
+            }
             if (args is ["--owned-gray-axis-check", var grayAxisApp, var grayAxisRust])
             {
                 using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);

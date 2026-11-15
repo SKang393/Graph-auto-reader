@@ -16,6 +16,9 @@ internal static class NativeAxisWorker
 {
     internal const int MaximumImageBytes = 32 * 1024 * 1024;
     internal const int MaximumResponseBytes = 4096;
+    // Normal review returns one ranked geometry. This work bound is separate
+    // from the explicit chooser's unchanged 128-candidate response capacity.
+    internal const int MaximumExaminedPairs = 256;
     private sealed class Observer : IAxisGeometryCandidateObserver
     {
         internal int Count { get; private set; }
@@ -82,7 +85,7 @@ internal static class NativeAxisWorker
         try
         {
             geometry = await new AxisGeometryDetector().DetectAsync(
-                new AxisGeometryRequest(width, height, lines) { CandidateObserver = observer, WorkObserver = workObserver, MaximumExaminedPairs = 128 }, token).ConfigureAwait(false);
+                new AxisGeometryRequest(width, height, lines) { CandidateObserver = observer, WorkObserver = workObserver, MaximumExaminedPairs = MaximumExaminedPairs }, token).ConfigureAwait(false);
         }
         catch (AxisGeometryDetectionException error)
         {

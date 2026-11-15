@@ -8,7 +8,7 @@ using GraphReader.Axis;
 
 namespace GraphReader.CalibrationOcrProbe;
 
-internal static class OwnedNativeSearchWorkCheck
+internal static partial class OwnedNativeSearchWorkCheck
 {
     private sealed class Observer : IAxisGeometryCandidateObserver, IAxisGeometryWorkObserver
     {
