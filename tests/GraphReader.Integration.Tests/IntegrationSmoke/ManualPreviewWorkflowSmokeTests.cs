@@ -167,6 +167,8 @@ public sealed class ManualPreviewWorkflowSmokeTests
                 Session1YMaximum = new GraphReader.Axis.PixelPoint(10, 95),
                 SessionMaximumY0 = new GraphReader.Axis.PixelPoint(5, 90),
             });
+        Assert.IsNotNull(reversed.XTransform);
+        Assert.IsNotNull(reversed.YTransform);
         Assert.IsTrue(double.IsFinite(reversed.XTransform.Slope));
         Assert.IsTrue(double.IsFinite(reversed.YTransform.Slope));
     }

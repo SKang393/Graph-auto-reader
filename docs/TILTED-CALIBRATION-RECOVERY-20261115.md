@@ -146,8 +146,27 @@ test assembly:
 Compact local all-attempt outcome SHA-256:
 `e05dc20337e21086d972c0da35a2afe4e985e2eefcd2b1924aa764c449d62aa5`.
 
-Combined local validation passes. Windows CI and integration verification remain
-pending; native UI behavior for this unpackaged change has not been checked.
+Combined local App validation passes. Source checkpoint
+`487bbaf1fa628165eebeb41f938d595170c236e0` was pushed to main and integrated in
+both checkouts. Its [Windows CI run](https://github.com/SKang393/Graph-auto-reader/actions/runs/43763146799)
+failed the full-solution build before tests:
+`dotnet build GraphAutoReader.slnx --configuration Release --no-restore --nologo`.
+Four CS8602 errors occurred at `RealGraphManualPortableValidationTests.cs:183,185`
+and `ManualPreviewWorkflowSmokeTests.cs:170,171`, where aligned-only controls
+dereferenced the now-nullable transforms without asserting the aligned mode.
+Both controls now explicitly assert non-null X/Y transforms before testing
+their values; no production code or data inputs change in this correction.
+
+The corrected integration-test project compiled against the frozen checkpoint
+runtime with zero warnings/errors, 12.3660604 s wall, using the same serial
+Debug flags and `-p:BuildProjectReferences=false`. Its owned
+`FullyQualifiedName~ManualPreviewWorkflowSmokeTests` filter passed 12/12,
+zero failures/skips, 8.4846707 s wall, via `dotnet vstest` on
+`tests/GraphReader.Integration.Tests/bin/Debug/net10.0-windows/GraphReader.Integration.Tests.dll`.
+The private real-data opt-in test was not executed. Integration TRX SHA-256:
+`6d6aae5f3265862c204ccc94ac1c979f9623bcefe95d04feacfff251477b81e6`.
+Windows CI must pass on the corrected checkpoint before it is called green;
+native UI behavior for this unpackaged change has not been checked.
 Temporary owned test outputs remain active only through CI and outcome
 integration, then retire under
 the existing artifact policy. The current fixed-development report remains

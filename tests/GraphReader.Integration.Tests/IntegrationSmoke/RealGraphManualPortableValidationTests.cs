@@ -180,6 +180,8 @@ public sealed class RealGraphManualPortableValidationTests
         await viewModel.HandleCanvasPointAsync(session24Y0);
         Assert.IsNotNull(tab.Calibration);
         ManualCalibrationState calibration = tab.Calibration!;
+        Assert.IsNotNull(calibration.XTransform);
+        Assert.IsNotNull(calibration.YTransform);
         Assert.AreEqual(1, calibration.XTransform.PixelToGraph(session1Y0.X), 0.000001);
         Assert.AreEqual(24, calibration.XTransform.PixelToGraph(session24Y0.X), 0.000001);
         Assert.AreEqual(0, calibration.YTransform.PixelToGraph(session1Y0.Y), 0.000001);
