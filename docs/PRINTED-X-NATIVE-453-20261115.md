@@ -92,7 +92,9 @@ At `2026-11-15T15:48:18.7532714Z`, after both app windows closed, its five newly
 created isolated Data files / 12,262 bytes were moved into the owned QA directory.
 All sixteen pre-existing shared Data files remained byte-identical. The sole
 retained package tree returned to exactly 478 files / 283,847,583 bytes.
-The complete `artifacts/printed-x-native453-check` scope is twelve disposable
-files / 36,363 bytes, including the generated fixture, project, exports and
-isolated Data. Its consumers are complete; retire it after this record is pushed.
-Original inputs, the active 449 owned fixture and current package remain intact.
+After this record reached origin/main in `15bd6145`, the complete
+`artifacts/printed-x-native453-check` scope was retired at
+`2026-11-15T15:51:17.7911187Z`: twelve files / 36,363 bytes, including the generated
+fixture, project, exports and isolated Data. Its consumers had finished; exact
+path, inventory, reparse and live-process guards passed. Original inputs, the
+active 449 owned fixture and current package remain intact.

@@ -61,12 +61,15 @@ public sealed partial class MainWindowViewModel
     public async Task SuggestCalibrationFromTicksAsync(CancellationToken cancellationToken)
     {
         if (IsBusy) return;
-        ClearCalibrationTickProposal();
+        cancellationToken.ThrowIfCancellationRequested();
+        bool useCurrentGeometry = CanReadCalibrationLabelsCore();
+        if (useCurrentGeometry) ClearCalibrationLabelComputedValues();
+        else ClearCalibrationTickProposal();
         if (SelectedTab is not { } expectedTab || _workspaceService is not IAxisSuggestionWorkspace axes ||
             _workspaceService is not ICalibrationLabelSuggestionWorkspace labels)
             return;
 
-        await SuggestAxesAsync(cancellationToken);
+        if (!useCurrentGeometry) await SuggestAxesAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         if (!ReferenceEquals(SelectedTab, expectedTab) || _axisSuggestion is not { } suggestion ||
             suggestion.TabId != expectedTab.TabId || !axes.IsAxisSuggestionCurrent(suggestion))

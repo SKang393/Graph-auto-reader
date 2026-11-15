@@ -17,6 +17,156 @@ namespace GraphReader.App.Tests;
 public sealed partial class CalibrationTickViewModelTests
 {
     [TestMethod]
+    public void SuggestCalibrationPreservesExplicitMeasuredChoiceWhenOrdinaryAxesAreAmbiguous()
+    {
+        WithImage(path =>
+        {
+            RustAxisGeometry geometry = MeasuredGeometry() with { Confidence = 0, FirstTickX = 20, LastTickX = 140 };
+            var axis = new AxisStub(geometry) { Ambiguous = true, ReviewGeometry = geometry };
+            var reader = new OcrStub(ValidProposals());
+            using var workspace = CreateWorkspace(path, reader, geometry, axis);
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestAxesAsync(CancellationToken.None));
+            Assert.IsFalse(vm.HasAxisSuggestion);
+            Assert.AreEqual(1, axis.CallCount);
+            Pump(vm.FindAxisCandidatesAsync(CancellationToken.None));
+            vm.SelectedAxisCandidate = vm.AxisCandidates.Single();
+            vm.UseAxisCandidateCommand.Execute(null);
+            Assert.IsTrue(vm.HasAxisSuggestion);
+
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+
+            Assert.AreEqual(1, axis.CallCount, "Explicit geometry must not trigger ordinary detection again.");
+            Assert.AreEqual(1, reader.CallCount);
+            Assert.IsNotNull(reader.LastRequest);
+            Assert.AreEqual(new CalibrationOcrPlot(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom), reader.LastRequest.Plot);
+            CollectionAssert.AreEqual(geometry.XTickPositions.ToArray(), reader.LastRequest.MeasuredXTicks!.ToArray());
+            CollectionAssert.AreEqual(geometry.YTickPositions.ToArray(), reader.LastRequest.MeasuredYTicks!.ToArray());
+            Assert.IsTrue(vm.HasAxisSuggestion);
+            Assert.IsTrue(vm.HasAxisGeometryReviewWarning);
+            Assert.IsTrue(vm.HasCalibrationTickProposal);
+            Assert.HasCount(6, vm.CalibrationPairedTickRows);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(vm.SelectedTab!.Calibration);
+        });
+    }
+
+    [TestMethod]
+    public void SuggestCalibrationCanUseManualDraftWithoutAutomaticAxisAdapter()
+    {
+        WithImage(path =>
+        {
+            var reader = new OcrStub(ValidProposals());
+            using var workspace = new ManualPreviewWorkspaceService(calibrationOcrSuggestionService: reader);
+            Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
+            using var vm = new MainWindowViewModel(workspace);
+            Assert.IsFalse(vm.SuggestCalibrationFromTicksCommand.CanExecute(null));
+            vm.BeginManualAxisDraftCommand.Execute(null);
+            Pump(vm.HandleCanvasPointAsync(new Point(20, 100)));
+            Pump(vm.HandleCanvasPointAsync(new Point(20, 20)));
+            Pump(vm.HandleCanvasPointAsync(new Point(140, 100)));
+            Assert.IsTrue(vm.IsManualAxisDraft);
+            Assert.IsTrue(vm.SuggestCalibrationFromTicksCommand.CanExecute(null));
+            var project = workspace.CurrentProject;
+
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+
+            Assert.AreEqual(1, reader.CallCount);
+            Assert.IsTrue(vm.IsManualAxisDraft);
+            Assert.IsTrue(vm.HasCalibrationTickProposal);
+            Assert.IsTrue(vm.HasEstimatedCalibrationPositions);
+            Assert.HasCount(6, vm.CalibrationPairedTickRows);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(vm.SelectedTab!.Calibration);
+            Assert.AreSame(project, workspace.CurrentProject);
+            Assert.IsFalse(vm.UndoCommand.CanExecute(null));
+        });
+    }
+
+    [TestMethod]
+    public void CancellingSelectedGeometryReadKeepsAxesButClearsComputedValuesAndReview()
+    {
+        WithImage(path =>
+        {
+            RustAxisGeometry geometry = MeasuredGeometry() with { Confidence = 0, FirstTickX = 20, LastTickX = 140 };
+            var axis = new AxisStub(geometry) { Ambiguous = true, ReviewGeometry = geometry };
+            var reader = new OcrStub(ValidProposals()) { Pending = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+            using var workspace = CreateWorkspace(path, reader, geometry, axis);
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.FindAxisCandidatesAsync(CancellationToken.None));
+            vm.SelectedAxisCandidate = vm.AxisCandidates.Single();
+            vm.UseAxisCandidateCommand.Execute(null);
+            vm.SuggestedYMaximum = "10";
+            vm.SuggestedFirstSession = "1";
+            vm.SuggestedFinalSession = "24";
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            using var cancellation = new CancellationTokenSource();
+
+            Task pending = vm.SuggestCalibrationFromTicksAsync(cancellation.Token);
+            Assert.IsNotNull(reader.LastRequest);
+            Assert.IsTrue(vm.IsBusy);
+            cancellation.Cancel();
+            reader.Pending.SetResult(Response(reader.LastRequest, ValidProposals()));
+            try { Pump(pending); }
+            catch (OperationCanceledException) { }
+
+            Assert.AreEqual(0, axis.CallCount);
+            Assert.AreEqual(1, reader.CallCount);
+            Assert.IsTrue(vm.HasAxisSuggestion);
+            Assert.IsFalse(vm.HasCalibrationTickProposal);
+            Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+            Assert.AreEqual(string.Empty, vm.SuggestedFinalSession);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(vm.SelectedTab!.Calibration);
+        });
+    }
+
+    [TestMethod]
+    public void PreCancelledSelectedGeometryReadPreservesEnteredValuesAndReview()
+    {
+        WithImage(path =>
+        {
+            RustAxisGeometry geometry = MeasuredGeometry() with { Confidence = 0, FirstTickX = 20, LastTickX = 140 };
+            var axis = new AxisStub(geometry) { Ambiguous = true, ReviewGeometry = geometry };
+            var reader = new OcrStub(ValidProposals());
+            using var workspace = CreateWorkspace(path, reader, geometry, axis);
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.FindAxisCandidatesAsync(CancellationToken.None));
+            vm.SelectedAxisCandidate = vm.AxisCandidates.Single();
+            vm.UseAxisCandidateCommand.Execute(null);
+            vm.SuggestedYMaximum = "10";
+            vm.SuggestedFirstSession = "1";
+            vm.SuggestedFinalSession = "24";
+            vm.AxisSuggestionReviewed = true;
+            string anchors = vm.AxisSuggestionSummary;
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+
+            try
+            {
+                Pump(vm.SuggestCalibrationFromTicksAsync(cancellation.Token));
+                Assert.Fail("A pre-cancelled request must report cancellation before editing the draft.");
+            }
+            catch (OperationCanceledException) { }
+
+            Assert.AreEqual(0, axis.CallCount);
+            Assert.AreEqual(0, reader.CallCount);
+            Assert.AreEqual("10", vm.SuggestedYMaximum);
+            Assert.AreEqual("1", vm.SuggestedFirstSession);
+            Assert.AreEqual("24", vm.SuggestedFinalSession);
+            Assert.AreEqual(anchors, vm.AxisSuggestionSummary);
+            Assert.IsTrue(vm.AxisSuggestionReviewed);
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(vm.SelectedTab!.Calibration);
+        });
+    }
+
+    [TestMethod]
     public void EnteredFirstSessionUsesAllTickEvidenceThenSavesAndExportsConfirmedCalibration()
     {
         WithImage(path =>
@@ -945,14 +1095,20 @@ public sealed partial class CalibrationTickViewModelTests
         task.GetAwaiter().GetResult();
     }
 
-    private sealed class AxisStub(RustAxisGeometry geometry) : IAxisProposalService
+    private sealed class AxisStub(RustAxisGeometry geometry) : IAxisProposalService, IAxisCandidateReviewService
     {
         public int CallCount { get; private set; }
+        public bool Ambiguous { get; init; }
+        public RustAxisGeometry? ReviewGeometry { get; init; }
+        public bool CanReviewCandidates => ReviewGeometry is not null;
         public Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken)
         {
             CallCount++;
-            return Task.FromResult(new RustAxisProposalResult(geometry, null));
+            return Task.FromResult(Ambiguous ? new RustAxisProposalResult(null, "AMBIGUOUS_AXIS") : new RustAxisProposalResult(geometry, null));
         }
+        public Task<AxisCandidateReviewResult> ReviewCandidatesAsync(byte[] originalImage, CancellationToken cancellationToken) =>
+            Task.FromResult(new AxisCandidateReviewResult(ReviewGeometry is { } review
+                ? [new AxisReviewCandidate(0, review)] : Array.Empty<AxisReviewCandidate>(), null) { Provider = "rust-review" });
     }
 
     private sealed class OcrStub(IReadOnlyList<CalibrationOcrProposal> proposals) : ICalibrationOcrSuggestionService

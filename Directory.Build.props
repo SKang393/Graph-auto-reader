@@ -8,10 +8,10 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <Version>0.4.53</Version>
-    <AssemblyVersion>0.4.53.0</AssemblyVersion>
-    <FileVersion>0.4.53.0</FileVersion>
-    <InformationalVersion>0.4.53</InformationalVersion>
+    <Version>0.4.54</Version>
+    <AssemblyVersion>0.4.54.0</AssemblyVersion>
+    <FileVersion>0.4.54.0</FileVersion>
+    <InformationalVersion>0.4.54</InformationalVersion>
     <Authors>Sungwoo Kang</Authors>
     <Copyright>Copyright 2026 Sungwoo Kang</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
