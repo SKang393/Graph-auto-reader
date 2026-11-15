@@ -308,11 +308,13 @@ than generating another adjacent package.
 After this source/outcome reached main in `9e694ca5`, the 32 initial Rust review
 scratch files totaling 25,946 bytes were retired as part of the
 [recorded cleanup](NATIVE-AXIS-REVIEW-ELIGIBILITY-20261115.md#retention).
-Completed managed TRXs and the remaining owned UI/probe outputs can be retired
-after their active consumers finish. The two-panel PNG in
-`artifacts/rust-review-ocr-owned-check` remains active for packaged native checks;
-it is generated project-owned material, not a private figure. Originals, sealed
+Completed managed TRXs and the remaining owned UI/probe outputs were retired
+after their consumers finished. The two-panel PNG formerly in
+`artifacts/rust-review-ocr-owned-check` completed the
+[453 packaged native checks](INTERNAL-PREVIEW-453-VERIFICATION-20261115.md)
+and was retired with its generated worker records. It is generated project-owned
+material, not a private figure. Originals, sealed
 inputs, current runtime assets, user Data and the sole verified build remain
-protected. The fixed-twelve report in `artifacts/rust-review-routing-check` may
-be retired after this outcome is pushed and the current failure-accounting
-review finishes. Real automatic-calibration acceptance is still incomplete.
+protected. The fixed-twelve report formerly in `artifacts/rust-review-routing-check`
+was retired after the [failure-accounting comparison](NATIVE-REVIEW-INTEGER-REPRESENTATION-20261115.md)
+reached main. Real automatic-calibration acceptance is still incomplete.

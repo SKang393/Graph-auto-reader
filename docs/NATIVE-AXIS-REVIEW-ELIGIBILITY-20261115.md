@@ -128,11 +128,15 @@ files and five axis-review TRXs. Exact worktree scopes were
 `artifacts/wpf-harness-repair-check`, `artifacts/rust-review-owned-check` and
 `artifacts/axis-candidate-review-check`. The last retains only `owned-grid.png`,
 SHA-256 `1d258bf5c7be0b7788286f01e64ac8d1ca1eaac8e0b574b927ca1e52011c6894`.
+That owned PNG subsequently completed packaged 453 verification and was retired;
+see the [package retention record](INTERNAL-PREVIEW-453-VERIFICATION-20261115.md).
 An initial byte-total guard stopped deletion because one TRX size had been
 omitted from the sum; the corrected exact inventory passed. CIM inspection was
 unavailable, and the process/path fallback found no consumers of those scopes.
 
-The two-panel owned PNG, current development comparison, new eligibility TRXs,
-runtime assets, user Data and sole 0.4.52 package remain active. No original,
-independent input or unrelated task output was removed. Retire this batch's raw
-checks after its outcome is pushed and downstream consumers finish.
+The two-panel owned PNG, development comparison and eligibility TRXs have since
+finished their consumers and were retired under the pushed package and
+[integer-representation outcome](NATIVE-REVIEW-INTEGER-REPRESENTATION-20261115.md).
+The 453 package replaced 452 after guarded activation. Runtime assets and user
+Data remain active. No original, independent input or unrelated task output was
+removed.

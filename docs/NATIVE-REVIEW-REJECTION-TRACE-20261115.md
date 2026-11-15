@@ -127,9 +127,10 @@ all 1,159 App tests and 63 Rust tests passed. Packaging/evidence checks passed
 and release jobs were skipped. No production or real accuracy approval is claimed.
 Code remains Apache-2.0, with no dependency/model/license change.
 
-`artifacts/native-candidate-observation-check` contains five disposable test
-files totaling 68,098 bytes. Retire them after this outcome is pushed. Keep
-`artifacts/native-review-observation-dev-check` only through the pending
-integer-representation repair comparison, then record and retire its raw output.
+The five test files totaling 68,098 bytes formerly in
+`artifacts/native-candidate-observation-check` and the raw report in
+`artifacts/native-review-observation-dev-check` were retired after the completed
+[integer-representation comparison](NATIVE-REVIEW-INTEGER-REPRESENTATION-20261115.md)
+reached origin/main in `c0f7a2f9`. Their active comparison consumer is finished.
 Original inputs, independent evaluation, current runtime assets, user Data and
 the sole retained package are outside this cleanup scope.

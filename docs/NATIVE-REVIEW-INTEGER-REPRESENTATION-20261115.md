@@ -148,7 +148,11 @@ The delivered 0.4.53 remains bound to `9adee655` and does not contain this repai
 ## Acceptance, limits and retention
 
 Owned representation invariants and the final bounded confirmation passed.
-Full exact-source Windows CI remains pending integration. Review availability
+Full Windows CI [43725696430](https://github.com/SKang393/Graph-auto-reader/actions/runs/43725696430)
+passed exact commit `c0f7a2f97f3fd74f82f0c6b92ed4cfa165f40b1f`: all thirteen
+.NET suites, 2,969 passed / 30 skipped / zero failed, including 1,165 App tests,
+plus 63 Rust tests. Localization, version/ledger/retention, evidence and packaging
+checks passed; public release jobs were skipped. Review availability
 is not correct-axis selection or automatic numeric calibration; 79 native
 choices across two panels may still be costly to review. The remaining five
 budget failures are not addressed by relaxing bounds. Existing pruning already
@@ -159,12 +163,20 @@ integer boxes coincide. No further detector change is justified by this run.
 No dependency, model, license or public contract changed. Original source remains
 Apache-2.0. No production approval or release was performed.
 
-After this outcome and source are pushed, retire the completed raw outputs in
+After this outcome and source reached origin/main in `c0f7a2f9`, the completed
+raw outputs were retired from
 `artifacts/native-rounded-eligibility-check` (six files, 83,781 bytes),
 `artifacts/native-duplicate-eligibility-check` (six files, 80,792 bytes), and
 the three `native-review-observation-dev-check`,
 `rounded-review-observation-dev-check`, `distinct-review-observation-dev-check`
 directories. Their only consumer was this comparison. The preceding observer
-test output is also closed. Regenerate owned tests from source; do not rerun
+test output and completed Rust review integration/routing and native eligibility
+checks were also retired. The ten exact directories contained 53 files totaling
+4,195,891 bytes; cleanup completed `2026-11-15T14:45:05.7886117Z` after remote
+scope, exact inventory, path/reparse and consumer checks. The other retired
+scopes were `artifacts/native-candidate-observation-check`,
+`artifacts/rust-review-integration-check`, `artifacts/rust-review-routing-check`,
+`artifacts/native-eligibility-dev-check` and
+`artifacts/native-candidate-eligibility-check`. Regenerate owned tests from source; do not rerun
 unchanged real diagnostics simply to recreate disposable evidence. Preserve
 originals, independent evaluation, active runtime/model assets and user Data.

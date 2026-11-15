@@ -123,14 +123,45 @@ accuracy, fresh-machine acceptance, save/export completion or an installer.
 The guarded Stage validation and execution both passed: 477 files /
 196,256,903 bytes, exact ZIP and source identities, no active consumers, and
 all 16 shared Data files preserved. The build and ZIP moved into the final
-versioned directory without a duplicate extraction. Latest-pointer activation
-and retirement of 0.4.52 await the pushed ledger at this checkpoint.
+versioned directory without a duplicate extraction. Ledger/outcome commit
+`c6b6164d90204871a9bef6a805c6e32528e42b2d` then reached origin/main as an ancestor
+of `c0f7a2f97f3fd74f82f0c6b92ed4cfa165f40b1f`.
 
-After the ledger is pushed, revalidate and switch the latest pointer, then retire
-the exact superseded 0.4.52 identity (478 files / 283,716,647 bytes). Staging
-helpers, outer ZIP, raw verification/worker reports and the 6,245-byte QA Data
-are disposable after those consumers finish. Retain the one verified 453 build
-and its ZIP, current models, originals and user Data.
+The first activation preflight failed before mutation: strict-mode access to
+`directory` on a historical ledger row without that optional field. The scratch
+helper now checks property presence before selecting the old build. Corrected
+ValidateOnly/Execute guards passed for activation and then separate retirement:
+remote scope and exact ledger blob, package/source hashes, complete inventories,
+resolved in-root paths without reparse points, no active consumers, and unchanged
+shared Data. Latest switched at `2026-11-15T14:42:29.2812418Z`; pointer SHA-256
+is `85d7a1fa0d2bdf8c4597e485802fbc65a9a497f24928ed0a262367ac5a3acf35`.
+The exact superseded 452 directory was removed: 478 files / 283,716,647 bytes.
+The current build tree has exactly one build identity, 453, comprising 478 files
+and 283,847,583 bytes including its ZIP. All sixteen shared Data files survived.
+
+The actual primary-checkout launcher then passed
+`packaging/Run-Latest-DevPortable.ps1 -Wait -PortableSmoke`, exit 0, in
+1,648.9601 ms. The child was hidden for this headless smoke. It resolved the
+453 executable and shared Data through the active pointer and ledger; all
+sixteen shared files had unchanged hashes, no new shared files appeared, and
+no Data directory was created inside the retained build. This is a launcher
+check, not another visual workflow pass.
+
+After those consumers finished, the seventeen completed staging files totaling
+87,432,451 bytes were retired at `2026-11-15T14:46:47.0190461Z`. This includes
+the outer downloaded archive, verifier/activation helpers, raw worker/runtime
+records and the task-created QA Data. The pushed outcome and retained inner ZIP
+were checked before deletion. The remote artifact remains available under its
+bounded retention. Current runtime/model assets, originals and user Data were
+not removed. Historical result hashes below identify retired evidence, not files
+promised to remain on disk.
+
+The completed owned-grid consumers were also retired at
+`2026-11-15T14:52:10.2490767Z`: `artifacts/axis-candidate-review-check`
+(one file / 6,122 bytes) and `artifacts/rust-review-ocr-owned-check`
+(twenty files / 45,368 bytes). Their image hashes matched the documented controls,
+no live source consumer remained, and the pushed package outcome was checked.
+These are regenerable owned fixtures and worker records, not original figures.
 
 Result hashes for concise retention provenance: initial worker record
 `c9591007d9eaefd16ad60fc40dcd0149b0c97f975cb6cd5b878791929cfef4ea`,
