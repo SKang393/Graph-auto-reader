@@ -157,4 +157,9 @@ the full OCR project with `--no-restore` and full App project with
 specific follow-up geometry/grouping diagnosis and pushed outcome. Test reports
 and completed owned capacity outputs are disposable after their result records
 are pushed. The sole delivered package remains 0.4.54; no new package or model
-promotion was performed. Full CI for this source batch remains pending.
+promotion was performed. Full Windows CI
+[43753118076](https://github.com/SKang393/Graph-auto-reader/actions/runs/43753118076)
+passed on `1fe50b58b07ef9be7d23f8252016ad86ce7ee32e`: 13 .NET suites,
+3,063 passed / 30 skipped / zero failed, 72 Rust tests and all applicable
+policy/packaging checks, including 68 packaging verification tests. Release jobs
+were skipped. This verifies the source batch, not production calibration accuracy.
