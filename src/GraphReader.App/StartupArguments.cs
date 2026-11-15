@@ -19,10 +19,11 @@ public sealed record StartupArguments(
     {
         ArgumentNullException.ThrowIfNull(arguments);
 
-        if (arguments.Any(argument => string.Equals(argument, "--native-axis-worker", StringComparison.OrdinalIgnoreCase)))
+        if (arguments.Any(argument => string.Equals(argument, "--native-axis-worker", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(argument, "--native-axis-candidates-worker", StringComparison.OrdinalIgnoreCase)))
         {
-            if (arguments.Count != 1 || !string.Equals(arguments[0], "--native-axis-worker", StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException("--native-axis-worker cannot be combined with other options.", nameof(arguments));
+            if (arguments.Count != 1)
+                throw new ArgumentException("Native axis worker options cannot be combined with other options.", nameof(arguments));
             return new StartupArguments(false, false, false, null);
         }
 

@@ -193,7 +193,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ExportCommand = new AsyncRelayCommand(
             ExportFromDialogAsync,
             () => !IsBusy && _isWorkflowAvailable && (_manualWorkspaceService is null || SelectedTab is not null));
-        CancelCommand = new RelayCommand(_ => CancelActiveOperation(), _ => IsBusy || IsPanelCropActive || IsCollectingManualAxisDraft);
+        CancelCommand = new RelayCommand(_ => CancelActiveOperation(), _ => IsBusy || IsPanelCropActive || IsCollectingManualAxisDraft || HasAxisCandidates);
         AddPointCommand = new RelayCommand(
             parameter => AddPoint((string)parameter!),
             parameter => parameter is string seriesId && FindSeries(seriesId) is not null);
@@ -1688,6 +1688,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        ClearAxisCandidates();
         _calibrationAnchors.Clear();
         AxisSuggestionReviewed = false;
         EditorMode = ManualEditorMode.Calibration;
@@ -2654,7 +2655,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private void CancelActiveOperation()
     {
-        if (IsCollectingManualAxisDraft)
+        if (IsCollectingManualAxisDraft || HasAxisCandidates)
         {
             ClearAxisSuggestion();
             if (IsBusy) _activeOperation?.Cancel();
@@ -2716,6 +2717,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        ClearAxisCandidates();
         _isRestoringHistory = true;
         try
         {
@@ -2739,6 +2741,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        ClearAxisCandidates();
         _isRestoringHistory = true;
         try
         {

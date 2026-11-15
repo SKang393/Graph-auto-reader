@@ -110,6 +110,7 @@ public sealed partial class MainWindowViewModel
 
     private void InitializeAxisSuggestionCommands()
     {
+        InitializeAxisCandidateCommands();
         BeginManualAxisDraftCommand = new RelayCommand(_ => BeginManualAxisDraft(),
             _ => !IsBusy && SelectedTab is not null && _manualWorkspaceService is not null &&
                 _workspaceService is IManualAxisDraftWorkspace { CanCreateManualAxisDraft: true } &&
@@ -123,7 +124,7 @@ public sealed partial class MainWindowViewModel
         ApplyAxisSuggestionCommand = new AsyncRelayCommand(ApplyAxisSuggestionAsync,
             () => !IsBusy && AxisSuggestionReviewed && TryGetSuggestedValues(out _, out _, out _));
         DismissAxisSuggestionCommand = new RelayCommand(_ => ClearAxisSuggestion(),
-            _ => (HasAxisSuggestion || IsCollectingManualAxisDraft) && !IsBusy);
+            _ => (HasAxisSuggestion || IsCollectingManualAxisDraft || HasAxisCandidates) && !IsBusy);
     }
 
     public Task SuggestAxesAsync(CancellationToken cancellationToken) => RunBusyAsync(async token =>
@@ -143,6 +144,11 @@ public sealed partial class MainWindowViewModel
             SetStatus(GetLocalizedString(LocalizationKeys.ManualAxisUnavailable));
             return;
         }
+        SetAxisSuggestion(suggestion);
+    }, cancellationToken);
+
+    private void SetAxisSuggestion(WorkspaceAxisSuggestion suggestion)
+    {
         _axisSuggestion = suggestion;
         var geometry = suggestion.Geometry;
         int firstX = geometry.Left;
@@ -167,7 +173,7 @@ public sealed partial class MainWindowViewModel
         OnPropertyChanged(nameof(HasAxisGeometryReviewWarning));
         OnPropertyChanged(nameof(AxisGeometryReviewWarningText));
         SetStatus(GetLocalizedString(LocalizationKeys.ManualAxisReview));
-    }, cancellationToken);
+    }
 
     public Task ApplyAxisSuggestionAsync(CancellationToken cancellationToken) => RunBusyAsync(async token =>
     {
@@ -226,6 +232,7 @@ public sealed partial class MainWindowViewModel
 
     private void ClearAxisSuggestion()
     {
+        ClearAxisCandidates();
         bool wasCollecting = IsCollectingManualAxisDraft;
         ClearManualAxisDraftSelection();
         if (wasCollecting && EditorMode == ManualEditorMode.Calibration) EditorMode = ManualEditorMode.Select;

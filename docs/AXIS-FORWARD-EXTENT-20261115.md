@@ -82,6 +82,11 @@ Only aggregates are tracked; no private pixels, case predictions or truth rows.
 
 ## Next product work and retention
 
+Full Windows CI [43707486220](https://github.com/SKang393/Graph-auto-reader/actions/runs/43707486220)
+completed successfully for exact source
+`6e3d384d0514f4f153bdcfff8bd7954595532228`; build/test/packaging checks passed
+and public-release jobs were skipped.
+
 Normal Suggest must continue rejecting ambiguity. A separate explicit review
 can retain completed native candidate enumeration, show candidate overlays with
 no default selection, and reuse the existing source-bound OCR and calibration

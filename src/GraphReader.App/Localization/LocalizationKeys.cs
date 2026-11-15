@@ -86,6 +86,11 @@ public static class LocalizationKeys
     public const string ManualAxisGeometryReviewWarning = "Manual.AxisGeometry.ReviewWarning";
     public const string ManualAxisPositions = "Manual.AxisPositions";
     public const string ManualAxisUnavailable = "Manual.AxisUnavailable";
+    public const string ManualAxisCandidatesFind = "Manual.AxisCandidates.Find";
+    public const string ManualAxisCandidatesInstructions = "Manual.AxisCandidates.Instructions";
+    public const string ManualAxisCandidateLabel = "Manual.AxisCandidates.Label";
+    public const string ManualAxisCandidateUse = "Manual.AxisCandidates.Use";
+    public const string ManualAxisCandidatesUnavailable = "Manual.AxisCandidates.Unavailable";
     public const string ManualAxisReviewed = "Manual.AxisReviewed";
     public const string ManualAxisApply = "Manual.AxisApply";
     public const string ManualAxisDismiss = "Manual.AxisDismiss";

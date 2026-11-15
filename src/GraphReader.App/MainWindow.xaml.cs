@@ -106,6 +106,20 @@ public partial class MainWindow : Window
         {
             Dispatcher.BeginInvoke(GraphCanvasHost.ResetView, DispatcherPriority.Loaded);
         }
+        else if (sender is MainWindowViewModel review &&
+            e.PropertyName is nameof(MainWindowViewModel.HasAxisCandidates) or nameof(MainWindowViewModel.HasAxisSuggestion))
+        {
+            bool choices = e.PropertyName == nameof(MainWindowViewModel.HasAxisCandidates);
+            if (!(choices ? review.HasAxisCandidates : review.HasAxisSuggestion)) return;
+            WorkspaceTabViewModel? tab = review.SelectedTab;
+            FrameworkElement target = choices ? AxisCandidateList : AxisSuggestionReviewHeader;
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (IsLoaded && ReferenceEquals(DataContext, review) && ReferenceEquals(review.SelectedTab, tab) &&
+                    (choices ? review.HasAxisCandidates : review.HasAxisSuggestion) && target.IsVisible)
+                    target.BringIntoView();
+            }, DispatcherPriority.Loaded);
+        }
     }
 
     private void OnClosing(object? sender, CancelEventArgs e)

@@ -18,9 +18,15 @@ descending-order failure and clears development envelope-budget exhaustion;
 coverage remains 7/12 with four exact-pair failures and one ambiguity rejection.
 The [zero-forward-extent repair](AXIS-FORWARD-EXTENT-20261115.md) preserves all
 seven geometries and allows one more native search to finish: three exact-pair
-failures and two ambiguity rejections remain. Next expose only completed native
-candidate sets through explicit overlay selection and the existing numeric
-review; keep normal Suggest strict. Do not repeat unchanged OCR. Native [foreground profiling cancellation](NATIVE-PROFILING-INTERRUPTION-20261115.md)
+failures and two ambiguity rejections remain. The
+[explicit axis-choice review](AXIS-CANDIDATE-REVIEW-20261115.md) now exposes only
+completed native candidate sets with no default selection, source-bound overlay
+preview and the existing numeric review. Owned native QA reaches a six-label
+draft without applying calibration; real automatic coverage is not remeasured.
+Keep normal Suggest strict and do not repeat unchanged OCR. Next deliver the
+integrated preview after exact-head full CI, then address the remaining geometry
+resource failures using owned controls and the fixed development diagnostic.
+Native [foreground profiling cancellation](NATIVE-PROFILING-INTERRUPTION-20261115.md)
 is now verified. The sole retained package remains 0.4.52 until a meaningful
 integrated replacement is verified.
 

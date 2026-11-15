@@ -45,14 +45,17 @@ public partial class App : Application, IDisposable
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        if (e.Args.Any(argument => string.Equals(argument, "--native-axis-worker", StringComparison.OrdinalIgnoreCase)))
+        if (e.Args.Any(argument => string.Equals(argument, "--native-axis-worker", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(argument, "--native-axis-candidates-worker", StringComparison.OrdinalIgnoreCase)))
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             try
             {
                 _ = StartupArguments.Parse(e.Args);
-                int exitCode = await Task.Run(() => NativeAxisWorker.RunAsync(RuntimeModeSelector.SelectBuildDefault(),
-                    Console.OpenStandardInput(), Console.OpenStandardOutput()));
+                bool candidates = string.Equals(e.Args[0], "--native-axis-candidates-worker", StringComparison.OrdinalIgnoreCase);
+                int exitCode = await Task.Run(() => candidates
+                    ? NativeAxisCandidateReview.RunAsync(RuntimeModeSelector.SelectBuildDefault(), Console.OpenStandardInput(), Console.OpenStandardOutput())
+                    : NativeAxisWorker.RunAsync(RuntimeModeSelector.SelectBuildDefault(), Console.OpenStandardInput(), Console.OpenStandardOutput()));
                 Shutdown(exitCode);
             }
             catch (Exception) { Shutdown(2); }

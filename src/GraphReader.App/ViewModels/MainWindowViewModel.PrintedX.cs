@@ -19,6 +19,7 @@ public sealed partial class MainWindowViewModel
     {
         NotifyManualPrintedXLabelsChanged();
         NotifySuggestedPrintedXLabelsChanged();
+        NotifyAxisCandidateLabelsChanged();
         OnPropertyChanged(nameof(AxisSuggestionSummary));
         OnPropertyChanged(nameof(AxisGeometryReviewWarningText));
     }

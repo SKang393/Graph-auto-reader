@@ -89,6 +89,11 @@
   <sys:String x:Key="Manual.AxisGeometry.ReviewWarning">The proposed axes need checking. Adjust the anchor positions and confirm the actual labels before applying.</sys:String>
   <sys:String x:Key="Manual.AxisPositions">Original pixels: origin ({0}, {1}); Y maximum ({2}, {3}); final session ({4}, {5}).</sys:String>
   <sys:String x:Key="Manual.AxisUnavailable">No axis proposal is available. Mark axes for label reading, or crop one graph including its labels and visible zero before retrying. Manual three-anchor calibration is also available.</sys:String>
+  <sys:String x:Key="Manual.AxisCandidates.Find">Review axis choices</sys:String>
+  <sys:String x:Key="Manual.AxisCandidates.Instructions">Select an option to preview its axes, then choose Use selected axes. Check the positions and read or enter the printed values before applying calibration.</sys:String>
+  <sys:String x:Key="Manual.AxisCandidates.Label">Option {0}: ({1}, {2}) to ({3}, {4})</sys:String>
+  <sys:String x:Key="Manual.AxisCandidates.Use">Use selected axes</sys:String>
+  <sys:String x:Key="Manual.AxisCandidates.Unavailable">No complete set of axis choices is available. Mark axes for label reading, or crop one graph including its labels before retrying.</sys:String>
   <sys:String x:Key="Manual.AxisReviewed">I checked anchor pixels and actual labels.</sys:String>
   <sys:String x:Key="Manual.AxisApply">Apply</sys:String>
   <sys:String x:Key="Manual.AxisDismiss">Dismiss</sys:String>

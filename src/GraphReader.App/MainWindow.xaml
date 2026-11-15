@@ -1009,6 +1009,44 @@
                     Style="{DynamicResource App.Style.Button}"
                     automation:AutomationProperties.AutomationId="Manual.AxisDraft.Begin"
                     automation:AutomationProperties.Name="{DynamicResource Manual.AxisDraft.Begin}" />
+            <Button Margin="0,0,0,8" Command="{Binding FindAxisCandidatesCommand}"
+                    Content="{DynamicResource Manual.AxisCandidates.Find}"
+                    ToolTip="{DynamicResource Manual.AxisCandidates.Instructions}"
+                    Style="{DynamicResource App.Style.Button}"
+                    automation:AutomationProperties.AutomationId="Manual.AxisCandidates.Find"
+                    automation:AutomationProperties.Name="{DynamicResource Manual.AxisCandidates.Find}"
+                    automation:AutomationProperties.HelpText="{DynamicResource Manual.AxisCandidates.Instructions}" />
+            <StackPanel Visibility="{Binding HasAxisCandidates, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
+              <TextBlock Text="{Binding AxisCandidatesStatusText}" TextWrapping="Wrap" Margin="0,0,0,6"
+                         automation:AutomationProperties.AutomationId="Manual.AxisCandidates.Status"
+                         automation:AutomationProperties.Name="{Binding AxisCandidatesStatusText}" />
+              <ListBox x:Name="AxisCandidateList" ItemsSource="{Binding AxisCandidates}" SelectedItem="{Binding SelectedAxisCandidate, Mode=TwoWay}"
+                       IsSynchronizedWithCurrentItem="False" SelectionMode="Single" MaxHeight="160"
+                       Background="{DynamicResource App.Brush.Surface}" Foreground="{DynamicResource App.Brush.Text}"
+                       ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                       automation:AutomationProperties.AutomationId="Manual.AxisCandidates.List"
+                       automation:AutomationProperties.Name="{DynamicResource Manual.AxisCandidates.Find}"
+                       automation:AutomationProperties.HelpText="{DynamicResource Manual.AxisCandidates.Instructions}">
+                <ListBox.ItemContainerStyle>
+                  <Style TargetType="ListBoxItem" BasedOn="{StaticResource App.Style.ListBoxItem}">
+                    <Setter Property="automation:AutomationProperties.Name" Value="{Binding DisplayText}" />
+                  </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding DisplayText}" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <Button Margin="0,6,0,0" Command="{Binding UseAxisCandidateCommand}"
+                      Content="{DynamicResource Manual.AxisCandidates.Use}" Style="{DynamicResource App.Style.Button}"
+                      automation:AutomationProperties.AutomationId="Manual.AxisCandidates.Use"
+                      automation:AutomationProperties.Name="{DynamicResource Manual.AxisCandidates.Use}" />
+              <Button Margin="0,6,0,0" Command="{Binding DismissAxisSuggestionCommand}"
+                      Content="{DynamicResource Manual.AxisDismiss}" Style="{DynamicResource App.Style.Button}"
+                      automation:AutomationProperties.AutomationId="Manual.AxisCandidates.Dismiss"
+                      automation:AutomationProperties.Name="{DynamicResource Manual.AxisDismiss}" />
+            </StackPanel>
             <StackPanel Visibility="{Binding IsCollectingManualAxisDraft, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
               <TextBlock Text="{DynamicResource Manual.AxisDraft.Prompt}" TextWrapping="Wrap" />
               <Button Margin="0,6,0,0" Command="{Binding DismissAxisSuggestionCommand}"
@@ -1020,7 +1058,7 @@
             <StackPanel Visibility="{Binding HasAxisSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
               <TextBlock Margin="0,0,0,6" Text="{DynamicResource Manual.AxisDraft.Ready}" TextWrapping="Wrap"
                          Visibility="{Binding IsManualAxisDraft, Converter={StaticResource BooleanToVisibilityConverter}}" />
-              <TextBlock Text="{DynamicResource Manual.AxisReview}" TextWrapping="Wrap" />
+              <TextBlock x:Name="AxisSuggestionReviewHeader" Text="{DynamicResource Manual.AxisReview}" TextWrapping="Wrap" />
               <TextBlock Margin="0,4,0,6" Text="{Binding AxisGeometryReviewWarningText}"
                          Foreground="{DynamicResource App.Brush.Warning}" TextWrapping="Wrap"
                          Visibility="{Binding HasAxisGeometryReviewWarning, Converter={StaticResource BooleanToVisibilityConverter}}"

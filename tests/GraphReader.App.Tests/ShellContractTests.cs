@@ -145,6 +145,33 @@ public sealed class ShellContractTests
     }
 
     [TestMethod]
+    public void AxisChoicesRequireExplicitSelectionAndExposeAccessibleHelp()
+    {
+        var document = LoadMainWindow();
+        XNamespace automation = AutomationNamespace;
+        XElement Find(string id) => document.Descendants().Single(element =>
+            element.Attribute(automation + "AutomationProperties.AutomationId")?.Value == id);
+        XElement find = Find("Manual.AxisCandidates.Find");
+        Assert.AreEqual("{Binding FindAxisCandidatesCommand}", find.Attribute("Command")?.Value);
+        Assert.AreEqual("{DynamicResource Manual.AxisCandidates.Find}",
+            find.Attribute(automation + "AutomationProperties.Name")?.Value);
+        Assert.AreEqual("{DynamicResource Manual.AxisCandidates.Instructions}",
+            find.Attribute(automation + "AutomationProperties.HelpText")?.Value);
+        XElement list = Find("Manual.AxisCandidates.List");
+        Assert.AreEqual("{Binding AxisCandidates}", list.Attribute("ItemsSource")?.Value);
+        Assert.AreEqual("{Binding SelectedAxisCandidate, Mode=TwoWay}", list.Attribute("SelectedItem")?.Value);
+        Assert.AreEqual("False", list.Attribute("IsSynchronizedWithCurrentItem")?.Value);
+        Assert.IsNull(list.Attribute("SelectedIndex"));
+        Assert.AreEqual("{DynamicResource Manual.AxisCandidates.Instructions}",
+            list.Attribute(automation + "AutomationProperties.HelpText")?.Value);
+        XElement use = Find("Manual.AxisCandidates.Use");
+        Assert.AreEqual("{Binding UseAxisCandidateCommand}", use.Attribute("Command")?.Value);
+        Assert.AreEqual("{DynamicResource Manual.AxisCandidates.Use}",
+            use.Attribute(automation + "AutomationProperties.Name")?.Value);
+        Assert.AreEqual("{Binding DismissAxisSuggestionCommand}", Find("Manual.AxisCandidates.Dismiss").Attribute("Command")?.Value);
+    }
+
+    [TestMethod]
     public void EveryShellAutomationIdHasAnExplicitLocalizedOrBoundName()
     {
         var document = LoadMainWindow();

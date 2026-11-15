@@ -14,10 +14,20 @@ public interface IAxisProposalService
 }
 
 /// <summary>Uses strict native review geometry when Rust cannot resolve an axis.</summary>
-public sealed class RustFirstAxisProposalService(IAxisProposalService primary, IAxisProposalService fallback) : IAxisProposalService
+public sealed class RustFirstAxisProposalService(IAxisProposalService primary, IAxisProposalService fallback) : IAxisProposalService, IAxisCandidateReviewService
 {
     private readonly IAxisProposalService _primary = primary ?? throw new ArgumentNullException(nameof(primary));
     private readonly IAxisProposalService _fallback = fallback ?? throw new ArgumentNullException(nameof(fallback));
+
+    public bool CanReviewCandidates => _fallback is IAxisCandidateReviewService { CanReviewCandidates: true };
+
+    public Task<AxisCandidateReviewResult> ReviewCandidatesAsync(byte[] originalImage, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return _fallback is IAxisCandidateReviewService { CanReviewCandidates: true } review
+            ? review.ReviewCandidatesAsync(originalImage, cancellationToken)
+            : Task.FromResult(new AxisCandidateReviewResult(Array.Empty<AxisReviewCandidate>(), "OPENCV_AXIS_UNAVAILABLE"));
+    }
 
     public async Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken)
     {
