@@ -60,7 +60,7 @@ of the current 0.4.52 directory found 501 files, 284,081,896 bytes, no reparse
 points and no matching live consumers at that instant. It includes the uploaded
 87,558,560-byte ZIP as well as the 477-file extracted app and owned input and
 reports. The full inventory is `artifacts/flex5-452-check/remote-452-inventory.json`.
-Nothing was deleted; the extracted package and owned input remain on the host.
+This inventory was recorded before the completed retirement below.
 The exact reviewed remote scopes are
 `C:\Users\sungw\AppData\Local\GraphAutoReaderValidation\preview449\calibration-review-20261114`
 (absent at inventory) and
@@ -85,8 +85,12 @@ literal target before removal and constrains each extra-file path. It targets on
 test directory; the absent 0.4.49 directory is not targeted. Lead-run
 `-ValidateOnly` passed with exit 0 in 7.0363 seconds: all 501 files /
 284,081,896 bytes and 477 archive entries matched, and nothing was removed.
-Execute remains pending. Once this outcome is pushed and remote cleanup completes,
-the local test logs and helper files are disposable.
+After outcome `2ad457bd5631ffa6d6a4bd8e98e621c97b3d7384` reached `origin/main`,
+lead-run Execute passed with exit 0 in 7.2916 seconds. It reverified the exact
+501 files / 284,081,896 bytes, confirmed no consumers, removed only the scoped
+remote directory and confirmed its absence. The primary 452 App and ZIP hashes
+still match their pins. The local test logs and helper files are now disposable;
+no remote 452 payload or copied owned input remains in that scope.
 
 From the worktree, the review and execution commands are respectively:
 
@@ -94,3 +98,19 @@ From the worktree, the review and execution commands are respectively:
 powershell -NoProfile -ExecutionPolicy Bypass -File artifacts/flex5-452-check/cleanup.ps1 -ValidateOnly
 powershell -NoProfile -ExecutionPolicy Bypass -File artifacts/flex5-452-check/cleanup.ps1 -Execute
 ```
+
+## Prepared local result retirement
+
+After remote retirement, `artifacts/flex5-452-check` contains only 16 completed
+test/helper files, totaling 390,171 bytes. The sorted filename/size/SHA-256
+manifest is `f53a86f51c3dd2462dbc04c6e40cfd5af939275a3173d051ad20d82b82a6a820`.
+This includes the copied owned PNG/gray input and disposable reports, with no
+user projects or private images. The original owned PNG remains in
+`artifacts/flex5-449-check` for active native QA projects.
+
+Retire this exact local result directory only after this record is pushed and
+the hosted-staging retirement helper has finished using it as a keeper.
+Recheck no consumers, exact flat inventory/hash manifest and literal containment
+before removing files. Preserve the primary 451/452 builds, shared Data, user
+handoff and all native QA originals. The scripts and commands above describe
+the completed run; local retirement is still pending at this checkpoint.
