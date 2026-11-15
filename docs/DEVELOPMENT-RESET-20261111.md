@@ -502,6 +502,21 @@ the publisher's JSON response contract. The diagnostic call emitted
 integration for this batch and continue the existing licensed OCR reader.
 This is an interface failure on one owned image, not an OCR accuracy comparison.
 
+The maintainer reopened this assessment on 2026-11-15 as one
+[fixed development comparison](MIRAGE-COMPARISON-20261115.md), reusing the
+supplied adapter. Windows reproduced the original raw response exactly and
+identified the invalid field as `text[*].score`. Diagnostic recovery retains
+unknown confidence and strict failure. Both actual owned pipeline controls now
+run with unchanged 451 and Mirage readers. The completed 120-project / 127-panel
+pass yielded two Mirage review drafts, one with estimated positions, versus
+zero baseline drafts. Median OCR time was 10.708 versus 2.501 seconds; both
+readers reached the same 50 geometry-supported panels. This is availability,
+not an accuracy evaluation. Keep the current Rust/WPF architecture and licensed
+OCR baseline unchanged. Do not integrate Mirage or repeat this private
+comparison for tuning. Package the already tested native review fixes together
+and complete the remaining native interactions. No sealed run, model promotion
+or new training follows from this comparison.
+
 Windows' built-in OCR was also considered as a local alternative. Microsoft
 documents that [Windows.Media.Ocr desktop use requires package identity](https://learn.microsoft.com/en-us/uwp/api/windows.media.ocr?view=winrt-26100).
 Adding package registration would change the current unpackaged portable

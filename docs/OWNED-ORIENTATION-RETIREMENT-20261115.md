@@ -38,7 +38,7 @@ protected keepers.
 ## Guard and status
 
 `artifacts/storage-retention-check/retire-owned-orientation-check.ps1` is an
-exact-scope helper, prepared but not executed. It requires a pushed scope commit
+exact-scope helper. It required a pushed scope commit
 containing this record and the source outcome; verifies the exact inventory,
 all ancestry/descendant reparse conditions, a normal-host no-consumer process
 scan, and the 0.4.51 package/latest identity; and snapshots shared `Data`,
@@ -46,7 +46,16 @@ native QA folders, PNG fixtures and the corner-worker diagnostic before and
 after any future removal. It fails closed if CIM is unavailable. The Mirage
 comparison is checked only for nonoverlap, not snapshotted while active.
 
-No deletion has been performed. Run `ValidateOnly` after this record is pushed,
-review the result, then separately choose `Execute` with the same pushed scope
-commit. The sole retained 0.4.51 build and all named inputs remain outside the
-target.
+After scope commit `a6fcee849978f71e212b15130654748b0ebee16e` was pushed,
+`ValidateOnly` passed with no process consumers and eight protected keepers.
+The separately reviewed `Execute` completed at `2026-11-15T01:26:46.0238083Z`,
+removing exactly 231 files / 145,252,904 bytes. The receipt confirms the target
+is absent, the active 0.4.51 build is unchanged, and shared `Data`, native QA,
+corner-worker output and referenced PNGs are unchanged. The active Mirage
+directory remained disjoint and untouched.
+
+Receipt: `artifacts/storage-retention-check/owned-orientation-retirement.json`,
+SHA-256 `a789b0cf7c97d82c22c40d257671a5e00539140a6caaac1a2fc9911ed84c5d0f`.
+Helper SHA-256:
+`6d677be796816cb51b9c8b6fae2ae5f03ad162bbab7309e3f0aafbdd2f8248b`.
+This retirement is complete; do not rerun the helper.

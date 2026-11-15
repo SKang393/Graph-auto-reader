@@ -124,9 +124,11 @@ A rotated single glyph has no demonstrated direction evidence and is not
 claimed solved. This check
 does not establish representative OCR accuracy, private coverage or promotion.
 No private read, tuning, package, dependency, schema or license change occurred.
-Source remains Apache-2.0, with no font binary copied. Retain
+Source remains Apache-2.0, with no font binary copied. The completed
 `artifacts/owned-digit-orientation-check` (231 files / 145,252,904 bytes,
-compiler dependencies and reports, zero image files) only until the pushed
-outcome and integrated consumers finish, then retire it under the
-[reviewed scope](OWNED-ORIENTATION-RETIREMENT-20261115.md). Preserve the current
-package, original corpus and other tasks' work.
+compiler dependencies and reports, zero image files) was retired after the
+outcome was pushed and integrated consumers finished. The
+[completed retention record](OWNED-ORIENTATION-RETIREMENT-20261115.md) verifies
+the exact removal and unchanged package, shared data, native QA, baseline
+worker and referenced PNGs. Original corpus and other tasks' work were outside
+the scope.

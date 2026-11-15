@@ -5,6 +5,14 @@
 
 ## Scope prepared for retirement
 
+**Current status:** retained as an active baseline consumer for the authorized
+Mirage paired comparison. The inventory below describes the earlier completed
+451 diagnostic, not a current deletion authorization. Do not execute the old
+helper while the comparison uses this staging directory. Its orientation
+keeper guard is also obsolete because that separate output was subsequently
+[retired](OWNED-ORIENTATION-RETIREMENT-20261115.md). Refresh the exact inventory,
+consumer checks and guards only after the new consumer finishes.
+
 The completed, isolated diagnostic output is:
 
 ```text
@@ -27,7 +35,8 @@ The packaged worker control passed its two owned width variants. The separate
 fixed prepared-calibration aggregate recorded 120 projects, 50 geometry/OCR
 panels, 367 numeric rows and zero complete proposals. These records preserve
 the relevant results and limitations; the generated probe/runtime copies and
-logs are no longer active inputs. Exact-name search found no source, runtime or
+logs were no longer active inputs when this scope was prepared. The later
+Mirage comparison now reuses this directory. The original exact-name search found no source, runtime or
 packaging consumer. Remaining mentions are historical outcome/setup prose in
 the two outcome docs, the probe README, and the later 451 staging-retirement
 note. The README commands describe how to regenerate the diagnostics; they do
@@ -35,7 +44,7 @@ not require the old output directory to exist.
 
 The independent upright-digit orientation check lives under
 `artifacts/owned-digit-orientation-check` and is explicitly outside this scope.
-Its tests and owned input remain available for the current orientation work.
+Its completed evidence has since been pushed and its disposable output retired.
 
 ## Guarded helper and preserved inputs
 

@@ -38,6 +38,13 @@ Retain separate counts for preparation, automatic geometry, literal OCR,
 numeric-label/tick association and complete review proposals. A successful OCR
 call alone is not successful calibration. No scientific Apply is automatic.
 
+Freeze text-only Mirage options with no confidence override. Allow 45 seconds
+per selected project and 900 seconds overall, with a 905-second process
+watchdog. Do not replay timed-out cases. Preserve unattempted counts when the
+deadline or a failed worker ends the pass. Report native Mirage time separately
+from its complete decode/transport/OCR stage wall time; baseline wall timing
+includes its worker call. No sealed run is authorized or consumed.
+
 Distinguish these control paths:
 
 | Path | Geometry source | What it can establish |
@@ -57,6 +64,46 @@ under the same resource budget; do not compare phone vendor numbers with this
 Windows host. Report missing stages instead of discarding failed examples.
 Use aggregate-only committable development output. Never commit source pixels,
 private names, truth rows or per-case predictions.
+
+## Completed comparison and decision
+
+The single fixed pass completed all 120 projects (118 embedded images) and
+127 effective panels: 112 prepared panels plus 15 genuine no-panel fallbacks.
+Both readers received the same 50 panels with automatic geometry. Geometry
+failed on 77 panels: 73 ambiguous and four native-unavailable results. No
+project/panel was unsupported, timed out, skipped or left unattempted.
+
+| Measure | Unchanged 451 | Mirage |
+| --- | ---: | ---: |
+| OCR responses | 50 | 50 |
+| Literal numeric rows | 367 | 574 |
+| Associated label/tick pairs | 337 | 499 |
+| Complete review proposals | 0 | 2 |
+| Complete proposals using estimated positions | 0 | 1 |
+| OCR-stage median | 2.501 s | 10.708 s |
+| OCR-stage p95 | 6.337 s | 12.430 s |
+
+All 50 Mirage responses were strict-valid, with zero repairs or unknown scores.
+The score-recovery adapter contributed no successful inference. Process wall
+was 706.6791657 seconds, with both readers capped to 0.4992 logical cores.
+Two projects had a Mirage-only complete draft; 118 had neither. Counts describe
+proposal availability, not correctness against manual answers. One complete
+Mirage draft used estimated positions and must not be presented as wholly
+measured calibration. The sealed split was not read.
+
+**Decision:** retain the current reader and Rust/WPF architecture. Mirage's
+two complete drafts across 120 projects and approximately 4.3-times longer
+median OCR time do not establish a useful default replacement on this host.
+Do not add this runtime/model to the application, promote it, or repeat the
+private comparison to tune it. Continue the already tested device-label,
+marker-history and orientation fixes in one meaningful integrated preview,
+then finish the remaining native review interactions. Geometry and reliable
+label association remain product limitations; no new training campaign follows
+from this diagnostic.
+
+The [pipeline outcome](MIRAGE-PAIRED-PIPELINE-20261115.md) records full failure
+counts, timing definitions, fixed identities and commands. Aggregate result
+SHA-256: `c4efe0547756a3725f0f03d86b208329784603a21c93bb1d18b873116895d50b`.
 
 ## Mirage interface prerequisites
 
@@ -111,8 +158,22 @@ strict JSON, eight text rows, no repair and no nonfinite token. It retained the
 six planted strings and two spurious rows; describe time was 13,825.0113 ms
 under the verified half-core cap. Raw response SHA-256:
 `75e16a632d5845aca8e32010b7a5e39882a3467989e896650663570988581592`.
-This smaller input did not reproduce the historical invalid token. The fixed
-text-only owned check and paired development comparison are not yet completed.
+The fixed text-only call also returned the same eight finite-score rows, with
+no repairs, in 13,071.7198 ms native describe time. These were separate cold
+processes, not a warm speed comparison.
+
+The exact original 1200-by-1700 owned input was then tested once with unchanged
+default `{}` options. It reproduced the historical response byte-for-byte:
+7,099 bytes, status 326, SHA-256
+`010bd2762cb8688acf9801168837f781bd0033fced3dc160caac18c645d69210`.
+Strict JSON and the unchanged supplied adapter both failed at offset 4,944.
+The actual invalid field is a text row's `score: -nan(ind)`, not `confidence`.
+The call took 13,184.9531 ms native / 14.0977099 seconds process wall with the
+same verified 0.4992-core cap. Diagnostic score recovery must retain null
+confidence and strict failure; it cannot count as successful inference.
+The [Windows record](MIRAGE-WINDOWS-ADAPTER-20261115.md) carries exact source
+identities and parser evidence. Owned transport, mapping, full-pipeline and the
+single paired development pass are now completed as recorded above.
 
 Temporarily retain `artifacts/corner-tick-worker-451-check` (42,716,164 bytes)
 for the named unchanged-baseline comparison consumer. Its prepared retirement

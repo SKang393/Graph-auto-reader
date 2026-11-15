@@ -51,7 +51,8 @@ internal static class Program
         bool realDevPreparedCalibration = args.Length > 0 && args[0] == "--real-dev-prepared-calibration-check";
         bool realDevPreparedCalibration450 = args.Length > 0 && args[0] == "--real-dev-prepared-calibration-450-check";
         bool realDevPreparedCalibration451 = args.Length > 0 && args[0] == "--real-dev-prepared-calibration-451-check";
-        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451;
+        bool realDevMirage = args.Length > 0 && args[0] == "--real-dev-mirage-paired-451-check";
+        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -66,6 +67,24 @@ internal static class Program
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--mirage-mapping-self-test"])
+            {
+                Emit(MirageComparisonMapping.SelfTest());
+                return 0;
+            }
+            if (args is ["--mirage-paired-fake-self-test"])
+            {
+                Emit(await RealDevCalibrationCheck.MiragePairedFakeSelfTestAsync(deadline.Token));
+                return 0;
+            }
+            if (args is ["--mirage-owned-451-check", var mirageApp, var mirageAssets, var mirageRust])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                await using MiragePairedWorker mirage = await MiragePairedWorker.StartAsync(deadline.Token);
+                Emit(await RealDevCalibrationCheck.MirageOwnedControlAsync(mirageApp, mirageAssets, mirageRust,
+                    parentBudget, mirage, deadline.Token));
+                return 0;
+            }
             if (args is ["--owned-corner-tick-451-check", var cornerApp, var cornerAssets])
             {
                 using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
@@ -151,6 +170,12 @@ internal static class Program
                     if (args.Length != requiredArguments || args[^1] != "--explicit-opt-in")
                         throw new InvalidDataException();
                     using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                    if (realDevMirage)
+                    {
+                        await using MiragePairedWorker mirage = await MiragePairedWorker.StartAsync(deadline.Token);
+                        Emit(await RealDevCalibrationCheck.RunMiragePairedAsync(args[1], args[2], args[3], args[4], parentBudget, mirage, deadline.Token));
+                        return 0;
+                    }
                     Emit(realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451
                         ? await RealDevCalibrationCheck.RunPreparedCalibrationAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token,
                             candidate450: realDevPreparedCalibration450, candidate451: realDevPreparedCalibration451)
@@ -165,7 +190,7 @@ internal static class Program
                 }
                 catch (Exception)
                 {
-                    Emit(new { schema = realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 ? "graphreader.real-dev-prepared-calibration-diagnostic.v1" : realDevAxisDecision ? "graphreader.real-dev-axis-decision-diagnostic.v1" : realDevPreparation ? "graphreader.real-dev-preparation-diagnostic.v1" : realDevGeometry ? "graphreader.real-dev-geometry-properties-diagnostic.v1" : "graphreader.real-dev-calibration-assistance-diagnostic.v1",
+                    Emit(new { schema = realDevMirage ? "graphreader.mirage-paired-dev-comparison.v1" : realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 ? "graphreader.real-dev-prepared-calibration-diagnostic.v1" : realDevAxisDecision ? "graphreader.real-dev-axis-decision-diagnostic.v1" : realDevPreparation ? "graphreader.real-dev-preparation-diagnostic.v1" : realDevGeometry ? "graphreader.real-dev-geometry-properties-diagnostic.v1" : "graphreader.real-dev-calibration-assistance-diagnostic.v1",
                         status = "blocked_preflight_or_runtime", error = "REAL_DEV_CALIBRATION_CHECK_FAILED",
                         denominator = 120, sealed_payload_reads = 0, review_only = true, production_approved = false });
                     return 1;
