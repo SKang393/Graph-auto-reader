@@ -193,10 +193,10 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 - **Status:** access authorized; native checks waiting on usable window state
 - **Blocks:** remaining native control checks and verification of the latest
   device-picker/history fixes; headless development and validation continue
-- **Effort:** under a minute to close the old window; about 5 minutes for checks
-- **Action:** close the old Graph Auto Reader window normally, preserving any
-  wanted edits, so the verified 452 replacement can be activated. The lead asked
-  for this after the latest state capture stalled. Then continue native checks
+- **Effort:** about 5 minutes for checks when window capture is available
+- **Action:** the maintainer confirmed the old window is closed; a process
+  query verified its exit. No further closure or access approval is needed.
+  Complete the verified 452 handoff, then continue native checks
   for foreground interruption of device checks, separate OCR row selection and
   inclusion/refit review invalidation, proposal Remove, and the explicit
   three-click axis draft with Cancel/Dismiss. In the next meaningful integrated

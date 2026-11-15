@@ -44,10 +44,11 @@ retention 12/12. The packaging validation steps also succeeded.
 The verified files and inner ZIP were moved without duplication into
 `artifacts/dev-portable/builds/0.4.52-20261115T021403359Z-68781bcc`.
 The guarded staging command exited 0; all 477 payload files and the ZIP matched,
-and shared Data was unchanged. The latest pointer still names 451 while its
-window remains open. The ledger records 452 as a staged candidate and retains
-451, keeping the existing launcher usable. Once the old window closes, a
-separate retention update must be pushed before activation and old-build removal.
+and shared Data was unchanged. The maintainer subsequently confirmed normal
+closure of the old window, and a normal-host process query found no remaining
+GraphReader App process. The ledger now selects 452 for retention. This update
+must reach `origin/main` before the guarded pointer switch and 451 retirement;
+those two actions remain separate from the completed staging phase.
 
 The reviewed helper is `artifacts/activate-preview452.ps1`, SHA-256
 `49fc8bcc02873a4b46a47b82339febe493e215c0f16d70e39c5db1b62344241e`.
