@@ -596,6 +596,13 @@ internal static partial class RealDevCalibrationCheck
             catch { result.Dispose(); throw; }
         }
 
+        internal static Candidate VerifyReviewRouting(string app, string assets, string rust, CancellationToken token)
+        {
+            RequireNativeRejectionPins(ReviewRoutingAppExeHash, ReviewRoutingAppDllHash, ReviewRoutingRustHash, ReviewRoutingRuntimeLibraries);
+            return VerifyPinned(app, assets, rust, ReviewRoutingAppExeHash, ReviewRoutingAppDllHash,
+                ReviewRoutingRustHash, ReviewRoutingRuntimeLibraries, token);
+        }
+
         private static Candidate VerifyPinned(string app, string assets, string rust, string expectedExe, string expectedDll,
             string expectedRust, FrozenDictionary<string, string> libraries, CancellationToken token, bool requirePrintedXReviewDraft = false)
         {

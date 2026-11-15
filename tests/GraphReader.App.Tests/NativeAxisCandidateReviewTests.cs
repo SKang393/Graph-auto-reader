@@ -68,21 +68,21 @@ public sealed class NativeAxisCandidateReviewTests
     public async Task MaximumCandidateResponseRoundTripsWithinProtocolLimit()
     {
         AxisReviewCandidate[] candidates = Enumerable.Range(0, 128)
-            .Select(index => new AxisReviewCandidate(index, new RustAxisGeometry(10, 90, 90, 10, 0))).ToArray();
+            .Select(index => new AxisReviewCandidate(index, new RustAxisGeometry(index, 90, 500, 10, 0))).ToArray();
         byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(new AxisCandidateReviewResult(candidates, null));
         Assert.IsLessThanOrEqualTo(NativeAxisCandidateReview.MaximumResponseBytes, bytes.Length);
         byte[] prefix = new byte[4]; BinaryPrimitives.WriteInt32LittleEndian(prefix, bytes.Length);
         using var stream = new MemoryStream(); stream.Write(prefix); stream.Write(bytes); stream.Position = 0;
         AxisCandidateReviewResult? result = await OpenCvAxisProposalService.ReadCandidateResponseAsync(stream, CancellationToken.None);
-        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(result, 100, 100));
+        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(result, 600, 100));
         Assert.HasCount(128, result!.Candidates);
         for (int i = 0; i < candidates.Length; i++)
         {
             AxisReviewCandidate candidate = result.Candidates[i];
             Assert.AreEqual(i, candidate.Index);
-            Assert.AreEqual(10, candidate.Geometry.Left);
+            Assert.AreEqual(i, candidate.Geometry.Left);
             Assert.AreEqual(90, candidate.Geometry.Bottom);
-            Assert.AreEqual(90, candidate.Geometry.Right);
+            Assert.AreEqual(500, candidate.Geometry.Right);
             Assert.AreEqual(10, candidate.Geometry.Top);
             Assert.AreEqual(0d, candidate.Geometry.Confidence);
             Assert.IsNull(candidate.Geometry.FirstTickX);

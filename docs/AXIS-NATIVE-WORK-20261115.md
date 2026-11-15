@@ -129,13 +129,19 @@ OpenCV   c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31
 ## Integration, license and retention
 
 Project code remains Apache-2.0. No dependency, weights, frozen schema,
-production model approval or package was added. Full exact-head CI and package
-verification are separate integration checks. Automatic calibration acceptance
+production model approval or package was added. Exact-head Windows CI
+[43714851749](https://github.com/SKang393/Graph-auto-reader/actions/runs/43714851749)
+passed on `e1da376b497757add3329d0aabd14c3121edf9a4`: all 13 .NET suites,
+2,937 passed and 30 skipped, including 189/189 Axis tests, plus the Rust,
+packaging and policy checks. Package verification is a separate check.
+Automatic calibration acceptance
 remains incomplete at 7/12 geometry coverage, with no numeric result claim.
 
-After this outcome and source are pushed, retire the completed raw reports,
-stderr, run metadata and TRXs in `artifacts/axis-clipped-extent-check`,
-`artifacts/native-work-trace-check` and `artifacts/axis-work-dev-check` after
-their integration consumers finish. Keep originals, independent inputs,
-reviewed runtime assets and the sole verified package. The existing diagnostic
-Rust keeper remains an active input for subsequent source-owned review work.
+After the source/outcome reached `origin/main` through
+`e1da376b497757add3329d0aabd14c3121edf9a4`, the completed raw reports, stderr,
+run metadata and TRXs were retired at `2026-11-15T12:39:51.8888986Z`: ten files,
+681,660 bytes. Exact scopes were `artifacts/axis-clipped-extent-check`,
+`artifacts/native-work-trace-check` and `artifacts/axis-work-dev-check`; their
+integration consumers had finished. Originals, independent inputs, reviewed
+runtime assets and the sole verified package were preserved. The existing
+diagnostic Rust keeper remains an active input for subsequent source-owned work.

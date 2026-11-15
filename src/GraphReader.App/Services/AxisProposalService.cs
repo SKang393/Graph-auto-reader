@@ -19,14 +19,26 @@ public sealed class RustFirstAxisProposalService(IAxisProposalService primary, I
     private readonly IAxisProposalService _primary = primary ?? throw new ArgumentNullException(nameof(primary));
     private readonly IAxisProposalService _fallback = fallback ?? throw new ArgumentNullException(nameof(fallback));
 
-    public bool CanReviewCandidates => _fallback is IAxisCandidateReviewService { CanReviewCandidates: true };
+    public bool CanReviewCandidates => _primary is IAxisCandidateReviewService { CanReviewCandidates: true } ||
+        _fallback is IAxisCandidateReviewService { CanReviewCandidates: true };
 
-    public Task<AxisCandidateReviewResult> ReviewCandidatesAsync(byte[] originalImage, CancellationToken cancellationToken)
+    public async Task<AxisCandidateReviewResult> ReviewCandidatesAsync(byte[] originalImage, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (_primary is IAxisCandidateReviewService { CanReviewCandidates: true } primary)
+        {
+            AxisCandidateReviewResult result = await primary.ReviewCandidatesAsync(originalImage, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (result.Provider != "rust-review" || result.Candidates is null ||
+                result.ErrorCode is null && result.Candidates.Count == 0 ||
+                result.ErrorCode is not null && result.Candidates.Count != 0)
+                return new AxisCandidateReviewResult(Array.Empty<AxisReviewCandidate>(), "INVALID_RESPONSE") { Provider = "rust-review" };
+            if (result.ErrorCode is null) return result;
+            if (result.ErrorCode is not ("NO_AXIS" or "UNSUPPORTED_PLATFORM" or "WORKER_START_FAILED")) return result;
+        }
         return _fallback is IAxisCandidateReviewService { CanReviewCandidates: true } review
-            ? review.ReviewCandidatesAsync(originalImage, cancellationToken)
-            : Task.FromResult(new AxisCandidateReviewResult(Array.Empty<AxisReviewCandidate>(), "OPENCV_AXIS_UNAVAILABLE"));
+            ? await review.ReviewCandidatesAsync(originalImage, cancellationToken).ConfigureAwait(false)
+            : new AxisCandidateReviewResult(Array.Empty<AxisReviewCandidate>(), "OPENCV_AXIS_UNAVAILABLE");
     }
 
     public async Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken)
@@ -46,8 +58,32 @@ public sealed class RustFirstAxisProposalService(IAxisProposalService primary, I
     }
 }
 
-public sealed class RustAxisProposalService(string workerPath) : IAxisProposalService
+public sealed class RustAxisProposalService(string workerPath) : IAxisProposalService, IAxisCandidateReviewService
 {
+    public Task<AxisCandidateReviewResult> ReviewCandidatesAsync(byte[] originalImage, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested) return Task.FromCanceled<AxisCandidateReviewResult>(cancellationToken);
+        if (originalImage is null || originalImage.Length == 0 || originalImage.Length > 32 * 1024 * 1024)
+            return Task.FromResult(new AxisCandidateReviewResult(Array.Empty<AxisReviewCandidate>(), "INVALID_INPUT") { Provider = "rust-review" });
+        byte[] snapshot = (byte[])originalImage.Clone();
+        return Task.Run(async () =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using var stream = new MemoryStream(snapshot, writable: false);
+            BitmapFrame frame = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad).Frames[0];
+            if (frame.PixelWidth is < 32 or > 4096 || frame.PixelHeight is < 32 or > 4096 ||
+                (long)frame.PixelWidth * frame.PixelHeight > 16_777_216)
+                return new AxisCandidateReviewResult(Array.Empty<AxisReviewCandidate>(), "INVALID_INPUT") { Provider = "rust-review" };
+            var gray = new FormatConvertedBitmap(WhiteBackgroundRaster.Normalize(frame, cancellationToken), PixelFormats.Gray8, null, 0);
+            byte[] pixels = new byte[checked(gray.PixelWidth * gray.PixelHeight)];
+            gray.CopyPixels(pixels, gray.PixelWidth, 0);
+            RustAxisCandidateReviewResult result = await RustAxisCandidateReview.RunAsync(workerPath, gray.PixelWidth, gray.PixelHeight,
+                pixels, cancellationToken).ConfigureAwait(false);
+            return new AxisCandidateReviewResult(Array.AsReadOnly(result.Candidates.Select((geometry, index) => new AxisReviewCandidate(index, geometry)).ToArray()),
+                result.ErrorCode) { Provider = "rust-review" };
+        }, cancellationToken);
+    }
+
     public Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken) =>
         Task.Run(async () =>
         {

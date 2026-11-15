@@ -77,8 +77,15 @@ results were verified. `git diff --check` passed.
 ## Integration and retention
 
 No dependency, production model, frozen contract or license changed; source is
-Apache-2.0. Exact new-head Windows CI and actual replacement package verification
-remain separate checks. The failed attempt created no package: 0.4.52 stays the
+Apache-2.0. Exact-head [Windows CI 43714851749](https://github.com/SKang393/Graph-auto-reader/actions/runs/43714851749)
+completed successfully at `2026-11-15T12:48:51Z` on
+`e1da376b497757add3329d0aabd14c3121edf9a4`: 13 .NET suites, 2,937 passed,
+30 skipped, zero failed, including all 1,148 App and 189 Axis tests. Rust passed
+55/55; version policy 62/62, ledger 6/6, portable retention 12/12 and all remaining
+packaging/evidence checks succeeded. Public-release jobs were skipped. This
+verifies that source revision; later Rust review integration and an actual
+replacement package require separate verification.
+The failed attempt created no package: 0.4.52 stays the
 sole retained build, and 0.4.53 remains the next actual package version.
 After this source/outcome is pushed and the packaging investigation closes,
 retire `artifacts/wpf-harness-repair-check` and retain this concise record.

@@ -23,9 +23,11 @@ internal static partial class RealDevCalibrationCheck
         ["NO_GEOMETRY", "OCR_FAILED", "UNSUPPORTED_DIMENSIONS", "PANEL_FAILED", "OCR_RETURNED"];
     private static readonly string[] NativeRejectionPanelStatuses =
         ["NO_GEOMETRY", "GEOMETRY_RETURNED", "UNSUPPORTED_DIMENSIONS", "PANEL_FAILED"];
+    private static readonly string[] ReviewRoutingPanelStatuses =
+        ["REVIEW_CHOICES_AVAILABLE", "REVIEW_UNAVAILABLE", "UNSUPPORTED_DIMENSIONS", "PANEL_FAILED"];
 
-    private static Dictionary<string, int> NewTracePanelStatusCounts(bool geometryOnly = false) =>
-        (geometryOnly ? NativeRejectionPanelStatuses : TracePanelStatuses)
+    private static Dictionary<string, int> NewTracePanelStatusCounts(bool geometryOnly = false, bool reviewRouting = false) =>
+        (reviewRouting ? ReviewRoutingPanelStatuses : geometryOnly ? NativeRejectionPanelStatuses : TracePanelStatuses)
             .ToDictionary(static status => status, static _ => 0, StringComparer.Ordinal);
 
     private static void CountTracePanelStatus(Dictionary<string, int> counts, TracePanelOutcome outcome)
@@ -96,6 +98,10 @@ internal static partial class RealDevCalibrationCheck
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, nativeWorkTrace: true);
 
+    internal static Task<object> RunReviewRoutingTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, reviewRoutingTrace: true);
+
     internal static Task<object> RunPostGroupingTraceAsync(string corpusRoot, string app, string assets, string rust,
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token);
@@ -117,8 +123,9 @@ internal static partial class RealDevCalibrationCheck
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token, directional: true);
 
     private static async Task<object> RunTraceAsync(string corpusRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false, bool nativeWorkTrace = false)
+        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false, bool nativeWorkTrace = false, bool reviewRoutingTrace = false)
     {
+        if (reviewRoutingTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace || forwardExtentGeometryTrace || nativeWorkTrace)) throw new InvalidDataException();
         if (nativeWorkTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace || forwardExtentGeometryTrace)) throw new InvalidDataException();
         if ((pairPruning || intersection) && !geometryOnly || pairPruning && intersection || directional && (geometryOnly || !sourcePostGrouping) ||
             printedXTrace && (!sourcePostGrouping || geometryOnly || pairPruning || intersection || directional || spatialTrace) ||
@@ -127,7 +134,8 @@ internal static partial class RealDevCalibrationCheck
             forwardExtentGeometryTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace)) throw new InvalidDataException();
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(app) ||
             !Path.IsPathFullyQualified(assets) || !Path.IsPathFullyQualified(rust)) throw new InvalidDataException();
-        using Candidate candidateLease = nativeWorkTrace ? Candidate.VerifyNativeWork(app, assets, rust, token) :
+        using Candidate candidateLease = reviewRoutingTrace ? Candidate.VerifyReviewRouting(app, assets, rust, token) :
+            nativeWorkTrace ? Candidate.VerifyNativeWork(app, assets, rust, token) :
             forwardExtentGeometryTrace ? Candidate.VerifyForwardExtent(app, assets, rust, token) :
             sortedSpatialGeometryTrace ? Candidate.VerifySortedSpatial(app, assets, rust, token) :
             spatialTrace ? Candidate.VerifySpatial(app, assets, rust, token) :
@@ -154,10 +162,11 @@ internal static partial class RealDevCalibrationCheck
         var nativeWork = nativeWorkTrace ? new NativeWorkTraceAxis() : null;
         var secondary = new TraceAxis(nativeWork is null ? new OpenCvAxisProposalService(app) : nativeWork);
         IAxisProposalService axis = new RustFirstAxisProposalService(primary, secondary);
+        ReviewRoutingTraceServices? reviewRouting = reviewRoutingTrace ? new(rust, app) : null;
         await using CalibrationOcrWorkerClient? ocr = geometryOnly ? null : new(app, assets, () => CalibrationOcrDeviceSelection.Cpu);
         using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         int attempted = 0, returned = 0, fallback = 0, panelAttempted = 0, panelFinished = 0, printedXReviewDraftPanels = 0;
-        Dictionary<string, int> terminalStatusCounts = NewTracePanelStatusCounts(geometryOnly);
+        Dictionary<string, int> terminalStatusCounts = NewTracePanelStatusCounts(geometryOnly, reviewRoutingTrace);
         for (int i = 0; i < TraceSampleCount && !token.IsCancellationRequested; i++)
         {
             attempted++; var panelResults = new List<object>(); string status = "completed"; string? errorCategory = null; int effective = 0;
@@ -180,7 +189,7 @@ internal static partial class RealDevCalibrationCheck
                         TracePanelOutcome outcome = await TracePanelAsync(payload.Image, payload.Width, payload.Height,
                             new PdfRectD(0, 0, payload.Width, payload.Height), payload.Width, payload.Height, payload.ProjectHash,
                             candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token,
-                            includePrintedXReviewDraft: printedXTrace || spatialTrace, nativeWork: nativeWork).ConfigureAwait(false);
+                            includePrintedXReviewDraft: printedXTrace || spatialTrace, nativeWork: nativeWork, reviewRouting: reviewRouting).ConfigureAwait(false);
                         CountTracePanelStatus(terminalStatusCounts, outcome);
                         if (outcome.PrintedXReviewDraftAvailable) printedXReviewDraftPanels++;
                         panelResults.Add(outcome.Payload);
@@ -206,7 +215,7 @@ internal static partial class RealDevCalibrationCheck
                             var (bytes, width, height, crop) = ReadPreparedPanel(panel, payload.Width, payload.Height);
                             TracePanelOutcome outcome = await TracePanelAsync(bytes, width, height, crop, payload.Width, payload.Height,
                                 payload.ProjectHash, candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token,
-                                includePrintedXReviewDraft: printedXTrace || spatialTrace, nativeWork: nativeWork).ConfigureAwait(false);
+                                includePrintedXReviewDraft: printedXTrace || spatialTrace, nativeWork: nativeWork, reviewRouting: reviewRouting).ConfigureAwait(false);
                             CountTracePanelStatus(terminalStatusCounts, outcome);
                             if (outcome.PrintedXReviewDraftAvailable) printedXReviewDraftPanels++;
                             panelResults.Add(outcome.Payload);
@@ -228,13 +237,13 @@ internal static partial class RealDevCalibrationCheck
             projects.Add(new { index = i, status, error_category = errorCategory, preparation_milliseconds = preparationMs, effective_panels = effective, panels = panelResults });
         }
         if (geometryOnly)
-            return new { schema = nativeWorkTrace ? NativeWorkTraceSchema : forwardExtentGeometryTrace ? ForwardExtentTraceSchema : sortedSpatialGeometryTrace ? SortedSpatialTraceSchema : intersection ? IntersectionTraceSchema : pairPruning ? PairPruningTraceSchema : NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
+            return new { schema = reviewRoutingTrace ? ReviewRoutingTraceSchema : nativeWorkTrace ? NativeWorkTraceSchema : forwardExtentGeometryTrace ? ForwardExtentTraceSchema : sortedSpatialGeometryTrace ? SortedSpatialTraceSchema : intersection ? IntersectionTraceSchema : pairPruning ? PairPruningTraceSchema : NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
                 selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
                 attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
                 attempted_panels = panelAttempted, finished_panels = panelFinished, unfinished_execution_panels = panelAttempted - panelFinished,
                 terminal_status_counts = terminalStatusCounts, unattempted_panels = returned + fallback - panelAttempted,
                 metadata.AssignmentSha256, metadata.SelectedInventorySha256, source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
-                candidate = nativeWorkTrace ? NativeWorkTraceIdentity() : forwardExtentGeometryTrace ? ForwardExtentTraceIdentity() : sortedSpatialGeometryTrace ? SortedSpatialTraceIdentity() : (object)new { app_exe_sha256 = intersection ? IntersectionAppExeHash : NativeRejectionAppExeHash, app_dll_sha256 = intersection ? IntersectionAppDllHash : NativeRejectionAppDllHash,
+                candidate = reviewRoutingTrace ? ReviewRoutingTraceIdentity() : nativeWorkTrace ? NativeWorkTraceIdentity() : forwardExtentGeometryTrace ? ForwardExtentTraceIdentity() : sortedSpatialGeometryTrace ? SortedSpatialTraceIdentity() : (object)new { app_exe_sha256 = intersection ? IntersectionAppExeHash : NativeRejectionAppExeHash, app_dll_sha256 = intersection ? IntersectionAppDllHash : NativeRejectionAppDllHash,
                     rust_sha256 = NativeRejectionRustHash,
                     runtime_files = intersection ? IntersectionRuntimeLibraries : pairPruning ? PairPruningRuntimeLibraries : NativeRejectionRuntimeLibraries },
                 sealed_payload_reads = 0, ocr_calls = 0, truth_scoring = false, image_writes = false, review_only = true,
@@ -254,10 +263,11 @@ internal static partial class RealDevCalibrationCheck
 
     private static async Task<TracePanelOutcome> TracePanelAsync(byte[] image, int width, int height, PdfRectD crop, int sourceWidth, int sourceHeight,
         string projectHash, IReadOnlyDictionary<string, string> candidateFiles, IAxisProposalService axis, TraceRustAxis primary, TraceAxis secondary,
-        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool includePrintedXReviewDraft = false, NativeWorkTraceAxis? nativeWork = null)
+        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool includePrintedXReviewDraft = false, NativeWorkTraceAxis? nativeWork = null, ReviewRoutingTraceServices? reviewRouting = null)
     {
         if (width is < 32 or > 4096 || height is < 32 or > 4096 || (long)width * height > 16_777_216)
             return PrintedXOutcome("UNSUPPORTED_DIMENSIONS", new { status = "UNSUPPORTED_DIMENSIONS", width, height, crop }, includePrintedXReviewDraft);
+        if (reviewRouting is not null) return await reviewRouting.RunAsync(image, width, height, token).ConfigureAwait(false);
         // New observers per request are unnecessary: the fallback result is read only if invoked for this result.
         primary.Width = width; primary.Height = height;
         int nativeCallsBefore = secondary.Calls;

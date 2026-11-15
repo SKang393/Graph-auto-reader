@@ -5,6 +5,7 @@ use std::io::{self, Read};
 const MAX_PIXELS: usize = 16_777_216;
 // Resource budget only: never search a truncated candidate subset.
 const MAX_GRID_PAIR_CHECKS: usize = 128;
+const MAX_REVIEW_RESPONSE_BYTES: usize = 64 * 1024;
 
 #[derive(Clone, Copy)]
 struct Trace {
@@ -234,6 +235,18 @@ fn select(scores: &[usize], minimum: usize) -> Result<usize, &'static str> {
     Ok(first)
 }
 
+fn select_pair(rows: &[usize], cols: &[usize], row_minimum: usize, col_minimum: usize)
+    -> Result<(usize, usize), &'static str>
+{
+    // A missing perpendicular projection must reach existing extent/run recovery,
+    // even if the first projection is ambiguous. Neither ambiguity is resolved here.
+    match (select(rows, row_minimum), select(cols, col_minimum)) {
+        (Err("NO_AXIS"), _) | (_, Err("NO_AXIS")) => Err("NO_AXIS"),
+        (Ok(bottom), Ok(left)) => Ok((bottom, left)),
+        (Err(reason), _) | (_, Err(reason)) => Err(reason),
+    }
+}
+
 fn propose(
     width: usize,
     height: usize,
@@ -267,8 +280,7 @@ fn propose(
     let mut tick_width = width;
     let mut tick_height = height;
     let mut fallback = false;
-    let selection = match select(&rows, width * 2 / 5)
-        .and_then(|bottom| select(&cols, height * 2 / 5).map(|left| (bottom, left)))
+    let selection = match select_pair(&rows, &cols, width * 2 / 5, height * 2 / 5)
     {
         Ok(axes) => { trace(|t| t.route = "PRIMARY"); Ok(axes) },
         Err("NO_AXIS") => {
@@ -282,8 +294,7 @@ fn propose(
             tick_width = last_col - first_col + 1;
             tick_height = last_row - first_row + 1;
             fallback = true;
-            select(&rows, tick_width * 2 / 5)
-                .and_then(|bottom| select(&cols, tick_height * 2 / 5).map(|left| (bottom, left)))
+            select_pair(&rows, &cols, tick_width * 2 / 5, tick_height * 2 / 5)
         }
         Err(reason) => Err(reason),
     };
@@ -525,7 +536,94 @@ fn measure_axes(width: usize, height: usize, channels: usize, pixels: &[u8], row
     })
 }
 
-fn process(mut input: impl Read) -> Result<Proposal, &'static str> {
+// Explicit review enumerates the same strict observed grid hypotheses completely.
+// It does not change the normal selector's unique-plot/outside-band decision.
+fn review_proposals(width: usize, height: usize, channels: usize, pixels: &[u8])
+    -> Result<Vec<Proposal>, &'static str>
+{
+    if !(32..=4096).contains(&width) || !(32..=4096).contains(&height)
+        || !matches!(channels, 1 | 3)
+        || width.checked_mul(height).filter(|&n| n <= MAX_PIXELS)
+            .and_then(|n| n.checked_mul(channels)) != Some(pixels.len()) {
+        return Err("INVALID_INPUT");
+    }
+    BRIDGE_WORK.with(|work| work.set(0));
+    BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+    let mut rows = vec![0usize; height];
+    let mut cols = vec![0usize; width];
+    for y in 0..height { for x in 0..width {
+        if is_dark(pixels, (y * width + x) * channels, channels) { rows[y] += 1; cols[x] += 1; }
+    } }
+    let mut tick_width = width;
+    let mut tick_height = height;
+    if matches!(select_pair(&rows, &cols, width * 2 / 5, height * 2 / 5), Err("NO_AXIS")) {
+        let first_row = rows.iter().position(|&n| n > 0).ok_or("NO_AXIS")?;
+        let last_row = rows.iter().rposition(|&n| n > 0).ok_or("NO_AXIS")?;
+        let first_col = cols.iter().position(|&n| n > 0).ok_or("NO_AXIS")?;
+        let last_col = cols.iter().rposition(|&n| n > 0).ok_or("NO_AXIS")?;
+        tick_width = last_col - first_col + 1;
+        tick_height = last_row - first_row + 1;
+        if matches!(select_pair(&rows, &cols, tick_width * 2 / 5, tick_height * 2 / 5), Err("NO_AXIS")) {
+            // Reuse these two projections for the existing connected-run route.
+            rows.fill(0); cols.fill(0);
+            for y in 0..height {
+                let mut run = 0;
+                for x in 0..width {
+                    if is_dark(pixels, (y * width + x) * channels, channels) { run += 1; rows[y] = rows[y].max(run); }
+                    else { run = 0; }
+                }
+            }
+            for x in 0..width {
+                let mut run = 0;
+                for y in 0..height {
+                    if is_dark(pixels, (y * width + x) * channels, channels) { run += 1; cols[x] = cols[x].max(run); }
+                    else { run = 0; }
+                }
+            }
+            tick_width = *rows.iter().max().ok_or("NO_AXIS")?;
+            tick_height = *cols.iter().max().ok_or("NO_AXIS")?;
+            if tick_width == 0 || tick_height == 0 { return Err("NO_AXIS"); }
+        }
+    }
+    review_grid(width, height, channels, pixels, &rows, &cols,
+        tick_width * 2 / 5, tick_height * 2 / 5,
+        (tick_height / 20).clamp(3, 32), (tick_width / 20).clamp(3, 32))
+}
+
+fn review_grid(width: usize, height: usize, channels: usize, pixels: &[u8],
+    rows: &[usize], cols: &[usize], row_minimum: usize, col_minimum: usize,
+    x_limit: usize, y_limit: usize) -> Result<Vec<Proposal>, &'static str>
+{
+    let row_bands = strong_line_bands(rows, row_minimum, true)?;
+    let col_bands = strong_line_bands(cols, col_minimum, false)?;
+    if row_bands.len() * col_bands.len() > MAX_GRID_PAIR_CHECKS { return Err("AMBIGUOUS_AXIS"); }
+    let mut proposals = Vec::new();
+    for &(bottom, _) in &row_bands { for &(left, _) in &col_bands {
+        let measured = measure_axes(width, height, channels, pixels, rows, cols,
+            bottom, left, x_limit, y_limit, true, true);
+        if BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) { return Err("AMBIGUOUS_AXIS"); }
+        if let Ok(proposal) = measured { proposals.push(proposal); }
+    } }
+    if proposals.is_empty() { return Err("NO_AXIS"); }
+    Ok(proposals)
+}
+
+// Review wire is ordered and complete: REVIEW1 N, then N BOX left bottom
+// right top xTickCsv yTickCsv lines. Tick lists are strictly observed pixels;
+// no legacy endpoints or numeric labels are substituted. Format before writing
+// so response overflow emits only ERR, never a partial header/list.
+fn review_response(proposals: &[Proposal]) -> Result<String, &'static str> {
+    let mut response = format!("REVIEW1 {}\n", proposals.len());
+    for proposal in proposals {
+        let list = |values: &[u32]| values.iter().map(u32::to_string).collect::<Vec<_>>().join(",");
+        response.push_str(&format!("BOX {} {} {} {} {} {}\n", proposal.left, proposal.bottom, proposal.right, proposal.top,
+            list(&proposal.x_ticks), list(&proposal.y_ticks)));
+        if response.len() > MAX_REVIEW_RESPONSE_BYTES { return Err("AMBIGUOUS_AXIS"); }
+    }
+    Ok(response)
+}
+
+fn read_frame(mut input: impl Read) -> Result<(usize, usize, usize, Vec<u8>), &'static str> {
     let mut header = [0u8; 20];
     input
         .read_exact(&mut header)
@@ -553,7 +651,17 @@ fn process(mut input: impl Read) -> Result<Proposal, &'static str> {
     if input.read(&mut trailing).map_err(|_| "INVALID_PROTOCOL")? != 0 {
         return Err("INVALID_PROTOCOL");
     }
+    Ok((w, h, c, data))
+}
+
+fn process(input: impl Read) -> Result<Proposal, &'static str> {
+    let (w, h, c, data) = read_frame(input)?;
     propose(w, h, c, &data)
+}
+
+fn process_review(input: impl Read) -> Result<Vec<Proposal>, &'static str> {
+    let (w, h, c, data) = read_frame(input)?;
+    review_proposals(w, h, c, &data)
 }
 
 #[cfg(windows)]
@@ -621,6 +729,14 @@ fn set_budget() -> Result<usize, &'static str> {
 
 fn main() {
     let diagnostics = std::env::args_os().skip(1).any(|arg| arg == "--diagnostics");
+    if std::env::args_os().skip(1).any(|arg| arg == "--review-candidates") {
+        if diagnostics { println!("ERR INVALID_PROTOCOL"); std::process::exit(1); }
+        match set_budget().and_then(|_| process_review(io::stdin().lock())).and_then(|proposals| review_response(&proposals)) {
+            Ok(response) => print!("{response}"),
+            Err(reason) => { println!("ERR {reason}"); std::process::exit(1); }
+        }
+        return;
+    }
     if diagnostics { TRACE.with(|cell| cell.set(Some(Trace::default()))); }
     let result = set_budget().and_then(|_| process(io::stdin().lock()));
     match result {
@@ -1501,5 +1617,146 @@ mod tests {
     #[test]
     fn invalid_protocol_is_rejected() {
         assert_eq!(process(&b"bad"[..]), Err("INVALID_PROTOCOL"));
+    }
+
+    fn review_two_panels() -> Vec<u8> {
+        let source = grid_pixels();
+        let mut pixels = padded_pixels(&source, 256, 0, 0);
+        for y in 0..128 {
+            let start = (y + 128) * 256 + 128;
+            pixels[start..start + 128].copy_from_slice(&source[y * 128..(y + 1) * 128]);
+        }
+        pixels
+    }
+
+    #[test]
+    fn ambiguous_rows_cannot_hide_missing_column_extent_before_run_recovery() {
+        let mut pixels = vec![255; 1280 * 960];
+        for (ox, oy) in [(0, 0), (640, 480)] {
+            for y in [80, 230, 380] { for x in 95..=580 { pixels[(oy + y) * 1280 + ox + x] = 0; } }
+            for x in [100, 140, 340, 540] { for y in 80..=380 { pixels[(oy + y) * 1280 + ox + x] = 0; } }
+            for x in [140, 340, 540] { for y in 381..=385 { pixels[(oy + y) * 1280 + ox + x] = 0; } }
+        }
+        assert_eq!(propose(1280, 960, 1, &pixels), Err("AMBIGUOUS_AXIS"));
+        let choices = review_proposals(1280, 960, 1, &pixels).expect("missing column evidence must reach existing connected-run recovery");
+        assert_eq!(choices.iter().map(|p| (p.left, p.bottom, p.right, p.top)).collect::<Vec<_>>(),
+            vec![(100, 380, 580, 80), (740, 860, 1220, 560)]);
+        assert_eq!(choices[0].x_ticks, vec![140, 340, 540]);
+        assert_eq!(choices[0].y_ticks, vec![80, 230, 380]);
+    }
+
+    #[test]
+    fn independent_projection_selection_preserves_qualified_ambiguity() {
+        let mut ambiguous = vec![0; 32]; ambiguous[10] = 40; ambiguous[20] = 40;
+        let mut missing = vec![0; 32]; missing[5] = 30;
+        let mut unique = vec![0; 32]; unique[5] = 40;
+        assert_eq!(select_pair(&ambiguous, &missing, 40, 40), Err("NO_AXIS"));
+        assert_eq!(select_pair(&missing, &ambiguous, 40, 40), Err("NO_AXIS"));
+        assert_eq!(select_pair(&ambiguous, &unique, 40, 40), Err("AMBIGUOUS_AXIS"));
+        assert_eq!(select_pair(&unique, &ambiguous, 40, 40), Err("AMBIGUOUS_AXIS"));
+        assert_eq!(select_pair(&unique, &unique, 40, 40), Ok((5, 5)));
+    }
+
+    #[test]
+    fn complete_review_retains_both_observed_panels_without_changing_suggest() {
+        let pixels = review_two_panels();
+        let original = pixels.clone();
+        assert_eq!(propose(256, 256, 1, &pixels), Err("AMBIGUOUS_AXIS"));
+        let choices = review_proposals(256, 256, 1, &pixels).unwrap();
+        assert_eq!(choices.iter().map(|p| (p.left, p.bottom, p.right, p.top)).collect::<Vec<_>>(),
+            vec![(20, 100, 115, 10), (148, 228, 243, 138)]);
+        assert_eq!(choices[0].x_ticks, vec![30, 70, 110]);
+        assert_eq!(choices[1].y_ticks, vec![148, 178, 208]);
+        assert_eq!(choices[0].y_ticks, vec![20, 50, 80]);
+        assert_eq!(choices[1].x_ticks, vec![158, 198, 238]);
+        assert_eq!(review_response(&choices).unwrap(), "REVIEW1 2\nBOX 20 100 115 10 30,70,110 20,50,80\nBOX 148 228 243 138 158,198,238 148,178,208\n");
+        assert_eq!(pixels, original);
+        assert_eq!(propose(256, 256, 1, &pixels), Err("AMBIGUOUS_AXIS"));
+    }
+
+    #[test]
+    fn complete_review_unique_and_gray_controls_preserve_original_geometry() {
+        let source = grid_pixels();
+        let ordinary = propose(128, 128, 1, &source).unwrap();
+        assert_eq!(review_proposals(128, 128, 1, &source).unwrap(), vec![ordinary]);
+        let mut gray = review_two_panels();
+        for pixel in &mut gray { if *pixel == 0 { *pixel = 127; } }
+        let choices = review_proposals(256, 256, 1, &gray).unwrap();
+        assert_eq!(choices.len(), 2);
+        let rgb = gray.iter().flat_map(|&pixel| [pixel; 3]).collect::<Vec<_>>();
+        assert_eq!(review_proposals(256, 256, 3, &rgb).unwrap(), choices);
+        for pixel in &mut gray { if *pixel == 127 { *pixel = 128; } }
+        assert_eq!(review_proposals(256, 256, 1, &gray), Err("NO_AXIS"));
+    }
+
+    #[test]
+    fn complete_review_rejects_blank_sparse_and_inward_only_ticks() {
+        assert_eq!(review_proposals(128, 128, 1, &vec![255; 128 * 128]), Err("NO_AXIS"));
+        for retained in [0, 2] {
+            let mut pixels = grid_pixels();
+            for &x in &[30, 70, 110][retained..] {
+                for y in 101..=104 { pixels[y * 128 + x] = 255; }
+            }
+            assert_eq!(review_proposals(128, 128, 1, &pixels), Err("NO_AXIS"));
+        }
+        let mut inward = grid_pixels();
+        for x in [30, 70, 110] {
+            for y in 101..=104 { inward[y * 128 + x] = 255; }
+            for y in 96..100 { inward[y * 128 + x] = 0; }
+        }
+        assert_eq!(review_proposals(128, 128, 1, &inward), Err("NO_AXIS"));
+    }
+
+    #[test]
+    fn complete_review_resource_and_thick_band_failures_return_no_prefix() {
+        let mut pixels = vec![255; 256 * 256];
+        for y in (10..=230).step_by(20) { for x in 10..=230 { pixels[y * 256 + x] = 0; } }
+        for x in (10..=230).step_by(20) { for y in 10..=230 { pixels[y * 256 + x] = 0; } }
+        assert_eq!(review_proposals(256, 256, 1, &pixels), Err("AMBIGUOUS_AXIS"));
+        assert_eq!(BRIDGE_WORK.with(|work| work.get()), 0, "pair overflow must precede measurement");
+        let mut thick = grid_pixels();
+        for y in 96..=100 { for x in 20..=115 { thick[y * 128 + x] = 0; } }
+        assert_eq!(review_proposals(128, 128, 1, &thick), Err("AMBIGUOUS_AXIS"));
+        let mut rows = vec![0; 512];
+        for y in (10..400).step_by(3) { rows[y] = 100; }
+        assert_eq!(review_grid(512, 512, 1, &vec![255; 512 * 512], &rows, &rows, 40, 40, 4, 4), Err("AMBIGUOUS_AXIS"));
+    }
+
+    #[test]
+    fn complete_review_discards_an_earlier_choice_if_later_bridge_work_exhausts() {
+        let mut pixels = review_two_panels();
+        for x in 180..=184 { pixels[228 * 256 + x] = 255; }
+        for x in 179..=185 { pixels[229 * 256 + x] = 0; }
+        assert_eq!(review_proposals(256, 256, 1, &pixels).unwrap().len(), 2);
+        let mut rows = vec![0usize; 256];
+        let mut cols = vec![0usize; 256];
+        for y in 0..256 { for x in 0..256 {
+            if pixels[y * 256 + x] == 0 { rows[y] += 1; cols[x] += 1; }
+        } }
+        BRIDGE_WORK.with(|work| work.set(MAX_PIXELS));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+        let row_minimum = (cols.iter().rposition(|&n| n > 0).unwrap() - cols.iter().position(|&n| n > 0).unwrap() + 1) * 2 / 5;
+        let col_minimum = (rows.iter().rposition(|&n| n > 0).unwrap() - rows.iter().position(|&n| n > 0).unwrap() + 1) * 2 / 5;
+        assert_eq!(review_grid(256, 256, 1, &pixels, &rows, &cols, row_minimum, col_minimum, 11, 11), Err("AMBIGUOUS_AXIS"));
+        assert!(BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()));
+    }
+
+    #[test]
+    fn complete_review_reuses_bounded_frame_protocol_and_rejects_response_overflow() {
+        let pixels = grid_pixels();
+        let mut frame = Vec::from(*b"GRA1");
+        for value in [128u32, 128, 1, pixels.len() as u32] { frame.extend_from_slice(&value.to_le_bytes()); }
+        frame.extend_from_slice(&pixels);
+        assert_eq!(process(&frame[..]).unwrap(), propose(128, 128, 1, &pixels).unwrap());
+        assert_eq!(process_review(&frame[..]).unwrap(), review_proposals(128, 128, 1, &pixels).unwrap());
+        frame.push(0);
+        assert_eq!(process_review(&frame[..]), Err("INVALID_PROTOCOL"));
+        assert_eq!(process(&frame[..]), Err("INVALID_PROTOCOL"));
+        assert_eq!(process_review(&b"bad"[..]), Err("INVALID_PROTOCOL"));
+        let maximum = (0..128).map(|_| Proposal { left: 3000, bottom: 4000, right: 4000, top: 3000,
+            confidence: 0., ticks: None, x_ticks: (0..128).map(|i| 3000 + 4*i).collect(),
+            y_ticks: (0..128).map(|i| 3000 + 4*i).collect() }).collect::<Vec<_>>();
+        assert_eq!(review_response(&maximum), Err("AMBIGUOUS_AXIS"));
+        assert!(review_response(&maximum[..1]).unwrap().len() < MAX_REVIEW_RESPONSE_BYTES);
     }
 }

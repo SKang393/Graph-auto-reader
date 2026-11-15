@@ -69,7 +69,7 @@ public sealed class OpenCvAxisProposalService : IAxisProposalService, IAxisCandi
             await drain.ConfigureAwait(false);
             byte[] extra = new byte[1];
             if (await process.StandardOutput.BaseStream.ReadAsync(extra, deadline.Token).ConfigureAwait(false) != 0 ||
-                process.ExitCode != 0 || !ValidCandidates(result, width, height)) return CandidateFailure("OPENCV_AXIS_UNAVAILABLE");
+                process.ExitCode != 0 || result?.Provider != "opencv-review" || !ValidCandidates(result, width, height)) return CandidateFailure("OPENCV_AXIS_UNAVAILABLE");
             return new AxisCandidateReviewResult(Array.AsReadOnly(result!.Candidates.ToArray()), result.ErrorCode);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) { return CandidateFailure("OPENCV_AXIS_TIMEOUT"); }
@@ -110,16 +110,35 @@ public sealed class OpenCvAxisProposalService : IAxisProposalService, IAxisCandi
 
     internal static bool ValidCandidates(AxisCandidateReviewResult? result, int width, int height)
     {
-        if (result?.Candidates is null || result.Candidates.Count > NativeAxisCandidateReview.MaximumCandidates) return false;
+        if (result?.Candidates is null || result.Provider is not ("opencv-review" or "rust-review") || result.Candidates.Count > NativeAxisCandidateReview.MaximumCandidates) return false;
         if (result.ErrorCode is not null)
             return result.Candidates.Count == 0 && result.ErrorCode is "OPENCV_AXIS_UNAVAILABLE" or "OPENCV_AXIS_AMBIGUOUS" or "INVALID_INPUT";
         if (result.Candidates.Count == 0) return false;
+        var distinct = new HashSet<(int Left, int Bottom, int Right, int Top)>();
         for (int i = 0; i < result.Candidates.Count; i++)
         {
             AxisReviewCandidate? candidate = result.Candidates[i];
             if (candidate?.Geometry is not { } geometry || candidate.Index != i || geometry.Confidence != 0 ||
-                !Valid(new RustAxisProposalResult(geometry, null) { Provider = "opencv-review" }, width, height)) return false;
+                !distinct.Add((geometry.Left, geometry.Bottom, geometry.Right, geometry.Top)) ||
+                geometry.Left < 0 || geometry.Top < 0 || geometry.Right >= width || geometry.Bottom >= height ||
+                geometry.Left >= geometry.Right || geometry.Top >= geometry.Bottom) return false;
+            if (result.Provider == "opencv-review")
+            {
+                if (geometry.FirstTickX is not null || geometry.LastTickX is not null ||
+                    geometry.XTickPositions is not { Count: 0 } || geometry.YTickPositions is not { Count: 0 }) return false;
+            }
+            else if (!ValidReviewTicks(geometry.XTickPositions, geometry.Left, geometry.Right) ||
+                !ValidReviewTicks(geometry.YTickPositions, geometry.Top, geometry.Bottom) ||
+                geometry.FirstTickX != geometry.XTickPositions[0] || geometry.LastTickX != geometry.XTickPositions[^1]) return false;
         }
+        return true;
+    }
+
+    private static bool ValidReviewTicks(IReadOnlyList<int>? ticks, int minimum, int maximum)
+    {
+        if (ticks is null || ticks.Count is < 3 or > 128) return false;
+        for (int index = 0; index < ticks.Count; index++)
+            if (ticks[index] < minimum || ticks[index] > maximum || (index > 0 && ticks[index] <= ticks[index - 1])) return false;
         return true;
     }
 

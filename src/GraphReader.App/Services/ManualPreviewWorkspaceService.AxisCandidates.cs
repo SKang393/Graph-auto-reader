@@ -8,6 +8,8 @@ namespace GraphReader.App.Services;
 public sealed record WorkspaceAxisCandidateReview(string TabId, string Binding, IReadOnlyList<AxisReviewCandidate> Candidates)
 {
     internal object? OriginalImageIdentity { get; init; }
+    internal object? CandidateIdentity { get; init; }
+    public string Provider { get; init; } = "opencv-review";
 }
 
 public interface IAxisCandidateReviewWorkspace
@@ -20,8 +22,11 @@ public interface IAxisCandidateReviewWorkspace
 
 public partial class ManualPreviewWorkspaceService : IAxisCandidateReviewWorkspace
 {
+    private sealed record AxisCandidateIdentity(string Provider, IReadOnlyList<AxisReviewCandidate> Candidates);
     private static readonly IReadOnlyList<string> SelectedAxisCandidateReasons =
         Array.AsReadOnly(new[] { "native_user_selected_candidate" });
+    private static readonly IReadOnlyList<string> SelectedRustAxisCandidateReasons =
+        Array.AsReadOnly(new[] { "rust_user_selected_candidate" });
 
     public bool CanReviewAxisCandidates =>
         RuntimeEnvironment == WorkflowRuntimeEnvironment.ManualPreview &&
@@ -43,9 +48,17 @@ public partial class ManualPreviewWorkspaceService : IAxisCandidateReviewWorkspa
         // The review list belongs to this image snapshot, not the worker's mutable response.
         var candidates = Array.AsReadOnly(result.Candidates.Select(candidate => candidate with
         {
-            Geometry = candidate.Geometry with { XTickPositions = Array.Empty<int>(), YTickPositions = Array.Empty<int>() },
+            Geometry = candidate.Geometry with
+            {
+                XTickPositions = Array.AsReadOnly(candidate.Geometry.XTickPositions.ToArray()),
+                YTickPositions = Array.AsReadOnly(candidate.Geometry.YTickPositions.ToArray()),
+            },
         }).ToArray());
-        var review = new WorkspaceAxisCandidateReview(tabId, binding, candidates) { OriginalImageIdentity = originalImage };
+        var review = new WorkspaceAxisCandidateReview(tabId, binding, candidates)
+        {
+            OriginalImageIdentity = originalImage, Provider = result.Provider,
+            CandidateIdentity = new AxisCandidateIdentity(result.Provider, candidates),
+        };
         return IsAxisCandidateReviewCurrent(review) ? review : null;
     }
 
@@ -55,7 +68,9 @@ public partial class ManualPreviewWorkspaceService : IAxisCandidateReviewWorkspa
         WorkspaceTabViewModel? tab = _tabs.SingleOrDefault(item => item.TabId == review.TabId);
         return tab is not null && _originalPanelBytesByTab.TryGetValue(tab.TabId, out var image) &&
             ReferenceEquals(image, review.OriginalImageIdentity) && review.Binding == AxisSuggestionBinding(tab) &&
-            OpenCvAxisProposalService.ValidCandidates(new(review.Candidates, null), tab.PixelWidth, tab.PixelHeight);
+            review.CandidateIdentity is AxisCandidateIdentity identity && identity.Provider == review.Provider &&
+            ReferenceEquals(identity.Candidates, review.Candidates) &&
+            OpenCvAxisProposalService.ValidCandidates(new(review.Candidates, null) { Provider = review.Provider }, tab.PixelWidth, tab.PixelHeight);
     }
 
     public WorkspaceAxisSuggestion? SelectAxisCandidate(WorkspaceAxisCandidateReview review, int index)
@@ -65,8 +80,8 @@ public partial class ManualPreviewWorkspaceService : IAxisCandidateReviewWorkspa
         return new WorkspaceAxisSuggestion(review.TabId, review.Binding, candidate.Geometry)
         {
             OriginalImageIdentity = review.OriginalImageIdentity,
-            Provider = "opencv-review",
-            ReviewReasons = SelectedAxisCandidateReasons,
+            Provider = review.Provider,
+            ReviewReasons = review.Provider == "rust-review" ? SelectedRustAxisCandidateReasons : SelectedAxisCandidateReasons,
         };
     }
 }

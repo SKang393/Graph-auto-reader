@@ -51,7 +51,7 @@ public sealed partial class MainWindowViewModel
         OnPropertyChanged(nameof(UseCalibrationLabelForFirstXText));
         OnPropertyChanged(nameof(UseCalibrationLabelForFinalXText));
     }
-    public bool HasAxisGeometryReviewWarning => _axisSuggestion is { Provider: "opencv-review" };
+    public bool HasAxisGeometryReviewWarning => _axisSuggestion is { Provider: "opencv-review" or "rust-review" };
     public string AxisGeometryReviewWarningText => !HasAxisGeometryReviewWarning ? string.Empty : GetLocalizedString(
         _axisSuggestion!.ReviewReasons.Any(reason => reason is "x_axis_partial" or "y_axis_partial")
             ? LocalizationKeys.ManualAxisGeometryPartialWarning : LocalizationKeys.ManualAxisGeometryReviewWarning);

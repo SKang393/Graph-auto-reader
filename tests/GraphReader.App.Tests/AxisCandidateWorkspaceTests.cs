@@ -14,6 +14,63 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class AxisCandidateWorkspaceTests
 {
+    private static readonly string[] FailClosedRustErrors = ["AMBIGUOUS_AXIS", "CPU_BUDGET_UNAVAILABLE", "INVALID_RESPONSE", "WORKER_TIMEOUT"];
+    private static readonly int[] RustXTicks = [10, 50, 100];
+    private static readonly int[] RustYTicks = [10, 50, 100];
+
+    [TestMethod]
+    public void RustChoiceRequiresReviewAndForwardsMeasuredTicksOnlyOnExplicitRead() => WithImage(path =>
+    {
+        var candidate = new AxisReviewCandidate(0, new RustAxisGeometry(10, 100, 100, 10, 0, 10, 100)
+            { XTickPositions = RustXTicks, YTickPositions = RustYTicks });
+        var provider = new CandidateProvider([candidate], provider: "rust-review");
+        var ocr = new InspectingOcr();
+        using var workspace = new ManualPreviewWorkspaceService(axisProposalService: provider, calibrationOcrSuggestionService: ocr);
+        Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
+        using var vm = new MainWindowViewModel(workspace);
+        Pump(Completed(vm.FindAxisCandidatesAsync(CancellationToken.None)));
+        Assert.IsNull(vm.SelectedAxisCandidate);
+        Assert.IsFalse(vm.UseAxisCandidateCommand.CanExecute(null));
+        vm.SelectedAxisCandidate = vm.AxisCandidates.Single();
+        vm.UseAxisCandidateCommand.Execute(null);
+        Assert.IsTrue(vm.HasAxisSuggestion);
+        Assert.IsTrue(vm.HasAxisGeometryReviewWarning);
+        Assert.IsFalse(vm.AxisSuggestionReviewed);
+        Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+        Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+        Assert.AreEqual(string.Empty, vm.SuggestedFinalSession);
+        Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+        Assert.IsNull(ocr.Request);
+        Pump(Completed(vm.ReadCalibrationLabelsAsync(CancellationToken.None)));
+        Assert.IsNotNull(ocr.Request);
+        CollectionAssert.AreEqual(RustXTicks, ocr.Request.MeasuredXTicks!);
+        CollectionAssert.AreEqual(RustYTicks, ocr.Request.MeasuredYTicks!);
+        Assert.IsTrue(vm.HasAxisGeometryReviewWarning);
+        Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+    });
+
+    [TestMethod]
+    public void RustReviewPreservesObservedTicksAndBindsProviderToSnapshot() => WithImage(path =>
+    {
+        int[] x = [10, 50, 100], y = [10, 50, 100];
+        var candidate = new AxisReviewCandidate(0, new RustAxisGeometry(10, 100, 100, 10, 0, 10, 100)
+            { XTickPositions = x, YTickPositions = y });
+        var provider = new CandidateProvider([candidate], provider: "rust-review");
+        using var workspace = new ManualPreviewWorkspaceService(axisProposalService: provider);
+        var tab = Pump(workspace.ImportImagesAsync([path], CancellationToken.None)).Single();
+        WorkspaceAxisCandidateReview review = Pump(workspace.ReviewAxisCandidatesAsync(tab.TabId, CancellationToken.None))!;
+        Assert.AreEqual("rust-review", review.Provider);
+        x[1] = 60; y[1] = 60;
+        Assert.AreEqual(50, review.Candidates[0].Geometry.XTickPositions[1]);
+        Assert.AreEqual(50, review.Candidates[0].Geometry.YTickPositions[1]);
+        Assert.IsFalse(workspace.IsAxisCandidateReviewCurrent(review with { Provider = "opencv-review" }));
+        Assert.IsFalse(workspace.IsAxisCandidateReviewCurrent(review with { Candidates = [candidate] }));
+        WorkspaceAxisSuggestion selected = workspace.SelectAxisCandidate(review, 0)!;
+        Assert.AreEqual("rust-review", selected.Provider);
+        Assert.AreEqual(50, selected.Geometry.XTickPositions[1]);
+        Assert.AreEqual(50, selected.Geometry.YTickPositions[1]);
+        Assert.IsTrue(workspace.IsAxisSuggestionCurrent(selected));
+    });
     [TestMethod]
     public void ReviewIsSourceBoundDefensiveAndSelectionDoesNotMutateProject() => WithImage(path =>
     {
@@ -112,7 +169,7 @@ public sealed class AxisCandidateWorkspaceTests
         using var unavailableWorkspace = new ManualPreviewWorkspaceService(axisProposalService: unavailable);
         Assert.IsFalse(unavailableWorkspace.CanReviewAxisCandidates);
 
-        var primary = new CandidateProvider();
+        var primary = new CandidateProvider(canReview: false);
         var fallback = new CandidateProvider();
         var composite = new RustFirstAxisProposalService(primary, fallback);
         using var production = new ManualPreviewWorkspaceService(axisProposalService: composite,
@@ -135,9 +192,33 @@ public sealed class AxisCandidateWorkspaceTests
 
         using var canceled = new CancellationTokenSource();
         canceled.Cancel();
-        Assert.ThrowsExactly<OperationCanceledException>(() =>
-            composite.ReviewCandidatesAsync([1, 2, 3], canceled.Token));
+        Assert.Throws<OperationCanceledException>(() =>
+            composite.ReviewCandidatesAsync([1, 2, 3], canceled.Token).GetAwaiter().GetResult());
         Assert.AreEqual(1, fallback.CandidateCalls, "Cancellation must stop before invoking the fallback worker.");
+    }
+
+    [TestMethod]
+    public async Task CompositePrefersRustAndFallsBackOnlyForDeclaredUnavailableCases()
+    {
+        var primary = new CandidateProvider(provider: "rust-review");
+        var fallback = new CandidateProvider();
+        var result = await new RustFirstAxisProposalService(primary, fallback).ReviewCandidatesAsync([1], CancellationToken.None);
+        Assert.AreEqual("rust-review", result.Provider);
+        Assert.HasCount(2, result.Candidates);
+        Assert.AreEqual(0, fallback.CandidateCalls);
+
+        var noAxis = new CandidateProvider(candidates: Array.Empty<AxisReviewCandidate>(), errorCode: "NO_AXIS", provider: "rust-review");
+        result = await new RustFirstAxisProposalService(noAxis, fallback).ReviewCandidatesAsync([1], CancellationToken.None);
+        Assert.AreEqual("opencv-review", result.Provider);
+        Assert.AreEqual(1, fallback.CandidateCalls);
+
+        foreach (string error in FailClosedRustErrors)
+        {
+            var failed = new CandidateProvider(candidates: Array.Empty<AxisReviewCandidate>(), errorCode: error, provider: "rust-review");
+            result = await new RustFirstAxisProposalService(failed, fallback).ReviewCandidatesAsync([1], CancellationToken.None);
+            Assert.AreEqual(error, result.ErrorCode);
+            Assert.AreEqual(1, fallback.CandidateCalls);
+        }
     }
 
     private static ManualCalibrationRequest Calibration() =>
@@ -148,9 +229,10 @@ public sealed class AxisCandidateWorkspaceTests
         private readonly IReadOnlyList<AxisReviewCandidate> _candidates;
         private readonly string? _errorCode;
         private readonly bool _canReview;
+        private readonly string _provider;
 
         public CandidateProvider(IReadOnlyList<AxisReviewCandidate>? candidates = null, string? errorCode = null,
-            bool canReview = true)
+            bool canReview = true, string provider = "opencv-review")
         {
             _candidates = candidates ??
             [
@@ -159,6 +241,7 @@ public sealed class AxisCandidateWorkspaceTests
             ];
             _errorCode = errorCode;
             _canReview = canReview;
+            _provider = provider;
         }
 
         public bool CanReviewCandidates => _canReview;
@@ -180,7 +263,7 @@ public sealed class AxisCandidateWorkspaceTests
             CandidateCalls++;
             cancellationToken.ThrowIfCancellationRequested();
             ReviewInput = (byte[])originalImage.Clone();
-            return Pending?.Task ?? Task.FromResult(new AxisCandidateReviewResult(_candidates, _errorCode));
+            return Pending?.Task ?? Task.FromResult(new AxisCandidateReviewResult(_candidates, _errorCode) { Provider = _provider });
         }
     }
 
@@ -210,5 +293,19 @@ public sealed class AxisCandidateWorkspaceTests
             CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.FromCurrentSynchronizationContext());
         if (!task.IsCompleted) System.Windows.Threading.Dispatcher.PushFrame(frame);
         return task.GetAwaiter().GetResult();
+    }
+
+    private static async Task<bool> Completed(Task task) { await task; return true; }
+
+    private sealed class InspectingOcr : ICalibrationOcrSuggestionService
+    {
+        internal CalibrationOcrRequest? Request { get; private set; }
+        public Task<CalibrationOcrResponse> SuggestAsync(CalibrationOcrRequest request, ReadOnlyMemory<byte> image, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            Request = request;
+            return Task.FromResult(CalibrationOcrClientTests.Success(request));
+        }
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 }
