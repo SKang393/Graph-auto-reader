@@ -83,8 +83,8 @@ tick pairs, explicit review, Apply and Undo; see the
 `Prepare-CheckpointVersion.ps1 -PrepareNext`
 prepared 0.4.54 once for one integrated internal preview containing the native
 representation repair, endpoint label-lane repair and this routing correction.
-The active pointer remains 0.4.53 until the verified replacement's ledger push
-and activation finish. No public release or model approval
+The verified 0.4.54 replacement is uploaded, its ledger is pushed, and the primary
+latest pointer and launcher check now select it. No public release or model approval
 is part of this batch. Dependencies and licenses are unchanged; source remains
 Apache-2.0.
 

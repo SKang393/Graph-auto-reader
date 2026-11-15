@@ -105,13 +105,25 @@ bytes were moved into the temporary QA directory, outside the package.
 
 ## Retention and remaining scope
 
-The verified candidate and uploaded package are recorded in the build ledger.
-Activation is pending its pushed ledger; 0.4.53 remains physically present until
-the latest pointer switches. After that switch, retire the superseded 0.4.53
-build and the completed `hosted-preview-454` and `routing-native454-check`
-staging/QA directories after final consumer and keeper checks. The inner ZIP
-and extracted current runtime remain as one build identity. Preserve originals,
-shared user Data, the existing owned fixture and all independent data.
+Ledger/outcome commit `6ce6a5041e3045f8122b2267955bbfcb84c246f4` reached
+origin/main and the primary checkout before activation. The verified payload
+and inner ZIP were moved, not copied, into the primary build directory. The
+latest pointer switched at `2026-11-15T16:26:41.7149199Z`; its SHA-256 is
+`e69872b9244879da60a41de42238d682012ebfc9fd49ee283cff15016385402b`.
+
+The first direct Windows PowerShell `-File` launcher invocation was rejected by
+the host execution policy before the application ran. The existing repository
+CMD wrapper, which supplies its documented process-local invocation settings,
+then passed `-Wait -PortableSmoke`: exit 0 in 2,948.6448 ms. No system policy
+changed. All 16 shared Data files remained byte-identical; the current build has
+478 files / 283,862,408 bytes, including its inner ZIP, and no internal Data tree.
+
+The completed retention inventory is 478 files / 283,847,583 bytes for 0.4.53,
+seven files / 87,428,642 bytes for `hosted-preview-454`, and 16 files / 69,081
+bytes for `routing-native454-check`. Retire these three exact directories after
+this activation record is pushed and final consumer/keeper checks pass. The
+inner ZIP and extracted current runtime remain as one build identity. Preserve
+originals, shared user Data, the existing owned fixture and all independent data.
 
 This batch passes internal-preview checks. Production approval, clean-Windows
 acceptance, the installer/portable production pair and full real-graph automatic
@@ -119,3 +131,21 @@ calibration remain incomplete. The fixed development trace still produced zero
 complete session drafts; this package does not claim a new accuracy result.
 No private/independent evaluation, optimizer step or Mirage comparison was rerun.
 Licenses and approved runtime identities are unchanged.
+
+## Next useful work
+
+Prioritize the documented geometry coverage failure: five of the fixed twelve
+full-trace panels lacked usable geometry, and no complete session draft passed.
+The later representation repair exposed complete review choices on six panels;
+that does not establish correct automatic plots. Existing association metadata
+does not justify wider pairing bounds or another threshold change. Keep the
+unchanged451/Mirage baseline and 51 independent projects untouched.
+
+A read-only source audit also identified synchronous image cloning/hashing at
+`ManualPreviewWorkspaceService.AxisSuggestions.cs` before the first await in
+label reading. The worker repeats identity hashing off the UI thread. Measure
+this prefix on an owned valid raster before deciding whether an off-thread
+preparation change is material. No benchmark or code change has been made for
+that finding, and it does not explain the calibration coverage failure. Avoid
+another package for a small isolated fix. No paid credits or independent banked
+reset is authorized; checkpoint at zero weekly remaining for dot coordination.

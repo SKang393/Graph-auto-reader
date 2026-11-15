@@ -8831,10 +8831,21 @@
     "visualWorkflowChecked": false,
     "visualWorkflowScope": "Owned import automatically produced two panels; selected measured axes survived combined Suggest calibration with six GPU OCR pairs, explicit review, Apply and Undo. No Save/export, ordinary ambiguity, private accuracy or clean-machine claim.",
     "stageSharedDataFilesPreserved": 16,
-    "latestActivationPending": true,
+    "latestActivationPending": false,
     "existingWindowsLaptopChecked": false,
     "cleanWindowsVmChecked": false,
-    "productionApproved": false
+    "productionApproved": false,
+    "latestActivatedUtc": "2026-11-15T16:26:41.7149199Z",
+    "latestPointerSha256": "e69872b9244879da60a41de42238d682012ebfc9fd49ee283cff15016385402b",
+    "latestLauncherSmokeExitCode": 0,
+    "latestLauncherSmokeMilliseconds": 2948.6448,
+    "activationSharedDataFilesPreserved": 16,
+    "retainedFiles": 478,
+    "retainedBytes": 283862408,
+    "launcherWrapperRequired": true,
+    "supersededLocalBuild": "0.4.53-20261115T140221861Z-9adee655",
+    "supersededRetirementPending": true,
+    "localStagingRetired": false
   }
 }
 ]
