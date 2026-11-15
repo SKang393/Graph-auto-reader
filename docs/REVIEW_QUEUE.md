@@ -191,8 +191,7 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 ## REV-011 - finish native preview verification
 
 - **Status:** resolved for the scoped native checks, including the entered-origin
-  source action on 2026-11-15. Foreground profiling interruption remains an
-  unverified engineering observation, not a passed check
+  source action and native foreground-profiling interruption on 2026-11-15
 - **Blocks:** none for this completed subset; full product acceptance remains open
 - **Effort:** no maintainer action needed
 - **Action:** completed. Screenshot-confirmed file-name focus allowed Computer
@@ -203,9 +202,11 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   The 452 handoff
   and old-build retirement are complete. The native 452 record verifies the
   device-picker/history fixes, marker Remove and Undo/Redo, manual drafts and
-  independent OCR row selection/inclusion/refit. Keep the inconclusive
-  foreground-profiling observation explicit; do not repeat completed checks or
-  treat this subset as full visual or production acceptance
+  independent OCR row selection/inclusion/refit. The later
+  [foreground-interruption check](NATIVE-PROFILING-INTERRUPTION-20261115.md)
+  visibly canceled active profiling when calibration started, retained the device
+  choice and owned point/calibration state, and closed normally. Do not repeat
+  completed checks or treat this subset as full visual or production acceptance
 - **Why:** the user stopped Computer Use with physical Escape. Initial native
   CPU/default and adapter-list display was observed; saved-choice verification
   was not completed. The actual worker lifecycle and headless persistence tests

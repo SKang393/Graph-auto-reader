@@ -55,6 +55,7 @@ internal static class Program
         bool realDevTrace452 = args.Length > 0 && args[0] == "--real-dev-452-association-trace";
         bool realDevPrintedXTrace = args.Length > 0 && args[0] == "--real-dev-printed-x-trace";
         bool realDevSpatialTrace = args.Length > 0 && args[0] == "--real-dev-spatial-trace";
+        bool realDevSortedSpatialGeometryTrace = args.Length > 0 && args[0] == "--real-dev-sorted-spatial-geometry-trace";
         bool realDevPostGroupingTrace = args.Length > 0 && args[0] == "--real-dev-source-post-grouping-trace";
         bool realDevNativeRejection = args.Length > 0 && args[0] == "--real-dev-native-rejection-geometry-trace";
         bool realDevPairPruning = args.Length > 0 && args[0] == "--real-dev-pair-pruning-geometry-trace";
@@ -63,7 +64,7 @@ internal static class Program
         bool ownedNativeRejection = args.Length > 0 && args[0] == "--owned-native-rejection-check";
         bool ownedNativePruning = args.Length > 0 && args[0] == "--owned-native-pruning-check";
         bool ownedNativeIntersection = args.Length > 0 && args[0] == "--owned-native-intersection-check";
-        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
+        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevSortedSpatialGeometryTrace || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -134,6 +135,11 @@ internal static class Program
             if (args is ["--real-dev-spatial-trace-self-test"])
             {
                 Emit(RealDevCalibrationCheck.SpatialTraceSelfTest());
+                return 0;
+            }
+            if (args is ["--real-dev-sorted-spatial-geometry-self-test"])
+            {
+                Emit(RealDevCalibrationCheck.SortedSpatialGeometryTraceSelfTest());
                 return 0;
             }
             if (args is ["--mirage-mapping-self-test"])
@@ -306,6 +312,11 @@ internal static class Program
                         Emit(await RealDevCalibrationCheck.RunSpatialTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
                         return 0;
                     }
+                    if (realDevSortedSpatialGeometryTrace)
+                    {
+                        Emit(await RealDevCalibrationCheck.RunSortedSpatialGeometryTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
+                        return 0;
+                    }
                     if (realDevMirage)
                     {
                         await using MiragePairedWorker mirage = await MiragePairedWorker.StartAsync(deadline.Token);
@@ -388,6 +399,14 @@ internal static class Program
                             status = "blocked_preflight_or_runtime", error = "REAL_DEV_SPATIAL_TRACE_FAILED",
                             sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
                             review_only = true, production_approved = false });
+                        return 1;
+                    }
+                    if (realDevSortedSpatialGeometryTrace)
+                    {
+                        Emit(new { schema = "graphreader.real-dev-sorted-spatial-geometry-trace.v1",
+                            status = "blocked_preflight_or_runtime", error = "REAL_DEV_SORTED_SPATIAL_GEOMETRY_TRACE_FAILED",
+                            sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
+                            ocr_calls = 0, review_only = true, production_approved = false });
                         return 1;
                     }
                     Emit(new { schema = realDevMirage ? "graphreader.mirage-paired-dev-comparison.v1" : realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 ? "graphreader.real-dev-prepared-calibration-diagnostic.v1" : realDevAxisDecision ? "graphreader.real-dev-axis-decision-diagnostic.v1" : realDevPreparation ? "graphreader.real-dev-preparation-diagnostic.v1" : realDevGeometry ? "graphreader.real-dev-geometry-properties-diagnostic.v1" : "graphreader.real-dev-calibration-assistance-diagnostic.v1",

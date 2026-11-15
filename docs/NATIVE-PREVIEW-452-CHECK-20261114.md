@@ -153,3 +153,9 @@ The app remains open with Settings hidden, CPU preference restored, and the
 original one-point state. GUI ownership was released to the lead after this
 observation. Foreground profiling interruption remains the sole unverified
 interaction from this assigned set.
+
+Follow-up, 2026-11-15: [one native foreground-calibration check](NATIVE-PROFILING-INTERRUPTION-20261115.md)
+now verifies active profiling cancellation, unchanged device choice, completed
+foreground label reading and preserved owned project state. That later record
+closes the interruption limitation above; it does not change the earlier
+attempt's inconclusive outcome.

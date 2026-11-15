@@ -612,17 +612,9 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         for (int i = 0; i < order.Length; i++)
         {
             token.ThrowIfCancellationRequested();
-            int j = i;
-            while (j > 0)
-            {
-                SpendEnvelopeWork(maximum, ref work, token);
-                int previous = order[j - 1];
-                if (envelopes[previous].Left <= envelopes[i].Left) break;
-                order[j] = previous;
-                j--;
-            }
-            order[j] = i;
+            order[i] = i;
         }
+        SortEnvelopeIndices(order, envelopes, maximum, ref work, token);
         double[] maximumRight = new double[order.Length];
         long localWork = work;
         Populate(0, order.Length);
@@ -667,18 +659,42 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
     private static void RestoreEnvelopeOrder(List<int> results, long maximum, ref long work, CancellationToken token)
     {
         // Restore the original family order while charging every comparison.
-        for (int i = 1; i < results.Count; i++)
+        int[] order = results.ToArray();
+        SortEnvelopeIndices(order, null, maximum, ref work, token);
+        for (int i = 0; i < order.Length; i++)
         {
             token.ThrowIfCancellationRequested();
-            int value = results[i], j = i;
-            while (j > 0)
+            results[i] = order[i];
+        }
+    }
+
+    private static void SortEnvelopeIndices(int[] values, ContactEnvelope[]? envelopes,
+        long maximum, ref long work, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        var buffer = new int[values.Length];
+        for (int width = 1; width < values.Length;)
+        {
+            for (int start = 0; start < values.Length;)
             {
-                SpendEnvelopeWork(maximum, ref work, token);
-                if (results[j - 1] <= value) break;
-                results[j] = results[j - 1];
-                j--;
+                token.ThrowIfCancellationRequested();
+                int middle = start + Math.Min(width, values.Length - start);
+                int end = middle + Math.Min(width, values.Length - middle);
+                int left = start, right = middle, output = start;
+                while (left < middle && right < end)
+                {
+                    SpendEnvelopeWork(maximum, ref work, token);
+                    bool takeLeft = envelopes is null ? values[left] <= values[right] :
+                        envelopes[values[left]].Left <= envelopes[values[right]].Left;
+                    buffer[output++] = takeLeft ? values[left++] : values[right++];
+                }
+                while (left < middle) { token.ThrowIfCancellationRequested(); buffer[output++] = values[left++]; }
+                while (right < end) { token.ThrowIfCancellationRequested(); buffer[output++] = values[right++]; }
+                start = end;
             }
-            results[j] = value;
+            Array.Copy(buffer, values, values.Length);
+            if (width > values.Length / 2) break;
+            width *= 2;
         }
     }
 

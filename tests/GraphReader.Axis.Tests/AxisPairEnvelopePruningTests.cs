@@ -12,21 +12,42 @@ public sealed class AxisPairEnvelopePruningTests
     private static readonly int[] ExpectedOrderedIndices = [0, 1, 2];
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ShippedBudgetHandlesDescendingSparseFamilies(bool reverse)
+    {
+        var fixture = new AxisFixtureBuilder(4096, 4096).CleanAxes(100, 3000, 900, 3900);
+        for (int index = 0; index < 182; index++)
+            fixture.Line(3900 - 15 * index, 2500, 3900 - 15 * index, 2520, id: $"descending-v-{index}");
+        for (int index = 0; index < 90; index++)
+            fixture.Line(200, 40 + 20 * index, 220, 40 + 20 * index, id: $"detached-h-{index}");
+        AxisGeometryRequest request = fixture.Build();
+        if (reverse) request = request with { LineCandidates = request.LineCandidates.Reverse().ToArray() };
+        var oracle = new Observer();
+        var bounded = new Observer();
+        var detector = new AxisGeometryDetector();
+        AxisGeometryResult expected = await detector.DetectAsync(request with { CandidateObserver = oracle });
+        Assert.HasCount(1, oracle.Candidates!);
+        AxisGeometryResult actual = await detector.DetectAsync(request with { CandidateObserver = bounded, MaximumExaminedPairs = 128 });
+        AssertParity(expected, actual, oracle, bounded);
+    }
+
+    [TestMethod]
     public void IndexedOrderRestorationChargesComparisonsAndHonorsCancellation()
     {
         MethodInfo sort = typeof(AxisGeometryDetector).GetMethod("RestoreEnvelopeOrder", BindingFlags.NonPublic | BindingFlags.Static)!;
         var values = new List<int> { 2, 1, 0 };
-        object[] arguments = [values, 3L, 0L, CancellationToken.None];
+        object[] arguments = [values, 2L, 0L, CancellationToken.None];
         sort.Invoke(null, arguments);
         CollectionAssert.AreEqual(ExpectedOrderedIndices, values);
-        Assert.AreEqual(3L, arguments[2]);
+        Assert.AreEqual(2L, arguments[2]);
 
         TargetInvocationException exhausted = Assert.ThrowsExactly<TargetInvocationException>(() =>
-            sort.Invoke(null, [new List<int> { 2, 1, 0 }, 2L, 0L, CancellationToken.None]));
+            sort.Invoke(null, [new List<int> { 2, 1, 0 }, 1L, 0L, CancellationToken.None]));
         Assert.IsInstanceOfType<AxisGeometryDetectionException>(exhausted.InnerException);
         Assert.AreEqual(AxisGeometryBudgetKind.EnvelopeComparisons, ((AxisGeometryDetectionException)exhausted.InnerException!).BudgetKind);
         TargetInvocationException cancelled = Assert.ThrowsExactly<TargetInvocationException>(() =>
-            sort.Invoke(null, [new List<int> { 2, 1, 0 }, 3L, 0L, new CancellationToken(canceled: true)]));
+            sort.Invoke(null, [new List<int> { 2, 1, 0 }, 2L, 0L, new CancellationToken(canceled: true)]));
         Assert.IsInstanceOfType<OperationCanceledException>(cancelled.InnerException);
     }
 

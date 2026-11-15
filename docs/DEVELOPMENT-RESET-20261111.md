@@ -12,11 +12,14 @@ recovers all six labels and a complete automatic draft on an owned jittered-row
 graph. The fixed development result remains 7/12 panels with geometry, two
 reviewable printed-X drafts and zero complete session drafts. Four native
 attempts still exhaust a resource budget and one rejects multiple candidates.
-Keep numeric/review safeguards and the independent split intact. The next
-owned geometry reproduction targets descending envelope order exhausting the
-insertion-sort budget before any query; verify bounded merge sorting before
-another geometry confirmation. Do not repeat unchanged OCR. The sole retained
-package remains 0.4.52 until a meaningful integrated replacement is verified.
+Keep numeric/review safeguards and the independent split intact. The
+[bounded merge-sort repair](AXIS-BOUNDED-SORT-20261115.md) fixes the owned
+descending-order failure and clears development envelope-budget exhaustion;
+coverage remains 7/12 with four exact-pair failures and one ambiguity rejection.
+Next verify zero-forward-extent pruning on owned controls before exact contact
+work. Do not repeat unchanged OCR. Native [foreground profiling cancellation](NATIVE-PROFILING-INTERRUPTION-20261115.md)
+is now verified. The sole retained package remains 0.4.52 until a meaningful
+integrated replacement is verified.
 
 The maintainer requested a Rust-based, responsive Windows application and
 authorized changing the development plan immediately. This amendment replaces

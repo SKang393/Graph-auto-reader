@@ -158,6 +158,9 @@ geometry, exact limits and rejection behavior. Do not rerun unchanged OCR.
 
 Project additions are Apache-2.0; existing dependency/model licenses are
 unchanged. No new package is created; the sole retained package is 0.4.52.
+Full Windows CI [43704849910](https://github.com/SKang393/Graph-auto-reader/actions/runs/43704849910)
+completed successfully on `7d9e5f31fc2dd22af7038089b3f70519b6c5081d`.
+This verifies the integrated batch, not later source changes.
 After this source/outcome batch is pushed, completed
 `axis-spatial-query-check` and `x-tick-row-jitter-check` outputs are disposable.
 Keep `spatial-axis-ocr-check/real-dev.json` only for the active geometry diagnosis;
