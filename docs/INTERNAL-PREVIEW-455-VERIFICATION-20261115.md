@@ -155,10 +155,22 @@ old directory was absent and only 0.4.55 remained in the builds directory.
 Shared Data and both unrelated modified primary-checkout files were preserved.
 
 Completed staging, native QA, prefix measurements and cluster unit-test outputs
-are scheduled for exact-inventory retirement after this closeout is pushed:
+were retired after closeout `a3b0fa612b2313cebe735470f93bf4b4a6e93ee8` was
+pushed and integrated in both checkouts:
 `artifacts/hosted-preview-455`, `artifacts/geometry-native455-check`,
 `artifacts/ui-prefix-measurement`, and
-`artifacts/interval-cluster-containment-check`. Their consumers have finished.
+`artifacts/interval-cluster-containment-check`. All consumers had finished.
+The four directories contained 66 files / 111,247,490 bytes. The guarded
+validation and removal both passed; absence was verified at
+`2026-11-15T20:57:42.1910402Z`. Per-file manifest SHA-256:
+`fc9f16154eb1f40b3687cf1d4693d10b964cbf5ac44b17633cfe7d547659e17a`.
+Helper SHA-256:
+`39f08a81664f54ff9f94906c22add4cf15db177378ac481bf9923bb20bedcf0d`.
+Every target was resolved beneath this worktree's artifacts directory, with
+matching counts/bytes/hashes, no reparse points and no live consumers. The sole
+package, all 16 shared Data files, development trace and unrelated primary
+edits remained unchanged. The temporary helper and manifest retire after this
+receipt is pushed; their current purpose is this closeout only.
 The small current fixed-development trace remains the comparison input for the
 next geometry revision; originals, the owned source fixture, models and active
 compilation outputs are outside cleanup scope.

@@ -56,9 +56,10 @@ No dependency installation, license change, private/sealed input or paid call.
 | Frozen App DLL | `7c8df79baaaad3a4b3992e9b97d4fb8843cd9eca494086a8ee9ac39a8d1f056b` |
 | Frozen Axis DLL | `d946441adcef59a717e11d12df740c5300f369a7e873b37344bc2ab6a647df8d` |
 
-The completed temporary `artifacts/ui-prefix-measurement` subtree contains
-39 files / 17,393,792 bytes and zero reparse points. It has no active consumer
-beyond this tracked outcome and is scheduled for retirement after push. The
+The completed temporary `artifacts/ui-prefix-measurement` subtree contained
+39 files / 17,393,792 bytes and zero reparse points. It was retired after its
+outcome was pushed and all consumers finished, with unchanged keeper hashes;
+see the [0.4.55 closeout](INTERNAL-PREVIEW-455-VERIFICATION-20261115.md). The
 fixture can be regenerated from the recipe above and the existing
 `CalibrationOcrWorkspaceTests` STA/workspace seams. No performance-related
 package rebuild is needed.

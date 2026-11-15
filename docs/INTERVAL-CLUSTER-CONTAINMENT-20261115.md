@@ -186,5 +186,7 @@ Guarded retirement completed at `2026-11-15T20:01:19.4766273Z`, after outcome
 Result hashes, exact inventories, resolved contained paths, zero reparse points
 and no active task runtime consumers were rechecked. All eight paths were absent
 after removal.
-The new cluster report/test directory remains active through this batch's final
-integration/CI review, then follows the same pushed-record retirement rule.
+The completed cluster unit-test directory was retired during the verified
+[0.4.55 closeout](INTERNAL-PREVIEW-455-VERIFICATION-20261115.md), after integration
+and CI review. The separate 80,485-byte current fixed-development report remains
+the active comparison input for the next geometry revision.

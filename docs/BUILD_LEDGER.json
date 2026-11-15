@@ -8943,7 +8943,11 @@
     "supersededLocalBuildFilesRetired": 478,
     "supersededLocalBuildBytesRetired": 283862408,
     "supersededRetirementVerifiedUtc": "2026-11-15T20:44:09.2992481Z",
-    "localStagingRetired": false
+    "localStagingRetired": true,
+    "completedQaFilesRetired": 66,
+    "completedQaBytesRetired": 111247490,
+    "completedQaRetirementVerifiedUtc": "2026-11-15T20:57:42.1910402Z",
+    "completedQaRetirementManifestSha256": "fc9f16154eb1f40b3687cf1d4693d10b964cbf5ac44b17633cfe7d547659e17a"
   }
 }
 ]
