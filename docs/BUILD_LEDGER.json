@@ -8633,6 +8633,12 @@
     "visualWorkflowChecked": false,
     "visualWorkflowScope": "452 native verification remains pending. Prior 451 observations and the inconclusive capture attempt are recorded separately; they are not 452 acceptance.",
     "nativeReviewSubsetChecked": false,
+    "latestLauncherSmokeExitCode": 0,
+    "latestLauncherSmokeMilliseconds": 2793.8575,
+    "normalLauncherProcessIdentityVerified": true,
+    "activationSharedDataFilesPreserved": 16,
+    "supersededBuildFilesRetired": 478,
+    "supersededBuildBytesRetired": 283715292,
     "existingWindowsLaptopCheck": {
       "report": "FLEX5-452-VERIFICATION-20261115.md",
       "portableSmokeExitCode": 0,

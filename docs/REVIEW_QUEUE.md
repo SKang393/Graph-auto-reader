@@ -196,7 +196,7 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 - **Effort:** about 5 minutes for checks when window capture is available
 - **Action:** the maintainer confirmed the old window is closed; a process
   query verified its exit. No further closure or access approval is needed.
-  Complete the verified 452 handoff, then continue native checks
+  The verified 452 handoff and old-build retirement are complete. Continue native checks
   for foreground interruption of device checks, separate OCR row selection and
   inclusion/refit review invalidation, proposal Remove, and the explicit
   three-click axis draft with Cancel/Dismiss. In the next meaningful integrated
@@ -242,8 +242,10 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   Screenshot-only capture was then attempted once with accessibility text
   disabled and also returned no usable state before the lead interruption.
   No further capture retries or app input are planned while this boundary
-  remains unavailable. Both verified build identities and shared Data remain
-  intact for the pending handoff; disposable validation copies are retired.
+  remains unavailable. The maintainer then confirmed normal closure. Guarded
+  452 activation and old-build retirement completed with all sixteen shared Data
+  files unchanged; the latest launcher smoke passed. Disposable validation
+  copies are retired.
   See the [native workflow result](NATIVE-PREVIEW-449-CHECK-20261114.md) and the
   [native attempt](NATIVE-PREVIEW-448-CHECK-20261114.md).
   Owned headless package checks passed, but do not replace these visual checks

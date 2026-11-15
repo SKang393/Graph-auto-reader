@@ -46,9 +46,9 @@ The verified files and inner ZIP were moved without duplication into
 The guarded staging command exited 0; all 477 payload files and the ZIP matched,
 and shared Data was unchanged. The maintainer subsequently confirmed normal
 closure of the old window, and a normal-host process query found no remaining
-GraphReader App process. The ledger now selects 452 for retention. This update
-must reach `origin/main` before the guarded pointer switch and 451 retirement;
-those two actions remain separate from the completed staging phase.
+GraphReader App process. Retention scope
+`f6ba4bfe83760663527e236a1f1959720ca28655` reached `origin/main` before the
+guarded pointer switch and 451 retirement.
 
 The reviewed helper is `artifacts/activate-preview452.ps1`, SHA-256
 `49fc8bcc02873a4b46a47b82339febe493e215c0f16d70e39c5db1b62344241e`.
@@ -57,11 +57,25 @@ Activate/Retire validation and execution require the pushed ledger, exact
 package hashes, no old/new app consumers, contained non-reparse paths and an
 unchanged shared Data snapshot. The authorized retirement target is only
 `artifacts/dev-portable/builds/0.4.51-20261114T235320548Z-e5491791`,
-478 files / 283,715,292 bytes including its matching ZIP. No old build has been
-removed at this checkpoint. The completed hosted staging was subsequently
+478 files / 283,715,292 bytes including its matching ZIP. Separate Activate
+and Retire ValidateOnly/Execute phases all passed. The latest pointer now
+selects 452; exactly one build directory remains, and the old 451 build is
+absent. All sixteen shared Data files matched before/after activation and
+retirement. The completed hosted staging was separately
 [retired](INTERNAL-PREVIEW-452-RETIREMENT-20261115.md) after its pushed record
 and consumer checks. Its receipt/hash values above are historical evidence;
 the verified final build and inner ZIP remain intact.
+
+The actual entrypoint command also passed:
+
+```powershell
+pwsh -NoProfile -File packaging/Run-Latest-DevPortable.ps1 -RepositoryRoot E:/Graph-auto-reader -PortableSmoke -Wait
+```
+
+It exited 0 in 2,793.8575 ms and reported the verified 452 executable and shared
+Data path. A subsequent normal invocation launched that same executable;
+normal-host process inspection verified its identity. These checks establish
+startup and handoff, not completed native interaction.
 
 The [existing Flex5Laptop check](FLEX5-452-VERIFICATION-20261115.md) also passed
 portable/Production-guard startup and two owned CPU OCR reads on one reused,
