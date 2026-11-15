@@ -106,21 +106,27 @@ public sealed class ResourcesAndLocalizationTests
                 var window = new MainWindow(themeService, resources);
                 var viewModel = (MainWindowViewModel)window.DataContext;
                 var selector = (ComboBox)window.FindName("ThemeSelector");
-                window.Show();
+                try
+                {
+                    window.Show();
 
-                Assert.AreEqual(
-                    "Theme.Select",
-                    System.Windows.Automation.AutomationProperties.GetAutomationId(selector));
-                Assert.AreEqual(ApplicationTheme.System, selector.SelectedValue);
+                    Assert.AreEqual(
+                        "Theme.Select",
+                        System.Windows.Automation.AutomationProperties.GetAutomationId(selector));
+                    Assert.AreEqual(ApplicationTheme.System, selector.SelectedValue);
 
-                selector.SelectedValue = ApplicationTheme.Dark;
-                selector.GetBindingExpression(ComboBox.SelectedValueProperty)?.UpdateSource();
+                    selector.SelectedValue = ApplicationTheme.Dark;
+                    selector.GetBindingExpression(ComboBox.SelectedValueProperty)?.UpdateSource();
 
-                Assert.AreEqual(ApplicationTheme.Dark, viewModel.AppearanceMode);
-                Assert.AreEqual(ApplicationTheme.Dark, themeService.Theme);
-                Assert.AreEqual(ApplicationTheme.Dark, themeService.EffectiveTheme);
-                Assert.Contains(ApplicationTheme.Dark, themeService.AppliedThemes);
-                window.Close();
+                    Assert.AreEqual(ApplicationTheme.Dark, viewModel.AppearanceMode);
+                    Assert.AreEqual(ApplicationTheme.Dark, themeService.Theme);
+                    Assert.AreEqual(ApplicationTheme.Dark, themeService.EffectiveTheme);
+                    Assert.Contains(ApplicationTheme.Dark, themeService.AppliedThemes);
+                }
+                finally
+                {
+                    window.Close();
+                }
 
                 static ResourceDictionary LoadTheme(string name) => new()
                 {

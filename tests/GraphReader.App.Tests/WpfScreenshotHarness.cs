@@ -19,7 +19,8 @@ internal static class WpfScreenshotHarness
         Func<FrameworkElement> elementFactory,
         int width,
         int height,
-        double pixelScale = 1)
+        double pixelScale = 1,
+        Action? cleanup = null)
     {
         ArgumentNullException.ThrowIfNull(elementFactory);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
@@ -29,27 +30,28 @@ internal static class WpfScreenshotHarness
         return StaTestHost.Run(
             () =>
             {
-                var element = elementFactory();
-                ArgumentNullException.ThrowIfNull(element);
-                double logicalWidth = width / pixelScale;
-                double logicalHeight = height / pixelScale;
-                var host = new Window
-                {
-                    Width = logicalWidth,
-                    Height = logicalHeight,
-                    Left = SystemParameters.VirtualScreenLeft - logicalWidth - 100,
-                    Top = SystemParameters.VirtualScreenTop - logicalHeight - 100,
-                    WindowStartupLocation = WindowStartupLocation.Manual,
-                    WindowStyle = WindowStyle.None,
-                    ResizeMode = ResizeMode.NoResize,
-                    ShowActivated = false,
-                    ShowInTaskbar = false,
-                    Focusable = false,
-                    IsHitTestVisible = false,
-                    Content = element,
-                };
+                Window? host = null;
                 try
                 {
+                    var element = elementFactory();
+                    ArgumentNullException.ThrowIfNull(element);
+                    double logicalWidth = width / pixelScale;
+                    double logicalHeight = height / pixelScale;
+                    host = new Window
+                    {
+                        Width = logicalWidth,
+                        Height = logicalHeight,
+                        Left = SystemParameters.VirtualScreenLeft - logicalWidth - 100,
+                        Top = SystemParameters.VirtualScreenTop - logicalHeight - 100,
+                        WindowStartupLocation = WindowStartupLocation.Manual,
+                        WindowStyle = WindowStyle.None,
+                        ResizeMode = ResizeMode.NoResize,
+                        ShowActivated = false,
+                        ShowInTaskbar = false,
+                        Focusable = false,
+                        IsHitTestVisible = false,
+                        Content = element,
+                    };
                     bool contentRendered = false;
                     var renderFrame = new DispatcherFrame();
                     var timeout = new DispatcherTimer(
@@ -107,8 +109,18 @@ internal static class WpfScreenshotHarness
                 }
                 finally
                 {
-                    host.Content = null;
-                    host.Close();
+                    try
+                    {
+                        if (host is not null)
+                        {
+                            host.Content = null;
+                            host.Close();
+                        }
+                    }
+                    finally
+                    {
+                        cleanup?.Invoke();
+                    }
                 }
             });
     }

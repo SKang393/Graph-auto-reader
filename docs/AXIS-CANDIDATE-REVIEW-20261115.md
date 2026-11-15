@@ -102,8 +102,17 @@ Tests cover actual owned rasters, unchanged ambiguous Suggest rejection, the
 all-128 response roundtrip, no Production input read, stale source binding,
 workspace immutability, native WPF selection/accessibility, language refresh,
 Light/Dark brushes and cancellation/edit transitions. Final read-only integration
-review found no material issue. Exact-head full Windows CI is still required
-before describing the new integrated build as green.
+review found no material issue. The full CI result below includes the final
+theme and reveal refinements.
+
+Subsequent exact-source [Windows CI 43711187823](https://github.com/SKang393/Graph-auto-reader/actions/runs/43711187823)
+completed successfully at `2026-11-15T12:05:18Z` for
+`20edf2f41f13a451e7d1e4bcc9c46aff31aa2885`. All 13 .NET suites passed:
+2,919 passed, 30 skipped, zero failed, including 1,148 App tests. Rust passed
+55/55, version policy 62/62, build ledger 6/6, portable retention 12/12 and
+packaging verification 68/68. Localization and remaining packaging/evidence
+checks succeeded; public-release jobs were skipped. The packaged artifact is
+verified separately, not inferred from this CI build's bytes.
 
 ## Actual native check on an owned graph
 
@@ -160,3 +169,11 @@ Originals, the independent split, active models and the sole 0.4.52 package were
 preserved. This batch's TRXs, generated control and source-local QA Data/links
 will be retired after their evidence is pushed and package verification ends.
 Keep 0.4.52 until its single replacement is uploaded, verified and recorded.
+
+The first hosted packaging attempt, run 43712247817 on exact source 20edf2f4,
+stopped in the pre-package App test suite: 1,146 passed and two WPF rendering
+tests failed. No package was created or downloaded, and no latest pointer
+changed. [The harness repair](WPF-HARNESS-REPAIR-20261115.md) records the failures,
+concrete lifetime fixes and the subsequent 1,148-test local pass. Replacement
+packaging requires a new exact-source CI pass; the earlier green run is not
+evidence for the later changes.

@@ -41,17 +41,22 @@ public sealed class ScreenshotSmokeTests
         int pixelHeight)
     {
         double scale = scalePercent / 100d;
+        MainWindow? ownerWindow = null;
         RenderedScreenshot rendered = WpfScreenshotHarness.Render(
             () =>
             {
-                FrameworkElement workspace = CreateFakeWorkspace(LightThemeSource, true);
+                FrameworkElement workspace = CreateFakeWorkspace(
+                    LightThemeSource,
+                    true,
+                    created => ownerWindow = created);
                 workspace.Width = pixelWidth / scale;
                 workspace.Height = pixelHeight / scale;
                 return workspace;
             },
             pixelWidth,
             pixelHeight,
-            scale);
+            scale,
+            cleanup: () => CloseScreenshotWindow(ownerWindow));
 
         Assert.AreEqual(pixelWidth, rendered.Width);
         Assert.AreEqual(pixelHeight, rendered.Height);
@@ -96,28 +101,39 @@ public sealed class ScreenshotSmokeTests
     [TestMethod]
     public void ManualPreviewRendersEmptyRealDataWorkspaceWithDevelopmentBanner()
     {
-        var workspace = new ManualPreviewWorkspaceService();
-        Assert.HasCount(0, workspace.CreateWorkspace());
-        Assert.IsFalse(workspace.UsesFakeGraphData);
-        var localization = new LocalizationService(new ResourceDictionary());
-        var viewModel = new MainWindowViewModel(workspace, localization);
-        Assert.IsNull(viewModel.Magnifier.GraphPosition);
-        Assert.IsNull(viewModel.Magnifier.NearestDetectionName);
-        Assert.IsNull(viewModel.Magnifier.NearestDetectionConfidence);
-        Assert.IsFalse(viewModel.Magnifier.IsCrosshairVisible);
-        Assert.IsFalse(viewModel.EnhanceCommand.CanExecute(null));
-        Assert.IsFalse(viewModel.AutoDetectCommand.CanExecute(null));
-        Assert.AreEqual(
-            localization.GetString(LocalizationKeys.WorkflowEnhanceUnavailable),
-            viewModel.EnhancementAvailabilityText);
-        Assert.AreEqual(
-            localization.GetString(LocalizationKeys.WorkflowAutoDetectUnavailable),
-            viewModel.AutoDetectionAvailabilityText);
-
+        ManualPreviewWorkspaceService? workspace = null;
+        MainWindowViewModel? previewViewModel = null;
+        MainWindow? ownerWindow = null;
         RenderedScreenshot rendered = WpfScreenshotHarness.Render(
-            () => CreateManualPreviewWorkspace(viewModel),
+            () =>
+            {
+                workspace = new ManualPreviewWorkspaceService();
+                Assert.HasCount(0, workspace.CreateWorkspace());
+                Assert.IsFalse(workspace.UsesFakeGraphData);
+                var localization = new LocalizationService(new ResourceDictionary());
+                var viewModel = previewViewModel = new MainWindowViewModel(workspace, localization);
+                Assert.IsNull(viewModel.Magnifier.GraphPosition);
+                Assert.IsNull(viewModel.Magnifier.NearestDetectionName);
+                Assert.IsNull(viewModel.Magnifier.NearestDetectionConfidence);
+                Assert.IsFalse(viewModel.Magnifier.IsCrosshairVisible);
+                Assert.IsFalse(viewModel.EnhanceCommand.CanExecute(null));
+                Assert.IsFalse(viewModel.AutoDetectCommand.CanExecute(null));
+                Assert.AreEqual(
+                    localization.GetString(LocalizationKeys.WorkflowEnhanceUnavailable),
+                    viewModel.EnhancementAvailabilityText);
+                Assert.AreEqual(
+                    localization.GetString(LocalizationKeys.WorkflowAutoDetectUnavailable),
+                    viewModel.AutoDetectionAvailabilityText);
+                return CreateManualPreviewWorkspace(viewModel, created => ownerWindow = created);
+            },
             1400,
-            900);
+            900,
+            cleanup: () =>
+            {
+                CloseScreenshotWindow(ownerWindow);
+                previewViewModel?.Dispose();
+                workspace?.Dispose();
+            });
 
         Assert.AreEqual(1400, rendered.Width);
         Assert.AreEqual(900, rendered.Height);
@@ -151,14 +167,18 @@ public sealed class ScreenshotSmokeTests
     {
         foreach ((int width, int height) in new[] { (1280, 800), (1440, 900) })
         {
+            MainWindow? firstOwnerWindow = null;
             var first = WpfScreenshotHarness.Render(
-                () => CreateFakeWorkspace(themeSource, true),
+                () => CreateFakeWorkspace(themeSource, true, created => firstOwnerWindow = created),
                 width,
-                height);
+                height,
+                cleanup: () => CloseScreenshotWindow(firstOwnerWindow));
+            MainWindow? secondOwnerWindow = null;
             var second = WpfScreenshotHarness.Render(
-                () => CreateFakeWorkspace(themeSource, true),
+                () => CreateFakeWorkspace(themeSource, true, created => secondOwnerWindow = created),
                 width,
-                height);
+                height,
+                cleanup: () => CloseScreenshotWindow(secondOwnerWindow));
 
             Assert.AreEqual(width, first.Width);
             Assert.AreEqual(height, first.Height);
@@ -178,9 +198,15 @@ public sealed class ScreenshotSmokeTests
         }
     }
 
-    private static FrameworkElement CreateFakeWorkspace(string themeSource, bool showPhaseOverlay)
+    private static FrameworkElement CreateFakeWorkspace(
+        string themeSource,
+        bool showPhaseOverlay,
+        Action<MainWindow> captureOwnerWindow)
     {
         Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+        var window = new MainWindow(themeService: null, CreateResources(themeSource));
+        captureOwnerWindow(window);
+        ((MainWindowViewModel)window.DataContext).Dispose();
         var localizationResources = new ResourceDictionary
         {
             Source = new Uri(
@@ -193,10 +219,7 @@ public sealed class ScreenshotSmokeTests
         {
             IsPhaseOverlayVisible = showPhaseOverlay,
         };
-        var window = new MainWindow(themeService: null, CreateResources(themeSource))
-        {
-            DataContext = viewModel,
-        };
+        window.DataContext = viewModel;
         FrameworkElement content = (FrameworkElement)window.Content;
         window.Content = null;
         content.DataContext = viewModel;
@@ -204,12 +227,14 @@ public sealed class ScreenshotSmokeTests
         return content;
     }
 
-    private static FrameworkElement CreateManualPreviewWorkspace(MainWindowViewModel viewModel)
+    private static FrameworkElement CreateManualPreviewWorkspace(
+        MainWindowViewModel viewModel,
+        Action<MainWindow> captureOwnerWindow)
     {
-        var window = new MainWindow(themeService: null, CreateResources(LightThemeSource))
-        {
-            DataContext = viewModel,
-        };
+        var window = new MainWindow(themeService: null, CreateResources(LightThemeSource));
+        captureOwnerWindow(window);
+        ((MainWindowViewModel)window.DataContext).Dispose();
+        window.DataContext = viewModel;
         FrameworkElement content = (FrameworkElement)window.Content;
         window.Content = null;
         content.DataContext = viewModel;
@@ -220,6 +245,23 @@ public sealed class ScreenshotSmokeTests
     private static void AddResources(FrameworkElement element, string themeSource)
     {
         element.Resources.MergedDictionaries.Add(CreateResources(themeSource));
+    }
+
+    private static void CloseScreenshotWindow(MainWindow? window)
+    {
+        if (window is null)
+        {
+            return;
+        }
+
+        try
+        {
+            window.Close();
+        }
+        finally
+        {
+            (window.DataContext as MainWindowViewModel)?.Dispose();
+        }
     }
 
     private static ResourceDictionary CreateResources(string themeSource)
