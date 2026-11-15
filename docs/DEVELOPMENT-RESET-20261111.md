@@ -11,7 +11,10 @@ save/reopen/export checks pass; the last automatic development result is still
 0/12 complete drafts. The [new geometry-only diagnosis](NATIVE-AXIS-REJECTION-DIAGNOSIS-20261115.md)
 identifies pair-budget exhaustion in all five native failures. Prioritize bounded
 pruning of irrelevant pair checks, preserving candidate completeness and the
-independent split. The sole retained package remains
+independent split. The [first bounded pruning repair](AXIS-PAIR-PRUNING-20261115.md)
+passes owned controls but leaves development geometry availability at 7/12;
+four native calls still hit a resource limit and one reaches explicit ambiguity.
+Continue exact pruning and separate budget diagnostics. The sole retained package remains
 0.4.52 until a meaningful integrated replacement is verified.
 
 The maintainer requested a Rust-based, responsive Windows application and

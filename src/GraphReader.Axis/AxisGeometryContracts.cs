@@ -125,7 +125,14 @@ public sealed record AxisGeometryRequest(
     /// </summary>
     public IAxisGeometryCandidateObserver? CandidateObserver { get; init; }
 
-    /// <summary>Optional fail-closed limit on examined axis-family pairs.</summary>
+    /// <summary>
+    /// Optional fail-closed limit B on exact axis-family pair examinations.
+    /// Bounded searches first exclude strictly disjoint envelopes of all observed
+    /// member endpoints, expanded by the existing contact tolerance. At most B squared
+    /// cheap envelope comparisons and B surviving exact examinations are permitted;
+    /// either exhaustion fails without publishing partial geometry or candidates.
+    /// Null retains the original unrestricted enumeration without envelope pruning.
+    /// </summary>
     public int? MaximumExaminedPairs { get; init; }
 }
 

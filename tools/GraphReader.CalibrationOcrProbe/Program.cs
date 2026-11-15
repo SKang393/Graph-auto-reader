@@ -55,22 +55,29 @@ internal static class Program
         bool realDevTrace452 = args.Length > 0 && args[0] == "--real-dev-452-association-trace";
         bool realDevPostGroupingTrace = args.Length > 0 && args[0] == "--real-dev-source-post-grouping-trace";
         bool realDevNativeRejection = args.Length > 0 && args[0] == "--real-dev-native-rejection-geometry-trace";
+        bool realDevPairPruning = args.Length > 0 && args[0] == "--real-dev-pair-pruning-geometry-trace";
         bool ownedNativeRejection = args.Length > 0 && args[0] == "--owned-native-rejection-check";
-        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPostGroupingTrace || realDevNativeRejection;
+        bool ownedNativePruning = args.Length > 0 && args[0] == "--owned-native-pruning-check";
+        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
-        int seconds = ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        int seconds = ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--real-dev-pair-pruning-geometry-self-test"])
+            {
+                Emit(RealDevCalibrationCheck.PairPruningTraceSelfTest());
+                return 0;
+            }
             if (args is ["--real-dev-native-rejection-geometry-self-test"])
             {
                 Emit(RealDevCalibrationCheck.NativeRejectionTraceSelfTest());
@@ -80,6 +87,12 @@ internal static class Program
             {
                 using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
                 Emit(await OwnedNativeRejectionCheck.RunAsync(rejectionApp, parentBudget, deadline.Token));
+                return 0;
+            }
+            if (args is ["--owned-native-pruning-check", var pruningApp])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await OwnedNativeRejectionCheck.RunAsync(pruningApp, parentBudget, includeDetachedClutter: true, deadline.Token));
                 return 0;
             }
             if (args is ["--real-dev-source-post-grouping-trace-self-test"])
@@ -222,6 +235,11 @@ internal static class Program
                     if (args.Length != requiredArguments || args[^1] != "--explicit-opt-in")
                         throw new InvalidDataException();
                     using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                    if (realDevPairPruning)
+                    {
+                        Emit(await RealDevCalibrationCheck.RunPairPruningTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
+                        return 0;
+                    }
                     if (realDevNativeRejection)
                     {
                         Emit(await RealDevCalibrationCheck.RunNativeRejectionTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
@@ -257,6 +275,14 @@ internal static class Program
                 }
                 catch (Exception)
                 {
+                    if (realDevPairPruning)
+                    {
+                        Emit(new { schema = "graphreader.real-dev-pair-pruning-geometry-trace.v1",
+                            status = "blocked_preflight_or_runtime", error = "REAL_DEV_PAIR_PRUNING_TRACE_FAILED",
+                            sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
+                            ocr_calls = 0, review_only = true, production_approved = false });
+                        return 1;
+                    }
                     if (realDevNativeRejection)
                     {
                         Emit(new { schema = "graphreader.real-dev-native-rejection-geometry-trace.v1",

@@ -115,17 +115,31 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             verticalFamilies, frameFamilies, options, cancellationToken);
 
         if (request.MaximumExaminedPairs is <= 0) throw new ArgumentOutOfRangeException(nameof(request));
+        double contactTolerance = options.MergeDistancePixels * 2d;
+        ContactEnvelope[] horizontalEnvelopes = request.MaximumExaminedPairs is not null
+            ? CreateContactEnvelopes(horizontalAxisFamilies, contactTolerance, cancellationToken) : [];
+        ContactEnvelope[] verticalEnvelopes = request.MaximumExaminedPairs is not null
+            ? CreateContactEnvelopes(verticalAxisFamilies, contactTolerance, cancellationToken) : [];
+        long maximumEnvelopeComparisons = request.MaximumExaminedPairs is int limit ? checked((long)limit * limit) : 0;
         var pairCandidates = new List<AxisPair>();
-        int examinedPairs = 0;
-        foreach (var horizontalFamily in horizontalAxisFamilies)
+        long examinedPairs = 0, envelopeComparisons = 0;
+        for (int horizontalIndex = 0; horizontalIndex < horizontalAxisFamilies.Count; horizontalIndex++)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            LineFamily horizontalFamily = horizontalAxisFamilies[horizontalIndex];
 
-            foreach (var verticalFamily in verticalAxisFamilies)
+            for (int verticalIndex = 0; verticalIndex < verticalAxisFamilies.Count; verticalIndex++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (request.MaximumExaminedPairs is int maximum && ++examinedPairs > maximum)
-                    throw DetectionFailure("Axis pair examination limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded);
+                LineFamily verticalFamily = verticalAxisFamilies[verticalIndex];
+                if (request.MaximumExaminedPairs is int maximum)
+                {
+                    if (++envelopeComparisons > maximumEnvelopeComparisons)
+                        throw DetectionFailure("Axis pair envelope comparison limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded);
+                    if (horizontalEnvelopes[horizontalIndex].IsDisjoint(verticalEnvelopes[verticalIndex])) continue;
+                    if (++examinedPairs > maximum)
+                        throw DetectionFailure("Axis pair examination limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded);
+                }
                 if (!TryIntersect(horizontalFamily, verticalFamily, out var intersection))
                 {
                     continue;
@@ -540,6 +554,31 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         }
 
         return byMembers.Values.ToList();
+    }
+
+    private static ContactEnvelope[] CreateContactEnvelopes(IReadOnlyList<LineFamily> families,
+        double tolerance, CancellationToken cancellationToken)
+    {
+        var envelopes = new ContactEnvelope[families.Count];
+        for (int index = 0; index < families.Count; index++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            double left = double.PositiveInfinity, top = double.PositiveInfinity;
+            double right = double.NegativeInfinity, bottom = double.NegativeInfinity;
+            foreach (Observation member in families[index].Members)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                GeometryLineSegment segment = member.Candidate.Segment;
+                left = Math.Min(left, Math.Min(segment.Start.X, segment.End.X));
+                top = Math.Min(top, Math.Min(segment.Start.Y, segment.End.Y));
+                right = Math.Max(right, Math.Max(segment.Start.X, segment.End.X));
+                bottom = Math.Max(bottom, Math.Max(segment.Start.Y, segment.End.Y));
+            }
+            // A point within contact tolerance of any actual member must lie
+            // inside this envelope. Overlap alone never establishes contact.
+            envelopes[index] = new(left - tolerance, top - tolerance, right + tolerance, bottom + tolerance);
+        }
+        return envelopes;
     }
 
     private static List<LineFamily> BuildConnectedAxisFamilies(
@@ -1576,6 +1615,12 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         GeometryLineCandidate Candidate,
         Orientation Orientation,
         double SignedAngleDegrees);
+
+    private readonly record struct ContactEnvelope(double Left, double Top, double Right, double Bottom)
+    {
+        public bool IsDisjoint(ContactEnvelope other) =>
+            Right < other.Left || other.Right < Left || Bottom < other.Top || other.Bottom < Top;
+    }
 
     private sealed record LineFamily(
         Orientation Orientation,

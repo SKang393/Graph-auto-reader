@@ -14,7 +14,10 @@ internal static class OwnedNativeRejectionCheck
 {
     private static readonly string[] CaseNames = ["blank", "horizontal_only", "clean_plot", "bottom_touching_divider", "two_panels"];
 
-    internal static async Task<object> RunAsync(string app, CpuBudgetJob budget, CancellationToken token)
+    internal static Task<object> RunAsync(string app, CpuBudgetJob budget, CancellationToken token) =>
+        RunAsync(app, budget, includeDetachedClutter: false, token);
+
+    internal static async Task<object> RunAsync(string app, CpuBudgetJob budget, bool includeDetachedClutter, CancellationToken token)
     {
         if (!Path.IsPathFullyQualified(app) || !File.Exists(app))
             throw new ArgumentException("Absolute existing source App executable required.", nameof(app));
@@ -24,11 +27,12 @@ internal static class OwnedNativeRejectionCheck
         string appDll = Path.ChangeExtension(app, ".dll");
         string appDllHash = HashFile(appDll);
         var service = new OpenCvAxisProposalService(app);
-        var cases = new List<object>(CaseNames.Length);
+        string[] plannedCases = includeDetachedClutter ? [.. CaseNames, "detached_clutter"] : CaseNames;
+        var cases = new List<object>(plannedCases.Length);
         var violations = new List<string>();
         int geometryCount = 0, rejectedCount = 0, exceptionCount = 0, canceledCount = 0;
         var total = Stopwatch.StartNew();
-        foreach (string name in CaseNames)
+        foreach (string name in plannedCases)
         {
             token.ThrowIfCancellationRequested();
             (int width, int height, byte[] pixels) = Fixture(name);
@@ -67,6 +71,13 @@ internal static class OwnedNativeRejectionCheck
                     if (result.ErrorCode is not null || result.Geometry is not
                         { Left: 100, Bottom: 300, Right: 700, Top: 50 }) violations.Add(name + ":geometry");
                 }
+                else if (name == "detached_clutter")
+                {
+                    if (result.ErrorCode is not null || result.Geometry is not { } plot ||
+                        Math.Abs(plot.Left - 100) > 1 || Math.Abs(plot.Bottom - 650) > 1 ||
+                        Math.Abs(plot.Right - 700) > 1 || Math.Abs(plot.Top - 100) > 1)
+                        violations.Add(name + ":geometry");
+                }
                 else
                 {
                     string expected = name switch
@@ -103,7 +114,7 @@ internal static class OwnedNativeRejectionCheck
             review_only = true,
             accuracy_claim = false,
             calibration_applied = false,
-            planned_cases = CaseNames.Length,
+            planned_cases = plannedCases.Length,
             attempted_cases = cases.Count,
             terminal_cases = geometryCount + rejectedCount + exceptionCount + canceledCount,
             geometry_count = geometryCount, rejected_count = rejectedCount,
@@ -127,6 +138,19 @@ internal static class OwnedNativeRejectionCheck
     private static (int Width, int Height, byte[] Pixels) Fixture(string name)
     {
         if (name == "two_panels") return OwnedGrayAxisCheck.Fixture(name);
+        if (name == "detached_clutter")
+        {
+            const int clutterWidth = 1000, clutterHeight = 800;
+            byte[] clutter = Enumerable.Repeat(byte.MaxValue, clutterWidth * clutterHeight).ToArray();
+            for (int x = 100; x <= 700; x++) clutter[650 * clutterWidth + x] = 0;
+            for (int y = 100; y <= 650; y++) clutter[y * clutterWidth + 100] = 0;
+            for (int i = 0; i < 12; i++)
+            {
+                for (int x = 760; x <= 780; x++) clutter[(40 + 30 * i) * clutterWidth + x] = 0;
+                for (int y = 500; y <= 520; y++) clutter[y * clutterWidth + 820 + 12 * i] = 0;
+            }
+            return (clutterWidth, clutterHeight, clutter);
+        }
         const int width = 800, height = 400;
         byte[] pixels = Enumerable.Repeat(byte.MaxValue, width * height).ToArray();
         if (name != "blank")

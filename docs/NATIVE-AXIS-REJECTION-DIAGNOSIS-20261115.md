@@ -100,10 +100,12 @@ No model, threshold, dependency, package or production-approval change was made.
 The new entered-origin native UI check is separately waiting at its file dialog
 in [REV-011](REVIEW_QUEUE.md).
 
-After this source/outcome is pushed, retire the nine completed files / 72,050
-bytes in `artifacts/native-axis-reasons-check` and the one file / 5,710 bytes in
-`artifacts/native-divider-owned-check`. No raw development report is needed by
-the next owned pair-search repair. The 220-file / 53,226,692-byte temporary
+After source/outcome `9630c6d6` reached `origin/main`, guarded cleanup at
+2026-11-15T08:13:10.4781621Z retired the nine completed files / 72,050 bytes in
+`artifacts/native-axis-reasons-check` and the one file / 5,710 bytes in
+`artifacts/native-divider-owned-check`. Scope, hashes recorded above, absence of
+reparse points and zero active consumers were checked. No raw development report
+is needed by the next owned pair-search repair. The 220-file / 53,226,692-byte temporary
 compiler output remains the active headless runtime for that repair; retire it
 after its final consumer finishes. The open source UI, its isolated Data and
 temporary OCR hardlinks, originals, shared user Data and sole 0.4.52 package
