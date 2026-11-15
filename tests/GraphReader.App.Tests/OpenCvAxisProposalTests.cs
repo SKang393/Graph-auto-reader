@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 using GraphReader.App;
+using GraphReader.App.Integration.NativeAxis;
 using GraphReader.App.Services;
 using GraphReader.Axis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -33,7 +34,17 @@ public sealed class OpenCvAxisProposalTests
         var failure = new RustAxisProposalResult(null, "OPENCV_AXIS_AMBIGUOUS") { Provider = "opencv-review" };
         Assert.IsTrue(OpenCvAxisProposalService.Valid(failure, 100, 100));
         Assert.IsTrue(OpenCvAxisProposalService.Valid(failure with { ReviewReasons = ["native_pair_budget_exceeded"] }, 100, 100));
+        Assert.IsTrue(OpenCvAxisProposalService.Valid(failure with { ReviewReasons = ["native_envelope_budget_exceeded"] }, 100, 100));
         Assert.IsFalse(OpenCvAxisProposalService.Valid(failure with { ReviewReasons = [new string('x', 129)] }, 100, 100));
+    }
+
+    [TestMethod]
+    public void BudgetDetailsDistinguishEnvelopeAndExactWhileKeepingLegacyMapping()
+    {
+        const AxisGeometryFailureReason reason = AxisGeometryFailureReason.PairBudgetExceeded;
+        Assert.AreEqual("native_envelope_budget_exceeded", NativeAxisWorker.FailureDetail(new("ignored", reason, AxisGeometryBudgetKind.EnvelopeComparisons)));
+        Assert.AreEqual("native_pair_budget_exceeded", NativeAxisWorker.FailureDetail(new("ignored", reason, AxisGeometryBudgetKind.ExactPairs)));
+        Assert.AreEqual("native_pair_budget_exceeded", NativeAxisWorker.FailureDetail(new("ignored", reason)));
     }
 
     [TestMethod]

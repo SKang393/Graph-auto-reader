@@ -127,7 +127,8 @@ GraphReader.CalibrationOcrProbe.exe --owned-entered-session-worker-check <owned-
 There is no new private evaluation, package, production approval, dependency or
 model. The last real development availability result remains 0/12 complete
 automatic drafts; an explicit origin action is assistance, not automatic origin
-detection. Native visual acceptance of this new action remains unverified.
+detection. The subsequent source-window check below verifies the new action;
+it does not establish packaged or production acceptance.
 
 After source/outcome commit `7f0b537d` reached `origin/main`, guarded cleanup at
 2026-11-15T07:40:12.4473303Z removed **251 files / 147,295,759 bytes**:
@@ -139,28 +140,50 @@ and reparse checks preceded removal. The 4092-byte owned PNG remains temporarily
 for the native check below. Active source compiler dependencies, original inputs,
 shared user Data and the sole 0.4.52 package remain intact.
 
-## Isolated native check, waiting at image import
+## Isolated native check, completed
 
 The unpackaged source app launched through Computer Use from its existing
 `src/GraphReader.App/bin/Release/net10.0-windows/win-x64` output. App DLL SHA-256
 remained `499f931028157b201ce0603516cb701f25d675c6fa573268ca427d0547a6dd6a`;
 reviewed OpenCV remained
 `c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31`.
-The window and Open dialog were observed with matching native accessibility
-and screenshots. This is startup/import-dialog evidence only.
+The window and Open dialog were observed through native accessibility and
+screenshots. The same App DLL hash was verified after the check.
 
 The source output had no `Data` directory before launch and created its own
 portable `Data` afterward. The shared preview Data override was absent. Five
 temporary hardlinks reuse the retained package's OCR assets without a second
 model payload; each hash matched its source. These links and the isolated Data
-remain active until this source window closes and its check is recorded.
+were retained while the source window was active.
 
 Computer Use file-name edits repeatedly returned
 `element 91 is not available in cached app state for GraphReader.App.exe`.
 Refreshing the unique returned window and one clean JavaScript-tool reset did
-not repair that boundary. Keyboard/coordinate focus attempts did not produce
-a verifiable focus change. No image was imported or calibration applied. The
-maintainer was asked to select the owned PNG in the already-open dialog;
-[REV-011](REVIEW_QUEUE.md) tracks the waiting native phase. Independent geometry
-work continues. No package was created, and this attempt does not establish
-visual acceptance of the new fit action.
+not repair that indexed-control boundary. A later screenshot showed the actual
+caret in the file-name field despite stale accessibility focus. Keyboard entry
+then opened the owned PNG, without requiring the requested manual import.
+
+Computer Use observed these actions in the actual source WPF window:
+
+- Suggest axes displayed review-only anchors. Suggest calibration returned all
+  six literal labels and measured pairs: X 0/5/10 at 140/340/540 and Y 10/5/0
+  at 80/230/380. The UI reported GPU inference on AMD Radeon(TM) Graphics.
+- The default draft filled Y=10 but left the first/final session blank and
+  reported incomplete X calibration. Apply was disabled.
+- Entering first session 1 and pressing **Fit for entered first session**
+  produced final session 10 and original X `179.99999999999997` for the origin
+  and Y-maximum anchor. The calculated-anchor warning was present and the
+  review checkbox remained clear. Apply stayed disabled.
+- Explicitly checking the review box enabled Apply. Applying displayed
+  **Manual calibration saved for sessions 1 through 10**, with Y maximum 10,
+  zero review issues, and an enabled **Undo: Calibrate axes** action.
+- Undo reported **Last change undone**, restored the uncalibrated review issue
+  and enabled **Redo: Calibrate axes**. Normal window closure then completed;
+  a fresh window list contained no matching source app.
+
+These screenshots/accessibility observations establish source-window fit,
+review gating, Apply and Undo. This UI run did not save a project or export CSV;
+the separately reported component tests cover those operations. No package,
+private input, model, production switch or shared user Data was changed. The
+floating-point display tail is a presentation limitation, not an altered
+stored coordinate. [REV-011](REVIEW_QUEUE.md) records completion of this subset.

@@ -105,8 +105,10 @@ tests whether a fitted intersection outside an observed-member envelope can
 be excluded before costly contact checks, and separates the two budget causes.
 It must retain the candidate set and existing limits, not guess a winning plot.
 
-No model, dependency, package or production approval changed. Retire the eight
-completed reports / 152,755 bytes under `artifacts/axis-pair-envelope-check` after
-this outcome is pushed and review finishes. The existing headless compiler
-output and open isolated native UI remain active consumers; originals and the
-retained 0.4.52 package remain unchanged.
+No model, dependency, package or production approval changed. After outcome
+commit `6e40b21f` reached `origin/main`, guarded cleanup at
+2026-11-15T08:37:06.4810121Z removed all eight completed reports / 152,755 bytes
+under `artifacts/axis-pair-envelope-check`. Canonical scope, reparse and active
+consumer checks preceded removal. The existing headless compiler output and
+then-open isolated native UI remained active consumers; originals and the
+retained 0.4.52 package remained unchanged.

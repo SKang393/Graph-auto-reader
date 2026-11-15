@@ -132,13 +132,12 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 LineFamily verticalFamily = verticalAxisFamilies[verticalIndex];
-                if (request.MaximumExaminedPairs is int maximum)
+                if (request.MaximumExaminedPairs is not null)
                 {
                     if (++envelopeComparisons > maximumEnvelopeComparisons)
-                        throw DetectionFailure("Axis pair envelope comparison limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded);
+                        throw DetectionFailure("Axis pair envelope comparison limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded,
+                            AxisGeometryBudgetKind.EnvelopeComparisons);
                     if (horizontalEnvelopes[horizontalIndex].IsDisjoint(verticalEnvelopes[verticalIndex])) continue;
-                    if (++examinedPairs > maximum)
-                        throw DetectionFailure("Axis pair examination limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded);
                 }
                 if (!TryIntersect(horizontalFamily, verticalFamily, out var intersection))
                 {
@@ -149,8 +148,21 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
                         intersection,
                         request.ImageWidth,
                         request.ImageHeight,
-                        options.MergeDistancePixels * 2d) ||
-                    !HasObservedContact(horizontalFamily, intersection, options.MergeDistancePixels * 2d) ||
+                        options.MergeDistancePixels * 2d))
+                {
+                    continue;
+                }
+                if (request.MaximumExaminedPairs is int maximum)
+                {
+                    // The fitted lines have only one intersection. Envelope overlap
+                    // elsewhere cannot supply observed contact at that point.
+                    if (!horizontalEnvelopes[horizontalIndex].Contains(intersection) ||
+                        !verticalEnvelopes[verticalIndex].Contains(intersection)) continue;
+                    if (++examinedPairs > maximum)
+                        throw DetectionFailure("Axis pair examination limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded,
+                            AxisGeometryBudgetKind.ExactPairs);
+                }
+                if (!HasObservedContact(horizontalFamily, intersection, options.MergeDistancePixels * 2d) ||
                     !HasObservedContact(verticalFamily, intersection, options.MergeDistancePixels * 2d))
                 {
                     continue;
@@ -1602,8 +1614,8 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
 
     private static double Clamp01(double value) => Math.Clamp(value, 0d, 1d);
 
-    private static AxisGeometryDetectionException DetectionFailure(string technicalMessage, AxisGeometryFailureReason reason) =>
-        new(technicalMessage, reason);
+    private static AxisGeometryDetectionException DetectionFailure(string technicalMessage, AxisGeometryFailureReason reason,
+        AxisGeometryBudgetKind budgetKind = AxisGeometryBudgetKind.None) => new(technicalMessage, reason, budgetKind);
 
     private enum Orientation
     {
@@ -1620,6 +1632,9 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
     {
         public bool IsDisjoint(ContactEnvelope other) =>
             Right < other.Left || other.Right < Left || Bottom < other.Top || other.Bottom < Top;
+
+        public bool Contains(PixelPoint point) =>
+            point.X >= Left && point.X <= Right && point.Y >= Top && point.Y <= Bottom;
     }
 
     private sealed record LineFamily(

@@ -11,6 +11,27 @@ public sealed class AxisPairEnvelopePruningTests
     [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
+    public async Task SlantedOverlappingClutterRetainsTheCompleteUnlimitedCandidateSet(bool reverse)
+    {
+        AxisGeometryRequest request = SlantedClutter();
+        if (reverse) request = request with { LineCandidates = request.LineCandidates.Reverse().ToArray() };
+        var unlimited = new Observer();
+        var bounded = new Observer();
+        var detector = new AxisGeometryDetector();
+        AxisGeometryResult expected = await detector.DetectAsync(request with { CandidateObserver = unlimited });
+        Assert.HasCount(1, unlimited.Candidates!);
+        Assert.AreEqual(100d, expected.PlotPolygon.BottomLeft.X, 1e-8);
+        Assert.AreEqual(1600d, expected.PlotPolygon.BottomLeft.Y, 1e-8);
+        Assert.AreEqual(3300d, expected.PlotPolygon.TopRight.X, 1e-8);
+        Assert.AreEqual(1000d, expected.PlotPolygon.TopRight.Y, 1e-8);
+
+        AxisGeometryResult actual = await detector.DetectAsync(request with { MaximumExaminedPairs = 128, CandidateObserver = bounded });
+        AssertParity(expected, actual, unlimited, bounded);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
     public async Task DetachedClutterRetainsTheCompleteUnlimitedCandidateSet(bool reverse)
     {
         AxisGeometryRequest request = DetachedClutter(12);
@@ -103,6 +124,7 @@ public sealed class AxisPairEnvelopePruningTests
             AxisGeometryDetectionException failure = await Assert.ThrowsExactlyAsync<AxisGeometryDetectionException>(
                 async () => await detector.DetectAsync(request with { MaximumExaminedPairs = 128, CandidateObserver = bounded }));
             Assert.AreEqual(AxisGeometryFailureReason.PairBudgetExceeded, failure.Reason);
+            Assert.AreEqual(AxisGeometryBudgetKind.ExactPairs, failure.BudgetKind);
             Assert.IsNull(bounded.Candidates, "A budget failure must not publish a partial ranked set.");
             return;
         }
@@ -126,6 +148,7 @@ public sealed class AxisPairEnvelopePruningTests
             AxisGeometryDetectionException failure = await Assert.ThrowsExactlyAsync<AxisGeometryDetectionException>(
                 async () => await detector.DetectAsync(request with { MaximumExaminedPairs = 4, CandidateObserver = bounded }));
             Assert.AreEqual(AxisGeometryFailureReason.PairBudgetExceeded, failure.Reason);
+            Assert.AreEqual(AxisGeometryBudgetKind.EnvelopeComparisons, failure.BudgetKind);
             Assert.IsNull(bounded.Candidates);
             return;
         }
@@ -143,6 +166,51 @@ public sealed class AxisPairEnvelopePruningTests
         await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () =>
             await new AxisGeometryDetector().DetectAsync(request with { CandidateObserver = observer }, new CancellationToken(canceled: true)));
         Assert.IsNull(observer.Candidates);
+    }
+
+    [TestMethod]
+    public async Task OverlappingNoncontactingPairsStillConsumeTheCheapWorkBudget()
+    {
+        var observer = new Observer();
+        AxisGeometryDetectionException failure = await Assert.ThrowsExactlyAsync<AxisGeometryDetectionException>(async () =>
+            await new AxisGeometryDetector().DetectAsync(SlantedClutter() with
+            {
+                MaximumExaminedPairs = 4,
+                CandidateObserver = observer,
+            }));
+        Assert.AreEqual(AxisGeometryFailureReason.PairBudgetExceeded, failure.Reason);
+        Assert.AreEqual(AxisGeometryBudgetKind.EnvelopeComparisons, failure.BudgetKind);
+        Assert.IsNull(observer.Candidates);
+    }
+
+    [TestMethod]
+    public void BudgetDetailIsAdditiveAndExistingExceptionConstructorsRemainUnchanged()
+    {
+        var original = new AxisGeometryDetectionException("owned");
+        var existingTyped = new AxisGeometryDetectionException("owned", AxisGeometryFailureReason.PairBudgetExceeded);
+        var explicitBudget = new AxisGeometryDetectionException("owned", AxisGeometryFailureReason.PairBudgetExceeded,
+            AxisGeometryBudgetKind.ExactPairs);
+        Assert.AreEqual(AxisGeometryBudgetKind.None, original.BudgetKind);
+        Assert.AreEqual(AxisGeometryFailureReason.Unspecified, original.Reason);
+        Assert.AreEqual(AxisGeometryBudgetKind.None, existingTyped.BudgetKind);
+        Assert.AreEqual(AxisGeometryFailureReason.PairBudgetExceeded, existingTyped.Reason);
+        Assert.AreEqual(AxisGeometryBudgetKind.ExactPairs, explicitBudget.BudgetKind);
+        Assert.AreEqual(existingTyped.Reason, explicitBudget.Reason);
+        Assert.AreEqual(original.Code, explicitBudget.Code);
+        Assert.AreEqual(original.UserMessageKey, explicitBudget.UserMessageKey);
+        Assert.AreEqual(original.Recoverable, explicitBudget.Recoverable);
+        Assert.AreEqual(original.SuggestedAction, explicitBudget.SuggestedAction);
+    }
+
+    private static AxisGeometryRequest SlantedClutter()
+    {
+        var fixture = new AxisFixtureBuilder(3600, 1800).CleanAxes(100, 1000, 3300, 1600);
+        for (int index = 0; index < 12; index++)
+        {
+            fixture.Line(200, 40 + 20 * index, 3200, 790 + 20 * index, id: $"slanted-h-{index}");
+            fixture.Line(2800 + 20 * index, 20, 2800 + 20 * index, 250, id: $"short-v-{index}");
+        }
+        return fixture.Build();
     }
 
     private static AxisGeometryRequest DetachedClutter(int count)

@@ -15,9 +15,12 @@ internal static class OwnedNativeRejectionCheck
     private static readonly string[] CaseNames = ["blank", "horizontal_only", "clean_plot", "bottom_touching_divider", "two_panels"];
 
     internal static Task<object> RunAsync(string app, CpuBudgetJob budget, CancellationToken token) =>
-        RunAsync(app, budget, includeDetachedClutter: false, token);
+        RunAsync(app, budget, includeDetachedClutter: false, includeSlantedClutter: false, token);
 
-    internal static async Task<object> RunAsync(string app, CpuBudgetJob budget, bool includeDetachedClutter, CancellationToken token)
+    internal static Task<object> RunAsync(string app, CpuBudgetJob budget, bool includeDetachedClutter, CancellationToken token) =>
+        RunAsync(app, budget, includeDetachedClutter, includeSlantedClutter: false, token);
+
+    internal static async Task<object> RunAsync(string app, CpuBudgetJob budget, bool includeDetachedClutter, bool includeSlantedClutter, CancellationToken token)
     {
         if (!Path.IsPathFullyQualified(app) || !File.Exists(app))
             throw new ArgumentException("Absolute existing source App executable required.", nameof(app));
@@ -27,7 +30,9 @@ internal static class OwnedNativeRejectionCheck
         string appDll = Path.ChangeExtension(app, ".dll");
         string appDllHash = HashFile(appDll);
         var service = new OpenCvAxisProposalService(app);
-        string[] plannedCases = includeDetachedClutter ? [.. CaseNames, "detached_clutter"] : CaseNames;
+        if (includeSlantedClutter && !includeDetachedClutter) throw new ArgumentException("Slanted control requires the detached control.");
+        string[] plannedCases = includeSlantedClutter ? [.. CaseNames, "detached_clutter", "slanted_clutter"] :
+            includeDetachedClutter ? [.. CaseNames, "detached_clutter"] : CaseNames;
         var cases = new List<object>(plannedCases.Length);
         var violations = new List<string>();
         int geometryCount = 0, rejectedCount = 0, exceptionCount = 0, canceledCount = 0;
@@ -76,6 +81,13 @@ internal static class OwnedNativeRejectionCheck
                     if (result.ErrorCode is not null || result.Geometry is not { } plot ||
                         Math.Abs(plot.Left - 100) > 1 || Math.Abs(plot.Bottom - 650) > 1 ||
                         Math.Abs(plot.Right - 700) > 1 || Math.Abs(plot.Top - 100) > 1)
+                        violations.Add(name + ":geometry");
+                }
+                else if (name == "slanted_clutter")
+                {
+                    if (result.ErrorCode is not null || result.Geometry is not { } plot ||
+                        Math.Abs(plot.Left - 100) > 1 || Math.Abs(plot.Bottom - 1600) > 1 ||
+                        Math.Abs(plot.Right - 3300) > 1 || Math.Abs(plot.Top - 1000) > 1)
                         violations.Add(name + ":geometry");
                 }
                 else
@@ -138,6 +150,19 @@ internal static class OwnedNativeRejectionCheck
     private static (int Width, int Height, byte[] Pixels) Fixture(string name)
     {
         if (name == "two_panels") return OwnedGrayAxisCheck.Fixture(name);
+        if (name == "slanted_clutter")
+        {
+            const int slantedWidth = 3600, slantedHeight = 1800;
+            byte[] slanted = Enumerable.Repeat(byte.MaxValue, slantedWidth * slantedHeight).ToArray();
+            for (int x = 100; x <= 3300; x++) slanted[1600 * slantedWidth + x] = 0;
+            for (int y = 1000; y <= 1600; y++) slanted[y * slantedWidth + 100] = 0;
+            for (int i = 0; i < 12; i++)
+            {
+                for (int x = 200; x <= 3200; x++) slanted[(40 + 20 * i + (x - 200) / 4) * slantedWidth + x] = 0;
+                for (int y = 20; y <= 250; y++) slanted[y * slantedWidth + 2800 + 20 * i] = 0;
+            }
+            return (slantedWidth, slantedHeight, slanted);
+        }
         if (name == "detached_clutter")
         {
             const int clutterWidth = 1000, clutterHeight = 800;

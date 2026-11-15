@@ -126,11 +126,13 @@ public sealed record AxisGeometryRequest(
     public IAxisGeometryCandidateObserver? CandidateObserver { get; init; }
 
     /// <summary>
-    /// Optional fail-closed limit B on exact axis-family pair examinations.
-    /// Bounded searches first exclude strictly disjoint envelopes of all observed
-    /// member endpoints, expanded by the existing contact tolerance. At most B squared
-    /// cheap envelope comparisons and B surviving exact examinations are permitted;
-    /// either exhaustion fails without publishing partial geometry or candidates.
+    /// Optional fail-closed limit B on member-contact and scoring examinations.
+    /// Bounded searches first compare envelopes of all observed member endpoints,
+    /// expanded by the existing contact tolerance, then test the fitted intersection
+    /// against the frame and both envelopes. At most B squared cheap pair checks
+    /// (including these envelope and intersection checks) and B surviving member-contact
+    /// examinations are permitted. Either exhaustion fails without publishing partial
+    /// geometry or candidates; the exception BudgetKind identifies the exhausted bound.
     /// Null retains the original unrestricted enumeration without envelope pruning.
     /// </summary>
     public int? MaximumExaminedPairs { get; init; }
@@ -336,6 +338,13 @@ public enum AxisGeometryFailureReason
     NoIntersectingPair,
 }
 
+public enum AxisGeometryBudgetKind
+{
+    None,
+    ExactPairs,
+    EnvelopeComparisons,
+}
+
 public sealed class AxisGeometryDetectionException : InvalidOperationException
 {
     public AxisGeometryDetectionException(string technicalMessage)
@@ -344,9 +353,16 @@ public sealed class AxisGeometryDetectionException : InvalidOperationException
     }
 
     public AxisGeometryDetectionException(string technicalMessage, AxisGeometryFailureReason reason)
+        : this(technicalMessage, reason, AxisGeometryBudgetKind.None)
+    {
+    }
+
+    public AxisGeometryDetectionException(string technicalMessage, AxisGeometryFailureReason reason,
+        AxisGeometryBudgetKind budgetKind)
         : base(technicalMessage)
     {
         Reason = reason;
+        BudgetKind = budgetKind;
         Code = "AXIS_GEOMETRY_NOT_FOUND";
         UserMessageKey = "Errors.AxisGeometryNotFound";
         Recoverable = true;
@@ -356,6 +372,8 @@ public sealed class AxisGeometryDetectionException : InvalidOperationException
     public string Code { get; }
 
     public AxisGeometryFailureReason Reason { get; }
+
+    public AxisGeometryBudgetKind BudgetKind { get; }
 
     public string UserMessageKey { get; }
 

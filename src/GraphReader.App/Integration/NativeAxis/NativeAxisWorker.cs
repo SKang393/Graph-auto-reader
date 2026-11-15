@@ -73,15 +73,7 @@ internal static class NativeAxisWorker
         }
         catch (AxisGeometryDetectionException error)
         {
-            string detail = error.Reason switch
-            {
-                AxisGeometryFailureReason.NoLineEvidence => "native_no_line_evidence",
-                AxisGeometryFailureReason.MissingOrientation => "native_missing_orientation",
-                AxisGeometryFailureReason.PairBudgetExceeded => "native_pair_budget_exceeded",
-                AxisGeometryFailureReason.NoIntersectingPair => "native_no_intersecting_pair",
-                _ => "native_geometry_unavailable",
-            };
-            return Failure("OPENCV_AXIS_AMBIGUOUS", detail);
+            return Failure("OPENCV_AXIS_AMBIGUOUS", FailureDetail(error));
         }
         var p = geometry.PlotPolygon;
         PixelPoint[] corners = [p.BottomLeft, p.BottomRight, p.TopRight, p.TopLeft];
@@ -95,6 +87,15 @@ internal static class NativeAxisWorker
         if (geometry.Uncertainty.NeedsReview && reasons.Length == 0) reasons = ["needs_review"];
         return new(new RustAxisGeometry(left, bottom, right, top, geometry.Confidence), null) { Provider = "opencv-review", ReviewReasons = reasons };
     }
+    internal static string FailureDetail(AxisGeometryDetectionException error) => error.Reason switch
+    {
+        AxisGeometryFailureReason.NoLineEvidence => "native_no_line_evidence",
+        AxisGeometryFailureReason.MissingOrientation => "native_missing_orientation",
+        AxisGeometryFailureReason.PairBudgetExceeded when error.BudgetKind == AxisGeometryBudgetKind.EnvelopeComparisons => "native_envelope_budget_exceeded",
+        AxisGeometryFailureReason.PairBudgetExceeded => "native_pair_budget_exceeded",
+        AxisGeometryFailureReason.NoIntersectingPair => "native_no_intersecting_pair",
+        _ => "native_geometry_unavailable",
+    };
     internal static string? GeometryRejection(PixelPoint[] corners, int count, int width, int height)
     {
         if (count != 1) return count > 1 ? "native_multiple_ranked_candidates" : "native_no_ranked_candidates";

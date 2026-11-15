@@ -190,16 +190,17 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 
 ## REV-011 - finish native preview verification
 
-- **Status:** waiting for the new entered-origin source check; earlier 452
-  access, handoff and scoped native checks remain resolved
-- **Blocks:** native visual acceptance of the new entered-first-session action.
-  Foreground profiling interruption remains an unverified engineering observation
-- **Effort:** about one minute
-- **Action:** select the [owned zero-origin image](../artifacts/minor-tick-anchor-check/entered-zero-origin.png)
-  in the isolated source app's already-open file dialog. Computer Use can observe
-  the dialog but cannot address its file-name control, even after a clean tool
-  reset. Geometry/source work continues independently. No new access approval is
-  needed. The 452 handoff
+- **Status:** resolved for the scoped native checks, including the entered-origin
+  source action on 2026-11-15. Foreground profiling interruption remains an
+  unverified engineering observation, not a passed check
+- **Blocks:** none for this completed subset; full product acceptance remains open
+- **Effort:** no maintainer action needed
+- **Action:** completed. Screenshot-confirmed file-name focus allowed Computer
+  Use to import the owned graph despite stale accessibility focus. The source
+  window verified six labels, incomplete default X, explicit session-1 fit,
+  calculated-anchor warning, fresh review gating, Apply and Undo, then closed
+  normally. See [the source check](CALIBRATION-ENTERED-ORIGIN-20261115.md).
+  The 452 handoff
   and old-build retirement are complete. The native 452 record verifies the
   device-picker/history fixes, marker Remove and Undo/Redo, manual drafts and
   independent OCR row selection/inclusion/refit. Keep the inconclusive

@@ -71,13 +71,18 @@ internal static partial class RealDevCalibrationCheck
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, pairPruning: true);
 
+    internal static Task<object> RunIntersectionTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, intersection: true);
+
     private static async Task<object> RunTraceAsync(string corpusRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false)
+        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false)
     {
-        if (pairPruning && !geometryOnly) throw new InvalidDataException();
+        if ((pairPruning || intersection) && !geometryOnly || pairPruning && intersection) throw new InvalidDataException();
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(app) ||
             !Path.IsPathFullyQualified(assets) || !Path.IsPathFullyQualified(rust)) throw new InvalidDataException();
-        using Candidate candidate = pairPruning ? Candidate.VerifyPairPruning(app, assets, rust, token) :
+        using Candidate candidate = intersection ? Candidate.VerifyIntersection(app, assets, rust, token) :
+            pairPruning ? Candidate.VerifyPairPruning(app, assets, rust, token) :
             geometryOnly ? Candidate.VerifyNativeRejection(app, assets, rust, token) : sourcePostGrouping
             ? Candidate.VerifyPostGrouping(app, assets, rust, token)
             : Candidate.Verify452(app, assets, rust, token);
@@ -161,15 +166,15 @@ internal static partial class RealDevCalibrationCheck
             projects.Add(new { index = i, status, error_category = errorCategory, preparation_milliseconds = preparationMs, effective_panels = effective, panels = panelResults });
         }
         if (geometryOnly)
-            return new { schema = pairPruning ? PairPruningTraceSchema : NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
+            return new { schema = intersection ? IntersectionTraceSchema : pairPruning ? PairPruningTraceSchema : NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
                 selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
                 attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
                 attempted_panels = panelAttempted, finished_panels = panelFinished, unfinished_execution_panels = panelAttempted - panelFinished,
                 terminal_status_counts = terminalStatusCounts, unattempted_panels = returned + fallback - panelAttempted,
                 metadata.AssignmentSha256, metadata.SelectedInventorySha256, source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
-                candidate = new { app_exe_sha256 = NativeRejectionAppExeHash, app_dll_sha256 = NativeRejectionAppDllHash,
+                candidate = new { app_exe_sha256 = intersection ? IntersectionAppExeHash : NativeRejectionAppExeHash, app_dll_sha256 = intersection ? IntersectionAppDllHash : NativeRejectionAppDllHash,
                     rust_sha256 = NativeRejectionRustHash,
-                    runtime_files = pairPruning ? PairPruningRuntimeLibraries : NativeRejectionRuntimeLibraries },
+                    runtime_files = intersection ? IntersectionRuntimeLibraries : pairPruning ? PairPruningRuntimeLibraries : NativeRejectionRuntimeLibraries },
                 sealed_payload_reads = 0, ocr_calls = 0, truth_scoring = false, image_writes = false, review_only = true,
                 project_deadline_seconds = 45, overall_deadline_seconds = 900, projects };
         return new { schema = sourcePostGrouping ? PostGroupingTraceSchema : "graphreader.real-dev-452-association-trace.v1", scope = "development_only_sensitive_metadata",
