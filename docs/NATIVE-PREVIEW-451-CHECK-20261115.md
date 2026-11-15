@@ -112,3 +112,38 @@ passed with zero skips, about two seconds in tests / 105.791 seconds command
 wall time, using the existing Release test command filtered to that class.
 Only the test changed; no production repair was justified. Native Cancel/Dismiss
 acceptance remains pending and is not replaced by this test.
+
+## Interrupted state-capture attempt
+
+After the lead launched the retained 451 build with the normal launcher,
+`sky.list_windows()` returned exactly one GraphReader window: ID `103491764`,
+title `Graph Auto Reader`, process path
+`E:/Graph-auto-reader/artifacts/dev-portable/builds/0.4.51-20261114T235320548Z-e5491791/GraphReader.App.exe`.
+The owned seed and reviewed-project hashes matched their recorded values before
+the attempt.
+
+The next call requested `get_window`, activation and
+`get_window_state(include_screenshot=true, include_text=true)` with a 45-second
+tool timeout. It returned no screenshot or accessibility state. The lead
+interrupted the stalled call after 766.9 seconds; the tool reported
+`aborted by user`. This was a lead-initiated interruption, not evidence that the
+human pressed Escape. The last completed substep is unknown.
+
+No project-open, click, typing, edit, save or close input was issued. Without a
+fresh matching screenshot/tree, no safe close was attempted. The app may still
+be open; the lead asked the user to close it normally before 452 activation.
+This attempt is inconclusive tool evidence, not a product failure or a passed
+interaction check. No further Computer Use calls were made.
+
+The assigned checks remain pending:
+
+- Three-click manual-axis draft Cancel/Dismiss, including confirmation that the
+  first in-bounds click keeps collection active.
+- Independent OCR row selection versus inclusion, with review invalidation and
+  cached refit after changing included rows.
+- Marker-proposal Remove without adding a point or overwriting the seed.
+
+The previously recorded foreground device-check interruption and native
+verification of the updated device-picker/marker-history fixes also remain
+pending. No completed earlier save, export, crop or restoration check is changed
+by this attempt.

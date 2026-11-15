@@ -175,9 +175,9 @@ The [Windows record](MIRAGE-WINDOWS-ADAPTER-20261115.md) carries exact source
 identities and parser evidence. Owned transport, mapping, full-pipeline and the
 single paired development pass are now completed as recorded above.
 
-Temporarily retain `artifacts/corner-tick-worker-451-check` (42,716,164 bytes)
-for the named unchanged-baseline comparison consumer. Its prepared retirement
-has not been executed. The 451 package, its model assets, shared Data and native
-QA inputs remain unchanged. Retire the probe copies after comparison consumers
-finish and the concise outcome is pushed. New outputs remain bounded in one
-ignored comparison directory; do not duplicate models or source images.
+After the outcome and scope were pushed and consumers finished, the three
+completed probe directories were [retired](MIRAGE-COMPARISON-RETIREMENT-20261115.md):
+120 files / 67,310,655 bytes. This includes the reused corner-worker staging,
+Mirage downloads and disposable results. The 451 package, its model assets,
+shared data, native QA inputs and supplied originals remained unchanged.
+Authored diagnostic source and concise aggregate evidence remain in Git.

@@ -188,13 +188,15 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   downloaded-byte verification. Latest-preview replacement follows the pushed
   ledger and preserves shared user Data.
 
-## REV-011 - resume native device preference verification
+## REV-011 - finish native preview verification
 
-- **Status:** access resolved; remaining native checks in progress
+- **Status:** access authorized; native checks waiting on usable window state
 - **Blocks:** remaining native control checks and verification of the latest
   device-picker/history fixes; headless development and validation continue
-- **Effort:** about 5 minutes when the desktop is available
-- **Action:** no maintainer action is currently needed. Continue native checks
+- **Effort:** under a minute to close the old window; about 5 minutes for checks
+- **Action:** close the old Graph Auto Reader window normally, preserving any
+  wanted edits, so the verified 452 replacement can be activated. The lead asked
+  for this after the latest state capture stalled. Then continue native checks
   for foreground interruption of device checks, separate OCR row selection and
   inclusion/refit review invalidation, proposal Remove, and the explicit
   three-click axis draft with Cancel/Dismiss. In the next meaningful integrated
@@ -229,6 +231,11 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   explicit creation, save/reopen and CSV/audit export. It exposed two remaining
   display/status defects; their source corrections pass nine focused tests and
   await native verification in an updated integrated preview.
+  The next 451 state-capture attempt returned no screenshot/tree and was
+  interrupted by the lead after 766.9 seconds. This was not another physical
+  Escape event. No project edits or close input were issued. The verified
+  [452 package](INTERNAL-PREVIEW-452-VERIFICATION-20261115.md) is staged; its
+  activation waits for the old app to close without risking unsaved work.
   See the [native workflow result](NATIVE-PREVIEW-449-CHECK-20261114.md) and the
   [native attempt](NATIVE-PREVIEW-448-CHECK-20261114.md).
   Owned headless package checks passed, but do not replace these visual checks

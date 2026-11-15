@@ -132,5 +132,5 @@ Rust/WPF default: the observed two-of-120 Mirage draft availability and roughly
 4.3-times median OCR wall time do not justify adoption. This is a
 development-only availability and timing result, not an accuracy comparison.
 Production approval remains false and the full production workflow remains
-unapproved. Aggregate scratch is disposable after this outcome is pushed and
-its active consumers finish.
+unapproved. The outcome was pushed in `53d33c9a`; completed scratch was then
+[retired](MIRAGE-COMPARISON-RETIREMENT-20261115.md) after all consumers finished.

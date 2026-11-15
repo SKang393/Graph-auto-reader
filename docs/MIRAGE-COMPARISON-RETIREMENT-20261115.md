@@ -27,7 +27,8 @@ and this scope are pushed and the lead releases all readers:
 All three inventories were checked without following links; no reparse points
 were found. The corner-worker inventory is a fresh snapshot. It supersedes the
 older 42,716,164-byte snapshot in the prior temporary-retention note; the
-prepared helper requires this exact newer manifest. No deletion has occurred.
+prepared helper required this exact newer manifest. Retirement completed after
+normal-host validation and the pushed scope, as recorded below.
 
 The comparison route's source still names its run-specific asset/output root,
 and the owned control reads the copied 600-by-400 fixture there. These are
@@ -39,19 +40,18 @@ and the original 1200-by-1700 owned source stay outside the deletion scope.
 
 ## Protected keepers and guard
 
-`artifacts/storage-retention-check/retire-mirage-comparison.ps1` is prepared
-but has not been executed. It accepts only `ValidateOnly` or `Execute` plus an
+`artifacts/storage-retention-check/retire-mirage-comparison.ps1` accepted only
+`ValidateOnly` or `Execute` plus an
 explicit scope commit. It checks that the scope and all three outcome documents
 are present byte-for-byte in the supplied commit on `origin/main`, and that
 the pushed ledger still retains only 0.4.51. It pins each directory's file
 count, byte total, and sorted path/size/SHA-256 manifest; checks literal
 containment and every ancestor/descendant for reparse points; and requires a
 successful normal-host CIM scan with no process referencing a scoped target.
-The CIM scan in the preparation sandbox was denied, so consumer absence is not
-claimed here; the helper fails closed until the lead can run it on a host with
-CIM access.
+The preparation sandbox could not query CIM. The later normal-host
+`ValidateOnly` passed with zero consumers and eleven protected keepers.
 
-Before and after any future execution it snapshots and verifies the sole 451
+Before and after execution it snapshotted and verified the sole 451
 build, executable, build metadata, ZIP and latest pointer; shared `Data`; native
 449/451 QA projects and their referenced owned PNGs; the authored Mirage helper
 sources; the exact external C: handoff file set; and the original 1200-pixel
@@ -66,7 +66,20 @@ sole 451 ZIP is pinned to SHA-256
 No private pixels, sealed payloads, current application model assets or tracked
 source files are part of this retirement. Rejected Mirage downloads and copied
 diagnostic helpers are disposable; their authored source is preserved. Do not
-run `Execute` until the outcome and
-scope are pushed, all run/document readers are released, and a successful
-`ValidateOnly` result has been reviewed. The helper will write a compact
-receipt only after the exact targets are absent and every keeper still matches.
+rerun the completed helper.
+
+## Completed retirement
+
+Outcome `53d33c9a58c2800f327fcb74ceccf5076e1d674a` and scope
+`afcbff9b09090321aa19080b1990962da074bc48` were verified on `origin/main`
+before deletion. The reviewed `Execute` completed at
+`2026-11-15T02:09:13.0845162Z`, exit 0, removing exactly 120 files /
+67,310,655 bytes across the three targets. All targets are absent; the sole
+451 package and ZIP, shared data, native inputs and user originals are unchanged.
+Authored source is retained in Git. No private corpus or sealed payload was
+opened for retirement.
+
+Helper SHA-256:
+`9494e2448511d60dff17808441f64d6c73ee65c2ec4124fb38a30927087c5f41`.
+Receipt `artifacts/storage-retention-check/mirage-comparison-retirement.json`,
+SHA-256 `6d74fecd0821612577449c0214b7d0cf81bead659da67b67c6f5f544dd9c5f80`.

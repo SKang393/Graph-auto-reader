@@ -5,13 +5,12 @@
 
 ## Scope prepared for retirement
 
-**Current status:** retained as an active baseline consumer for the authorized
-Mirage paired comparison. The inventory below describes the earlier completed
-451 diagnostic, not a current deletion authorization. Do not execute the old
-helper while the comparison uses this staging directory. Its orientation
-keeper guard is also obsolete because that separate output was subsequently
-[retired](OWNED-ORIENTATION-RETIREMENT-20261115.md). Refresh the exact inventory,
-consumer checks and guards only after the new consumer finishes.
+**Current status:** retired after the authorized Mirage comparison finished.
+The [fresh retirement record](MIRAGE-COMPARISON-RETIREMENT-20261115.md) binds
+the final 64-file / 42,848,968-byte snapshot and verifies preserved keepers.
+The inventory and helper below are historical and superseded; do not execute
+the old helper. Its separate orientation keeper was also subsequently
+[retired](OWNED-ORIENTATION-RETIREMENT-20261115.md).
 
 The completed, isolated diagnostic output is:
 

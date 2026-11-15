@@ -140,10 +140,10 @@ nor unknown confidence validates the native response. Historical raw/result,
 supplied adapter and `windows_probe.py` bytes remain unchanged. No native rerun
 or parameter change was used for recovery.
 
-Retain the isolated subtree only for the named owned Windows check and subsequent
-paired harness integration. After their pushed outcome and consumer release,
-retire disposable binaries/model/raw outputs; preserve the C: originals and
-the sole packaged application. These owned adapter checks read no private,
+The isolated subtree was [retired](MIRAGE-COMPARISON-RETIREMENT-20261115.md)
+after the owned and paired outcomes were pushed and consumers finished.
+Disposable binaries/model/raw outputs were removed; the C: originals and
+sole packaged application remained unchanged. These owned adapter checks read no private,
 sealed or training inputs. The subsequent authorized fixed development pass
 is recorded separately in the
 [paired pipeline outcome](MIRAGE-PAIRED-PIPELINE-20261115.md).
@@ -158,4 +158,5 @@ supplied unlicensed helper/test/handoff, image, raw/result, DLL/model or other
 payload is included. Copies were hash-checked against the reviewed active
 sources; no helper behavior or active run file changed. This permits later
 scratch retirement after the pushed outcome and active paired consumer finish,
-without adding a product dependency or authorizing another run.
+without adding a product dependency or authorizing another run. That scratch
+retirement is now completed.
