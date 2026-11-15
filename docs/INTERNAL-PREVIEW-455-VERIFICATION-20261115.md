@@ -130,15 +130,37 @@ The current geometry diagnosis instead concerns three bounded-search refusals
 and one rotated-geometry refusal. No private/sealed truth, optimizer step,
 weight/threshold selection or unchanged Mirage comparison was used.
 
-Delivery-ledger push, latest-pointer activation and guarded retirement of 0.4.54
-are pending. After the replacement keeper and pointer are verified, the exact
-superseded directory `0.4.54-20261115T161209017Z-ee2fd787` is approved for
-retirement: 478 files / 283,862,408 bytes, including inner ZIP
+Delivery/outcome commit `8715a6240c5bda8b25bda06ec230665e9190eb5e` reached
+origin/main and the primary checkout before activation. The existing ledger
+generator fixture suite passed six controls; the actual package/ledger binding
+was checked separately by the activation guard. The verified payload and ZIP
+were moved, not copied, into the primary build directory. The latest pointer's
+write time is `2026-11-15T20:40:26.3407869Z`, SHA-256
+`d8a65b32b75ed10c7b87efc24ea12dbd06a23006de747341985144fbb9e160bc`.
+The CMD launcher passed `-Wait -PortableSmoke`: exit 0 in 3,071.654 ms;
+all 16 shared Data files stayed unchanged. The keeper contains 478 files /
+283,926,718 bytes including its inner ZIP, and no internal Data directory.
+
+Independent helper review corrected a copied old-payload byte total before any
+execution. The corrected activation/retirement helper is
+`9a777822d6aef434a3ab842420eb926f8f16c1324a8ba684da0baf5731605fea`.
+Read-only guards and subsequent mutations completed without a failed attempt.
+The exact superseded directory `0.4.54-20261115T161209017Z-ee2fd787` was
+retired: 478 files / 283,862,408 bytes, including inner ZIP
 `b23e218d1564bed9e0fd754b9d338e2cfe8cf78c7de5ec705763cd67ae82b81a`.
-Deletion must recheck its exact archive/tree inventory, no internal user Data,
-resolved path containment, no reparse points or live consumers, pushed ledger
-scope, and the verified 0.4.55 keeper. The staging and owned QA directories remain active until those
-consumers finish, then their raw outputs are retired after the outcome is pushed.
-The single current 0.4.54 build and shared Data remain protected meanwhile.
+Exact archive/tree inventory, no internal user Data, resolved path containment,
+no reparse points or live consumers, pushed ledger scope and the replacement
+keeper were checked before removal. At `2026-11-15T20:44:09.2992481Z`, the
+old directory was absent and only 0.4.55 remained in the builds directory.
+Shared Data and both unrelated modified primary-checkout files were preserved.
+
+Completed staging, native QA, prefix measurements and cluster unit-test outputs
+are scheduled for exact-inventory retirement after this closeout is pushed:
+`artifacts/hosted-preview-455`, `artifacts/geometry-native455-check`,
+`artifacts/ui-prefix-measurement`, and
+`artifacts/interval-cluster-containment-check`. Their consumers have finished.
+The small current fixed-development trace remains the comparison input for the
+next geometry revision; originals, the owned source fixture, models and active
+compilation outputs are outside cleanup scope.
 Production readiness, the installer/portable production pair and complete
 real-graph automatic calibration remain incomplete.

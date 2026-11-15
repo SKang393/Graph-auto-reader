@@ -8928,10 +8928,22 @@
     "visualWorkflowChecked": false,
     "visualWorkflowScope": "Owned import automatically prepared two panels; direct Suggest calibration detected geometry and six measured GPU OCR pairs, followed by explicit review, Apply and Undo. No supplied geometry or numeric targets, Save/export, marker or ambiguous-interval UI, private accuracy or clean-machine claim.",
     "stageSharedDataFilesPreserved": 16,
-    "latestActivationPending": true,
+    "latestActivationPending": false,
     "existingWindowsLaptopChecked": false,
     "cleanWindowsVmChecked": false,
-    "productionApproved": false
+    "productionApproved": false,
+    "latestActivatedUtc": "2026-11-15T20:40:26.3407869Z",
+    "latestPointerSha256": "d8a65b32b75ed10c7b87efc24ea12dbd06a23006de747341985144fbb9e160bc",
+    "latestLauncherSmokeExitCode": 0,
+    "latestLauncherSmokeMilliseconds": 3071.654,
+    "activationSharedDataFilesPreserved": 16,
+    "retainedFiles": 478,
+    "retainedBytes": 283926718,
+    "supersededLocalBuildRetired": "0.4.54-20261115T161209017Z-ee2fd787",
+    "supersededLocalBuildFilesRetired": 478,
+    "supersededLocalBuildBytesRetired": 283862408,
+    "supersededRetirementVerifiedUtc": "2026-11-15T20:44:09.2992481Z",
+    "localStagingRetired": false
   }
 }
 ]

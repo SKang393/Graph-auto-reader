@@ -155,9 +155,11 @@ validation and its outcome record are complete. Full Windows
 for integrated head `991b3f3031ac315e8b93692a15de30fcebaa0b29` passed all
 13 .NET suites: 3,081 passed, 30 skipped, zero failed, including all 1,218 App
 tests and 930 OCR tests. Rust passed 72 tests; all applicable policy and
-packaging checks passed. Public release jobs were skipped. Native UI acceptance
-is pending. The current delivered build remains 0.4.54. No production accuracy
-or automatic-calibration completion is claimed.
+packaging checks passed. Public release jobs were skipped. Delivered
+[0.4.55](INTERNAL-PREVIEW-455-VERIFICATION-20261115.md) also passed the native
+owned automatic geometry/OCR, review, Apply and Undo control. That simple
+control does not exercise the new ambiguous-interval warning UI. No production
+accuracy or real automatic-calibration completion is claimed.
 
 ## Completed-output retirement
 
