@@ -56,7 +56,7 @@ public static class CalibrationTickProposal
     public static CalibrationTickProposalResult Create(RustAxisGeometry geometry, CalibrationOcrResponse response) =>
         CreateCore(geometry, response, estimateEmptyAxes: false);
 
-    /// <summary>Retains independently validated axes for manual review, estimating only axes without measured ticks.</summary>
+    /// <summary>Retains validated axes for review, marking absent-tick and interval-label positions as estimates.</summary>
     public static CalibrationTickProposalResult CreateReviewDraft(RustAxisGeometry geometry, CalibrationOcrResponse response) =>
         CreateCore(geometry, response, estimateEmptyAxes: true, publishPartialAxes: true, publishPrintedX: true);
 
@@ -121,7 +121,7 @@ public static class CalibrationTickProposal
                 reasons.Add(reason);
                 axisReasons.Add(reason);
             }
-            if (row.SuggestedAxis != axis)
+            if (row.SuggestedAxis != axis || (row.IsIntervalXLabel && axis != "X"))
             {
                 identityConflict = true;
                 AddReason(CalibrationTickProposalReasons.WrongAxis);
@@ -151,7 +151,15 @@ public static class CalibrationTickProposal
                 continue;
             }
             int[] ticks = axis == "X" ? xTicks : yTicks;
-            if (ticks.Length == 0)
+            if (row.IsIntervalXLabel && (ticks.Length < 4 || request.MeasuredXTicks is null ||
+                !request.MeasuredXTicks.SequenceEqual(ticks) ||
+                !ticks.Zip(ticks.Skip(1)).Any(interval => left > interval.First && right <= interval.Second)))
+            {
+                identityConflict = true;
+                AddReason(CalibrationTickProposalReasons.InvalidEvidence);
+                continue;
+            }
+            if (ticks.Length == 0 || row.IsIntervalXLabel)
             {
                 if (!estimateEmptyAxes)
                 {

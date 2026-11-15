@@ -178,7 +178,11 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
         NumericParseResult? parsed = literal ? GraphNumericParser.Parse(text) : null;
         return new(candidate.RegionId, candidate.Polygon.Points.Select(point => new CalibrationOcrPoint(point.X, point.Y)).ToArray(),
             text, valid ? confidence : 0, parsed?.Value, parsed?.NormalizedText, literal,
-            GraphTextRoleClassifier.Classify(candidate, text, plot).Role.ToString(), AxisFor(candidate, plot), failure);
+            GraphTextRoleClassifier.Classify(candidate, text, plot).Role.ToString(), AxisFor(candidate, plot), failure)
+        {
+            IsIntervalXLabel = candidate.Evidence?.Reasons.Contains(
+                ConnectedComponentTextRegionDetector.IntervalXLabelReason, StringComparer.Ordinal) == true,
+        };
     }
 
     private static string AxisFor(OcrDetectedRegion region, OcrRectangle plot) =>

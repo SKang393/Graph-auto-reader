@@ -40,6 +40,7 @@ public sealed record OcrMeasuredTickGrouping(IReadOnlyList<int> XTicks, double P
 /// </summary>
 public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
 {
+    internal const string IntervalXLabelReason = "x_label_between_measured_ticks";
     private readonly ConnectedComponentTextRegionDetectorOptions _options;
 
     public ConnectedComponentTextRegionDetector(ConnectedComponentTextRegionDetectorOptions? options = null)
@@ -51,7 +52,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
     public string ConfigurationFingerprint => string.Create(
         CultureInfo.InvariantCulture,
         $"cc-v3:{_options.MinimumComponentArea}:{_options.MaximumComponentWidthFraction:R}:{_options.MaximumComponentHeightFraction:R}:{_options.MaximumLineGapHeightRatio:R}:{_options.MinimumVerticalOverlapFraction:R}:{_options.ForegroundThreshold?.ToString(CultureInfo.InvariantCulture) ?? "auto"}") +
-        (_options.GroupComponentsIntoLines ? string.Empty : ":ungrouped") +
+        (_options.GroupComponentsIntoLines ? ":interval-x-labels-v1" : ":ungrouped") +
         (_options.UseObservedVerticalGroupingOrientation ? ":observed-vertical-orientation-v1" : string.Empty);
 
     public ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
@@ -272,6 +273,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
         while (remaining.Count > 0)
         {
             var line = remaining[0];
+            var members = new List<ComponentBounds> { line };
             remaining.RemoveAt(0);
             var changed = true;
             while (changed)
@@ -303,16 +305,85 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                     if (!separated && overlapFraction >= _options.MinimumVerticalOverlapFraction && horizontalGap <= maximumGap)
                     {
                         line = line.Merge(candidate);
+                        members.Add(candidate);
                         remaining.RemoveAt(index);
                         changed = true;
                     }
                 }
             }
 
-            lines.Add(line);
+            if (TrySplitIntervalLabels(line, members, grouping, cuts.Length > 0, cancellationToken) is { } split)
+                lines.AddRange(split);
+            else
+                lines.Add(line);
         }
 
         return GroupVerticalGlyphs(lines, image, grouping, cancellationToken);
+    }
+
+    // Work only with the original members of this exact merged line. A single
+    // unsupported or boundary-crossing component leaves the original line intact.
+    private List<ComponentBounds>? TrySplitIntervalLabels(ComponentBounds line, List<ComponentBounds> members,
+        OcrMeasuredTickGrouping? grouping, bool validContext, CancellationToken token)
+    {
+        if (!validContext || grouping is null || line.Top <= grouping.PlotBottom || members.Count < 3) return null;
+        IReadOnlyList<int> ticks = grouping.XTicks;
+        var intervals = new SortedDictionary<int, List<ComponentBounds>>();
+        foreach (ComponentBounds member in members)
+        {
+            token.ThrowIfCancellationRequested();
+            int interval = -1;
+            for (int i = 0; i + 1 < ticks.Count; i++)
+            {
+                if (member.Left > ticks[i] && member.Right < ticks[i + 1]) { interval = i; break; }
+            }
+            if (interval < 0) return null;
+            if (!intervals.TryGetValue(interval, out List<ComponentBounds>? group)) intervals.Add(interval, group = []);
+            group.Add(member);
+        }
+        if (intervals.Count < 3) return null;
+        int LeftWithCancellation(ComponentBounds member) { token.ThrowIfCancellationRequested(); return member.Left; }
+        int RightWithCancellation(ComponentBounds member) { token.ThrowIfCancellationRequested(); return member.Right; }
+        var comparer = Comparer<ComponentBounds>.Create((first, second) =>
+        {
+            token.ThrowIfCancellationRequested();
+            int horizontal = first.Left.CompareTo(second.Left);
+            return horizontal != 0 ? horizontal : first.Top.CompareTo(second.Top);
+        });
+        var ordered = intervals.Values.Select(group =>
+        {
+            token.ThrowIfCancellationRequested();
+            try { return group.OrderBy(member => member, comparer).ToArray(); }
+            catch (InvalidOperationException) when (token.IsCancellationRequested)
+            {
+                // Sorting may wrap comparer cancellation; preserve cancellation semantics.
+                token.ThrowIfCancellationRequested();
+                throw;
+            }
+        }).ToArray();
+        for (int i = 1; i < ordered.Length; i++)
+        {
+            token.ThrowIfCancellationRequested();
+            ComponentBounds previous = ordered[i - 1].MaxBy(RightWithCancellation);
+            ComponentBounds next = ordered[i].MinBy(LeftWithCancellation);
+            if (next.Left - previous.Right - 1 <= Math.Max(previous.Width, next.Width)) return null;
+        }
+        var split = new List<ComponentBounds>(ordered.Length);
+        foreach (ComponentBounds[] group in ordered)
+        {
+            token.ThrowIfCancellationRequested();
+            ComponentBounds part = group[0];
+            for (int i = 1; i < group.Length; i++)
+            {
+                token.ThrowIfCancellationRequested();
+                part = part.Merge(group[i]);
+            }
+            int overlap = Math.Min(part.Bottom, line.Bottom) - Math.Max(part.Top, line.Top) + 1;
+            int union = Math.Max(part.Bottom, line.Bottom) - Math.Min(part.Top, line.Top) + 1;
+            if (overlap <= 0 || overlap / (double)union < _options.MinimumVerticalOverlapFraction) return null;
+            split.Add(part with { IntervalXLabel = true });
+        }
+        return split;
     }
 
     private List<ComponentBounds> GroupVerticalGlyphs(List<ComponentBounds> horizontalLines,
@@ -374,7 +445,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
         {
             var line = remaining[0];
             remaining.RemoveAt(0);
-            if (!IsRotatedGlyphCandidate(line))
+            if (line.IntervalXLabel || !IsRotatedGlyphCandidate(line))
             {
                 lines.Add(line);
                 continue;
@@ -388,7 +459,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var candidate = remaining[index];
-                    if (!IsRotatedGlyphCandidate(candidate))
+                    if (candidate.IntervalXLabel || !IsRotatedGlyphCandidate(candidate))
                     {
                         continue;
                     }
@@ -445,6 +516,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             ? line.ObservedVerticalGrouping ? -90d : 0d
             : line.Height > line.Width * 1.4 ? -90d : 0d;
         var structureReasons = StructureReasons(line);
+        if (line.IntervalXLabel) structureReasons.Add(IntervalXLabelReason);
         return new OcrDetectedRegion(
             DeterministicRegionId(rectangle),
             OcrPolygon.FromRectangle(rectangle),
@@ -616,6 +688,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
         int MarkerLikeComponentCount)
     {
         public bool ObservedVerticalGrouping { get; init; }
+        public bool IntervalXLabel { get; init; }
 
         public int Width => Right - Left + 1;
 

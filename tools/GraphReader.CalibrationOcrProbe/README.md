@@ -424,3 +424,23 @@ Properties are withheld unless the complete source digest verifies. Use
 `--real-dev-cached-x-row-properties-self-test` for owned boundary and component
 checks before the authorized one-shot diagnosis. Retain its local report only
 through the grouping diagnosis and pushed aggregate outcome.
+
+## Interval-label and bounded-capacity confirmation
+
+`--real-dev-interval-label-trace <corpus-root> <absolute-App-exe> <asset-root> <absolute-Rust-worker> --explicit-opt-in`
+uses a separate frozen source-runtime profile and the same fixed first 12
+development sources, preparation, automatic geometry, exact-box measurement,
+literal OCR and association pipeline. The profile combines interval-label
+provenance with the normal native worker's 256-pair capacity. Explicit candidate
+choice remains capped at 128. The new per-row `interval_label_position` field
+identifies estimated label-center pairing; it does not make the position a
+measured tick or apply a calibration. Historical profiles remain unchanged.
+Run `--real-dev-interval-label-trace-self-test` first. Private execution still
+requires authorization, exact runtime pins and all existing split/deadline checks.
+
+`--owned-native-search-capacity-check` runs five fixed recorded-line solver
+calls: regular and irregular 256-pair bounded/unlimited comparisons plus a
+257-pair empty refusal. It checks late-winner and complete-result parity and
+reports CPU, wall time, allocation and failure counts. No private inputs, raster
+detection, IPC or spawned-child watchdog behavior are exercised. This mode does
+not choose a capacity by searching private results.

@@ -49,6 +49,10 @@ public sealed record CalibrationOcrProposal(string RegionId, IReadOnlyList<Calib
     string Role, string SuggestedAxis, string? FailureCode)
 {
     public bool RequiresReview { get; init; } = true;
+
+    // Optional private worker provenance, never a measured calibration tick.
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool IsIntervalXLabel { get; init; }
 }
 
 public sealed record CalibrationOcrSequenceCheck(bool NeedsReview, int CandidateCount, int ResolvedCount,

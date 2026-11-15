@@ -16,6 +16,8 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed partial class CalibrationTickViewModelTests
 {
+    private static readonly int[] IntervalExpectedYTicks = [20, 60, 100];
+    private static readonly string[] IntervalExpectedRawXTexts = ["1", "12.5", "24"];
     [TestMethod]
     public void NativePixelTickEvidenceRefitsWithoutEstimatedPositionsAndStillRequiresReview()
     {
@@ -426,6 +428,77 @@ public sealed partial class CalibrationTickViewModelTests
             Assert.AreEqual(new PixelPoint(140, 100), tab.Calibration.SessionMaximumY0);
             Assert.IsFalse(vm.HasEstimatedCalibrationPositions);
             Assert.IsFalse(vm.HasAxisSuggestion);
+        });
+    }
+
+    [TestMethod]
+    public void IntervalXLabelsRemainEstimatedAtTheirOriginalCentersUntilExplicitReviewAndApply()
+    {
+        WithImage(path =>
+        {
+            int[] measuredXTicks = [20, 60, 100, 140];
+            RustAxisGeometry geometry = MeasuredGeometry() with { XTickPositions = measuredXTicks };
+            CalibrationOcrProposal[] proposals =
+            [
+                Proposal("x-first", "1", 1, "XTick", "X", 40, 112) with { IsIntervalXLabel = true },
+                Proposal("x-middle", "12.5", 12.5, "XTick", "X", 80, 112) with { IsIntervalXLabel = true },
+                Proposal("x-final", "24", 24, "XTick", "X", 120, 112) with { IsIntervalXLabel = true },
+                .. ValidProposals()[3..],
+            ];
+            var reader = new OcrStub(proposals);
+            using var workspace = CreateWorkspace(path, reader, geometry);
+            Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+            var localization = new LocalizationService(new ResourceDictionary());
+            using var vm = new MainWindowViewModel(workspace, localization);
+            WorkspaceTabViewModel tab = vm.SelectedTab!;
+
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+
+            Assert.IsNotNull(reader.LastRequest);
+            CalibrationOcrRequest request = reader.LastRequest!;
+            CollectionAssert.AreEqual(measuredXTicks, request.MeasuredXTicks!);
+            CollectionAssert.AreEqual(IntervalExpectedYTicks, request.MeasuredYTicks!);
+            Assert.IsNotNull(reader.LastResponse);
+            CalibrationOcrProposal[] rawX = reader.LastResponse!.Proposals.Where(row => row.Role == "XTick").ToArray();
+            CollectionAssert.AreEqual(IntervalExpectedRawXTexts, rawX.Select(row => row.Text).ToArray());
+            CollectionAssert.AreEqual(new double?[] { 1, 12.5, 24 }, rawX.Select(row => row.NumericValue).ToArray());
+            Assert.IsTrue(rawX.All(row => row.IsIntervalXLabel));
+
+            Assert.IsTrue(vm.HasEstimatedCalibrationPositions);
+            Assert.IsTrue(vm.HasCalibrationTickProposal);
+            Assert.AreEqual(string.Format(CultureInfo.CurrentCulture,
+                localization.GetString(LocalizationKeys.ManualCalibrationTicksEstimatedComplete), 6),
+                vm.CalibrationTickProposalStatusText);
+            Assert.AreEqual("1", vm.SuggestedFirstSession);
+            Assert.AreEqual("24", vm.SuggestedFinalSession);
+            Assert.AreEqual("10", vm.SuggestedYMaximum);
+            foreach ((string value, int pixel) in new[] { ("1", 40), ("12.5", 80), ("24", 120) })
+            {
+                CollectionAssert.Contains(vm.CalibrationPairedTickRows, string.Format(CultureInfo.CurrentCulture,
+                    localization.GetString(LocalizationKeys.ManualCalibrationTicksEstimatedRow),
+                    localization.GetString(LocalizationKeys.ManualCalibrationTicksAxisX), value, pixel));
+                foreach (int measuredTick in measuredXTicks)
+                    CollectionAssert.DoesNotContain(vm.CalibrationPairedTickRows, string.Format(CultureInfo.CurrentCulture,
+                        localization.GetString(LocalizationKeys.ManualCalibrationTicksPairedRow),
+                        localization.GetString(LocalizationKeys.ManualCalibrationTicksAxisX), value, measuredTick));
+            }
+            CollectionAssert.Contains(vm.CalibrationPairedTickRows, string.Format(CultureInfo.CurrentCulture,
+                localization.GetString(LocalizationKeys.ManualCalibrationTicksPairedRow),
+                localization.GetString(LocalizationKeys.ManualCalibrationTicksAxisY), "10", 20));
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(tab.Calibration);
+
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(tab.Calibration, "Reviewing the estimate alone must not apply calibration.");
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.AreEqual(24d, tab.Calibration!.XMaximum);
+            Assert.AreEqual(10d, tab.Calibration!.YMaximum);
+            Assert.AreEqual(new PixelPoint(120, 100), tab.Calibration!.SessionMaximumY0);
+
+            vm.UndoCommand.Execute(null);
+            Assert.IsNull(tab.Calibration);
         });
     }
 

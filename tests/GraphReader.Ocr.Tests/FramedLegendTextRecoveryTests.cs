@@ -108,7 +108,8 @@ public sealed class FramedLegendTextRecoveryTests
         var separate = new ConnectedComponentTextRegionDetector(new() { GroupComponentsIntoLines = false });
         Assert.HasCount(1, await grouped.DetectAsync(image, default));
         Assert.HasCount(11, await separate.DetectAsync(image, default));
-        Assert.AreEqual(grouped.ConfigurationFingerprint + ":ungrouped", separate.ConfigurationFingerprint);
+        Assert.AreEqual("cc-v3:2:0.15:0.2:2.5:0.35:auto:ungrouped", separate.ConfigurationFingerprint);
+        Assert.AreEqual("cc-v3:2:0.15:0.2:2.5:0.35:auto:interval-x-labels-v1", grouped.ConfigurationFingerprint);
         Assert.AreEqual(grouped.ConfigurationFingerprint,
             new ConnectedComponentTextRegionDetector(new() { GroupComponentsIntoLines = true }).ConfigurationFingerprint);
     }
