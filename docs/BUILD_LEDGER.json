@@ -8265,7 +8265,7 @@
   "releaseEligible": false,
   "cadenceEligible": false,
   "releaseStatus": "internal",
-  "retained": true,
+  "retained": false,
   "recordIncomplete": false,
   "missingMetadata": [],
   "purpose": "Internal ManualPreview with bounded Rust-first native axis review fallback, persistent uncertainty, connected-ink recovery and observed tick-pair corrections.",
@@ -8467,6 +8467,87 @@
       "sealedReads": 0,
       "optimizerSteps": 0
     }
+  }
+},
+{
+  "buildNumber": 451,
+  "version": "0.4.51",
+  "directory": "0.4.51-20261114T235320548Z-e5491791",
+  "commit": "e54917917d1acdc3aed2c556f3d2faf0bcbff253",
+  "buildTimeUtc": "2026-11-14T23:53:20.5485517+00:00",
+  "executableSha256": "144d4cfab07d81429de6366a76a211fe515fa8227578b9c857ed76e5cca6efed",
+  "openCvRuntimeSha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+  "releaseEligible": false,
+  "cadenceEligible": false,
+  "releaseStatus": "internal",
+  "retained": true,
+  "recordIncomplete": false,
+  "missingMetadata": [],
+  "purpose": "Integrated ManualPreview with corrected device selection and review status, human-corrected failed OCR rows, marker boundary pixels, and bottom-corner Y-label association.",
+  "packages": [
+    {
+      "name": "GraphAutoReader-0.4.51-win-x64-internal-preview.zip",
+      "sizeBytes": 87558229,
+      "sha256": "6bf48f3f16513a2c3766381d43ad47b8e65406e9499663c3ecde31319c31bd44",
+      "verificationStatus": "verified-hosted-and-downloaded"
+    }
+  ],
+  "artifactStorage": {
+    "provider": "github-actions",
+    "artifactId": 14137494218,
+    "name": "GraphAutoReader-0.4.51-internal-preview-43655078718",
+    "url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/43655078718/artifacts/14137494218",
+    "workflowRunId": 43655078718,
+    "workflowCommit": "e54917917d1acdc3aed2c556f3d2faf0bcbff253",
+    "sizeInBytes": 87300626,
+    "digest": "sha256:66b1844e7b5952f2eeb99a4fb856bb872efb538473d0af12c91516503f678b91",
+    "createdUtc": "2026-11-14T23:53:48Z",
+    "expiresUtc": "2027-02-12T23:48:43Z",
+    "downloadedPackageVerificationReport": "INTERNAL-PREVIEW-451-VERIFICATION-20261114.md"
+  },
+  "verification": {
+    "buildExitCode": 0,
+    "hostedTestsPassed": 1215,
+    "hostedTestsSkipped": 7,
+    "packageUploadRunConclusion": "success",
+    "portableSmokeExitCode": 0,
+    "portableSmokeMilliseconds": 1631.2818,
+    "productionRuntimeSmokeExitCode": 2,
+    "productionRuntimeSmokeExpectedExitCode": 2,
+    "productionRuntimeSmokeMilliseconds": 759.6927,
+    "startupSmokeJsonSha256": "f9d6b24164e1f3a15d735df610c53440b21301cb1ffdb3cc772565891d3e4605",
+    "nativeProvenanceReview": "passed",
+    "sourceCiRunId": 43655058286,
+    "sourceCiJobId": 132631652559,
+    "sourceCiCommit": "e54917917d1acdc3aed2c556f3d2faf0bcbff253",
+    "sourceCiConclusion": "success",
+    "sourceCiTestsPassed": 2753,
+    "sourceCiTestsSkipped": 30,
+    "sourceCiRustTestsPassed": 52,
+    "sourceCiVersionPolicyChecksPassed": 62,
+    "packagedAppDllSha256": "5be01923609dfc144f407db353bc7097f47c773bc44140b87af04d387ce041ff",
+    "rustWorkerSha256": "efed45d5c1de473599cf94ace56aa1e1b3bfd40228289db23ecce755b66e9794",
+    "reviewOcrSha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+    "ownedCornerWorkerCheck": {
+      "report": "BOTTOM-CORNER-WORKER-451-DIAGNOSTIC-20261114.md",
+      "controls": 2,
+      "completeControls": 2,
+      "numericRowsPerControl": 6,
+      "measuredPairsPerControl": 6,
+      "estimatedPairsPerControl": 0,
+      "geometrySource": "explicit-owned-fixture-not-axis-detection",
+      "processMilliseconds": 48832.5555,
+      "probeBodyMilliseconds": 35541.0992,
+      "coldPipelineMilliseconds": 8699.2094,
+      "warmPipelineMilliseconds": 2140.098,
+      "aggregateSha256": "afc7e77a9f6bf8bed0726cbf8582769791cb9f339cc582976de1935231d00107",
+      "privatePayloadReads": 0,
+      "independentAccuracy": false
+    },
+    "visualWorkflowChecked": false,
+    "visualWorkflowScope": "Fresh-process restoration and corrected native controls remain pending; earlier 449 observations are recorded separately.",
+    "cleanWindowsVmChecked": false,
+    "productionApproved": false
   }
 }
 ]
