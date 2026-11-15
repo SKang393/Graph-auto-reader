@@ -11,6 +11,64 @@ public sealed class GraphTextRoleClassifierTests
     private static readonly OcrRectangle Plot = new(30, 15, 110, 70);
 
     [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public void WideEndpointTickBoxKeepsItsLaneBeforeAndAfterRecognition(bool right, bool beforeRecognition)
+    {
+        var plot = new OcrRectangle(100, 80, 200, 220);
+        OcrDetectedRegion region = OcrTestFixtures.Region("owned-endpoint", right ? 292 : 68, 310, 40, 16,
+            context: beforeRecognition ? new OcrRegionContext(NumericExpected: true) : null);
+        Assert.AreEqual(OcrTextRole.XTick, GraphTextRoleClassifier.Classify(region,
+            beforeRecognition ? "" : "1000", plot).Role);
+    }
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public void NewEndpointOverlapDoesNotCaptureBaselineStraddlingRows(bool right, bool beforeRecognition)
+    {
+        OcrDetectedRegion region = OcrTestFixtures.Region("owned-straddling", right ? 292 : 68, 294, 40, 16,
+            context: beforeRecognition ? new OcrRegionContext(NumericExpected: true) : null);
+        OcrTextRole expected = right
+            ? (beforeRecognition ? OcrTextRole.LegendText : OcrTextRole.Other) : OcrTextRole.YTick;
+        OcrTextRole actual = GraphTextRoleClassifier.Classify(region, beforeRecognition ? "" : "0", new(100, 80, 200, 220)).Role;
+        Assert.AreEqual(expected, actual);
+        if (right) Assert.IsFalse(actual is OcrTextRole.XTick or OcrTextRole.YTick);
+    }
+
+    [TestMethod]
+    [DataRow(50d, false)]
+    [DataRow(50d, true)]
+    [DataRow(60d, false)]
+    [DataRow(60d, true)]
+    [DataRow(300d, false)]
+    [DataRow(300d, true)]
+    [DataRow(310d, false)]
+    [DataRow(310d, true)]
+    public void EndpointLaneDoesNotReachWhollyOutsideOrTouchOnlyBoxes(double x, bool beforeRecognition)
+    {
+        OcrDetectedRegion region = OcrTestFixtures.Region("owned-outside", x, 310, 40, 16,
+            context: beforeRecognition ? new OcrRegionContext(NumericExpected: true) : null);
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(region,
+            beforeRecognition ? "" : "1000", new(100, 80, 200, 220)).Role);
+    }
+
+    [TestMethod]
+    [DataRow(68d, "Note")]
+    [DataRow(292d, "Note")]
+    [DataRow(68d, "1000 ms")]
+    [DataRow(292d, "1000 ms")]
+    public void NonnumericEndpointTextDoesNotBecomeATick(double x, string text)
+    {
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(
+            OcrTestFixtures.Region("owned-note", x, 310, 40, 16), text, new(100, 80, 200, 220)).Role);
+    }
+
+    [TestMethod]
     [DataRow(480d, false)]
     [DataRow(1000d, false)]
     [DataRow(480d, true)]

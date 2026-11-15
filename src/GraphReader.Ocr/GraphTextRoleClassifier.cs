@@ -10,7 +10,7 @@ public sealed record RoleClassification(
 
 public static class GraphTextRoleClassifier
 {
-    public const string Version = "graph-text-role-classifier-v12-bottom-corner-tick-lanes";
+    public const string Version = "graph-text-role-classifier-v13-endpoint-box-tick-lanes";
 
     private const string ParticipantLabelPrefix = "Participant ";
 
@@ -71,7 +71,11 @@ public static class GraphTextRoleClassifier
             return Classification(OcrTextRole.YTick, numeric ? 0.94 : 0.72, "numeric_left_of_plot");
         }
 
-        if ((numeric || context.NumericExpected) && center.Y > plotBounds.Bottom && withinPlotX)
+        // Only wholly below-axis boxes gain endpoint-overlap support. Existing
+        // center-margin behavior, including straddling labels, stays unchanged.
+        var overlapsPlotXBelow = bounds.Top >= plotBounds.Bottom &&
+            bounds.Right > plotBounds.Left && bounds.Left < plotBounds.Right;
+        if ((numeric || context.NumericExpected) && center.Y > plotBounds.Bottom && (withinPlotX || overlapsPlotXBelow))
         {
             return Classification(OcrTextRole.XTick, numeric ? 0.94 : 0.72, "numeric_below_plot");
         }

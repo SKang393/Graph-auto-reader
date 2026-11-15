@@ -527,6 +527,13 @@ internal static partial class RealDevCalibrationCheck
             VerifyPinned(app, assets, rust, PrintedXAppExeHash, PrintedXAppDllHash, PrintedXRustHash,
                 PrintedXRuntimeLibraries, token, requirePrintedXReviewDraft: true);
 
+        internal static Candidate VerifyEndpoint(string app, string assets, string rust, CancellationToken token)
+        {
+            RequireNativeRejectionPins(EndpointAppExeHash, EndpointAppDllHash, EndpointRustHash, EndpointRuntimeLibraries);
+            return VerifyPinned(app, assets, rust, EndpointAppExeHash, EndpointAppDllHash, EndpointRustHash,
+                EndpointRuntimeLibraries, token, requirePrintedXReviewDraft: true);
+        }
+
         internal static Candidate VerifySpatial(string app, string assets, string rust, CancellationToken token) =>
             VerifyPinned(app, assets, rust, SpatialAppExeHash, SpatialAppDllHash, SpatialRustHash,
                 SpatialRuntimeLibraries, token, requirePrintedXReviewDraft: true);

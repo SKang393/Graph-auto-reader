@@ -54,6 +54,7 @@ internal static class Program
         bool realDevMirage = args.Length > 0 && args[0] == "--real-dev-mirage-paired-451-check";
         bool realDevTrace452 = args.Length > 0 && args[0] == "--real-dev-452-association-trace";
         bool realDevPrintedXTrace = args.Length > 0 && args[0] == "--real-dev-printed-x-trace";
+        bool realDevEndpointTrace = args.Length > 0 && args[0] == "--real-dev-endpoint-trace";
         bool realDevSpatialTrace = args.Length > 0 && args[0] == "--real-dev-spatial-trace";
         bool realDevSortedSpatialGeometryTrace = args.Length > 0 && args[0] == "--real-dev-sorted-spatial-geometry-trace";
         bool realDevForwardExtentGeometryTrace = args.Length > 0 && args[0] == "--real-dev-forward-extent-geometry-trace";
@@ -70,7 +71,7 @@ internal static class Program
         bool ownedNativeRejection = args.Length > 0 && args[0] == "--owned-native-rejection-check";
         bool ownedNativePruning = args.Length > 0 && args[0] == "--owned-native-pruning-check";
         bool ownedNativeIntersection = args.Length > 0 && args[0] == "--owned-native-intersection-check";
-        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
+        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -161,6 +162,11 @@ internal static class Program
             if (args is ["--real-dev-printed-x-trace-self-test"])
             {
                 Emit(RealDevCalibrationCheck.PrintedXTraceSelfTest());
+                return 0;
+            }
+            if (args is ["--real-dev-endpoint-trace-self-test"])
+            {
+                Emit(RealDevCalibrationCheck.EndpointTraceSelfTest());
                 return 0;
             }
             if (args is ["--real-dev-spatial-trace-self-test"])
@@ -343,6 +349,11 @@ internal static class Program
                         Emit(await RealDevCalibrationCheck.RunPrintedXTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
                         return 0;
                     }
+                    if (realDevEndpointTrace)
+                    {
+                        Emit(await RealDevCalibrationCheck.RunEndpointTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
+                        return 0;
+                    }
                     if (realDevSpatialTrace)
                     {
                         Emit(await RealDevCalibrationCheck.RunSpatialTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
@@ -455,6 +466,14 @@ internal static class Program
                     {
                         Emit(new { schema = "graphreader.real-dev-printed-x-review-trace.v1",
                             status = "blocked_preflight_or_runtime", error = "REAL_DEV_PRINTED_X_TRACE_FAILED",
+                            sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
+                            review_only = true, production_approved = false });
+                        return 1;
+                    }
+                    if (realDevEndpointTrace)
+                    {
+                        Emit(new { schema = "graphreader.real-dev-endpoint-review-trace.v1",
+                            status = "blocked_preflight_or_runtime", error = "REAL_DEV_ENDPOINT_TRACE_FAILED",
                             sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
                             review_only = true, production_approved = false });
                         return 1;

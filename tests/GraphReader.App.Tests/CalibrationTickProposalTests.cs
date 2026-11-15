@@ -12,6 +12,57 @@ namespace GraphReader.App.Tests;
 public sealed class CalibrationTickProposalTests
 {
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void WideEndpointLiteralsSurviveActualRoleFilteringAndMeasuredAssociation(bool right)
+    {
+        // Supplied owned geometry/strings isolate role filtering, not OCR accuracy.
+        var geometry = new RustAxisGeometry(100, 300, 300, 80, .9)
+            { XTickPositions = [100, 200, 300], YTickPositions = [80, 190, 300] };
+        var plot = new OcrRectangle(100, 80, 200, 220);
+        CalibrationOcrProposal Literal(string id, OcrRectangle box, string text, double value)
+        {
+            var region = new OcrDetectedRegion(id, OcrPolygon.FromRectangle(box), 0, .9);
+            OcrTextRole provisional = GraphTextRoleClassifier.Classify(
+                region with { Context = new OcrRegionContext(NumericExpected: true) }, "", plot).Role;
+            string axis = provisional switch { OcrTextRole.XTick => "X", OcrTextRole.YTick => "Y", _ => "" };
+            string role = GraphTextRoleClassifier.Classify(region, text, plot).Role.ToString();
+            return new(id, region.Polygon.Points.Select(point => new CalibrationOcrPoint(point.X, point.Y)).ToArray(),
+                text, .9, value, text, true, role, axis, null);
+        }
+        CalibrationOcrProposal[] rows =
+        [
+            Literal("x-first", new(right ? 80 : 68, 310, 40, 16), "1000", 1000),
+            Literal("x-middle", new(180, 310, 40, 16), "1001", 1001),
+            Literal("x-final", new(right ? 292 : 280, 310, 40, 16), "1002", 1002),
+            Literal("y-maximum", new(68, 75, 12, 10), "10", 10),
+            Literal("y-middle", new(68, 185, 12, 10), "5", 5),
+            Literal("y-zero", new(68, 295, 12, 10), "0", 0),
+        ];
+        var request = new CalibrationOcrRequest("owned-endpoint", "binding", new string('a', 64), new string('b', 64),
+            400, 400, new(100, 80, 300, 300));
+        CalibrationOcrProposal[] explicitlyTagged = rows.Select(row => row with
+        {
+            Role = row.RegionId.StartsWith("x-", StringComparison.Ordinal) ? "XTick" : "YTick",
+            SuggestedAxis = row.RegionId.StartsWith("x-", StringComparison.Ordinal) ? "X" : "Y",
+        }).ToArray();
+        CalibrationTickProposalResult reference = CalibrationTickProposal.Create(geometry,
+            new(request, explicitlyTagged, null, null, null, null, null));
+        Assert.IsTrue(reference.IsComplete, string.Join(",", reference.Reasons));
+
+        // The session reads only regions classified as X/Y before recognition.
+        CalibrationOcrProposal[] selected = rows.Where(row => row.SuggestedAxis is "X" or "Y").ToArray();
+        var response = new CalibrationOcrResponse(request, selected, null, null, null, null, null);
+        string raw = JsonSerializer.Serialize(response);
+        CalibrationTickProposalResult actual = CalibrationTickProposal.Create(geometry, response);
+        Assert.IsTrue(actual.IsComplete, $"Selected {selected.Length} of 6 owned literal rows: {string.Join(",", actual.Reasons)}");
+        Assert.HasCount(6, actual.PairedTicks);
+        Assert.AreEqual(reference.Anchors, actual.Anchors);
+        Assert.IsFalse(actual.UsesEstimatedPositions);
+        Assert.AreEqual(raw, JsonSerializer.Serialize(response));
+    }
+
+    [TestMethod]
     [DataRow(0d)]
     [DataRow(-4d)]
     [DataRow(0.5d)]
