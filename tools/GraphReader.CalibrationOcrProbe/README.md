@@ -409,3 +409,18 @@ time and process memory observations. This excludes raster detection, IPC and
 the native child watchdog. It changes no production budget and uses no private
 or sealed input. Its `safety_passed` and failure accounting must be inspected;
 an exit-zero observation report alone is not a pass.
+
+## Cached X-row component properties
+
+`--real-dev-cached-x-row-properties <absolute-cached-report> <corpus-root> <absolute-App-exe> <asset-root> <absolute-Rust-worker> --explicit-opt-in`
+binds the saved native-endpoint trace and its runtime, then verifies the same
+first 12 development source digests with the image-only reader. It decodes only
+the saved target crop and calls the existing ungrouped component detector with
+unchanged thresholds. Output contains sensitive component geometry and measured
+tick alignment properties, never recognized text, scientific values or pixels.
+Cut/support counts are geometric diagnostic approximations, not the detector's
+actual merge-decision trace. No axis detection or OCR recognition is repeated.
+Properties are withheld unless the complete source digest verifies. Use
+`--real-dev-cached-x-row-properties-self-test` for owned boundary and component
+checks before the authorized one-shot diagnosis. Retain its local report only
+through the grouping diagnosis and pushed aggregate outcome.

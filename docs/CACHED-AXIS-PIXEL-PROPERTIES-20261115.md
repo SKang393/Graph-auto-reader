@@ -109,9 +109,10 @@ threshold, training, Apply/export, unchanged451 or Mirage run was involved.
 The temporary `artifacts/cached-axis-pixel-properties` report was retired after
 the coordinate-mapping consumer finished and this source/outcome reached
 `origin/main`; see the [retention closure](NATIVE-CONTRAST-TICKS-20261115.md).
-The exact-box raw report remains a named input for the changed-stage endpoint
-confirmation, avoiding repeated unchanged geometry/OCR. Originals, active
-runtime assets and independent evaluation inputs remain intact.
+The exact-box raw report was retired after the changed-stage endpoint
+confirmation finished and its outcome reached `origin/main`. See the
+[endpoint retention closure](NATIVE-RASTER-ENDPOINTS-20261115.md). Originals,
+active runtime assets and independent evaluation inputs remain intact.
 
 Project source remains Apache-2.0. No new dependency, model, frozen public
 schema, package, version increment or production approval was added. Diagnostic

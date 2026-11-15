@@ -133,9 +133,13 @@ Source base: `0642f21f42894cfc2997dab40dcce4ae932ad480`.
 
 All exact runtime pins are in `RealDevNativeRasterEndpointTracePins.cs`. No new
 dependency, model, license or public schema was introduced; source is Apache-2.0.
-The sole packaged 0.4.54 build is unchanged. This source batch needs full Windows
-CI after integration. No production automatic-calibration or native UI pass is
-claimed.
+The sole packaged 0.4.54 build is unchanged. Full Windows CI
+[43748183530](https://github.com/SKang393/Graph-auto-reader/actions/runs/43748183530)
+passed on `308d7a823afbec316a73f4e2e16b528f27ca9c2f`: 13 .NET suites,
+3,031 passed / 30 skipped / zero failed, all 72 Rust tests, and applicable
+policy/packaging checks including 68 packaging verification tests. App passed
+1,193 tests. Release jobs were skipped. No production automatic-calibration or
+native UI pass is claimed.
 
 Retain `artifacts/native-raster-endpoint-dev-trace` only for the compound-row
 grouping diagnosis; retire after that consumer finishes and outcomes are pushed.
@@ -143,3 +147,14 @@ The focused checks, owned before/after reports and obsolete exact-box raw report
 can be retired after integration consumers finish and this record is pushed.
 Keep the current runtime pin manifest only until the next runtime transition.
 Originals, independent inputs and active model/runtime assets are preserved.
+
+After this source/outcome reached `origin/main` as
+`308d7a823afbec316a73f4e2e16b528f27ca9c2f`, the completed endpoint comparison and
+runtime-transition consumers released **nine files / 78,161 bytes** at
+`2026-11-15T18:49:19.7880628Z`: the previous exact-box development trace (three
+files / 65,639 bytes), its obsolete runtime-pin directory (one / 2,318 bytes),
+and the preceding owned contrast report directory (five / 10,204 bytes).
+Exact key hashes, complete inventories, resolved workspace paths, absence of
+reparse points and active process consumers were checked before removal. These
+three targets are absent. The current endpoint development trace remains only
+for the X-row component diagnosis; original and independent inputs are intact.

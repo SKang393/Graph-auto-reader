@@ -56,6 +56,7 @@ internal static class Program
         bool realDevPrintedXTrace = args.Length > 0 && args[0] == "--real-dev-printed-x-trace";
         bool realDevEndpointTrace = args.Length > 0 && args[0] == "--real-dev-endpoint-trace";
         bool realDevCachedAxisProperties = args.Length > 0 && args[0] == "--real-dev-cached-axis-properties";
+        bool realDevCachedXRowProperties = args.Length > 0 && args[0] == "--real-dev-cached-x-row-properties";
         bool realDevExactBoxTickTrace = args.Length > 0 && args[0] == "--real-dev-exact-box-tick-trace";
         bool realDevNativeRasterEndpointTrace = args.Length > 0 && args[0] == "--real-dev-native-raster-endpoint-trace";
         bool realDevRankedReviewTrace = args.Length > 0 && args[0] == "--real-dev-ranked-review-trace";
@@ -75,7 +76,7 @@ internal static class Program
         bool ownedNativeRejection = args.Length > 0 && args[0] == "--owned-native-rejection-check";
         bool ownedNativePruning = args.Length > 0 && args[0] == "--owned-native-pruning-check";
         bool ownedNativeIntersection = args.Length > 0 && args[0] == "--owned-native-intersection-check";
-        bool realDevPrivate = realDevNativeRasterEndpointTrace || realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevRankedReviewTrace || realDevExactBoxTickTrace || realDevCachedAxisProperties || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
+        bool realDevPrivate = realDevCachedXRowProperties || realDevNativeRasterEndpointTrace || realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevRankedReviewTrace || realDevExactBoxTickTrace || realDevCachedAxisProperties || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -176,6 +177,11 @@ internal static class Program
             if (args is ["--real-dev-cached-axis-properties-self-test"])
             {
                 Emit(RealDevCalibrationCheck.CachedAxisPropertiesSelfTest());
+                return 0;
+            }
+            if (args is ["--real-dev-cached-x-row-properties-self-test"])
+            {
+                Emit(await RealDevCalibrationCheck.CachedXRowPropertiesSelfTestAsync());
                 return 0;
             }
             if (args is ["--real-dev-exact-box-tick-trace-self-test"])
@@ -346,7 +352,7 @@ internal static class Program
                 // Every failure in this private mode is sanitized here, before the owned-mode handler.
                 try
                 {
-                    int requiredArguments = realDevAxisDecision || realDevCachedAxisProperties ? 7 : 6;
+                    int requiredArguments = realDevAxisDecision || realDevCachedAxisProperties || realDevCachedXRowProperties ? 7 : 6;
                     if (args.Length != requiredArguments || args[^1] != "--explicit-opt-in")
                         throw new InvalidDataException();
                     using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
@@ -393,6 +399,11 @@ internal static class Program
                     if (realDevCachedAxisProperties)
                     {
                         Emit(RealDevCalibrationCheck.RunCachedAxisProperties(args[1], args[2], args[3], args[4], args[5], parentBudget, deadline.Token));
+                        return 0;
+                    }
+                    if (realDevCachedXRowProperties)
+                    {
+                        Emit(await RealDevCalibrationCheck.RunCachedXRowPropertiesAsync(args[1], args[2], args[3], args[4], args[5], parentBudget, deadline.Token));
                         return 0;
                     }
                     if (realDevExactBoxTickTrace)
@@ -540,6 +551,14 @@ internal static class Program
                             status = "blocked_preflight_or_runtime", error = "CACHED_AXIS_PROPERTIES_FAILED",
                             sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
                             axis_calls = 0, ocr_calls = 0, truth_scoring = false, image_writes = false });
+                        return 1;
+                    }
+                    if (realDevCachedXRowProperties)
+                    {
+                        Emit(new { schema = "graphreader.cached-x-row-properties.v1",
+                            status = "blocked_preflight_or_runtime", error = "CACHED_X_ROW_PROPERTIES_FAILED",
+                            sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
+                            axis_calls = 0, recognition_calls = 0, truth_scoring = false, image_writes = false });
                         return 1;
                     }
                     if (realDevExactBoxTickTrace)

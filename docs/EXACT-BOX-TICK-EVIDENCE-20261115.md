@@ -160,11 +160,12 @@ The three completed TRXs in `artifacts/exact-box-ticks-check` were retired
 after source integration and full CI passed; its runtime pin manifest remains
 only for the current source-runtime transition. See the
 [retention closure](NATIVE-CONTRAST-TICKS-20261115.md).
-`artifacts/exact-box-tick-dev-trace/report.json` remains temporarily needed by
-the next native-box alignment diagnosis for its saved crop/geometry metadata;
-this avoids repeating unchanged inference. Retire remaining outputs after
-those named consumers finish. Original user data
-and independent evaluation inputs are not disposable outputs.
+`artifacts/exact-box-tick-dev-trace/report.json` and the obsolete runtime-pin
+directory were subsequently retired after the native-box alignment and
+changed-stage confirmation consumers finished. Their pushed results and exact
+retirement are recorded in the
+[endpoint outcome](NATIVE-RASTER-ENDPOINTS-20261115.md). Original user data and
+independent evaluation inputs are not disposable outputs.
 
 The obsolete unpackaged `artifacts/native-axis-reasons-runtime` copy was retired
 at `2026-11-15T17:28:53.3746994Z`: 220 files, 53,786,088 bytes. Its Rust

@@ -175,12 +175,12 @@ After source/outcome `0642f21f42894cfc2997dab40dcce4ae932ad480` reached
 
 Resolved paths, exact report/TRX hashes, inventories and absence of reparse
 points/running consumers were checked before deletion; the listed targets are
-absent. `artifacts/owned-exact-box-contrast-after` remains only as the fixed
-nine-case baseline for the native endpoint repair. The cached exact-box trace
-remains only for the changed-stage development confirmation; its runtime pin
-manifest remains for the current runtime transition. Retire these once those
-consumers finish and their outcomes are pushed. Original user data, independent
-inputs, active runtime assets and the sole 0.4.54 package remain intact.
+absent. The remaining owned contrast baseline, cached exact-box trace and
+obsolete runtime-pin directory were subsequently retired after the endpoint
+comparison and runtime transition finished and were pushed. See the
+[endpoint retention closure](NATIVE-RASTER-ENDPOINTS-20261115.md). Original user
+data, independent inputs, active runtime assets and the sole 0.4.54 package remain
+intact.
 
 The scoped contrast repair and owned checks pass. Full Windows CI
 [43744182879](https://github.com/SKang393/Graph-auto-reader/actions/runs/43744182879)
