@@ -205,8 +205,9 @@ After the source/outcome reached origin/main in `8a0cfb87`, the 22 completed
 files totaling 794,979 bytes in `artifacts/endpoint-label-lane-check` were retired
 at `2026-11-15T15:18:15.4895913Z`. Exact path, reparse, inventory and consumer
 guards passed. The source regressions remain available for regeneration.
-The saved-trace association diagnosis is complete. Retire the four files totaling
-58,459 bytes in `artifacts/endpoint-full-development-check` after its aggregate
-outcome and diagnostic correction are pushed. Do not rerun unchanged OCR.
+The saved-trace association diagnosis is complete. After its outcome and
+correction reached origin/main in `a3411544`, the four files totaling 58,459 bytes
+in `artifacts/endpoint-full-development-check` were retired at
+`2026-11-15T15:38:50.9443062Z`. Do not rerun unchanged OCR.
 Preserve the source tests, current runtime/model assets, originals, independent
 evaluation and user Data. Do not package another build for this isolated fix.

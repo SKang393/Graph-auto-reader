@@ -51,7 +51,11 @@ pins were restaged and verified without rebuilding or changing the application.
 | Endpoint v2 profile source | `304b709f268a60079c3e2fcce615f09b8e41ecf07b3f98f21f4473735ae13d33` |
 
 No dependency, model, license, package or production approval changed. The code
-remains Apache-2.0. No new private output was generated. After this diagnosis
-and correction are pushed, retire the four completed files totaling 58,459 bytes
-in `artifacts/endpoint-full-development-check`; their sole diagnosis consumer
-has finished. Preserve originals, independent data and current runtime assets.
+remains Apache-2.0. No new private output was generated. This diagnosis and
+correction reached origin/main in `a34115441066bcb7613e13a0c11b19ac7a0267cf`.
+The four completed files totaling 58,459 bytes in
+`artifacts/endpoint-full-development-check` were retired at
+`2026-11-15T15:38:50.9443062Z` after their sole consumer finished. The first
+sandbox consumer query was denied before deletion; the normal-host retry passed
+path, inventory, reparse and live-process guards. Originals, independent data
+and current runtime assets were preserved.
