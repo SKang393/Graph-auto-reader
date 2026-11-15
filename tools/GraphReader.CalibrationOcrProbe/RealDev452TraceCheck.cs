@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text.Json;
+using GraphReader.App.Integration.NativeAxis;
 using GraphReader.App.Services;
 using GraphReader.Axis;
 using GraphReader.Pdf;
@@ -57,6 +58,20 @@ internal static partial class RealDevCalibrationCheck
         }
     }
 
+    private sealed class NativeWorkTraceAxis : IAxisProposalService, IAxisGeometryWorkObserver
+    {
+        internal AxisGeometryWorkSnapshot? LastSnapshot { get; private set; }
+        internal double LastMilliseconds { get; private set; }
+        public void OnWorkObserved(AxisGeometryWorkSnapshot snapshot) => LastSnapshot = snapshot;
+        public async Task<RustAxisProposalResult> SuggestAsync(byte[] image, CancellationToken token)
+        {
+            LastSnapshot = null;
+            var timer = Stopwatch.StartNew();
+            try { return await Task.Run(() => NativeAxisWorker.ProcessAsync(image, this, token), token).ConfigureAwait(false); }
+            finally { timer.Stop(); LastMilliseconds = timer.Elapsed.TotalMilliseconds; }
+        }
+    }
+
     internal static Task<object> Run452TraceAsync(string corpusRoot, string app, string assets, string rust,
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: false, geometryOnly: false, token);
@@ -76,6 +91,10 @@ internal static partial class RealDevCalibrationCheck
     internal static Task<object> RunForwardExtentGeometryTraceAsync(string corpusRoot, string app, string assets, string rust,
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, forwardExtentGeometryTrace: true);
+
+    internal static Task<object> RunNativeWorkTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, nativeWorkTrace: true);
 
     internal static Task<object> RunPostGroupingTraceAsync(string corpusRoot, string app, string assets, string rust,
         CpuBudgetJob budget, CancellationToken token) =>
@@ -98,8 +117,9 @@ internal static partial class RealDevCalibrationCheck
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token, directional: true);
 
     private static async Task<object> RunTraceAsync(string corpusRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false)
+        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false, bool nativeWorkTrace = false)
     {
+        if (nativeWorkTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace || forwardExtentGeometryTrace)) throw new InvalidDataException();
         if ((pairPruning || intersection) && !geometryOnly || pairPruning && intersection || directional && (geometryOnly || !sourcePostGrouping) ||
             printedXTrace && (!sourcePostGrouping || geometryOnly || pairPruning || intersection || directional || spatialTrace) ||
             spatialTrace && (!sourcePostGrouping || geometryOnly || pairPruning || intersection || directional) ||
@@ -107,7 +127,8 @@ internal static partial class RealDevCalibrationCheck
             forwardExtentGeometryTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace)) throw new InvalidDataException();
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(app) ||
             !Path.IsPathFullyQualified(assets) || !Path.IsPathFullyQualified(rust)) throw new InvalidDataException();
-        using Candidate candidateLease = forwardExtentGeometryTrace ? Candidate.VerifyForwardExtent(app, assets, rust, token) :
+        using Candidate candidateLease = nativeWorkTrace ? Candidate.VerifyNativeWork(app, assets, rust, token) :
+            forwardExtentGeometryTrace ? Candidate.VerifyForwardExtent(app, assets, rust, token) :
             sortedSpatialGeometryTrace ? Candidate.VerifySortedSpatial(app, assets, rust, token) :
             spatialTrace ? Candidate.VerifySpatial(app, assets, rust, token) :
             printedXTrace ? Candidate.VerifyPrintedX(app, assets, rust, token) : directional ? Candidate.VerifyDirectional(app, assets, rust, token) :
@@ -117,6 +138,11 @@ internal static partial class RealDevCalibrationCheck
             ? Candidate.VerifyPostGrouping(app, assets, rust, token)
             : Candidate.Verify452(app, assets, rust, token);
         IReadOnlyDictionary<string, string> candidateFiles = candidateLease.Files;
+        if (nativeWorkTrace)
+        {
+            OpenCvSharp.Cv2.SetNumThreads(1);
+            if (OpenCvSharp.Cv2.GetNumThreads() != 1) throw new InvalidDataException();
+        }
         _ = AxisDecisionDiagnosticClient.SelfTest();
         var panelizer = ResolvePanelizer(typeof(CalibrationTickProposal).Assembly);
         FrozenDevTrainingSelector selector = FrozenDevTrainingSelector.Load(corpusRoot, token);
@@ -125,7 +151,8 @@ internal static partial class RealDevCalibrationCheck
         if (all.Length != Denominator || all.Any(p => p.Split != FrozenRealCorpusInventory.RealDev)) throw new InvalidDataException();
         var projects = new List<object>(); var totals = new Totals();
         var primary = new TraceRustAxis(rust);
-        var secondary = new TraceAxis(new OpenCvAxisProposalService(app));
+        var nativeWork = nativeWorkTrace ? new NativeWorkTraceAxis() : null;
+        var secondary = new TraceAxis(nativeWork is null ? new OpenCvAxisProposalService(app) : nativeWork);
         IAxisProposalService axis = new RustFirstAxisProposalService(primary, secondary);
         await using CalibrationOcrWorkerClient? ocr = geometryOnly ? null : new(app, assets, () => CalibrationOcrDeviceSelection.Cpu);
         using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
@@ -153,7 +180,7 @@ internal static partial class RealDevCalibrationCheck
                         TracePanelOutcome outcome = await TracePanelAsync(payload.Image, payload.Width, payload.Height,
                             new PdfRectD(0, 0, payload.Width, payload.Height), payload.Width, payload.Height, payload.ProjectHash,
                             candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token,
-                            includePrintedXReviewDraft: printedXTrace || spatialTrace).ConfigureAwait(false);
+                            includePrintedXReviewDraft: printedXTrace || spatialTrace, nativeWork: nativeWork).ConfigureAwait(false);
                         CountTracePanelStatus(terminalStatusCounts, outcome);
                         if (outcome.PrintedXReviewDraftAvailable) printedXReviewDraftPanels++;
                         panelResults.Add(outcome.Payload);
@@ -179,7 +206,7 @@ internal static partial class RealDevCalibrationCheck
                             var (bytes, width, height, crop) = ReadPreparedPanel(panel, payload.Width, payload.Height);
                             TracePanelOutcome outcome = await TracePanelAsync(bytes, width, height, crop, payload.Width, payload.Height,
                                 payload.ProjectHash, candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token,
-                                includePrintedXReviewDraft: printedXTrace || spatialTrace).ConfigureAwait(false);
+                                includePrintedXReviewDraft: printedXTrace || spatialTrace, nativeWork: nativeWork).ConfigureAwait(false);
                             CountTracePanelStatus(terminalStatusCounts, outcome);
                             if (outcome.PrintedXReviewDraftAvailable) printedXReviewDraftPanels++;
                             panelResults.Add(outcome.Payload);
@@ -201,13 +228,13 @@ internal static partial class RealDevCalibrationCheck
             projects.Add(new { index = i, status, error_category = errorCategory, preparation_milliseconds = preparationMs, effective_panels = effective, panels = panelResults });
         }
         if (geometryOnly)
-            return new { schema = forwardExtentGeometryTrace ? ForwardExtentTraceSchema : sortedSpatialGeometryTrace ? SortedSpatialTraceSchema : intersection ? IntersectionTraceSchema : pairPruning ? PairPruningTraceSchema : NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
+            return new { schema = nativeWorkTrace ? NativeWorkTraceSchema : forwardExtentGeometryTrace ? ForwardExtentTraceSchema : sortedSpatialGeometryTrace ? SortedSpatialTraceSchema : intersection ? IntersectionTraceSchema : pairPruning ? PairPruningTraceSchema : NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
                 selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
                 attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
                 attempted_panels = panelAttempted, finished_panels = panelFinished, unfinished_execution_panels = panelAttempted - panelFinished,
                 terminal_status_counts = terminalStatusCounts, unattempted_panels = returned + fallback - panelAttempted,
                 metadata.AssignmentSha256, metadata.SelectedInventorySha256, source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
-                candidate = forwardExtentGeometryTrace ? ForwardExtentTraceIdentity() : sortedSpatialGeometryTrace ? SortedSpatialTraceIdentity() : (object)new { app_exe_sha256 = intersection ? IntersectionAppExeHash : NativeRejectionAppExeHash, app_dll_sha256 = intersection ? IntersectionAppDllHash : NativeRejectionAppDllHash,
+                candidate = nativeWorkTrace ? NativeWorkTraceIdentity() : forwardExtentGeometryTrace ? ForwardExtentTraceIdentity() : sortedSpatialGeometryTrace ? SortedSpatialTraceIdentity() : (object)new { app_exe_sha256 = intersection ? IntersectionAppExeHash : NativeRejectionAppExeHash, app_dll_sha256 = intersection ? IntersectionAppDllHash : NativeRejectionAppDllHash,
                     rust_sha256 = NativeRejectionRustHash,
                     runtime_files = intersection ? IntersectionRuntimeLibraries : pairPruning ? PairPruningRuntimeLibraries : NativeRejectionRuntimeLibraries },
                 sealed_payload_reads = 0, ocr_calls = 0, truth_scoring = false, image_writes = false, review_only = true,
@@ -227,7 +254,7 @@ internal static partial class RealDevCalibrationCheck
 
     private static async Task<TracePanelOutcome> TracePanelAsync(byte[] image, int width, int height, PdfRectD crop, int sourceWidth, int sourceHeight,
         string projectHash, IReadOnlyDictionary<string, string> candidateFiles, IAxisProposalService axis, TraceRustAxis primary, TraceAxis secondary,
-        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool includePrintedXReviewDraft = false)
+        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool includePrintedXReviewDraft = false, NativeWorkTraceAxis? nativeWork = null)
     {
         if (width is < 32 or > 4096 || height is < 32 or > 4096 || (long)width * height > 16_777_216)
             return PrintedXOutcome("UNSUPPORTED_DIMENSIONS", new { status = "UNSUPPORTED_DIMENSIONS", width, height, crop }, includePrintedXReviewDraft);
@@ -239,11 +266,19 @@ internal static partial class RealDevCalibrationCheck
         double axisMs = timer.Elapsed.TotalMilliseconds;
         bool fallbackCalled = sourcePostGrouping ? secondary.Calls > nativeCallsBefore :
             primary.Last?.Proposal.Geometry is null && primary.Last?.Proposal.ErrorCode is ("NO_AXIS" or "NO_INTERSECTION");
-        var stages = new { rust_error = primary.Last?.Proposal.ErrorCode, rust_returned = primary.Last?.Proposal.Geometry is not null,
+        object stages = nativeWork is null ? new { rust_error = primary.Last?.Proposal.ErrorCode, rust_returned = primary.Last?.Proposal.Geometry is not null,
             rust_trace = primary.Last?.Trace,
             native_attempted = fallbackCalled, native_error = fallbackCalled ? secondary.Last?.ErrorCode : null,
             native_review_reasons = fallbackCalled ? secondary.Last?.ReviewReasons : null,
-            native_returned = fallbackCalled && secondary.Last?.Geometry is not null, result.Provider, result.ReviewReasons };
+            native_returned = fallbackCalled && secondary.Last?.Geometry is not null, result.Provider, result.ReviewReasons } :
+            new { rust_error = primary.Last?.Proposal.ErrorCode, rust_returned = primary.Last?.Proposal.Geometry is not null,
+                rust_trace = primary.Last?.Trace,
+                native_attempted = fallbackCalled, native_error = fallbackCalled ? secondary.Last?.ErrorCode : null,
+                native_review_reasons = fallbackCalled ? secondary.Last?.ReviewReasons : null,
+                native_returned = fallbackCalled && secondary.Last?.Geometry is not null, result.Provider, result.ReviewReasons,
+                native_work = fallbackCalled ? nativeWork.LastSnapshot : null,
+                native_in_process_milliseconds = fallbackCalled ? (double?)nativeWork.LastMilliseconds : null,
+                native_work_counts_are_prefix_on_incomplete_enumeration = true };
         if (result.Geometry is not { } geometry)
             return PrintedXOutcome("NO_GEOMETRY", new { status = "NO_GEOMETRY", width, height, crop, stages, axis_milliseconds = axisMs }, includePrintedXReviewDraft);
         if (geometryOnly)

@@ -16,6 +16,56 @@ public sealed class AxisPairEnvelopePruningTests
     [DataRow(true, true)]
     [DataRow(false, false)]
     [DataRow(false, true)]
+    public async Task FrameClippedZeroExtentCannotExhaustContactBudget(bool horizontalClutter, bool reverse)
+    {
+        var fixture = new AxisFixtureBuilder(4096, 4096).CleanAxes(100, 3000, 900, 3800);
+        if (horizontalClutter)
+        {
+            fixture.Line(500, 0, 500, 3000, id: "top-reaching-vertical");
+            for (int index = 0; index < 129; index++)
+                fixture.Line(500, 40 + 20 * index, 800, 10 + 20 * index, id: $"clipped-h-{index}");
+        }
+        else
+        {
+            fixture.Line(200, 400, 3200, 100, id: "rising-horizontal");
+            for (int index = 0; index < 129; index++)
+            {
+                double x = 240 + 20 * index;
+                fixture.Line(x, 420 - .1 * x, x, 0, id: $"clipped-v-{index}");
+            }
+        }
+        AxisGeometryRequest request = fixture.Build();
+        if (reverse) request = request with { LineCandidates = request.LineCandidates.Reverse().ToArray() };
+        var oracle = new Observer();
+        var bounded = new Observer();
+        var detector = new AxisGeometryDetector();
+        AxisGeometryResult expected = await detector.DetectAsync(request with { CandidateObserver = oracle });
+        Assert.HasCount(1, oracle.Candidates!);
+        AxisGeometryResult actual = await detector.DetectAsync(request with { CandidateObserver = bounded, MaximumExaminedPairs = 128 });
+        AssertParity(expected, actual, oracle, bounded);
+    }
+
+    [TestMethod]
+    public async Task TinyPositiveFrameClippedExtentRemainsAdmitted()
+    {
+        AxisGeometryRequest request = new AxisFixtureBuilder().Line(100, 100, 700, 40)
+            .Line(100, 100, 100, .001).Build();
+        var oracle = new Observer();
+        var bounded = new Observer();
+        var detector = new AxisGeometryDetector();
+        AxisGeometryResult expected = await detector.DetectAsync(request with { CandidateObserver = oracle });
+        Assert.HasCount(1, oracle.Candidates!);
+        Assert.IsTrue(expected.PlotPolygon.BottomRight.X > expected.PlotPolygon.BottomLeft.X);
+        Assert.IsTrue(expected.PlotPolygon.BottomRight.X - expected.PlotPolygon.BottomLeft.X < 1);
+        AxisGeometryResult actual = await detector.DetectAsync(request with { CandidateObserver = bounded, MaximumExaminedPairs = 128 });
+        AssertParity(expected, actual, oracle, bounded);
+    }
+
+    [TestMethod]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
     public async Task ZeroForwardExtentCannotExhaustContactBudget(bool horizontal, bool reverse)
     {
         var fixture = horizontal

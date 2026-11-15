@@ -53,7 +53,10 @@ internal static class NativeAxisWorker
         return 0;
     }
 
-    internal static async Task<RustAxisProposalResult> ProcessAsync(byte[] encoded, CancellationToken token)
+    internal static Task<RustAxisProposalResult> ProcessAsync(byte[] encoded, CancellationToken token) =>
+        ProcessAsync(encoded, null, token);
+
+    internal static async Task<RustAxisProposalResult> ProcessAsync(byte[] encoded, IAxisGeometryWorkObserver? workObserver, CancellationToken token)
     {
         using var stream = new MemoryStream(encoded, writable: false);
         BitmapFrame frame = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnDemand).Frames[0];
@@ -69,7 +72,7 @@ internal static class NativeAxisWorker
         try
         {
             geometry = await new AxisGeometryDetector().DetectAsync(
-                new AxisGeometryRequest(width, height, lines) { CandidateObserver = observer, MaximumExaminedPairs = 128 }, token).ConfigureAwait(false);
+                new AxisGeometryRequest(width, height, lines) { CandidateObserver = observer, WorkObserver = workObserver, MaximumExaminedPairs = 128 }, token).ConfigureAwait(false);
         }
         catch (AxisGeometryDetectionException error)
         {

@@ -16,7 +16,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        cancellationToken.ThrowIfCancellationRequested();
+        if (request.WorkObserver is null) cancellationToken.ThrowIfCancellationRequested();
 
         var result = DetectCore(request, cancellationToken);
         return ValueTask.FromResult(result);
@@ -57,6 +57,39 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         AxisGeometryRequest request,
         CancellationToken cancellationToken)
     {
+        if (request.WorkObserver is not { } observer) return DetectCore(request, null, cancellationToken);
+        var work = new WorkCounters(request.LineCandidates?.Count ?? 0);
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return DetectCore(request, work, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            work.Cancelled = true;
+            throw;
+        }
+        catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException and not AccessViolationException)
+        {
+            work.FailureReason = error is AxisGeometryDetectionException detection ? detection.Reason : AxisGeometryFailureReason.Unspecified;
+            if (error is AxisGeometryDetectionException budgetFailure) work.BudgetKind = budgetFailure.BudgetKind;
+            throw;
+        }
+        finally
+        {
+            try { observer.OnWorkObserved(work.Snapshot()); }
+            catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException and not AccessViolationException)
+            {
+                // Optional aggregate diagnostics must preserve the result or original failure.
+            }
+        }
+    }
+
+    private static AxisGeometryResult DetectCore(
+        AxisGeometryRequest request,
+        WorkCounters? work,
+        CancellationToken cancellationToken)
+    {
         var stopwatch = Stopwatch.StartNew();
         var options = request.Options ?? new AxisGeometryOptions();
         ValidateRequest(request, options);
@@ -76,6 +109,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             }
 
             accepted.Add(observation);
+            if (work is not null) work.AcceptedLineCount++;
         }
 
         if (accepted.Count == 0)
@@ -97,11 +131,13 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             Orientation.Horizontal,
             options,
             cancellationToken);
+        if (work is not null) work.HorizontalFamilyCount = horizontalFamilies.Count;
         var verticalFamilies = BuildFamilies(
             vertical,
             Orientation.Vertical,
             options,
             cancellationToken);
+        if (work is not null) work.VerticalFamilyCount = verticalFamilies.Count;
 
         var frameFamilies = FindEnclosingFrameFamilies(
             horizontalFamilies,
@@ -111,8 +147,10 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
 
         var horizontalAxisFamilies = BuildConnectedAxisFamilies(
             horizontalFamilies, frameFamilies, options, cancellationToken);
+        if (work is not null) work.HorizontalAxisFamilyCount = horizontalAxisFamilies.Count;
         var verticalAxisFamilies = BuildConnectedAxisFamilies(
             verticalFamilies, frameFamilies, options, cancellationToken);
+        if (work is not null) work.VerticalAxisFamilyCount = verticalAxisFamilies.Count;
 
         if (request.MaximumExaminedPairs is <= 0) throw new ArgumentOutOfRangeException(nameof(request));
         double contactTolerance = options.MergeDistancePixels * 2d;
@@ -122,7 +160,8 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             ? CreateContactEnvelopes(verticalAxisFamilies, contactTolerance, cancellationToken) : [];
         long maximumEnvelopeComparisons = request.MaximumExaminedPairs is int limit ? checked((long)limit * limit) : 0;
         var pairCandidates = new List<AxisPair>();
-        long examinedPairs = 0, envelopeComparisons = 0;
+        long examinedPairs = 0, unobservedEnvelopeComparisons = 0;
+        ref long envelopeComparisons = ref (work is null ? ref unobservedEnvelopeComparisons : ref work.EnvelopeComparisons);
         bool useEnvelopeIndex = request.MaximumExaminedPairs is not null &&
             (long)horizontalAxisFamilies.Count * verticalAxisFamilies.Count > maximumEnvelopeComparisons;
         EnvelopeIndex? envelopeIndex = useEnvelopeIndex
@@ -147,6 +186,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
                             AxisGeometryBudgetKind.EnvelopeComparisons);
                     if (horizontalEnvelopes[horizontalIndex].IsDisjoint(verticalEnvelopes[verticalIndex])) continue;
                 }
+                if (work is not null) work.IntersectionsChecked++;
                 if (!TryIntersect(horizontalFamily, verticalFamily, out var intersection))
                 {
                     continue;
@@ -160,27 +200,35 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
                 {
                     continue;
                 }
+                if (work is not null) work.IntersectionsInside++;
+                AxisPairExtents? boundedExtents = null;
                 if (request.MaximumExaminedPairs is int maximum)
                 {
                     // The fitted lines have only one intersection. Envelope overlap
                     // elsewhere cannot supply observed contact at that point.
                     if (!horizontalEnvelopes[horizontalIndex].Contains(intersection) ||
                         !verticalEnvelopes[verticalIndex].Contains(intersection)) continue;
-                    // ScoreAxisPair can only reduce these forward projections when
-                    // clipping to the frame, so nonpositive extents can never be admitted.
-                    Vector2 xDirection = horizontalFamily.Direction.X >= 0d
-                        ? horizontalFamily.Direction : horizontalFamily.Direction.Negate();
-                    Vector2 upDirection = verticalFamily.Direction.Y <= 0d
-                        ? verticalFamily.Direction : verticalFamily.Direction.Negate();
-                    if (!(Endpoints(horizontalFamily.Line).Max(point => Project(point, intersection, xDirection)) > 0d) ||
-                        !(Endpoints(verticalFamily.Line).Max(point => Project(point, intersection, upDirection)) > 0d)) continue;
+                    // Reuse scoring's exact frame clipping: a nonpositive final
+                    // extent can never be admitted, even when raw projections are positive.
+                    boundedExtents = MeasureAxisPairExtents(horizontalFamily, verticalFamily, intersection,
+                        request.ImageWidth, request.ImageHeight);
+                    work?.RecordExtents(boundedExtents.Value);
+                    if (!(boundedExtents.Value.RightDistance > 0d) || !(boundedExtents.Value.TopDistance > 0d)) continue;
+                    if (work is not null) work.ExactPairRequests++;
                     if (++examinedPairs > maximum)
                         throw DetectionFailure("Axis pair examination limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded,
                             AxisGeometryBudgetKind.ExactPairs);
                 }
-                if (!HasObservedContact(horizontalFamily, intersection, options.MergeDistancePixels * 2d) ||
-                    !HasObservedContact(verticalFamily, intersection, options.MergeDistancePixels * 2d))
+                else if (work is not null) work.ExactPairRequests++;
+                if (work is not null) work.ExactPairAttempts++;
+                if (!HasObservedContact(horizontalFamily, intersection, options.MergeDistancePixels * 2d))
                 {
+                    if (work is not null) work.HorizontalContactRejections++;
+                    continue;
+                }
+                if (!HasObservedContact(verticalFamily, intersection, options.MergeDistancePixels * 2d))
+                {
+                    if (work is not null) work.VerticalContactRejections++;
                     continue;
                 }
 
@@ -189,13 +237,22 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
                     verticalFamily,
                     intersection,
                     request.ImageWidth,
-                    request.ImageHeight);
+                    request.ImageHeight,
+                    boundedExtents,
+                    out AxisPairExtents scoredExtents);
+                if (work is not null)
+                {
+                    if (boundedExtents is null) work.RecordExtents(scoredExtents);
+                    work.ScoredPairs++;
+                }
                 if (pair.RightDistance > 0d && pair.TopDistance > 0d)
                 {
                     pairCandidates.Add(pair);
+                    if (work is not null) work.AdmittedPairs++;
                 }
             }
         }
+        if (work is not null) work.EnumerationCompleted = true;
 
         if (pairCandidates.Count == 0)
         {
@@ -625,8 +682,8 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         SortEnvelopeIndices(order, envelopes, maximum, ref work, token);
         double[] maximumRight = new double[order.Length];
         long localWork = work;
-        Populate(0, order.Length);
-        work = localWork;
+        try { Populate(0, order.Length); }
+        finally { work = localWork; }
         return new EnvelopeIndex(envelopes, order, maximumRight);
 
         double Populate(int start, int end)
@@ -645,9 +702,12 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
     {
         var results = new List<int>();
         long localWork = work;
-        Search(0, index.Order.Length);
-        RestoreEnvelopeOrder(results, maximum, ref localWork, token);
-        work = localWork;
+        try
+        {
+            Search(0, index.Order.Length);
+            RestoreEnvelopeOrder(results, maximum, ref localWork, token);
+        }
+        finally { work = localWork; }
         return results;
 
         void Search(int start, int end)
@@ -908,37 +968,17 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         LineFamily vertical,
         PixelPoint intersection,
         int imageWidth,
-        int imageHeight)
+        int imageHeight,
+        AxisPairExtents? measuredExtents,
+        out AxisPairExtents extents)
     {
-        var xDirection = horizontal.Direction.X >= 0d
-            ? horizontal.Direction
-            : horizontal.Direction.Negate();
-        var upDirection = vertical.Direction.Y <= 0d
-            ? vertical.Direction
-            : vertical.Direction.Negate();
-
-        var horizontalProjections = Endpoints(horizontal.Line)
-            .Select(point => Project(point, intersection, xDirection))
-            .ToArray();
-        var verticalProjections = Endpoints(vertical.Line)
-            .Select(point => Project(point, intersection, upDirection))
-            .ToArray();
-        var rightDistance = Math.Min(
-            horizontalProjections.Max(),
-            MaximumRayDistanceInsideFrame(intersection, xDirection, imageWidth, imageHeight));
-        var leftExtension = Math.Max(0d, -horizontalProjections.Min());
-        var topDistance = Math.Min(
-            verticalProjections.Max(),
-            MaximumRayDistanceInsideFrame(intersection, upDirection, imageWidth, imageHeight));
-        var topLeft = Add(intersection, upDirection, topDistance);
-        rightDistance = Math.Min(
-            rightDistance,
-            MaximumRayDistanceInsideFrame(topLeft, xDirection, imageWidth, imageHeight));
-        var bottomRight = Add(intersection, xDirection, rightDistance);
-        topDistance = Math.Min(
-            topDistance,
-            MaximumRayDistanceInsideFrame(bottomRight, upDirection, imageWidth, imageHeight));
-        var bottomExtension = Math.Max(0d, -verticalProjections.Min());
+        extents = measuredExtents ?? MeasureAxisPairExtents(horizontal, vertical, intersection, imageWidth, imageHeight);
+        var xDirection = extents.XDirection;
+        var upDirection = extents.UpDirection;
+        var rightDistance = extents.RightDistance;
+        var topDistance = extents.TopDistance;
+        var leftExtension = extents.LeftExtension;
+        var bottomExtension = extents.BottomExtension;
 
         var horizontalSpanScore = Clamp01(horizontal.Span / (imageWidth * 0.75d));
         var verticalSpanScore = Clamp01(vertical.Span / (imageHeight * 0.75d));
@@ -969,6 +1009,48 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             rightDistance,
             topDistance,
             score);
+    }
+
+    private static AxisPairExtents MeasureAxisPairExtents(
+        LineFamily horizontal,
+        LineFamily vertical,
+        PixelPoint intersection,
+        int imageWidth,
+        int imageHeight)
+    {
+        var xDirection = horizontal.Direction.X >= 0d
+            ? horizontal.Direction
+            : horizontal.Direction.Negate();
+        var upDirection = vertical.Direction.Y <= 0d
+            ? vertical.Direction
+            : vertical.Direction.Negate();
+
+        var horizontalProjections = Endpoints(horizontal.Line)
+            .Select(point => Project(point, intersection, xDirection))
+            .ToArray();
+        var verticalProjections = Endpoints(vertical.Line)
+            .Select(point => Project(point, intersection, upDirection))
+            .ToArray();
+        var rawRightDistance = horizontalProjections.Max();
+        var rightDistance = Math.Min(
+            rawRightDistance,
+            MaximumRayDistanceInsideFrame(intersection, xDirection, imageWidth, imageHeight));
+        var leftExtension = Math.Max(0d, -horizontalProjections.Min());
+        var rawTopDistance = verticalProjections.Max();
+        var topDistance = Math.Min(
+            rawTopDistance,
+            MaximumRayDistanceInsideFrame(intersection, upDirection, imageWidth, imageHeight));
+        var topLeft = Add(intersection, upDirection, topDistance);
+        rightDistance = Math.Min(
+            rightDistance,
+            MaximumRayDistanceInsideFrame(topLeft, xDirection, imageWidth, imageHeight));
+        var bottomRight = Add(intersection, xDirection, rightDistance);
+        topDistance = Math.Min(
+            topDistance,
+            MaximumRayDistanceInsideFrame(bottomRight, upDirection, imageWidth, imageHeight));
+        var bottomExtension = Math.Max(0d, -verticalProjections.Min());
+
+        return new(xDirection, upDirection, rightDistance, topDistance, leftExtension, bottomExtension, rawRightDistance, rawTopDistance);
     }
 
     private static int CompareAxisPairs(AxisPair left, AxisPair right)
@@ -1780,6 +1862,38 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         public bool SegmentFits(GeometryLineSegment segment, double tolerance) =>
             Distance(segment.Start) <= tolerance && Distance(segment.End) <= tolerance;
     }
+
+    private sealed class WorkCounters(int inputLineCount)
+    {
+        internal int AcceptedLineCount, HorizontalFamilyCount, VerticalFamilyCount, HorizontalAxisFamilyCount, VerticalAxisFamilyCount;
+        internal long EnvelopeComparisons, IntersectionsChecked, IntersectionsInside, RawNonpositiveExtents, ClippedNonpositiveExtents;
+        internal long ExactPairRequests, ExactPairAttempts, HorizontalContactRejections, VerticalContactRejections, ScoredPairs, AdmittedPairs;
+        internal bool EnumerationCompleted, Cancelled;
+        internal AxisGeometryFailureReason? FailureReason;
+        internal AxisGeometryBudgetKind BudgetKind;
+
+        internal void RecordExtents(AxisPairExtents extents)
+        {
+            if (!(extents.RawRightDistance > 0d) || !(extents.RawTopDistance > 0d)) RawNonpositiveExtents++;
+            else if (!(extents.RightDistance > 0d) || !(extents.TopDistance > 0d)) ClippedNonpositiveExtents++;
+        }
+
+        internal AxisGeometryWorkSnapshot Snapshot() => new(inputLineCount, AcceptedLineCount,
+            HorizontalFamilyCount, VerticalFamilyCount, HorizontalAxisFamilyCount, VerticalAxisFamilyCount,
+            EnvelopeComparisons, IntersectionsChecked, IntersectionsInside, RawNonpositiveExtents, ClippedNonpositiveExtents,
+            ExactPairRequests, ExactPairAttempts, HorizontalContactRejections, VerticalContactRejections, ScoredPairs, AdmittedPairs,
+            EnumerationCompleted, Cancelled, FailureReason, BudgetKind);
+    }
+
+    private readonly record struct AxisPairExtents(
+        Vector2 XDirection,
+        Vector2 UpDirection,
+        double RightDistance,
+        double TopDistance,
+        double LeftExtension,
+        double BottomExtension,
+        double RawRightDistance,
+        double RawTopDistance);
 
     private sealed record AxisPair(
         LineFamily Horizontal,

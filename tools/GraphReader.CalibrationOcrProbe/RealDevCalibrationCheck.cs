@@ -573,6 +573,29 @@ internal static partial class RealDevCalibrationCheck
                 DirectionalRustHash, DirectionalRuntimeLibraries, token);
         }
 
+        internal static Candidate VerifyNativeWork(string app, string assets, string rust, CancellationToken token)
+        {
+            RequireNativeRejectionPins(NativeWorkAppExeHash, NativeWorkAppDllHash, NativeWorkRustHash, NativeWorkRuntimeLibraries);
+            Candidate result = VerifyPinned(app, assets, rust, NativeWorkAppExeHash, NativeWorkAppDllHash,
+                NativeWorkRustHash, NativeWorkRuntimeLibraries, token);
+            try
+            {
+                OpenCvSharp.Cv2.SetNumThreads(1);
+                if (OpenCvSharp.Cv2.GetNumThreads() != 1 ||
+                    !NativeWorkRuntimeLibraries.TryGetValue("OpenCvSharpExtern.dll", out string? expected) ||
+                    expected != ForwardExtentOpenCvExternHash) throw new InvalidDataException();
+                using Process current = Process.GetCurrentProcess();
+                string[] modules = current.Modules.Cast<ProcessModule>()
+                    .Select(module => module.FileName)
+                    .Where(path => string.Equals(Path.GetFileName(path), "OpenCvSharpExtern.dll", StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+                if (modules.Length != 1 || !Path.IsPathFullyQualified(modules[0])) throw new InvalidDataException();
+                _ = result.Pin(modules[0], expected, token);
+                return result;
+            }
+            catch { result.Dispose(); throw; }
+        }
+
         private static Candidate VerifyPinned(string app, string assets, string rust, string expectedExe, string expectedDll,
             string expectedRust, FrozenDictionary<string, string> libraries, CancellationToken token, bool requirePrintedXReviewDraft = false)
         {

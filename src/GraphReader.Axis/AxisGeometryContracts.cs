@@ -125,6 +125,10 @@ public sealed record AxisGeometryRequest(
     /// </summary>
     public IAxisGeometryCandidateObserver? CandidateObserver { get; init; }
 
+    /// <summary>Optional aggregate work diagnostics, including failed/cancelled prefixes.
+    /// Observer exceptions do not affect detection. No locations or candidate identities are emitted.</summary>
+    public IAxisGeometryWorkObserver? WorkObserver { get; init; }
+
     /// <summary>
     /// Optional fail-closed limit B on member-contact and scoring examinations.
     /// Bounded searches first compare envelopes of all observed member endpoints,
@@ -137,6 +141,38 @@ public sealed record AxisGeometryRequest(
     /// </summary>
     public int? MaximumExaminedPairs { get; init; }
 }
+
+public interface IAxisGeometryWorkObserver
+{
+    void OnWorkObserved(AxisGeometryWorkSnapshot snapshot);
+}
+
+/// <summary>Immutable counts for one search. EnvelopeComparisons is the shared cheap-work
+/// counter, including index work and an over-budget request. ExactPairAttempts excludes
+/// an over-budget request. Only actually executed contact predicates contribute rejections.
+/// EnumerationCompleted distinguishes exhaustive search from an interrupted prefix.</summary>
+public sealed record AxisGeometryWorkSnapshot(
+    int InputLineCount,
+    int AcceptedLineCount,
+    int HorizontalFamilyCount,
+    int VerticalFamilyCount,
+    int HorizontalAxisFamilyCount,
+    int VerticalAxisFamilyCount,
+    long EnvelopeComparisons,
+    long IntersectionsChecked,
+    long IntersectionsInside,
+    long RawNonpositiveExtents,
+    long ClippedNonpositiveExtents,
+    long ExactPairRequests,
+    long ExactPairAttempts,
+    long HorizontalContactRejections,
+    long VerticalContactRejections,
+    long ScoredPairs,
+    long AdmittedPairs,
+    bool EnumerationCompleted,
+    bool Cancelled,
+    AxisGeometryFailureReason? FailureReason,
+    AxisGeometryBudgetKind BudgetKind);
 
 /// <summary>
 /// Receives a best-first snapshot of the axis-pair candidates considered by the
