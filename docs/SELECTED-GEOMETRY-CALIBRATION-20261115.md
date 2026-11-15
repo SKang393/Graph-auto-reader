@@ -75,18 +75,24 @@ These are compiler outputs, not a new packaged build identity or inference timin
 
 ## Integration, delivery and retention
 
-The local source checks pass. Full exact-source Windows CI and packaged native
-verification remain pending. `Prepare-CheckpointVersion.ps1 -PrepareNext`
+The local source checks pass. Full exact-source Windows CI passed 2,995 .NET
+tests with 30 skips and zero failures, plus 63 Rust tests. Packaged 0.4.54 native
+verification retained the selected anchors and warning through six measured
+tick pairs, explicit review, Apply and Undo; see the
+[delivery record](INTERNAL-PREVIEW-454-VERIFICATION-20261115.md).
+`Prepare-CheckpointVersion.ps1 -PrepareNext`
 prepared 0.4.54 once for one integrated internal preview containing the native
 representation repair, endpoint label-lane repair and this routing correction.
-The active retained package remains 0.4.53 until replacement verification,
-upload, ledger push and activation finish. No public release or model approval
+The active pointer remains 0.4.53 until the verified replacement's ledger push
+and activation finish. No public release or model approval
 is part of this batch. Dependencies and licenses are unchanged; source remains
 Apache-2.0.
 
 No real-graph accuracy gain is claimed. The owned control supplies geometry and
 literal OCR rows to exercise the application route; actual packaged pixels/OCR
-are a separate check. The seven completed files / 149,621 bytes in
-`artifacts/selected-geometry-calibration-check` can retire after this outcome
-and source are pushed and their integration consumer finishes. Preserve current
-runtime dependencies, original inputs and independent data.
+are a separate check. After this source/outcome reached origin/main in
+`ee2fd787`, the seven completed files / 149,621 bytes in
+`artifacts/selected-geometry-calibration-check` were retired at
+`2026-11-15T16:08:06.9148535Z`. Their integration consumer had finished; exact path,
+inventory, reparse and live-process guards passed. Current runtime dependencies,
+original inputs and independent data were preserved.
