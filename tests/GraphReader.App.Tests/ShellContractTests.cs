@@ -103,7 +103,7 @@ public sealed class ShellContractTests
     }
 
     [TestMethod]
-    public void ManualCalibrationExposesFirstVisibleSessionAsLocalizedInput()
+    public void ManualCalibrationExposesModeLocalizedXInputsAndValidation()
     {
         var document = LoadMainWindow();
         XNamespace automation = AutomationNamespace;
@@ -115,18 +115,28 @@ public sealed class ShellContractTests
             "{Binding ManualFirstVisibleSessionText, UpdateSourceTrigger=PropertyChanged}",
             input.Attribute("Text")?.Value);
         Assert.AreEqual(
-            "{DynamicResource Manual.FirstVisibleSession}",
+            "{Binding ManualFirstXLabel}",
             input.Attribute(automation + "AutomationProperties.Name")?.Value);
         Assert.AreEqual(
-            "{DynamicResource Manual.SessionRangeHelp}",
+            "{Binding ManualXRangeHelp}",
             input.Attribute(automation + "AutomationProperties.HelpText")?.Value);
+
+        XElement finalInput = document.Descendants(XName.Get("TextBox", PresentationNamespace))
+            .Single(element => element.Attribute(automation + "AutomationProperties.AutomationId")?.Value
+                == "Manual.XMaximum");
+        Assert.AreEqual("{Binding ManualFinalXLabel}",
+            finalInput.Attribute(automation + "AutomationProperties.Name")?.Value);
+        Assert.AreEqual("{Binding ManualXRangeHelp}",
+            finalInput.Attribute(automation + "AutomationProperties.HelpText")?.Value);
 
         XElement validation = document.Descendants(XName.Get("TextBlock", PresentationNamespace))
             .Single(element => element.Attribute(automation + "AutomationProperties.AutomationId")?.Value
                 == "Manual.FirstVisibleSession.Validation");
         Assert.AreEqual(
-            "{DynamicResource Manual.FirstVisibleSession.Invalid}",
+            "{Binding ManualFirstXInvalidText}",
             validation.Attribute("Text")?.Value);
+        Assert.AreEqual("{Binding ManualFirstXInvalidText}",
+            validation.Attribute(automation + "AutomationProperties.Name")?.Value);
         Assert.IsTrue(validation.Descendants(XName.Get("DataTrigger", PresentationNamespace)).Any(trigger =>
             trigger.Attribute("Value")?.Value == "False" &&
             trigger.Elements(XName.Get("Setter", PresentationNamespace)).Any(setter =>

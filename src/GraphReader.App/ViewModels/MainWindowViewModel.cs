@@ -329,6 +329,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         RestoreManualCalibrationForm(_selectedTab);
         RefreshWorkspaceProjection();
         InitializeCalibrationDevices(calibrationOcrDevices, calibrationDeviceOptimizer);
+        if (_localizationService is not null)
+        {
+            _localizationService.CultureChanged += OnCalibrationCultureChanged;
+        }
     }
 
     public ObservableCollection<WorkspaceTabViewModel> Tabs { get; }
@@ -2398,6 +2402,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        if (_localizationService is not null)
+        {
+            _localizationService.CultureChanged -= OnCalibrationCultureChanged;
+        }
         DisposeCalibrationDevices();
         _activeOperation?.Cancel();
         _activeOperation?.Dispose();

@@ -38,13 +38,18 @@ public sealed partial class MainWindowViewModel
     {
         if (!SetProperty(ref _suggestedUsesPrintedXCoordinates, value, nameof(SuggestedUsesPrintedXCoordinates))) return;
         AxisSuggestionReviewed = false;
+        NotifySuggestedPrintedXLabelsChanged();
+        OnPropertyChanged(nameof(HasPrintedXReviewDraft));
+        OnPropertyChanged(nameof(AxisSuggestionSummary));
+        RelayCommand.RaiseCanExecuteChanged();
+    }
+
+    private void NotifySuggestedPrintedXLabelsChanged()
+    {
         OnPropertyChanged(nameof(SuggestedFirstXLabel));
         OnPropertyChanged(nameof(SuggestedFinalXLabel));
         OnPropertyChanged(nameof(UseCalibrationLabelForFirstXText));
         OnPropertyChanged(nameof(UseCalibrationLabelForFinalXText));
-        OnPropertyChanged(nameof(HasPrintedXReviewDraft));
-        OnPropertyChanged(nameof(AxisSuggestionSummary));
-        RelayCommand.RaiseCanExecuteChanged();
     }
     public bool HasAxisGeometryReviewWarning => _axisSuggestion is { Provider: "opencv-review" };
     public string AxisGeometryReviewWarningText => !HasAxisGeometryReviewWarning ? string.Empty : GetLocalizedString(

@@ -15,6 +15,14 @@ public sealed partial class MainWindowViewModel
     public string ManualFirstXInvalidText => GetLocalizedString(ManualUsesPrintedXCoordinates
         ? LocalizationKeys.ManualPrintedXInvalid : LocalizationKeys.ManualFirstVisibleSessionInvalid);
 
+    private void OnCalibrationCultureChanged(object? sender, LocalizationChangedEventArgs e)
+    {
+        NotifyManualPrintedXLabelsChanged();
+        NotifySuggestedPrintedXLabelsChanged();
+        OnPropertyChanged(nameof(AxisSuggestionSummary));
+        OnPropertyChanged(nameof(AxisGeometryReviewWarningText));
+    }
+
     private void NotifyManualPrintedXLabelsChanged()
     {
         OnPropertyChanged(nameof(ManualFirstXLabel));
