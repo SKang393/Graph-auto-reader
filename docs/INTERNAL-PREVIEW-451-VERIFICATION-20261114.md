@@ -83,5 +83,6 @@ has zero complete calibrations. The separate
 [fixed 451 confirmation](PREPARED-CALIBRATION-451-DIAGNOSTIC-20261114.md) completed
 all 120 projects and 127 effective panels with 50 geometry/OCR panels, 367 numeric
 rows and zero complete proposals. This remains failed automatic readiness.
-Retire staging leftovers after their active consumers finish, preserving the
-owned images still referenced by the saved native QA project.
+The completed delivery staging leftovers were subsequently
+[retired after the outcome push](HOSTED-PREVIEW-451-RETIREMENT-20261114.md),
+preserving the active package and owned inputs referenced by native QA projects.
