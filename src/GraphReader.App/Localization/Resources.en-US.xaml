@@ -53,6 +53,12 @@
   <sys:String x:Key="Review.AnalysisNeedsReview.Symbol">!</sys:String>
   <sys:String x:Key="Errors.OperationFailed">The operation could not be completed. Review the current inputs and try again.</sys:String>
   <sys:String x:Key="Errors.ManualEditRejected">The edit could not be applied. Review the selected values and try again.</sys:String>
+  <sys:String x:Key="Errors.ManualAffinePhasesUnsupported">Phase dividers require horizontal and vertical axes. Remove existing dividers before applying rotated calibration.</sys:String>
+  <sys:String x:Key="Errors.ManualAffineDetectionUnsupported">Automatic detection requires horizontal and vertical axes. Manual point editing and export remain available for this rotated calibration.</sys:String>
+  <sys:String x:Key="Manual.AffineCalibrationNotice">Rotated calibration supports manual points and export. Automatic detection and phase dividers are currently unavailable.</sys:String>
+  <sys:String x:Key="Errors.ManualAxisPairBudgetExceeded">The axis search found too many possible intersections. Crop one graph including its labels, or choose Calibrate axes to mark three points manually.</sys:String>
+  <sys:String x:Key="Errors.ManualAxisRotatedUnsupported">The detected axes are tilted, so automatic calibration is unavailable. Choose Calibrate axes to mark the three actual axis points.</sys:String>
+  <sys:String x:Key="Errors.ManualAxisTimeout">The axis search reached its time limit. Crop one graph including its labels, or choose Calibrate axes to mark three points manually.</sys:String>
   <sys:String x:Key="Errors.EnhancementConfigurationInvalid">The Real-ESRGAN configuration is invalid. Continue with the unchanged original image.</sys:String>
   <sys:String x:Key="Errors.EnhancementModelIncompatible">This Real-ESRGAN model failed graph-content compatibility validation and cannot be used. Continue with the unchanged original image.</sys:String>
   <sys:String x:Key="Errors.EnhancementRuntimeUnavailable">The approved local Real-ESRGAN runtime is unavailable. Continue with the unchanged original image.</sys:String>

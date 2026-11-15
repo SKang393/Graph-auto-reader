@@ -49,6 +49,8 @@ public sealed record ManualCalibrationRequest(
     double FirstVisibleSession = 1)
 {
     public bool UsesPrintedXCoordinates { get; init; }
+    /// <summary>Retain an explicitly supplied nonaligned basis instead of the legacy two-pixel click tolerance.</summary>
+    public bool PreserveAffineGeometry { get; init; }
 }
 
 public sealed record ManualSeriesDefinition(

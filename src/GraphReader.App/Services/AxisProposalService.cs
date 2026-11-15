@@ -49,11 +49,26 @@ public sealed class RustFirstAxisProposalService(IAxisProposalService primary, I
         if (result.Geometry is not null || result.ErrorCode is not ("NO_AXIS" or "NO_INTERSECTION" or "AMBIGUOUS_AXIS")) return result;
         RustAxisProposalResult review = await _fallback.SuggestAsync(originalImage, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        if (result.ErrorCode == "AMBIGUOUS_AXIS")
+        if (review.Geometry is null)
         {
-            if (review.Geometry is null) return result;
-            return review with { ReviewReasons = review.ReviewReasons.Append("rust_axis_ambiguous").Distinct(StringComparer.Ordinal).ToArray() };
+            if (review.Provider != "opencv-review" || review.ReviewReasons is not { Count: <= 32 } ||
+                review.ReviewReasons.Any(reason => string.IsNullOrWhiteSpace(reason) || reason.Length > 128) ||
+                result.ReviewReasons is null || result.ReviewReasons.Count > 32 ||
+                result.ReviewReasons.Any(reason => string.IsNullOrWhiteSpace(reason) || reason.Length > 128)) return result;
+            IEnumerable<string> details = review.ErrorCode switch
+            {
+                "OPENCV_AXIS_TIMEOUT" => ["native_axis_timeout"],
+                "OPENCV_AXIS_AMBIGUOUS" when review.ReviewReasons is { Count: <= 32 } reasons &&
+                    reasons.All(reason => !string.IsNullOrWhiteSpace(reason) && reason.Length <= 128) =>
+                    reasons.Where(reason => reason is "native_pair_budget_exceeded" or "native_envelope_budget_exceeded" or "native_rotated_geometry"),
+                _ => [],
+            };
+            string[] merged = result.ReviewReasons.Concat(details).Distinct(StringComparer.Ordinal).ToArray();
+            return merged.Length is > 32 || merged.SequenceEqual(result.ReviewReasons) ? result :
+                result with { ReviewReasons = Array.AsReadOnly(merged) };
         }
+        if (result.ErrorCode == "AMBIGUOUS_AXIS")
+            return review with { ReviewReasons = review.ReviewReasons.Append("rust_axis_ambiguous").Distinct(StringComparer.Ordinal).ToArray() };
         return review;
     }
 }

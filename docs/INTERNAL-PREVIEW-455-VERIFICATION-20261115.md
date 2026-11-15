@@ -169,8 +169,10 @@ Helper SHA-256:
 Every target was resolved beneath this worktree's artifacts directory, with
 matching counts/bytes/hashes, no reparse points and no live consumers. The sole
 package, all 16 shared Data files, development trace and unrelated primary
-edits remained unchanged. The temporary helper and manifest retire after this
-receipt is pushed; their current purpose is this closeout only.
+edits remained unchanged. After receipt `84c2bc2b599caf680b24eb7760b8b509e36a57f9`
+was pushed, the temporary helper, manifest and intermediate ledger JSON were
+also retired after exact hash/path checks: three files / 115,476 bytes,
+verified at `2026-11-15T21:05:17.2935693Z`.
 The small current fixed-development trace remains the comparison input for the
 next geometry revision; originals, the owned source fixture, models and active
 compilation outputs are outside cleanup scope.

@@ -992,6 +992,11 @@
             <TextBlock FontSize="{DynamicResource App.FontSize.Subtitle}"
                        FontWeight="SemiBold"
                        Text="{DynamicResource Manual.Title}" />
+            <TextBlock Margin="0,0,0,8" TextWrapping="Wrap"
+                       Text="{DynamicResource Manual.AffineCalibrationNotice}"
+                       Visibility="{Binding HasAffineManualCalibration, Converter={StaticResource BooleanToVisibilityConverter}}"
+                       automation:AutomationProperties.AutomationId="Manual.AffineCalibrationNotice"
+                       automation:AutomationProperties.Name="{DynamicResource Manual.AffineCalibrationNotice}" />
             <Button Command="{Binding SuggestAxesCommand}" Content="{DynamicResource Manual.SuggestAxes}"
                     automation:AutomationProperties.AutomationId="Manual.SuggestAxes"
                     automation:AutomationProperties.Name="{DynamicResource Manual.SuggestAxes}"

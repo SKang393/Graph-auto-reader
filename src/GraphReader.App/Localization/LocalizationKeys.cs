@@ -50,6 +50,12 @@ public static class LocalizationKeys
     public const string DetectionCalibrationMultiple = "Errors.DetectionCalibrationMultiple";
     public const string OperationFailed = "Errors.OperationFailed";
     public const string ManualEditRejected = "Errors.ManualEditRejected";
+    public const string ManualAffinePhasesUnsupported = "Errors.ManualAffinePhasesUnsupported";
+    public const string ManualAffineDetectionUnsupported = "Errors.ManualAffineDetectionUnsupported";
+    public const string ManualAffineCalibrationNotice = "Manual.AffineCalibrationNotice";
+    public const string ManualAxisPairBudgetExceeded = "Errors.ManualAxisPairBudgetExceeded";
+    public const string ManualAxisRotatedUnsupported = "Errors.ManualAxisRotatedUnsupported";
+    public const string ManualAxisTimeout = "Errors.ManualAxisTimeout";
     public const string EnhancementConfigurationInvalid = "Errors.EnhancementConfigurationInvalid";
     public const string EnhancementModelIncompatible = "Errors.EnhancementModelIncompatible";
     public const string EnhancementRuntimeUnavailable = "Errors.EnhancementRuntimeUnavailable";
@@ -495,6 +501,12 @@ public static class LocalizationKeys
         DetectionCalibrationMultiple,
         OperationFailed,
         ManualEditRejected,
+        ManualAffinePhasesUnsupported,
+        ManualAffineDetectionUnsupported,
+        ManualAffineCalibrationNotice,
+        ManualAxisPairBudgetExceeded,
+        ManualAxisRotatedUnsupported,
+        ManualAxisTimeout,
         EnhancementConfigurationInvalid,
         EnhancementModelIncompatible,
         EnhancementRuntimeUnavailable,

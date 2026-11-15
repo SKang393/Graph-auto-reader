@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Input;
 using GraphReader.App.Controls;
+using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Localization;
 using GraphReader.App.Services;
 using GraphReader.Domain;
@@ -149,10 +150,19 @@ public sealed partial class MainWindowViewModel
 
         ClearAxisSuggestion();
         int generation = _axisSuggestionGeneration;
-        WorkspaceAxisSuggestion? suggestion = await workspace.SuggestAxesAsync(tab.TabId, token);
+        WorkspaceAxisSuggestion? suggestion;
+        try
+        {
+            suggestion = await workspace.SuggestAxesAsync(tab.TabId, token);
+        }
+        catch (ProductionWorkflowStageException) when (generation != _axisSuggestionGeneration ||
+            !ReferenceEquals(SelectedTab, tab))
+        {
+            return;
+        }
         token.ThrowIfCancellationRequested();
-        if (suggestion is null || generation != _axisSuggestionGeneration ||
-            !ReferenceEquals(SelectedTab, tab) || !workspace.IsAxisSuggestionCurrent(suggestion))
+        if (generation != _axisSuggestionGeneration || !ReferenceEquals(SelectedTab, tab)) return;
+        if (suggestion is null || !workspace.IsAxisSuggestionCurrent(suggestion))
         {
             SetStatus(GetLocalizedString(LocalizationKeys.ManualAxisUnavailable));
             return;

@@ -288,8 +288,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             _ => BeginAddPointForFill(MarkerFill.Open),
             _ => HasSeriesWithFill(MarkerFill.Open));
         BeginMovePointCommand = new RelayCommand(_ => EditorMode = ManualEditorMode.MovePoint, _ => CanMoveSelectedPoint());
-        BeginAddPhaseDividerCommand = new RelayCommand(_ => EditorMode = ManualEditorMode.AddPhaseDivider, _ => SelectedTab is not null && _manualWorkspaceService is not null);
-        BeginMovePhaseDividerCommand = new RelayCommand(_ => EditorMode = ManualEditorMode.MovePhaseDivider, _ => SelectedDividerId is not null && _manualWorkspaceService is not null);
+        BeginAddPhaseDividerCommand = new RelayCommand(_ => EditorMode = ManualEditorMode.AddPhaseDivider,
+            _ => SelectedTab is not null && _manualWorkspaceService is not null && !HasAffineManualCalibration);
+        BeginMovePhaseDividerCommand = new RelayCommand(_ => EditorMode = ManualEditorMode.MovePhaseDivider,
+            _ => SelectedDividerId is not null && _manualWorkspaceService is not null && !HasAffineManualCalibration);
         DeletePhaseDividerCommand = new RelayCommand(_ => DeleteSelectedPhaseDivider(), _ => SelectedDividerId is not null && _manualWorkspaceService is not null);
         LabelPhaseDividerCommand = new RelayCommand(_ => LabelSelectedPhaseDivider(), _ => SelectedDividerId is not null && _manualWorkspaceService is not null);
         UndoCommand = new RelayCommand(_ => UndoSelectedTab(), _ => CanUndo && !IsBusy);
@@ -682,6 +684,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 : LocalizationKeys.ManualPanelCropReview),
         _ => GetLocalizedString(LocalizationKeys.ManualInstructionSelect),
     };
+
+    public bool HasAffineManualCalibration => SelectedTab?.Calibration is { } calibration &&
+        !ManualCalibrationMapper.IsAxisAligned(calibration);
 
     public double ManualYMaximum
     {
@@ -1344,9 +1349,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             tab.PixelHeight > 0 ? Math.Clamp(point.Y / tab.PixelHeight, 0, 1) : 0);
         if (tab.Calibration is { } calibration)
         {
-            Magnifier.GraphPosition = new Point(
-                calibration.XTransform.PixelToGraph(point.X),
-                calibration.YTransform.PixelToGraph(point.Y));
+            var graphPoint = ManualCalibrationMapper.Map(calibration, point.X, point.Y);
+            Magnifier.GraphPosition = new Point(graphPoint.X, graphPoint.Y);
         }
         else
         {
@@ -2993,6 +2997,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private void NotifyReviewStateChanged()
     {
+        OnPropertyChanged(nameof(HasAffineManualCalibration));
         OnPropertyChanged(nameof(AutoDetectionAvailabilityText));
         OnPropertyChanged(nameof(ReviewIssueCount));
         OnPropertyChanged(nameof(BlockingReviewIssueCount));

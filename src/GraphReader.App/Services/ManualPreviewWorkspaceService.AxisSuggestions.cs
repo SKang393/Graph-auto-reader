@@ -4,6 +4,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using GraphReader.App.ViewModels;
+using GraphReader.App.Integration.Workflow;
+using GraphReader.App.Localization;
 using GraphReader.Axis;
 
 namespace GraphReader.App.Services;
@@ -91,6 +93,10 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
         byte[] bytes = originalImage.Copy();
         RustAxisProposalResult result = await _axisProposalService!.SuggestAsync(bytes, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
+        if (!_tabs.Contains(tab) || !_originalPanelBytesByTab.TryGetValue(tabId, out var currentImage) ||
+            !ReferenceEquals(currentImage, originalImage) || binding != AxisSuggestionBinding(tab)) return null;
+        if (result.Geometry is null && AxisFailure(result) is { } failure)
+            throw new ProductionWorkflowStageException(failure);
         if (result.Geometry is not { } geometry || geometry.Left < 0 || geometry.Right >= tab.PixelWidth ||
             geometry.Top < 0 || geometry.Bottom >= tab.PixelHeight || geometry.Left >= geometry.Right ||
             geometry.Top >= geometry.Bottom || !double.IsFinite(geometry.Confidence) || geometry.Confidence is < 0 or > 1)
@@ -103,6 +109,31 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
             ReviewReasons = Array.AsReadOnly(result.ReviewReasons.ToArray()),
         };
         return IsAxisSuggestionCurrent(suggestion) ? suggestion : null;
+    }
+
+    private static ProductionWorkflowFailure? AxisFailure(RustAxisProposalResult result)
+    {
+        if (result.Geometry is not null || result.Provider is not ("rust" or "opencv-review")) return null;
+        string? reason = result.ErrorCode is "WORKER_TIMEOUT" or "OPENCV_AXIS_TIMEOUT" ? "timeout" : null;
+        if (reason is null && result.ErrorCode is ("NO_AXIS" or "NO_INTERSECTION" or "AMBIGUOUS_AXIS" or "OPENCV_AXIS_AMBIGUOUS") &&
+            result.ReviewReasons is { Count: <= 32 } reasons &&
+            reasons.All(value => !string.IsNullOrWhiteSpace(value) && value.Length <= 128))
+        {
+            if (reasons.Contains("native_axis_timeout", StringComparer.Ordinal)) reason = "timeout";
+            else if (reasons.Contains("native_pair_budget_exceeded", StringComparer.Ordinal) ||
+                reasons.Contains("native_envelope_budget_exceeded", StringComparer.Ordinal)) reason = "budget";
+            else if (reasons.Contains("native_rotated_geometry", StringComparer.Ordinal)) reason = "rotation";
+        }
+        return reason switch
+        {
+            "timeout" => new("WORKFLOW_AXIS_TIMEOUT", LocalizationKeys.ManualAxisTimeout,
+                "The axis detection worker timed out.", true, "Mark axes manually and review the calibration."),
+            "budget" => new("WORKFLOW_AXIS_PAIR_BUDGET_EXCEEDED", LocalizationKeys.ManualAxisPairBudgetExceeded,
+                "The native axis search reached its pair-work limit.", true, "Mark axes manually and review the calibration."),
+            "rotation" => new("WORKFLOW_AXIS_ROTATED_UNSUPPORTED", LocalizationKeys.ManualAxisRotatedUnsupported,
+                "The detected axis geometry is rotated beyond the review representation.", true, "Mark axes manually and review the calibration."),
+            _ => null,
+        };
     }
 
     public bool IsAxisSuggestionCurrent(WorkspaceAxisSuggestion suggestion)

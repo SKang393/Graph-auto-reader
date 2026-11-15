@@ -822,16 +822,18 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
     {
         WorkspaceTabViewModel tab = RequireTab(tabId);
         ValidateCalibrationRequest(request);
-        LinearAxisTransform xTransform = FitTransform(
+        bool aligned = ManualCalibrationMapper.UsesScalarMapping(request);
+        if (!aligned && tab.PhaseDividers.Count != 0) throw AffinePhasesUnsupported();
+        LinearAxisTransform? xTransform = aligned ? FitTransform(
             request.Session1Y0.X,
             request.FirstVisibleSession,
             request.SessionMaximumY0.X,
-            request.XMaximum);
-        LinearAxisTransform yTransform = FitTransform(
+            request.XMaximum) : null;
+        LinearAxisTransform? yTransform = aligned ? FitTransform(
             request.Session1Y0.Y,
             0,
             request.Session1YMaximum.Y,
-            request.YMaximum);
+            request.YMaximum) : null;
 
         var state = new ManualCalibrationState(
             request.Session1Y0,
@@ -849,6 +851,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             UpdatePointCoordinates(tab, point);
             MarkPointXAsManualEstimate(tab, point);
         }
+        ReindexAllSeries(tab);
 
         _verifiedManualCalibrationPendingByTab.Add(tab.TabId);
         try
@@ -1198,6 +1201,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
     public EditablePhaseDivider AddPhaseDivider(string tabId, double originalX, string code, string label)
     {
         WorkspaceTabViewModel tab = RequireTab(tabId);
+        if (tab.Calibration is { } calibration && !ManualCalibrationMapper.IsAxisAligned(calibration))
+            throw AffinePhasesUnsupported();
         ValidatePhaseLabel(code, label);
         string dividerId = Guid.NewGuid().ToString("D");
         PhaseManualOverrides current = GetOverrides(tab);
@@ -1224,6 +1229,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
     public void MovePhaseDivider(string tabId, string dividerId, double originalX)
     {
         WorkspaceTabViewModel tab = RequireTab(tabId);
+        if (tab.Calibration is { } calibration && !ManualCalibrationMapper.IsAxisAligned(calibration))
+            throw AffinePhasesUnsupported();
         EditablePhaseDivider divider = RequireDivider(tab, dividerId);
         PhaseEditResult edited = _phaseEditor.Apply(
             GetOverrides(tab),
@@ -1761,6 +1768,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     private PanelRecord SynchronizePanelForExport(WorkspaceTabViewModel tab)
     {
+        if (tab.Calibration is { } calibration && !ManualCalibrationMapper.IsAxisAligned(calibration) && tab.PhaseDividers.Count != 0)
+            throw AffinePhasesUnsupported();
         if (!Guid.TryParse(tab.PanelId, out Guid panelId))
         {
             throw new InvalidOperationException("The selected workspace tab has no persisted panel identity.");
@@ -1962,6 +1971,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     protected static double? FirstObservedSession(PanelRecord panel)
     {
+        bool affine = FromDomainCalibration(panel.Calibration) is { } calibration &&
+            !ManualCalibrationMapper.IsAxisAligned(calibration);
         SeriesRecord[] interventions = panel.Series.Where(static series =>
             series.SemanticRole == SemanticRole.Intervention).ToArray();
         HashSet<SeriesId> includedSeries = interventions.Select(static series => series.SeriesId).ToHashSet();
@@ -1973,7 +1984,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         HashSet<PointId> includedPoints = panel.Series.Where(series => includedSeries.Contains(series.SeriesId))
             .SelectMany(static series => series.PointIds).ToHashSet();
         return panel.Points.Where(point => includedPoints.Contains(point.PointId))
-            .OrderBy(static point => point.OriginalPixel.X)
+            .OrderBy(point => affine ? point.PrintedXValue ?? point.EstimatedXValue ?? double.PositiveInfinity : point.OriginalPixel.X)
             .Select(static point => point.PrintedXValue ?? point.EstimatedXValue)
             .FirstOrDefault(static value => value.HasValue);
     }
@@ -2102,6 +2113,11 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     protected void EnsurePrintedXDetectionSupported()
     {
+        if (_tabs.Any(static tab => tab.Calibration is { } calibration && !ManualCalibrationMapper.IsAxisAligned(calibration)))
+            throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
+                "WORKFLOW_ROTATED_CALIBRATION_DETECTION_UNSUPPORTED", LocalizationKeys.ManualAffineDetectionUnsupported,
+                "Automatic detection cannot yet preserve nonaligned manual calibration.", Recoverable: true,
+                "Continue using the manual review tools; the original calibration has been retained."));
         if (_tabs.Any(static tab => tab.Calibration?.UsesPrintedXCoordinates == true) ||
             CurrentProject.Panels.Any(static panel => panel.Calibration is { UserConfirmed: true, SessionLattice: null } calibration &&
                 calibration.Anchors.Any(static anchor => anchor.Kind == DomainCalibrationAnchorKind.Manual)))
@@ -4008,7 +4024,9 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             return null;
         }
 
-        if (calibration.SessionLattice is null)
+        bool affineMarked = calibration.Reasons.Contains(ManualCalibrationMapper.AffineReason, StringComparer.Ordinal);
+        if (affineMarked && calibration.SessionLattice is not null) return null;
+        if (calibration.SessionLattice is null && calibration.Anchors.All(anchor => anchor.Kind == DomainCalibrationAnchorKind.Manual))
         {
             if (calibration.Status != DomainCalibrationStatus.Valid || !calibration.UserConfirmed ||
                 calibration.Anchors.Count != 3 || calibration.Anchors.Any(anchor =>
@@ -4025,13 +4043,20 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 new AxisPixelPoint(zeros[0].Screen.X, zeros[0].Screen.Y),
                 new AxisPixelPoint(uppers[0].Screen.X, uppers[0].Screen.Y),
                 new AxisPixelPoint(zeros[1].Screen.X, zeros[1].Screen.Y),
-                uppers[0].Graph.Y, zeros[1].Graph.X, zeros[0].Graph.X) { UsesPrintedXCoordinates = true };
+                uppers[0].Graph.Y, zeros[1].Graph.X, zeros[0].Graph.X)
+                { UsesPrintedXCoordinates = true, PreserveAffineGeometry = affineMarked };
             try { ValidateCalibrationRequest(printedRequest); }
             catch (ArgumentException) { return null; }
+            bool aligned = !affineMarked && ManualCalibrationMapper.HasLegacyAlignment(printedRequest.Session1Y0, printedRequest.Session1YMaximum, printedRequest.SessionMaximumY0);
+            if ((!affineMarked && !aligned) || affineMarked && ManualCalibrationMapper.IsAxisAligned(
+                printedRequest.Session1Y0, printedRequest.Session1YMaximum, printedRequest.SessionMaximumY0)) return null;
+            if (aligned && (!HasFiniteInvertibleTransform(printedRequest.Session1Y0.X, printedRequest.FirstVisibleSession,
+                    printedRequest.SessionMaximumY0.X, printedRequest.XMaximum) ||
+                !HasFiniteInvertibleTransform(printedRequest.Session1Y0.Y, 0, printedRequest.Session1YMaximum.Y, printedRequest.YMaximum))) return null;
             return new ManualCalibrationState(printedRequest.Session1Y0, printedRequest.Session1YMaximum,
                 printedRequest.SessionMaximumY0, printedRequest.YMaximum, printedRequest.XMaximum,
-                FitTransform(printedRequest.Session1Y0.X, printedRequest.FirstVisibleSession, printedRequest.SessionMaximumY0.X, printedRequest.XMaximum),
-                FitTransform(printedRequest.Session1Y0.Y, 0, printedRequest.Session1YMaximum.Y, printedRequest.YMaximum),
+                aligned ? FitTransform(printedRequest.Session1Y0.X, printedRequest.FirstVisibleSession, printedRequest.SessionMaximumY0.X, printedRequest.XMaximum) : null,
+                aligned ? FitTransform(printedRequest.Session1Y0.Y, 0, printedRequest.Session1YMaximum.Y, printedRequest.YMaximum) : null,
                 calibration.Confidence, printedRequest.FirstVisibleSession) { UsesPrintedXCoordinates = true };
         }
 
@@ -4055,8 +4080,22 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
         double xMaximum = xMax.Graph.X;
         double yMaximum = yMax.Graph.Y;
-        var xTransform = FitTransform(y0.Screen.X, y0.Graph.X, xMax.Screen.X, xMaximum);
-        var yTransform = FitTransform(y0.Screen.Y, 0, yMax.Screen.Y, yMaximum);
+        var request = new ManualCalibrationRequest(new(y0.Screen.X, y0.Screen.Y), new(yMax.Screen.X, yMax.Screen.Y),
+            new(xMax.Screen.X, xMax.Screen.Y), yMaximum, xMaximum, y0.Graph.X) { PreserveAffineGeometry = affineMarked };
+        if (calibration.SessionLattice is null)
+        {
+            if (!affineMarked || calibration.Status != DomainCalibrationStatus.Valid || !calibration.UserConfirmed || calibration.Anchors.Count != 3 ||
+                calibration.Anchors.Any(anchor => anchor.EvidenceRegionId is not null) ||
+                !double.IsFinite(calibration.Confidence) || calibration.Confidence is <= 0 or > 1 || y0.Graph.Y != 0 || xMax.Graph.Y != 0 ||
+                ManualCalibrationMapper.IsAxisAligned(request.Session1Y0, request.Session1YMaximum, request.SessionMaximumY0))
+                return null;
+            try { ValidateCalibrationRequest(request); }
+            catch (ArgumentException) { return null; }
+        }
+        bool axisAligned = ManualCalibrationMapper.IsAxisAligned(request.Session1Y0, request.Session1YMaximum, request.SessionMaximumY0) ||
+            IsConfirmedManualThreeAnchorCalibration(calibration);
+        var xTransform = axisAligned ? FitTransform(y0.Screen.X, y0.Graph.X, xMax.Screen.X, xMaximum) : null;
+        var yTransform = axisAligned ? FitTransform(y0.Screen.Y, 0, yMax.Screen.Y, yMaximum) : null;
         return new ManualCalibrationState(
             new AxisPixelPoint(y0.Screen.X, y0.Screen.Y),
             new AxisPixelPoint(yMax.Screen.X, yMax.Screen.Y),
@@ -4431,7 +4470,12 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
     {
         try
         {
-            if (!IsConfirmedManualThreeAnchorCalibration(panel.Calibration))
+            // The manual export receipt also supports an explicit affine anchor basis. Keep the
+            // aligned predicate unchanged for automatic detection and marker-exemplar consumers.
+            if (!IsConfirmedManualThreeAnchorCalibration(panel.Calibration) &&
+                !(panel.Calibration is { SessionLattice: null } &&
+                    FromDomainCalibration(panel.Calibration) is { UsesPrintedXCoordinates: false } affine &&
+                    !ManualCalibrationMapper.IsAxisAligned(affine)))
                 throw new InvalidOperationException("The manual session-origin calibration is invalid.");
             CalibrationRecord calibration = panel.Calibration!;
             DomainCalibrationAnchor first = calibration.Anchors.Single(anchor => anchor.Kind == DomainCalibrationAnchorKind.FirstVisibleSessionY0);
@@ -4497,6 +4541,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             return null;
         }
 
+        string[] reasons = ManualCalibrationMapper.IsAxisAligned(calibration) ? [] : [ManualCalibrationMapper.AffineReason];
         if (calibration.UsesPrintedXCoordinates)
             return new CalibrationRecord(CalibrationId.New(), DomainCalibrationStatus.Valid,
             [
@@ -4509,7 +4554,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 new DomainCalibrationAnchor(DomainCalibrationAnchorKind.Manual,
                     new DomainPixelPoint(calibration.SessionMaximumY0.X, calibration.SessionMaximumY0.Y),
                     new DomainGraphPoint(calibration.XMaximum, 0), calibration.Confidence, EvidenceRegionId: null),
-            ], null, UserConfirmed: true, calibration.Confidence, Reasons: []);
+            ], null, UserConfirmed: true, calibration.Confidence, Reasons: reasons);
 
         return new CalibrationRecord(
             CalibrationId.New(),
@@ -4534,17 +4579,17 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                     calibration.Confidence,
                     EvidenceRegionId: null),
             ],
-            new SessionLatticeRecord(
+            ManualCalibrationMapper.IsAxisAligned(calibration) ? new SessionLatticeRecord(
                 calibration.Session1Y0.X + (1 - calibration.FirstVisibleSession) *
                     (calibration.SessionMaximumY0.X - calibration.Session1Y0.X) / (calibration.XMaximum - calibration.FirstVisibleSession),
                 (calibration.SessionMaximumY0.X - calibration.Session1Y0.X) / (calibration.XMaximum - calibration.FirstVisibleSession),
                 PrintedMin: null,
                 PrintedMax: null,
                 calibration.Confidence,
-                "manual_three_anchor"),
+                "manual_three_anchor") : null,
             UserConfirmed: true,
             calibration.Confidence,
-            Reasons: []);
+            Reasons: reasons);
     }
 
     private static CropRectangle ToCropRectangle(PdfRectD crop) =>
@@ -5010,8 +5055,9 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
     {
         if (tab.Calibration is { } calibration)
         {
-            point.GraphX = calibration.XTransform.PixelToGraph(point.PixelX);
-            point.GraphY = calibration.YTransform.PixelToGraph(point.PixelY);
+            AxisPixelPoint graph = ManualCalibrationMapper.Map(calibration, point.PixelX, point.PixelY);
+            point.GraphX = graph.X;
+            point.GraphY = graph.Y;
         }
 
         SeriesCardViewModel series = RequireSeries(tab, point.SeriesId);
@@ -5057,9 +5103,10 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     private static void ReindexSeries(WorkspaceTabViewModel tab, string seriesId)
     {
+        bool affine = tab.Calibration is { } calibration && !ManualCalibrationMapper.IsAxisAligned(calibration);
         AppGraphPoint[] ordered = tab.Points
             .Where(point => string.Equals(point.SeriesId, seriesId, StringComparison.Ordinal))
-            .OrderBy(static point => point.PixelX)
+            .OrderBy(point => affine ? point.GraphX : point.PixelX)
             .ThenBy(static point => point.PixelY)
             .ThenBy(static point => point.PointId, StringComparer.Ordinal)
             .ToArray();
@@ -5198,29 +5245,32 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     private static void ValidateCalibrationRequest(ManualCalibrationRequest request)
     {
+        bool invalidScalarMapping = ManualCalibrationMapper.UsesScalarMapping(request) &&
+            (request.Session1Y0.X == request.SessionMaximumY0.X || request.Session1Y0.Y == request.Session1YMaximum.Y ||
+                !HasFiniteInvertibleTransform(request.Session1Y0.X, request.FirstVisibleSession, request.SessionMaximumY0.X, request.XMaximum) ||
+                (!request.UsesPrintedXCoordinates && !double.IsFinite(request.Session1Y0.X + (1 - request.FirstVisibleSession) *
+                    ((request.SessionMaximumY0.X - request.Session1Y0.X) / (request.XMaximum - request.FirstVisibleSession)))) ||
+                !HasFiniteInvertibleTransform(request.Session1Y0.Y, 0, request.Session1YMaximum.Y, request.YMaximum));
         if (!request.Session1Y0.IsFinite || !request.Session1YMaximum.IsFinite ||
             !request.SessionMaximumY0.IsFinite ||
             !double.IsFinite(request.YMaximum) || !double.IsFinite(request.XMaximum) ||
             !double.IsFinite(request.FirstVisibleSession) ||
             (!request.UsesPrintedXCoordinates && (request.FirstVisibleSession < 1 ||
                 request.FirstVisibleSession != Math.Truncate(request.FirstVisibleSession))) ||
-            request.YMaximum <= 0 || request.XMaximum <= request.FirstVisibleSession ||
-            request.Session1Y0.X == request.SessionMaximumY0.X ||
-            request.Session1Y0.Y == request.Session1YMaximum.Y ||
-            Math.Abs(request.Session1Y0.X - request.Session1YMaximum.X) > 2 ||
-            Math.Abs(request.Session1Y0.Y - request.SessionMaximumY0.Y) > 2 ||
-            !HasFiniteInvertibleTransform(
-                request.Session1Y0.X, request.FirstVisibleSession, request.SessionMaximumY0.X, request.XMaximum) ||
-            (!request.UsesPrintedXCoordinates && !double.IsFinite(request.Session1Y0.X + (1 - request.FirstVisibleSession) *
-                ((request.SessionMaximumY0.X - request.Session1Y0.X) / (request.XMaximum - request.FirstVisibleSession)))) ||
-            !HasFiniteInvertibleTransform(
-                request.Session1Y0.Y, 0, request.Session1YMaximum.Y, request.YMaximum))
+            request.YMaximum <= 0 || request.XMaximum <= request.FirstVisibleSession || invalidScalarMapping ||
+            !ManualCalibrationMapper.TryCreate(request.Session1Y0, request.Session1YMaximum, request.SessionMaximumY0,
+                request.FirstVisibleSession, request.XMaximum, request.YMaximum, out _))
         {
             throw new ArgumentException(
-                "Manual calibration requires finite positive maxima, aligned anchors, and distinct pixel spans for both axes.",
+                "Manual calibration requires finite increasing values and nondegenerate original-pixel anchors for both linear axes.",
                 nameof(request));
         }
     }
+
+    private static ProductionWorkflowStageException AffinePhasesUnsupported() => new(new ProductionWorkflowFailure(
+        "WORKFLOW_AFFINE_PHASES_UNSUPPORTED", LocalizationKeys.ManualAffinePhasesUnsupported,
+        "Screen-vertical phase dividers cannot represent phases for a nonaligned calibration.", Recoverable: true,
+        "Remove the dividers before marking rotated axes, or retain axis-aligned calibration for phase editing."));
 
     private static bool HasFiniteInvertibleTransform(double pixel1, double graph1, double pixel2, double graph2)
     {
