@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
+using System.Text.Json.Serialization;
+
 namespace GraphReader.App.Services;
 
 /// <summary>Review-only image matches. No points or scientific values are applied.</summary>
@@ -11,12 +13,16 @@ public interface IMarkerExemplarSuggestionService : IAsyncDisposable
 
 public sealed record MarkerExemplarPoint(double X, double Y);
 public sealed record MarkerExemplarRectangle(int X, int Y, int Width, int Height);
+/// <summary>Actual reviewed plot axes in original panel pixels, not an enclosing rectangle.</summary>
+public sealed record MarkerExemplarAffinePlot(MarkerExemplarPoint Origin, MarkerExemplarPoint XEnd, MarkerExemplarPoint YEnd);
 public sealed record MarkerExemplarRequest(string RequestId, string Binding, string SourceFileSha256,
     string PanelImageSha256, string PanelId, int Width, int Height,
     MarkerExemplarRectangle Exemplar, MarkerExemplarRectangle Plot,
     string SelectedPointId, string SelectedSeriesId, MarkerExemplarPoint SelectedPoint)
 {
     public int ProtocolVersion { get; init; } = 1;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public MarkerExemplarAffinePlot? AffinePlot { get; init; }
 }
 public sealed record MarkerExemplarCandidate(string CandidateId, MarkerExemplarPoint Center, double Similarity);
 public sealed record MarkerExemplarTimings(double DecodeMilliseconds, double MatchingMilliseconds, double TotalMilliseconds);

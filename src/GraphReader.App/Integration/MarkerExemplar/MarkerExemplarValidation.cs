@@ -27,6 +27,9 @@ internal static class MarkerExemplarValidation
             !InsideImage(exemplar, request.Width, request.Height) || !InsideImage(plot, request.Width, request.Height) ||
             exemplar.Width != exemplar.Height || exemplar.Width is < 5 or > 65 ||
             !Inside(point, exemplar) || !MarkerExemplarGeometry.ContainsCenter(plot, point)) return false;
+        if (request.AffinePlot is { } frame &&
+            (!MarkerExemplarGeometry.TryCreateAffineDomain(frame, request.Width, request.Height, out var domain, out var enclosing) ||
+             plot != enclosing || !domain.Contains(point))) return false;
         return true;
     }
 
@@ -43,6 +46,7 @@ internal static class MarkerExemplarValidation
     internal static bool ValidResponse(MarkerExemplarRequest request, MarkerExemplarResponse? response)
     {
         if (response is null || response.Request != request || response.Candidates is null) return false;
+        if (request.AffinePlot is not null && !ValidMetadata(request)) return false;
         if (response.FailureCode is not null)
             return KnownFailure(response.FailureCode) && response.Candidates.Count == 0 && response.Runtime is null && response.Timings is null;
         if (response.Runtime is not { } runtime || runtime.CpuBudget is not { } budget ||
@@ -57,7 +61,7 @@ internal static class MarkerExemplarValidation
         foreach (MarkerExemplarCandidate candidate in response.Candidates)
         {
             if (candidate is null || !Identifier(candidate.CandidateId) || !ids.Add(candidate.CandidateId) ||
-                candidate.Center is null || !MarkerExemplarGeometry.ContainsCenter(request.Plot, candidate.Center) || !double.IsFinite(candidate.Similarity) ||
+                candidate.Center is null || !MarkerExemplarGeometry.ContainsPlot(request, candidate.Center) || !double.IsFinite(candidate.Similarity) ||
                 candidate.Similarity is < .9 or > 1 ||
                 DistanceSquared(candidate.Center, request.SelectedPoint) < .25) return false;
         }

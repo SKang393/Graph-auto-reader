@@ -18,6 +18,10 @@ internal static class MarkerExemplarMatcher
     {
         if (!MarkerExemplarValidation.ValidMetadata(request) || grayscale.Length != checked(request.Width * request.Height))
             throw new MarkerExemplarException(MarkerExemplarReasonCodes.InvalidInput);
+        bool affine = request.AffinePlot is not null;
+        MarkerExemplarGeometry.AffineDomain domain = default;
+        if (affine && !MarkerExemplarGeometry.TryCreateAffineDomain(request.AffinePlot!, request.Width, request.Height, out domain, out _))
+            throw new MarkerExemplarException(MarkerExemplarReasonCodes.InvalidInput);
         token.ThrowIfCancellationRequested();
         Cv2.SetNumThreads(1);
         using var original = Mat.FromPixelData(request.Height, request.Width, MatType.CV_8UC1, grayscale);
@@ -53,6 +57,9 @@ internal static class MarkerExemplarMatcher
             token.ThrowIfCancellationRequested();
             for (int x = 0; x < width; x++)
             {
+                // The enclosing ROI is not the plot: exclude outside centers before the
+                // peak cap and retained-candidate suppression. Local correlation arithmetic is unchanged.
+                if (affine && !domain.Contains(x0 + x + offsetX, y0 + y + offsetY)) continue;
                 if (!IsPeak(scores, width, height, x, y, out float score)) continue;
                 if (peaks.Count >= 4096) throw new MarkerExemplarException(MarkerExemplarReasonCodes.TooManyCandidates);
                 peaks.Add((x, y, score));
@@ -62,7 +69,7 @@ internal static class MarkerExemplarMatcher
         {
             token.ThrowIfCancellationRequested();
             var center = new MarkerExemplarPoint(x0 + peak.X + offsetX, y0 + peak.Y + offsetY);
-            if (!MarkerExemplarGeometry.ContainsCenter(plot, center) ||
+            if (!MarkerExemplarGeometry.ContainsCenter(plot, center) || affine && !domain.Contains(center) ||
                 MarkerExemplarValidation.DistanceSquared(center, request.SelectedPoint) <= suppression * suppression ||
                 retained.Any(item => MarkerExemplarValidation.DistanceSquared(center, item.Center) <= suppression * suppression)) continue;
             if (retained.Count == MarkerExemplarValidation.MaximumCandidates)

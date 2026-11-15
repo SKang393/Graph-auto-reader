@@ -190,16 +190,21 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 
 ## REV-011 - finish native preview verification
 
-- **Status:** waiting for renewed Computer Use access for the new affine-label
-  bridge; the earlier scoped checks remain resolved
+- **Status:** waiting for native-tool recovery after renewed authorization;
+  the earlier scoped checks remain resolved
 - **Blocks:** native review of rectified label reading and calibration Apply/Undo;
   code, CI and headless work continue independently
-- **Effort:** one access confirmation, approximately one minute
-- **Action:** approve resuming native checks after the latest physical Escape
-  stop if desired. The first window-list call for the
-  [affine-label bridge](AFFINE-CALIBRATION-RECTIFICATION-20261115.md) stopped
-  before launch or input. Its four small owned images are retained for this
-  specific consumer. Earlier work is complete: screenshot-confirmed file-name
+- **Effort:** no further approval is requested; authorization is already recorded
+- **Action:** resume native checks when the tool's stop state clears. The
+  maintainer explicitly answered "Resume everything i was on a meeting" on
+  2026-11-15. The fresh window-list retry still returned its physical-Escape stop
+  message, without usable window state or app input. Do not treat this as missing
+  permission or bypass the stop with another input mechanism. The
+  [affine-label bridge](AFFINE-CALIBRATION-RECTIFICATION-20261115.md) and
+  [marker extension](AFFINE-MARKER-ASSISTANCE-20261115.md) await native checks;
+  their independent code and headless validation continue. Four small owned
+  images remain retained for this specific consumer. Earlier work is complete:
+  screenshot-confirmed file-name
   focus allowed Computer
   Use to import the owned graph despite stale accessibility focus. The source
   window verified six labels, incomplete default X, explicit session-1 fit,

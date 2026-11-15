@@ -16,17 +16,23 @@ lets the existing tick/OCR reader use the fitted tilted frame and maps review
 evidence back to original pixels. Local solution tests and eight owned worker
 paths pass. The one changed-stage development confirmation reached OCR in
 5.28 seconds but retained `AXIS_BOX_NOT_OBSERVED` and an insufficient-pairs
-refusal; no complete calibration was produced. New-head full CI remains pending.
-Native review waits after a fresh Computer Use Escape stop;
+refusal; no complete calibration was produced. Source/outcome commit
+`2316841baf1e4be6444962f9584133cabcb472d8` is pushed and full Windows CI is green.
+Native review waits for tool recovery: renewed user authorization was received,
+but the fresh window-list retry still returned the Computer Use Escape stop;
 independent code and headless work continue. Original data, review requirements,
 numeric checks, resource caps and independent evaluation boundaries remain fixed.
 
 The three remaining geometry budget refusals have no demonstrated safe pruning
 fix: the current search already prunes impossible envelopes and contacts while
 retaining complete ranking. Do not repeat unchanged private comparisons or drop
-possible winners to manufacture coverage. Finish the changed-stage calibration
-evidence, then address the next concrete editable-digitization limitation using
-owned controls. Package only a meaningful integrated checkpoint. The
+possible winners to manufacture coverage. The bounded owned tick diagnostic did
+not reproduce the affine refusal. Continue with
+[marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md).
+Its local solution tests and actual one-call worker check now pass, preserving
+original-pixel matching and exact plot containment. New-head integration/CI and
+native review remain pending. Package only a
+meaningful integrated checkpoint. The
 [printed-X accessibility/language contract](CALIBRATION-LOCALIZATION-20261115.md)
 and [foreground profiling cancellation](NATIVE-PROFILING-INTERRUPTION-20261115.md)
 already have their scoped verification and need no duplicate repair.

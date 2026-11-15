@@ -216,18 +216,13 @@ public sealed partial class MainWindowViewModel
         rectangle = null!;
         if (tab.Calibration is not { } calibration || size is < MinimumMarkerExemplarSize or > MaximumMarkerExemplarSize)
             return false;
-        var origin = calibration.Session1Y0;
-        var upper = calibration.Session1YMaximum;
-        var right = calibration.SessionMaximumY0;
-        if (!double.IsFinite(origin.X) || !double.IsFinite(origin.Y) || !double.IsFinite(upper.Y) ||
-            !double.IsFinite(right.X)) return false;
-        int left = (int)Math.Ceiling(origin.X), top = (int)Math.Ceiling(upper.Y);
-        int plotRight = (int)Math.Floor(right.X), bottom = (int)Math.Floor(origin.Y);
+        if (!MarkerExemplarGeometry.TryCreatePlot(calibration, tab.PixelWidth, tab.PixelHeight, out var plot, out var frame)) return false;
         int x = (int)Math.Floor(seed.PixelX - size / 2d), y = (int)Math.Floor(seed.PixelY - size / 2d);
-        var plot = new MarkerExemplarRectangle(left, top, plotRight - left + 1, bottom - top + 1);
-        if (left < 0 || top < 0 || plotRight >= tab.PixelWidth || bottom >= tab.PixelHeight ||
-            plotRight <= left || bottom <= top ||
+        if (plot.X < 0 || plot.Y < 0 || (long)plot.X + plot.Width > tab.PixelWidth || (long)plot.Y + plot.Height > tab.PixelHeight ||
+            plot.Width <= 1 || plot.Height <= 1 ||
             !MarkerExemplarGeometry.ContainsCenter(plot, new MarkerExemplarPoint(seed.PixelX, seed.PixelY)) ||
+            frame is not null && (!MarkerExemplarGeometry.TryCreateAffineDomain(frame, tab.PixelWidth, tab.PixelHeight,
+                out var domain, out _) || !domain.Contains(seed.PixelX, seed.PixelY)) ||
             x < 0 || y < 0 || (long)x + size > tab.PixelWidth || (long)y + size > tab.PixelHeight)
             return false;
         rectangle = new(x, y, size, size);
@@ -382,7 +377,7 @@ public sealed partial class MainWindowViewModel
     private static bool IsValidMarkerCandidate(MarkerExemplarCandidate candidate, MarkerExemplarRequest request) =>
         !string.IsNullOrWhiteSpace(candidate.CandidateId) && double.IsFinite(candidate.Similarity) &&
         candidate.Similarity is >= 0 and <= 1 && double.IsFinite(candidate.Center.X) && double.IsFinite(candidate.Center.Y) &&
-        MarkerExemplarGeometry.ContainsCenter(request.Plot, candidate.Center) &&
+        MarkerExemplarGeometry.ContainsPlot(request, candidate.Center) &&
         candidate.Center.X >= 0 && candidate.Center.Y >= 0 && candidate.Center.X < request.Width &&
         candidate.Center.Y < request.Height;
 

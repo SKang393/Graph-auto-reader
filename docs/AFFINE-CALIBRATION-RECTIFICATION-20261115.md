@@ -152,10 +152,12 @@ inputs for the pending native review check. Test logs and worker outputs remain
 only until the integrated record is pushed and their current consumers finish.
 
 Native review is waiting: the first window-list call for this slice reported a
-physical Escape stop, before any launch or input. Renewed access is requested in
-[REV-011](REVIEW_QUEUE.md#rev-011---finish-native-preview-verification). No
-native behavior of this new bridge is claimed. Code, CI and headless diagnostics
-continue independently.
+physical Escape stop, before any launch or input. The maintainer subsequently
+authorized "Resume everything i was on a meeting". The fresh window-list retry
+still returned the tool's physical-Escape stop, without usable state or app input.
+[REV-011](REVIEW_QUEUE.md#rev-011---finish-native-preview-verification) records
+tool recovery, not a missing approval. No native behavior of this new bridge is
+claimed. Code, CI and headless diagnostics continue independently.
 
 ## Changed-stage development confirmation
 
@@ -208,12 +210,35 @@ run receipt: `44ae3d74ddb69aaed90af5a5df41d7858f540ecf01577c643d2b09c2696007ba`.
 Intermediate probe compilations reported CS1061 (list treated as polygon
 wrapper), CA1854 (dictionary access) and CA1861 (constant array allocation).
 Corrections were limited to probe plumbing; no private inference preceded the
-final successful build. The three private output files total **3,837 bytes**.
+final successful build. There were eight probe-only compilation attempts:
+7.95 s (CS1061), 8.07 s (success), 6.95 s (success after accounting changes),
+7.96 s (CA1854), 12.41 s (success), 7.75 s (CA1861), 11.52 s (success), and
+6.78 s (final timing correction). Later diagnostic work batches source review
+before compilation to avoid this small-edit build churn. The three private
+output files total **3,837 bytes**.
 
 No dependency, model, license, schema or production-approval switch changed.
 New source retains Apache-2.0 notices. Current validation outputs remain only
 for integration and the named native-review consumer. Record this outcome on
 origin/main before retiring completed logs and private trace copies.
 
-Status: local solution and owned worker checks pass; the changed-stage real
-calibration remains incomplete. New-head full CI and native review are pending.
+## Integration and CI
+
+Source/outcome commit `2316841baf1e4be6444962f9584133cabcb472d8` reached
+origin/main and the primary checkout; both unrelated primary file hashes stayed
+unchanged. [Windows CI 43772184907](https://github.com/SKang393/Graph-auto-reader/actions/runs/43772184907)
+was verified successful on that exact head, started at **2026-11-15 22:58:06 UTC**
+and completed by **23:08:47 UTC**. Its thirteen .NET projects passed **3,154**
+tests with **30 expected optional skips and zero failures**. All 72 Rust tests,
+68 packaging-verification tests, localization, evidence, frozen handoff, upload
+verification and packaging definition/audit steps passed. Compilation had zero
+warnings/errors. Public-release and release-candidate jobs were skipped as
+intended. No additional packaged application was produced.
+
+The subsequent [owned exact-box diagnostic](AFFINE-TICK-OBSERVATION-CONTROLS-20261115.md)
+did not reproduce the real refusal; it does not justify changing runtime
+thresholds or claiming the real calibration is solved.
+
+Status: source integration, full CI and owned worker checks pass. The
+changed-stage real calibration remains incomplete, and native review is waiting
+in REV-011. No full-product or production-model acceptance is claimed.

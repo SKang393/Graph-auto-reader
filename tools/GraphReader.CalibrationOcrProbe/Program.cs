@@ -33,12 +33,14 @@ internal static class Program
     public static async Task<int> Main(string[] args)
     {
         bool ownedAffineCalibration = args.Length > 0 && args[0] == "--owned-affine-calibration-check";
+        bool ownedAffineTickObservation = args.Length > 0 && args[0] == "--owned-affine-tick-observation-check";
         bool workerCheck = args.Length > 0 && args[0] is "--worker-check" or "--gpu-worker-check";
         bool hardwareCheck = args.Length > 0 && args[0] == "--hardware-check";
         bool hardwareChild = args.Length > 0 && args[0] == "--hardware-child";
         bool automaticCheck = args.Length > 0 && args[0] == "--automatic-device-check";
         bool tickCheck = args.Length > 0 && args[0] == "--tick-proposal-check";
         bool markerCheck = args.Length > 0 && args[0] == "--marker-exemplar-check";
+        bool ownedAffineMarker = args.Length > 0 && args[0] == "--owned-affine-marker-worker-check";
         bool markerShapeCheck = args.Length > 0 && args[0] == "--marker-shape-control-check";
         bool markerWorkflow = args.Length > 0 && args[0] == "--marker-workflow-check";
         bool panelCrop = args.Length > 0 && args[0] == "--panel-crop-check";
@@ -85,13 +87,13 @@ internal static class Program
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
-        int seconds = ownedAffineCalibration ? 600 : ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeIntersection ? 150 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        int seconds = ownedAffineTickObservation ? 300 : ownedAffineCalibration ? 600 : ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeIntersection ? 150 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck || ownedAffineMarker ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(ownedAffineCalibration ? 605 : ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeIntersection ? 155 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(ownedAffineTickObservation ? 305 : ownedAffineCalibration ? 605 : ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeIntersection ? 155 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck || ownedAffineMarker ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
@@ -209,6 +211,11 @@ internal static class Program
                 Emit(RealDevCalibrationCheck.NativeAffineTraceSelfTest());
                 return 0;
             }
+            if (args is ["--owned-affine-tick-observation-check-self-test"])
+            {
+                Emit(OwnedAffineTickObservationCheck.SelfTest());
+                return 0;
+            }
             if (args is ["--real-dev-affine-calibration-trace-self-test"])
             {
                 Emit(RealDevCalibrationCheck.AffineCalibrationTraceSelfTest());
@@ -295,6 +302,12 @@ internal static class Program
             {
                 using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
                 Emit(await OwnedAffineCalibrationCheck.RunAsync(affineOutput, affineApp, affineAssets, affineRust, parentBudget, deadline.Token));
+                return 0;
+            }
+            if (args is ["--owned-affine-tick-observation-check", var observationApp, var observationRust])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await OwnedAffineTickObservationCheck.RunAsync(observationApp, observationRust, parentBudget, deadline.Token));
                 return 0;
             }
             if (args is ["--owned-native-axis-check", var nativeAxisApp, var nativeAxisRust])
@@ -770,6 +783,14 @@ internal static class Program
                 Emit(await MarkerExemplarCheck.RunAsync(markerApp, deadline.Token));
                 return 0;
             }
+            if (args is ["--owned-affine-marker-worker-check", var affineMarkerApp])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                var outcome = await OwnedAffineMarkerWorkerCheck.RunAsync(affineMarkerApp, parentBudget, deadline.Token);
+                Emit(outcome.Report);
+                return outcome.Passed ? 0 : 1;
+            }
+            if (ownedAffineMarker) throw new InvalidDataException("Usage: --owned-affine-marker-worker-check <absolute-App-exe>");
             if (args is ["--marker-exemplar-check", var largeMarkerApp, "near-pixel-limit"])
             {
                 Emit(await MarkerExemplarCheck.RunAsync(largeMarkerApp, deadline.Token, nearPixelLimit: true));
