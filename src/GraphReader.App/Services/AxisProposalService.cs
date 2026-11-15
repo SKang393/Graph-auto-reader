@@ -13,7 +13,7 @@ public interface IAxisProposalService
     Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken);
 }
 
-/// <summary>Uses native review geometry only when Rust found no usable axis intersection.</summary>
+/// <summary>Uses strict native review geometry when Rust cannot resolve an axis.</summary>
 public sealed class RustFirstAxisProposalService(IAxisProposalService primary, IAxisProposalService fallback) : IAxisProposalService
 {
     private readonly IAxisProposalService _primary = primary ?? throw new ArgumentNullException(nameof(primary));
@@ -24,9 +24,14 @@ public sealed class RustFirstAxisProposalService(IAxisProposalService primary, I
         cancellationToken.ThrowIfCancellationRequested();
         RustAxisProposalResult result = await _primary.SuggestAsync(originalImage, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        if (result.Geometry is not null || result.ErrorCode is not ("NO_AXIS" or "NO_INTERSECTION")) return result;
+        if (result.Geometry is not null || result.ErrorCode is not ("NO_AXIS" or "NO_INTERSECTION" or "AMBIGUOUS_AXIS")) return result;
         RustAxisProposalResult review = await _fallback.SuggestAsync(originalImage, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
+        if (result.ErrorCode == "AMBIGUOUS_AXIS")
+        {
+            if (review.Geometry is null) return result;
+            return review with { ReviewReasons = review.ReviewReasons.Append("rust_axis_ambiguous").Distinct(StringComparer.Ordinal).ToArray() };
+        }
         return review;
     }
 }

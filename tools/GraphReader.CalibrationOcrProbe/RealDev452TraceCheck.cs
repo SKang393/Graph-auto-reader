@@ -31,8 +31,12 @@ internal static partial class RealDevCalibrationCheck
     private sealed class TraceAxis(IAxisProposalService inner) : IAxisProposalService
     {
         internal RustAxisProposalResult? Last { get; private set; }
-        public async Task<RustAxisProposalResult> SuggestAsync(byte[] image, CancellationToken token) =>
-            Last = await inner.SuggestAsync(image, token).ConfigureAwait(false);
+        internal int Calls { get; private set; }
+        public async Task<RustAxisProposalResult> SuggestAsync(byte[] image, CancellationToken token)
+        {
+            Calls++;
+            return Last = await inner.SuggestAsync(image, token).ConfigureAwait(false);
+        }
     }
 
     private sealed class TraceRustAxis(string worker) : IAxisProposalService
@@ -48,12 +52,22 @@ internal static partial class RealDevCalibrationCheck
         }
     }
 
-    internal static async Task<object> Run452TraceAsync(string corpusRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, CancellationToken token)
+    internal static Task<object> Run452TraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: false, token);
+
+    internal static Task<object> RunPostGroupingTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, token);
+
+    private static async Task<object> RunTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, bool sourcePostGrouping, CancellationToken token)
     {
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(app) ||
             !Path.IsPathFullyQualified(assets) || !Path.IsPathFullyQualified(rust)) throw new InvalidDataException();
-        using Candidate candidate = Candidate.Verify452(app, assets, rust, token);
+        using Candidate candidate = sourcePostGrouping
+            ? Candidate.VerifyPostGrouping(app, assets, rust, token)
+            : Candidate.Verify452(app, assets, rust, token);
         _ = AxisDecisionDiagnosticClient.SelfTest();
         var panelizer = ResolvePanelizer(typeof(CalibrationTickProposal).Assembly);
         FrozenDevTrainingSelector selector = FrozenDevTrainingSelector.Load(corpusRoot, token);
@@ -89,7 +103,7 @@ internal static partial class RealDevCalibrationCheck
                     {
                         TracePanelOutcome outcome = await TracePanelAsync(payload.Image, payload.Width, payload.Height,
                             new PdfRectD(0, 0, payload.Width, payload.Height), payload.Width, payload.Height, payload.ProjectHash,
-                            candidate, axis, primary, secondary, ocr, deadline.Token).ConfigureAwait(false);
+                            candidate, axis, primary, secondary, ocr, sourcePostGrouping, deadline.Token).ConfigureAwait(false);
                         CountTracePanelStatus(terminalStatusCounts, outcome);
                         panelResults.Add(outcome.Payload);
                     }
@@ -113,7 +127,7 @@ internal static partial class RealDevCalibrationCheck
                         {
                             var (bytes, width, height, crop) = ReadPreparedPanel(panel, payload.Width, payload.Height);
                             TracePanelOutcome outcome = await TracePanelAsync(bytes, width, height, crop, payload.Width, payload.Height,
-                                payload.ProjectHash, candidate, axis, primary, secondary, ocr, deadline.Token).ConfigureAwait(false);
+                                payload.ProjectHash, candidate, axis, primary, secondary, ocr, sourcePostGrouping, deadline.Token).ConfigureAwait(false);
                             CountTracePanelStatus(terminalStatusCounts, outcome);
                             panelResults.Add(outcome.Payload);
                             panelFinished++;
@@ -133,29 +147,32 @@ internal static partial class RealDevCalibrationCheck
             catch (Exception error) when (error is not OutOfMemoryException) { status = "project_failed"; errorCategory = TraceExceptionCategory(error); }
             projects.Add(new { index = i, status, error_category = errorCategory, preparation_milliseconds = preparationMs, effective_panels = effective, panels = panelResults });
         }
-        return new { schema = "graphreader.real-dev-452-association-trace.v1", scope = "development_only_sensitive_metadata",
+        return new { schema = sourcePostGrouping ? PostGroupingTraceSchema : "graphreader.real-dev-452-association-trace.v1", scope = "development_only_sensitive_metadata",
             selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
             attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
             attempted_panels = panelAttempted, finished_panels = panelFinished, unfinished_execution_panels = panelAttempted - panelFinished,
             terminal_status_counts = terminalStatusCounts,
             unattempted_panels = returned + fallback - panelAttempted, metadata.AssignmentSha256, metadata.SelectedInventorySha256,
-            source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()), candidate = App452ExeHash,
+            source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
+            candidate = sourcePostGrouping ? PostGroupingTraceIdentity() : (object)App452ExeHash,
             sealed_payload_reads = 0, truth_scoring = false, image_writes = false, review_only = true,
             project_deadline_seconds = 45, overall_deadline_seconds = 900, projects };
     }
 
     private static async Task<TracePanelOutcome> TracePanelAsync(byte[] image, int width, int height, PdfRectD crop, int sourceWidth, int sourceHeight,
         string projectHash, Candidate candidate, IAxisProposalService axis, TraceRustAxis primary, TraceAxis secondary,
-        CalibrationOcrWorkerClient ocr, CancellationToken token)
+        CalibrationOcrWorkerClient ocr, bool sourcePostGrouping, CancellationToken token)
     {
         if (width is < 32 or > 4096 || height is < 32 or > 4096 || (long)width * height > 16_777_216)
             return new("UNSUPPORTED_DIMENSIONS", new { status = "UNSUPPORTED_DIMENSIONS", width, height, crop });
         // New observers per request are unnecessary: the fallback result is read only if invoked for this result.
         primary.Width = width; primary.Height = height;
+        int nativeCallsBefore = secondary.Calls;
         var timer = Stopwatch.StartNew();
         RustAxisProposalResult result = await axis.SuggestAsync(image, token).ConfigureAwait(false);
         double axisMs = timer.Elapsed.TotalMilliseconds;
-        bool fallbackCalled = primary.Last?.Proposal.Geometry is null && primary.Last?.Proposal.ErrorCode is ("NO_AXIS" or "NO_INTERSECTION");
+        bool fallbackCalled = sourcePostGrouping ? secondary.Calls > nativeCallsBefore :
+            primary.Last?.Proposal.Geometry is null && primary.Last?.Proposal.ErrorCode is ("NO_AXIS" or "NO_INTERSECTION");
         var stages = new { rust_error = primary.Last?.Proposal.ErrorCode, rust_returned = primary.Last?.Proposal.Geometry is not null,
             rust_trace = primary.Last?.Trace,
             native_attempted = fallbackCalled, native_error = fallbackCalled ? secondary.Last?.ErrorCode : null,
@@ -163,9 +180,7 @@ internal static partial class RealDevCalibrationCheck
         if (result.Geometry is not { } geometry)
             return new("NO_GEOMETRY", new { status = "NO_GEOMETRY", width, height, crop, stages, axis_milliseconds = axisMs });
         string panelHash = Convert.ToHexStringLower(SHA256.HashData(image));
-        var request = new CalibrationOcrRequest("dev-trace", projectHash, projectHash, panelHash, width, height,
-            new(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom))
-        { MeasuredXTicks = geometry.XTickPositions.Count > 0 ? geometry.XTickPositions.ToArray() : null };
+        CalibrationOcrRequest request = TraceRequest(projectHash, panelHash, width, height, geometry, sourcePostGrouping);
         timer.Restart();
         CalibrationOcrResponse response = await ocr.SuggestAsync(request, image, token).ConfigureAwait(false);
         double ocrMs = timer.Elapsed.TotalMilliseconds;

@@ -31,7 +31,6 @@ public sealed class RustFirstAxisProposalServiceTests
     }
 
     [TestMethod]
-    [DataRow("AMBIGUOUS_AXIS")]
     [DataRow("INVALID_RESPONSE")]
     [DataRow("INVALID_INPUT")]
     [DataRow("INVALID_PROTOCOL")]
@@ -50,6 +49,34 @@ public sealed class RustFirstAxisProposalServiceTests
 
         Assert.AreSame(original, result);
         Assert.AreEqual(0, fallback.CallCount);
+    }
+
+    [TestMethod]
+    public async Task AmbiguousRustGeometryUsesOnlySuccessfulNativeReview()
+    {
+        var original = new RustAxisProposalResult(null, "AMBIGUOUS_AXIS");
+        var native = new RustAxisProposalResult(new(10, 90, 110, 10, .3), null)
+        { Provider = "opencv-review", ReviewReasons = ["y_axis_partial"] };
+        var fallback = new Stub(native);
+        RustAxisProposalResult result = await new RustFirstAxisProposalService(new Stub(original), fallback)
+            .SuggestAsync([], CancellationToken.None);
+        Assert.AreEqual(1, fallback.CallCount);
+        Assert.AreEqual("opencv-review", result.Provider);
+        CollectionAssert.Contains(result.ReviewReasons.ToArray(), "y_axis_partial");
+        CollectionAssert.Contains(result.ReviewReasons.ToArray(), "rust_axis_ambiguous");
+        Assert.AreEqual(0, result.Geometry!.XTickPositions.Count);
+        Assert.AreEqual(0, result.Geometry.YTickPositions.Count);
+    }
+
+    [TestMethod]
+    public async Task RejectedNativeReviewPreservesOriginalRustAmbiguity()
+    {
+        var original = new RustAxisProposalResult(null, "AMBIGUOUS_AXIS");
+        var fallback = new Stub(new(null, "OPENCV_AXIS_AMBIGUOUS") { Provider = "opencv-review" });
+        RustAxisProposalResult result = await new RustFirstAxisProposalService(new Stub(original), fallback)
+            .SuggestAsync([], CancellationToken.None);
+        Assert.AreSame(original, result);
+        Assert.AreEqual(1, fallback.CallCount);
     }
 
     [TestMethod]

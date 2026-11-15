@@ -53,7 +53,8 @@ internal static class Program
         bool realDevPreparedCalibration451 = args.Length > 0 && args[0] == "--real-dev-prepared-calibration-451-check";
         bool realDevMirage = args.Length > 0 && args[0] == "--real-dev-mirage-paired-451-check";
         bool realDevTrace452 = args.Length > 0 && args[0] == "--real-dev-452-association-trace";
-        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452;
+        bool realDevPostGroupingTrace = args.Length > 0 && args[0] == "--real-dev-source-post-grouping-trace";
+        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPostGroupingTrace;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -68,6 +69,11 @@ internal static class Program
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--real-dev-source-post-grouping-trace-self-test"])
+            {
+                Emit(RealDevCalibrationCheck.PostGroupingTraceSelfTest());
+                return 0;
+            }
             if (args is ["--real-dev-452-trace-self-test"])
             {
                 Emit(RealDevCalibrationCheck.Trace452SelfTest());
@@ -131,6 +137,18 @@ internal static class Program
                 Emit(await OwnedNativeAxisCheck.RunAsync(nativeAxisApp, nativeAxisRust, parentBudget, deadline.Token));
                 return 0;
             }
+            if (args is ["--owned-gray-axis-check", var grayAxisApp, var grayAxisRust])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await OwnedGrayAxisCheck.RunAsync(grayAxisApp, grayAxisRust, parentBudget, deadline.Token));
+                return 0;
+            }
+            if (args is ["--owned-gray-axis-after-check", var grayAfterApp, var grayAfterRust])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await OwnedGrayAxisCheck.RunAsync(grayAfterApp, grayAfterRust, parentBudget, deadline.Token, expectAmbiguousRecovery: true));
+                return 0;
+            }
             if (args is ["--owned-axis-backend-check", var ownedAxisWorker])
             {
                 using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
@@ -176,6 +194,11 @@ internal static class Program
                     if (args.Length != requiredArguments || args[^1] != "--explicit-opt-in")
                         throw new InvalidDataException();
                     using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                    if (realDevPostGroupingTrace)
+                    {
+                        Emit(await RealDevCalibrationCheck.RunPostGroupingTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
+                        return 0;
+                    }
                     if (realDevTrace452)
                     {
                         Emit(await RealDevCalibrationCheck.Run452TraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
@@ -201,6 +224,14 @@ internal static class Program
                 }
                 catch (Exception)
                 {
+                    if (realDevPostGroupingTrace)
+                    {
+                        Emit(new { schema = "graphreader.real-dev-source-post-grouping-association-trace.v1",
+                            status = "blocked_preflight_or_runtime", error = "REAL_DEV_SOURCE_POST_GROUPING_TRACE_FAILED",
+                            sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
+                            review_only = true, production_approved = false });
+                        return 1;
+                    }
                     if (realDevTrace452)
                     {
                         Emit(new { schema = "graphreader.real-dev-452-association-trace.v1",

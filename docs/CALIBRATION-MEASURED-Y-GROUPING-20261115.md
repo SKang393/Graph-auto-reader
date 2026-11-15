@@ -101,9 +101,9 @@ evaluation, native UI run or new package. Sparse rotated lettering can still
 resemble separate labels; this conservative geometric protection is not a text
 classifier. Gray-axis detection remains unresolved as previously recorded.
 
-Keep 0.4.52 as the sole verified package. `artifacts/y-tick-owned-check` contains
-9 files / 106,629 bytes of bounded requests, test results and run metadata;
-retire it after this
-source/outcome record is pushed and its integration consumer finishes. Reused
-source compiler output remains an active dependency for the next authorized
-batch. Originals, current runtime assets and user Data are preserved.
+Keep 0.4.52 as the sole verified package. After source/outcome commit
+`bc513f79b09134184d5e557f473f69348ea69b07` reached `origin/main` and the run and
+integration consumers finished, `artifacts/y-tick-owned-check` was retired at
+`2026-11-15T06:41:02.1187261Z`: 9 files / 106,629 bytes. The directory was confirmed
+absent. Reused source compiler output remains an active dependency for the next
+authorized batch. Originals, current runtime assets and user Data are preserved.
