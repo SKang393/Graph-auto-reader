@@ -105,6 +105,19 @@ public static class LocalizationKeys
     public const string ManualCalibrationTicksEstimatedComplete = "Manual.CalibrationTicks.EstimatedComplete";
     public const string ManualCalibrationTicksEstimatedWarning = "Manual.CalibrationTicks.EstimatedWarning";
     public const string ManualCalibrationTicksFitEnteredSession = "Manual.CalibrationTicks.FitEnteredSession";
+    public const string ManualPrintedXAvailable = "Manual.PrintedX.Available";
+    public const string ManualUsePrintedX = "Manual.PrintedX.Use";
+    public const string ManualPrintedXReview = "Manual.PrintedX.Review";
+    public const string ManualFirstPrintedX = "Manual.PrintedX.First";
+    public const string ManualFinalPrintedX = "Manual.PrintedX.Final";
+    public const string ManualUseFirstPrintedX = "Manual.PrintedX.UseFirst";
+    public const string ManualUseFinalPrintedX = "Manual.PrintedX.UseFinal";
+    public const string ManualPrintedXPositions = "Manual.PrintedX.Positions";
+    public const string ManualPrintedXRangeHelp = "Manual.PrintedX.RangeHelp";
+    public const string ManualPrintedXInvalid = "Manual.PrintedX.Invalid";
+    public const string ManualPrintedXCalibrationSaved = "Manual.PrintedX.Saved";
+    public const string ManualPrintedXCalibrationPrompt = "Manual.PrintedX.Prompt";
+    public const string ManualPrintedXDetectionUnsupported = "Manual.PrintedX.DetectionUnsupported";
     public const string ManualCalibrationTicksAxisX = "Manual.CalibrationTicks.AxisX";
     public const string ManualCalibrationTicksAxisY = "Manual.CalibrationTicks.AxisY";
     public const string ManualMarkerExemplarTitle = "Manual.MarkerExemplar.Title";
@@ -530,6 +543,19 @@ public static class LocalizationKeys
         ManualCalibrationTicksEstimatedComplete,
         ManualCalibrationTicksEstimatedWarning,
         ManualCalibrationTicksFitEnteredSession,
+        ManualPrintedXAvailable,
+        ManualUsePrintedX,
+        ManualPrintedXReview,
+        ManualFirstPrintedX,
+        ManualFinalPrintedX,
+        ManualUseFirstPrintedX,
+        ManualUseFinalPrintedX,
+        ManualPrintedXPositions,
+        ManualPrintedXRangeHelp,
+        ManualPrintedXInvalid,
+        ManualPrintedXCalibrationSaved,
+        ManualPrintedXCalibrationPrompt,
+        ManualPrintedXDetectionUnsupported,
         ManualCalibrationTicksAxisX,
         ManualCalibrationTicksAxisY,
         ManualCalibrationLabelsInclude,

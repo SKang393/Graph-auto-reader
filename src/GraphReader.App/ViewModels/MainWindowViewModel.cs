@@ -81,6 +81,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private double _manualXMaximum = 20;
     private int _manualFirstVisibleSession = 1;
     private string _manualFirstVisibleSessionText = "1";
+    private bool _manualUsesPrintedXCoordinates;
     private readonly Dictionary<WorkspaceTabViewModel, ManualCalibrationFormState> _manualCalibrationForms = [];
     private readonly Dictionary<string, TabEditHistory> _editHistories = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reviewReadyTabIds = new(StringComparer.Ordinal);
@@ -354,7 +355,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 {
                     _manualCalibrationForms[previous] = new ManualCalibrationFormState(
                         previous.Calibration, ManualYMaximum, ManualXMaximum,
-                        ManualFirstVisibleSession, ManualFirstVisibleSessionText);
+                        ManualFirstVisibleSession, ManualFirstVisibleSessionText, ManualUsesPrintedXCoordinates);
                 }
                 // A pending canvas action belongs to its original panel.
                 // Cancel it before publishing the new selection to bindings.
@@ -735,8 +736,21 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
+    public bool ManualUsesPrintedXCoordinates
+    {
+        get => _manualUsesPrintedXCoordinates;
+        set
+        {
+            if (!SetProperty(ref _manualUsesPrintedXCoordinates, value)) return;
+            NotifyManualPrintedXLabelsChanged();
+            OnPropertyChanged(nameof(IsManualFirstVisibleSessionInputValid));
+            UpdateCalibrationPromptIfActive();
+            RelayCommand.RaiseCanExecuteChanged();
+        }
+    }
+
     public bool IsManualFirstVisibleSessionInputValid =>
-        TryParsePositiveFirstVisibleSession(out int firstVisibleSession) &&
+        TryParseManualFirstX(out double firstVisibleSession) &&
         double.IsFinite(ManualXMaximum) &&
         ManualXMaximum > firstVisibleSession;
 
@@ -1191,7 +1205,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
         if (EditorMode == ManualEditorMode.Calibration && !HasAxisSuggestion && !IsManualFirstVisibleSessionInputValid)
         {
-            SetStatus(GetLocalizedString(LocalizationKeys.ManualFirstVisibleSessionInvalid));
+            SetStatus(ManualFirstXInvalidText);
             return;
         }
 
@@ -1225,6 +1239,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                         OnPropertyChanged(nameof(AxisSuggestionSummary));
                         break;
                     }
+                    if (!TryParseManualFirstX(out double firstX)) throw new InvalidOperationException();
                     _manualWorkspaceService.Calibrate(
                         tab.TabId,
                         new ManualCalibrationRequest(
@@ -1233,12 +1248,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                             new GraphReader.Axis.PixelPoint(_calibrationAnchors[2].X, _calibrationAnchors[2].Y),
                             ManualYMaximum,
                             ManualXMaximum,
-                            ManualFirstVisibleSession));
+                            firstX) { UsesPrintedXCoordinates = ManualUsesPrintedXCoordinates });
                     ClearMarkerExemplarProposals(updateSample: true);
                     EditorMode = ManualEditorMode.Select;
                     SetStatus(FormatLocalizedString(
-                        LocalizationKeys.ManualCalibrationSaved,
-                        ManualFirstVisibleSession,
+                        ManualUsesPrintedXCoordinates ? LocalizationKeys.ManualPrintedXCalibrationSaved : LocalizationKeys.ManualCalibrationSaved,
+                        firstX,
                         ManualXMaximum));
                     RecordManualEdit(tab, LocalizationKeys.EditCalibrate, before!);
                     await TryAutosaveAsync(SnapshotTrigger.CalibrationChanged, tab.TabId, null, cancellationToken);
@@ -1692,13 +1707,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
             if (!IsManualFirstVisibleSessionInputValid)
             {
-                SetStatus(GetLocalizedString(LocalizationKeys.ManualFirstVisibleSessionInvalid));
+                SetStatus(ManualFirstXInvalidText);
                 return;
             }
 
+            _ = TryParseManualFirstX(out double firstX);
             SetStatus(FormatLocalizedString(
-                LocalizationKeys.ManualCalibrationPrompt,
-                ManualFirstVisibleSession,
+                ManualUsesPrintedXCoordinates ? LocalizationKeys.ManualPrintedXCalibrationPrompt : LocalizationKeys.ManualCalibrationPrompt,
+                firstX,
                 ManualXMaximum,
                 ManualYMaximum));
         }
@@ -2101,24 +2117,40 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             bool supported = calibration is not null &&
                 double.IsFinite(calibration.YMaximum) && calibration.YMaximum > 0 &&
                 double.IsFinite(calibration.XMaximum) &&
-                calibration.FirstVisibleSession is >= 1 and <= int.MaxValue &&
-                calibration.FirstVisibleSession == (int)calibration.FirstVisibleSession &&
+                double.IsFinite(calibration.FirstVisibleSession) &&
+                (calibration.UsesPrintedXCoordinates ||
+                    (calibration.FirstVisibleSession is >= 1 and <= int.MaxValue &&
+                     calibration.FirstVisibleSession == (int)calibration.FirstVisibleSession)) &&
                 calibration.XMaximum > calibration.FirstVisibleSession;
-            int first = supported ? (int)calibration!.FirstVisibleSession : 1;
+            bool printed = supported && calibration!.UsesPrintedXCoordinates;
+            int first = supported && !printed ? (int)calibration!.FirstVisibleSession : 1;
             form = new ManualCalibrationFormState(calibration,
                 supported ? calibration!.YMaximum : 100,
                 supported ? calibration!.XMaximum : 20,
-                first, first.ToString(CultureInfo.InvariantCulture));
+                first, supported ? calibration!.FirstVisibleSession.ToString("R", CultureInfo.InvariantCulture) : "1", printed);
         }
         ManualYMaximum = form.YMaximum;
         ManualXMaximum = form.XMaximum;
         ManualFirstVisibleSession = form.FirstVisibleSession;
         ManualFirstVisibleSessionText = form.FirstVisibleSessionText;
+        ManualUsesPrintedXCoordinates = form.UsesPrintedXCoordinates;
     }
 
     private sealed record ManualCalibrationFormState(
         ManualCalibrationState? Calibration, double YMaximum, double XMaximum,
-        int FirstVisibleSession, string FirstVisibleSessionText);
+        int FirstVisibleSession, string FirstVisibleSessionText, bool UsesPrintedXCoordinates);
+
+    private bool TryParseManualFirstX(out double value)
+    {
+        if (!ManualUsesPrintedXCoordinates)
+        {
+            bool valid = TryParsePositiveFirstVisibleSession(out int firstSession);
+            value = firstSession;
+            return valid;
+        }
+        return double.TryParse(ManualFirstVisibleSessionText.Trim(), NumberStyles.Float,
+            CultureInfo.InvariantCulture, out value) && double.IsFinite(value);
+    }
 
     private bool TryParsePositiveFirstVisibleSession(out int value) =>
         int.TryParse(

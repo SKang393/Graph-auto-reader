@@ -840,7 +840,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             xTransform,
             yTransform,
             Confidence: 1,
-            FirstVisibleSession: request.FirstVisibleSession);
+            FirstVisibleSession: request.FirstVisibleSession) { UsesPrintedXCoordinates = request.UsesPrintedXCoordinates };
         tab.Calibration = state;
         foreach (AppGraphPoint point in tab.Points)
         {
@@ -1467,7 +1467,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 "Manual export requires a valid, explicitly confirmed three-anchor calibration. Recalibrate before exporting.");
         }
 
-        bool sessionOverride = tab.Calibration.FirstVisibleSession > 1;
+        bool printedX = tab.Calibration.UsesPrintedXCoordinates;
+        bool sessionOverride = !printedX && tab.Calibration.FirstVisibleSession > 1;
         ExportSessionOriginPolicy manualOriginPolicy = sessionOverride
             ? RequireManualOriginPolicy(panel, tab)
             : new ExportSessionOriginPolicy(false, InvalidSessionOriginBehavior.Block);
@@ -1475,13 +1476,13 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             tab,
             panel,
             outputDirectory,
-            sessionOverride ? ExportMode.PrintedSession : ExportMode.ObservationOrder,
+            printedX || sessionOverride ? ExportMode.PrintedSession : ExportMode.ObservationOrder,
             ExportAuditMode.ExtendedCsvAndJson,
             new ExportCalibration(
                 ExportCalibrationStatus.Valid,
                 hasYCalibration: true,
-                hasPrintedSessionCalibration: sessionOverride,
-                hasAbsoluteSessionOrigin: true,
+                hasPrintedSessionCalibration: printedX || sessionOverride,
+                hasAbsoluteSessionOrigin: !printedX,
                 firstObservedSession: sessionOverride ? FirstObservedSession(panel) : null,
                 panel.Calibration.Confidence),
             manualOriginPolicy,
@@ -2061,6 +2062,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     internal IReadOnlyList<WorkflowManualCalibrationBinding> CreateConfirmedManualCalibrationBindings()
     {
+        EnsurePrintedXDetectionSupported();
         var bindings = new List<WorkflowManualCalibrationBinding>();
         foreach (PanelRecord panel in CurrentProject.Panels)
         {
@@ -2094,6 +2096,17 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         }
 
         return Array.AsReadOnly(bindings.ToArray());
+    }
+
+    protected void EnsurePrintedXDetectionSupported()
+    {
+        if (_tabs.Any(static tab => tab.Calibration?.UsesPrintedXCoordinates == true) ||
+            CurrentProject.Panels.Any(static panel => panel.Calibration is { UserConfirmed: true, SessionLattice: null } calibration &&
+                calibration.Anchors.Any(static anchor => anchor.Kind == DomainCalibrationAnchorKind.Manual)))
+            throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
+                "WORKFLOW_PRINTED_X_DETECTION_UNSUPPORTED", LocalizationKeys.ManualPrintedXDetectionUnsupported,
+                "Automatic detection cannot yet preserve reviewed printed-X calibration.", Recoverable: true,
+                "Continue using the manual review tools, or remove the calibration before automatic detection."));
     }
 
     private static bool IsConfirmedManualThreeAnchorCalibration(CalibrationRecord? calibration)
@@ -3465,7 +3478,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         current.SessionMaximumY0 == exact.SessionMaximumY0 &&
         current.YMaximum == exact.YMaximum &&
         current.XMaximum == exact.XMaximum &&
-        current.FirstVisibleSession == exact.FirstVisibleSession;
+        current.FirstVisibleSession == exact.FirstVisibleSession &&
+        current.UsesPrintedXCoordinates == exact.UsesPrintedXCoordinates;
 
     private static bool PhaseDividersMatch(
         IEnumerable<EditablePhaseDivider> current,
@@ -3992,6 +4006,33 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             return null;
         }
 
+        if (calibration.SessionLattice is null)
+        {
+            if (calibration.Status != DomainCalibrationStatus.Valid || !calibration.UserConfirmed ||
+                calibration.Anchors.Count != 3 || calibration.Anchors.Any(anchor =>
+                    anchor.Kind != DomainCalibrationAnchorKind.Manual || anchor.EvidenceRegionId is not null ||
+                    !double.IsFinite(anchor.Screen.X) || !double.IsFinite(anchor.Screen.Y) ||
+                    !double.IsFinite(anchor.Graph.X) || !double.IsFinite(anchor.Graph.Y)) ||
+                !double.IsFinite(calibration.Confidence) || calibration.Confidence is <= 0 or > 1)
+                return null;
+            DomainCalibrationAnchor[] zeros = calibration.Anchors.Where(anchor => anchor.Graph.Y == 0).OrderBy(anchor => anchor.Graph.X).ToArray();
+            DomainCalibrationAnchor[] uppers = calibration.Anchors.Where(anchor => anchor.Graph.Y > 0).ToArray();
+            if (zeros.Length != 2 || uppers.Length != 1 || zeros[0].Graph.X >= zeros[1].Graph.X ||
+                uppers[0].Graph.X != zeros[0].Graph.X) return null;
+            var printedRequest = new ManualCalibrationRequest(
+                new AxisPixelPoint(zeros[0].Screen.X, zeros[0].Screen.Y),
+                new AxisPixelPoint(uppers[0].Screen.X, uppers[0].Screen.Y),
+                new AxisPixelPoint(zeros[1].Screen.X, zeros[1].Screen.Y),
+                uppers[0].Graph.Y, zeros[1].Graph.X, zeros[0].Graph.X) { UsesPrintedXCoordinates = true };
+            try { ValidateCalibrationRequest(printedRequest); }
+            catch (ArgumentException) { return null; }
+            return new ManualCalibrationState(printedRequest.Session1Y0, printedRequest.Session1YMaximum,
+                printedRequest.SessionMaximumY0, printedRequest.YMaximum, printedRequest.XMaximum,
+                FitTransform(printedRequest.Session1Y0.X, printedRequest.FirstVisibleSession, printedRequest.SessionMaximumY0.X, printedRequest.XMaximum),
+                FitTransform(printedRequest.Session1Y0.Y, 0, printedRequest.Session1YMaximum.Y, printedRequest.YMaximum),
+                calibration.Confidence, printedRequest.FirstVisibleSession) { UsesPrintedXCoordinates = true };
+        }
+
         DomainCalibrationAnchor[] y0Anchors = calibration.Anchors.Where(
             static anchor => anchor.Kind is DomainCalibrationAnchorKind.Session1Y0 or DomainCalibrationAnchorKind.FirstVisibleSessionY0).ToArray();
         DomainCalibrationAnchor[] yMaxAnchors = calibration.Anchors.Where(
@@ -4250,7 +4291,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         {
             result = result with
             {
-                Validation = SetManualOriginReceipt(result, tab, tab.Calibration?.FirstVisibleSession > 1),
+                Validation = SetManualOriginReceipt(result, tab, tab.Calibration is { UsesPrintedXCoordinates: false, FirstVisibleSession: > 1 }),
             };
         }
         return result;
@@ -4453,6 +4494,20 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         {
             return null;
         }
+
+        if (calibration.UsesPrintedXCoordinates)
+            return new CalibrationRecord(CalibrationId.New(), DomainCalibrationStatus.Valid,
+            [
+                new DomainCalibrationAnchor(DomainCalibrationAnchorKind.Manual,
+                    new DomainPixelPoint(calibration.Session1Y0.X, calibration.Session1Y0.Y),
+                    new DomainGraphPoint(calibration.FirstVisibleSession, 0), calibration.Confidence, EvidenceRegionId: null),
+                new DomainCalibrationAnchor(DomainCalibrationAnchorKind.Manual,
+                    new DomainPixelPoint(calibration.Session1YMaximum.X, calibration.Session1YMaximum.Y),
+                    new DomainGraphPoint(calibration.FirstVisibleSession, calibration.YMaximum), calibration.Confidence, EvidenceRegionId: null),
+                new DomainCalibrationAnchor(DomainCalibrationAnchorKind.Manual,
+                    new DomainPixelPoint(calibration.SessionMaximumY0.X, calibration.SessionMaximumY0.Y),
+                    new DomainGraphPoint(calibration.XMaximum, 0), calibration.Confidence, EvidenceRegionId: null),
+            ], null, UserConfirmed: true, calibration.Confidence, Reasons: []);
 
         return new CalibrationRecord(
             CalibrationId.New(),
@@ -5144,8 +5199,9 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         if (!request.Session1Y0.IsFinite || !request.Session1YMaximum.IsFinite ||
             !request.SessionMaximumY0.IsFinite ||
             !double.IsFinite(request.YMaximum) || !double.IsFinite(request.XMaximum) ||
-            !double.IsFinite(request.FirstVisibleSession) || request.FirstVisibleSession < 1 ||
-            request.FirstVisibleSession != Math.Truncate(request.FirstVisibleSession) ||
+            !double.IsFinite(request.FirstVisibleSession) ||
+            (!request.UsesPrintedXCoordinates && (request.FirstVisibleSession < 1 ||
+                request.FirstVisibleSession != Math.Truncate(request.FirstVisibleSession))) ||
             request.YMaximum <= 0 || request.XMaximum <= request.FirstVisibleSession ||
             request.Session1Y0.X == request.SessionMaximumY0.X ||
             request.Session1Y0.Y == request.Session1YMaximum.Y ||
@@ -5153,8 +5209,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             Math.Abs(request.Session1Y0.Y - request.SessionMaximumY0.Y) > 2 ||
             !HasFiniteInvertibleTransform(
                 request.Session1Y0.X, request.FirstVisibleSession, request.SessionMaximumY0.X, request.XMaximum) ||
-            !double.IsFinite(request.Session1Y0.X + (1 - request.FirstVisibleSession) *
-                ((request.SessionMaximumY0.X - request.Session1Y0.X) / (request.XMaximum - request.FirstVisibleSession))) ||
+            (!request.UsesPrintedXCoordinates && !double.IsFinite(request.Session1Y0.X + (1 - request.FirstVisibleSession) *
+                ((request.SessionMaximumY0.X - request.Session1Y0.X) / (request.XMaximum - request.FirstVisibleSession)))) ||
             !HasFiniteInvertibleTransform(
                 request.Session1Y0.Y, 0, request.Session1YMaximum.Y, request.YMaximum))
         {

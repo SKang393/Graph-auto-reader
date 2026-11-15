@@ -1155,16 +1155,16 @@
                         automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.UseYMaximum}" />
                 <Button Margin="0,0,4,4"
                         Command="{Binding UseCalibrationLabelForFirstSessionCommand}"
-                        Content="{DynamicResource Manual.CalibrationLabels.UseFirstSession}"
+                        Content="{Binding UseCalibrationLabelForFirstXText}"
                         Style="{DynamicResource App.Style.Button}"
                         automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.UseFirstSession"
-                        automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.UseFirstSession}" />
+                        automation:AutomationProperties.Name="{Binding UseCalibrationLabelForFirstXText}" />
                 <Button Margin="0,0,0,4"
                         Command="{Binding UseCalibrationLabelForFinalSessionCommand}"
-                        Content="{DynamicResource Manual.CalibrationLabels.UseFinalSession}"
+                        Content="{Binding UseCalibrationLabelForFinalXText}"
                         Style="{DynamicResource App.Style.Button}"
                         automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.UseFinalSession"
-                        automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.UseFinalSession}" />
+                        automation:AutomationProperties.Name="{Binding UseCalibrationLabelForFinalXText}" />
               </WrapPanel>
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -1177,8 +1177,8 @@
                   <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Column="0" Text="{DynamicResource Manual.YMaximum}" TextWrapping="Wrap" Margin="0,0,4,0" />
-                <TextBlock Grid.Column="1" Text="{DynamicResource Manual.FirstVisibleSession}" TextWrapping="Wrap" Margin="2,0" />
-                <TextBlock Grid.Column="2" Text="{DynamicResource Manual.XMaximum}" TextWrapping="Wrap" Margin="4,0,0,0" />
+                <TextBlock Grid.Column="1" Text="{Binding SuggestedFirstXLabel}" TextWrapping="Wrap" Margin="2,0" />
+                <TextBlock Grid.Column="2" Text="{Binding SuggestedFinalXLabel}" TextWrapping="Wrap" Margin="4,0,0,0" />
                 <TextBox Grid.Row="1" Grid.Column="0" Margin="0,0,4,0"
                          Text="{Binding SuggestedYMaximum, UpdateSourceTrigger=PropertyChanged}"
                          automation:AutomationProperties.AutomationId="Manual.AxisProposal.YMaximum"
@@ -1186,12 +1186,19 @@
                 <TextBox Grid.Row="1" Grid.Column="1" Margin="2,0"
                          Text="{Binding SuggestedFirstSession, UpdateSourceTrigger=PropertyChanged}"
                          automation:AutomationProperties.AutomationId="Manual.AxisProposal.FirstSession"
-                         automation:AutomationProperties.Name="{DynamicResource Manual.FirstVisibleSession}" />
+                         automation:AutomationProperties.Name="{Binding SuggestedFirstXLabel}" />
                 <TextBox Grid.Row="1" Grid.Column="2" Margin="4,0,0,0"
                          Text="{Binding SuggestedFinalSession, UpdateSourceTrigger=PropertyChanged}"
                          automation:AutomationProperties.AutomationId="Manual.AxisProposal.FinalSession"
-                         automation:AutomationProperties.Name="{DynamicResource Manual.XMaximum}" />
+                         automation:AutomationProperties.Name="{Binding SuggestedFinalXLabel}" />
               </Grid>
+              <Button Margin="0,6,0,0" Command="{Binding UsePrintedXCoordinatesCommand}"
+                      Content="{DynamicResource Manual.PrintedX.Use}" Style="{DynamicResource App.Style.Button}"
+                      Visibility="{Binding HasPrintedXReviewDraft, Converter={StaticResource BooleanToVisibilityConverter}}"
+                      automation:AutomationProperties.AutomationId="Manual.PrintedX.Use"
+                      automation:AutomationProperties.Name="{DynamicResource Manual.PrintedX.Use}" />
+              <TextBlock Margin="0,6,0,0" Text="{DynamicResource Manual.PrintedX.Review}" TextWrapping="Wrap"
+                         Visibility="{Binding SuggestedUsesPrintedXCoordinates, Converter={StaticResource BooleanToVisibilityConverter}}" />
               <Button Margin="0,6,0,0" Command="{Binding FitForEnteredFirstSessionCommand}"
                       Content="{DynamicResource Manual.CalibrationTicks.FitEnteredSession}"
                       Style="{DynamicResource App.Style.Button}"
@@ -1369,17 +1376,17 @@
                          automation:AutomationProperties.Name="{DynamicResource Manual.YMaximum}" />
               </StackPanel>
               <StackPanel Grid.Column="1" Margin="4,0,4,0">
-                <TextBlock Text="{DynamicResource Manual.FirstVisibleSession}" />
+                <TextBlock Text="{Binding ManualFirstXLabel}" />
                 <TextBox Text="{Binding ManualFirstVisibleSessionText, UpdateSourceTrigger=PropertyChanged}"
                          automation:AutomationProperties.AutomationId="Manual.FirstVisibleSession"
-                         automation:AutomationProperties.Name="{DynamicResource Manual.FirstVisibleSession}"
-                         automation:AutomationProperties.HelpText="{DynamicResource Manual.SessionRangeHelp}" />
+                         automation:AutomationProperties.Name="{Binding ManualFirstXLabel}"
+                         automation:AutomationProperties.HelpText="{Binding ManualXRangeHelp}" />
                 <TextBlock Margin="0,3,0,0"
                            Foreground="{DynamicResource App.Brush.Danger}"
-                           Text="{DynamicResource Manual.FirstVisibleSession.Invalid}"
+                           Text="{Binding ManualFirstXInvalidText}"
                            TextWrapping="Wrap"
                            automation:AutomationProperties.AutomationId="Manual.FirstVisibleSession.Validation"
-                           automation:AutomationProperties.Name="{DynamicResource Manual.FirstVisibleSession.Invalid}">
+                           automation:AutomationProperties.Name="{Binding ManualFirstXInvalidText}">
                   <TextBlock.Style>
                     <Style TargetType="{x:Type TextBlock}">
                       <Setter Property="Visibility" Value="Collapsed" />
@@ -1393,16 +1400,16 @@
                 </TextBlock>
               </StackPanel>
               <StackPanel Grid.Column="2" Margin="4,0,0,0">
-                <TextBlock Text="{DynamicResource Manual.XMaximum}" />
+                <TextBlock Text="{Binding ManualFinalXLabel}" />
                 <TextBox Text="{Binding ManualXMaximum, UpdateSourceTrigger=PropertyChanged}"
                          automation:AutomationProperties.AutomationId="Manual.XMaximum"
-                         automation:AutomationProperties.Name="{DynamicResource Manual.XMaximum}"
-                         automation:AutomationProperties.HelpText="{DynamicResource Manual.SessionRangeHelp}" />
+                         automation:AutomationProperties.Name="{Binding ManualFinalXLabel}"
+                         automation:AutomationProperties.HelpText="{Binding ManualXRangeHelp}" />
               </StackPanel>
             </Grid>
             <TextBlock Margin="0,0,0,8"
                        Foreground="{DynamicResource App.Brush.TextMuted}"
-                       Text="{DynamicResource Manual.SessionRangeHelp}"
+                       Text="{Binding ManualXRangeHelp}"
                        TextWrapping="Wrap" />
             <Grid Margin="0,0,0,6">
               <Grid.ColumnDefinitions>

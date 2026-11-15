@@ -11,6 +11,8 @@ public sealed record CalibrationXReviewDraft(int FirstPixelPosition, int FinalPi
     int FirstSession, double FinalSession, bool UsesEstimatedPositions);
 public sealed record CalibrationYReviewDraft(int ZeroPixelPosition, int MaximumPixelPosition,
     double YMaximum, bool UsesEstimatedPositions);
+public sealed record CalibrationPrintedXReviewDraft(CalibrationTickAnchors Anchors,
+    double FirstX, double FinalX, double YMaximum, bool UsesEstimatedPositions);
 public sealed record CalibrationPairedTick(string Axis, int PixelPosition, double Value, CalibrationOcrProposal Label)
 {
     public bool IsEstimated { get; init; }
@@ -24,6 +26,7 @@ public sealed record CalibrationTickProposalResult(CalibrationTickAnchors? Ancho
 {
     public CalibrationXReviewDraft? XReviewDraft { get; init; }
     public CalibrationYReviewDraft? YReviewDraft { get; init; }
+    public CalibrationPrintedXReviewDraft? PrintedXReviewDraft { get; init; }
     public bool UsesUserEnteredSessionPosition { get; init; }
     public bool UsesEstimatedPositions => PairedTicks.Any(pair => pair.IsEstimated);
     public bool IsComplete => Anchors is not null && FirstSession is not null && FinalSession is not null &&
@@ -55,7 +58,7 @@ public static class CalibrationTickProposal
 
     /// <summary>Retains independently validated axes for manual review, estimating only axes without measured ticks.</summary>
     public static CalibrationTickProposalResult CreateReviewDraft(RustAxisGeometry geometry, CalibrationOcrResponse response) =>
-        CreateCore(geometry, response, estimateEmptyAxes: true, publishPartialAxes: true);
+        CreateCore(geometry, response, estimateEmptyAxes: true, publishPartialAxes: true, publishPrintedX: true);
 
     internal static CalibrationTickProposalResult CreateReviewDraft(RustAxisGeometry geometry, CalibrationOcrResponse response,
         IReadOnlyList<CalibrationTickFitEvidence> evidence) => CreateReviewDraftCore(geometry, response, evidence, null);
@@ -82,12 +85,13 @@ public static class CalibrationTickProposal
             if (item.HasCorrection) userCorrected.Add(row);
         }
         return CreateCore(geometry, response with { Proposals = effective.AsReadOnly() },
-            estimateEmptyAxes: true, publishPartialAxes: true, userCorrected: userCorrected, userFirstSession: firstSession);
+            estimateEmptyAxes: true, publishPartialAxes: true, userCorrected: userCorrected, userFirstSession: firstSession,
+            publishPrintedX: firstSession is null);
     }
 
     private static CalibrationTickProposalResult CreateCore(RustAxisGeometry geometry, CalibrationOcrResponse response,
         bool estimateEmptyAxes, bool publishPartialAxes = false, HashSet<CalibrationOcrProposal>? userCorrected = null,
-        int? userFirstSession = null)
+        int? userFirstSession = null, bool publishPrintedX = false)
     {
         ArgumentNullException.ThrowIfNull(geometry);
         ArgumentNullException.ThrowIfNull(response);
@@ -203,6 +207,7 @@ public static class CalibrationTickProposal
         int xLabelErrors = xReasons.Count, yLabelErrors = yReasons.Count;
         CheckAxis(x, true, xReasons);
         CheckAxis(y, false, yReasons);
+        bool xPairChecksPassed = xReasons.Count == 0;
         // A failed axis must not hide an independently validated axis's range
         // failure. Insufficient or conflicting pairs cannot establish endpoints.
         double first = userFirstSession ?? (x.Length > 0 ? x[0].Value : 0);
@@ -241,7 +246,13 @@ public static class CalibrationTickProposal
             y[0].Value > 0 && y[0].Value == y.Max(pair => pair.Value)
                 ? new(y[^1].PixelPosition, y[0].PixelPosition, y[0].Value,
                     y.Any(pair => pair.IsEstimated)) : null;
-        if (reasons.Count > 0) return Failure(paired, reasons, xDraft, yDraft);
+        CalibrationPrintedXReviewDraft? printedDraft = publishPrintedX && userFirstSession is null && !identityConflict &&
+            xPairChecksPassed && yReasons.Count == 0 && double.IsFinite(x[0].Value) && double.IsFinite(x[^1].Value) &&
+            x[^1].Value > x[0].Value && !ValidXRange(x[0].Value, x[^1].Value)
+                ? new(new(new(x[0].PixelPosition, y[^1].PixelPosition), new(x[0].PixelPosition, y[0].PixelPosition),
+                        new(x[^1].PixelPosition, y[^1].PixelPosition)), x[0].Value, x[^1].Value, y[0].Value,
+                    x.Any(pair => pair.IsEstimated) || y.Any(pair => pair.IsEstimated)) : null;
+        if (reasons.Count > 0) return Failure(paired, reasons, xDraft, yDraft, printedDraft);
 
         double final = x[^1].Value, maximum = y[0].Value;
         return new CalibrationTickProposalResult(new(new(firstPixel, y[^1].PixelPosition), new(firstPixel, y[0].PixelPosition),
@@ -278,7 +289,9 @@ public static class CalibrationTickProposal
     }
 
     private static CalibrationTickProposalResult Failure(List<CalibrationPairedTick> pairs, IEnumerable<string> reasons,
-        CalibrationXReviewDraft? xDraft = null, CalibrationYReviewDraft? yDraft = null) =>
+        CalibrationXReviewDraft? xDraft = null, CalibrationYReviewDraft? yDraft = null,
+        CalibrationPrintedXReviewDraft? printedDraft = null) =>
         new(null, null, null, null, Array.AsReadOnly(pairs.ToArray()),
-            Array.AsReadOnly(reasons.Distinct(StringComparer.Ordinal).ToArray())) { XReviewDraft = xDraft, YReviewDraft = yDraft };
+            Array.AsReadOnly(reasons.Distinct(StringComparer.Ordinal).ToArray()))
+            { XReviewDraft = xDraft, YReviewDraft = yDraft, PrintedXReviewDraft = printedDraft };
 }

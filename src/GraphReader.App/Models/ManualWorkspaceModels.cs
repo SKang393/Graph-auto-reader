@@ -41,7 +41,10 @@ public sealed record ManualCalibrationState(
     LinearAxisTransform XTransform,
     LinearAxisTransform YTransform,
     double Confidence,
-    double FirstVisibleSession = 1);
+    double FirstVisibleSession = 1)
+{
+    public bool UsesPrintedXCoordinates { get; init; }
+}
 
 public sealed class EditablePhaseDivider : ObservableObject
 {

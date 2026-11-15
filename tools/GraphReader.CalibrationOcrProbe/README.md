@@ -186,6 +186,18 @@ Rust-measured X ticks to the matching-build worker; absent measured ticks retain
 the generic grouping path. Calibration rejects internal whitespace as a numeric
 literal and can retain a separately validated partial axis without applying it.
 
+`--real-dev-printed-x-trace <absolute-dev-root> <absolute-source-App.exe> <absolute-reviewed-assets-root> <absolute-Rust-worker> --explicit-opt-in`
+uses the same frozen first-12 selection, selector identity checks, failure accounting,
+per-project deadlines and CPU job budget as the 0.4.52 association trace. Its
+separate source-runtime profile pins the current App output and retains the
+reviewed `OpenCvSharpExtern.dll` hash. It adds only the per-panel boolean
+`printed_x_review_draft_available` and aggregate availability count; those
+counts are independent of `IsComplete` and do not mean calibration was applied
+or exported. It adds no text, numeric values or case identities beyond the
+existing trace payload. The explicit opt-in and normal reserved-split
+exclusions remain required. Run `--real-dev-printed-x-trace-self-test` for the
+owned in-memory check; it performs no private reads.
+
 `--automatic-device-check <absolute-App-exe> <absolute-assets> <absolute-empty-settings-root>`
 uses the real in-memory owned benchmark and checks automatic profile persistence,
 identity invalidation and an explicit CPU override. The supplied settings directory

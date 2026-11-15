@@ -46,7 +46,10 @@ public sealed record ManualCalibrationRequest(
     GraphReader.Axis.PixelPoint SessionMaximumY0,
     double YMaximum,
     double XMaximum,
-    double FirstVisibleSession = 1);
+    double FirstVisibleSession = 1)
+{
+    public bool UsesPrintedXCoordinates { get; init; }
+}
 
 public sealed record ManualSeriesDefinition(
     string DisplayName,

@@ -193,6 +193,8 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
             retained.Panel.SourceId == panel.SourceId.Value &&
             retained.ExportEvidence is { } exportEvidence)
         {
+            if (tab.Calibration?.UsesPrintedXCoordinates == true)
+                throw new InvalidOperationException("Production export evidence cannot be used with reviewed printed-X calibration. Recalibrate or use manual review export.");
             if (tab.Calibration is { FirstVisibleSession: > 1 })
             {
                 ExportSessionOriginPolicy expectedPolicy = RequireManualOriginPolicy(panel, tab);
@@ -231,7 +233,8 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                 "Production manual export requires a valid, explicitly confirmed three-anchor calibration. Recalibrate before exporting.");
         }
 
-        bool sessionOverride = tab.Calibration.FirstVisibleSession > 1;
+        bool printedX = tab.Calibration.UsesPrintedXCoordinates;
+        bool sessionOverride = !printedX && tab.Calibration.FirstVisibleSession > 1;
         ExportSessionOriginPolicy manualOriginPolicy = sessionOverride
             ? RequireManualOriginPolicy(panel, tab)
             : new ExportSessionOriginPolicy(false, InvalidSessionOriginBehavior.Block);
@@ -239,13 +242,13 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
             tab,
             panel,
             outputDirectory,
-            sessionOverride ? ExportMode.PrintedSession : ExportMode.ObservationOrder,
+            printedX || sessionOverride ? ExportMode.PrintedSession : ExportMode.ObservationOrder,
             ExportAuditMode.ExtendedCsvAndJson,
             new ExportCalibration(
                 ExportCalibrationStatus.Valid,
                 hasYCalibration: true,
-                hasPrintedSessionCalibration: sessionOverride,
-                hasAbsoluteSessionOrigin: true,
+                hasPrintedSessionCalibration: printedX || sessionOverride,
+                hasAbsoluteSessionOrigin: !printedX,
                 firstObservedSession: sessionOverride ? FirstObservedSession(panel) : null,
                 panel.Calibration.Confidence),
             manualOriginPolicy,
@@ -726,6 +729,7 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
     public async Task<WorkflowRunResult> RunAutomaticDetectionAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        EnsurePrintedXDetectionSupported();
         Dictionary<Guid, ProductionPanelEvidence> priorEvidence = _panelStore.PanelIds
             .ToDictionary(static id => id, id => _panelStore.Get(id));
         AutomaticStageStatus? blocked = RequiredDetectionStages

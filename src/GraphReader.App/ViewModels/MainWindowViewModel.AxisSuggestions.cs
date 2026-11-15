@@ -19,10 +19,33 @@ public sealed partial class MainWindowViewModel
     private string _suggestedFinalSession = "";
     private bool _axisSuggestionReviewed;
     private int _axisSuggestionGeneration;
+    private bool _suggestedUsesPrintedXCoordinates;
     public ICommand SuggestAxesCommand { get; private set; } = null!;
     public ICommand ApplyAxisSuggestionCommand { get; private set; } = null!;
     public ICommand DismissAxisSuggestionCommand { get; private set; } = null!;
     public bool HasAxisSuggestion => _axisSuggestion is not null;
+    public bool SuggestedUsesPrintedXCoordinates => _suggestedUsesPrintedXCoordinates;
+    public string SuggestedFirstXLabel => GetLocalizedString(SuggestedUsesPrintedXCoordinates
+        ? LocalizationKeys.ManualFirstPrintedX : LocalizationKeys.ManualFirstVisibleSession);
+    public string SuggestedFinalXLabel => GetLocalizedString(SuggestedUsesPrintedXCoordinates
+        ? LocalizationKeys.ManualFinalPrintedX : LocalizationKeys.ManualXMaximum);
+    public string UseCalibrationLabelForFirstXText => GetLocalizedString(SuggestedUsesPrintedXCoordinates
+        ? LocalizationKeys.ManualUseFirstPrintedX : LocalizationKeys.ManualCalibrationLabelsUseFirstSession);
+    public string UseCalibrationLabelForFinalXText => GetLocalizedString(SuggestedUsesPrintedXCoordinates
+        ? LocalizationKeys.ManualUseFinalPrintedX : LocalizationKeys.ManualCalibrationLabelsUseFinalSession);
+
+    private void SetSuggestedPrintedXCoordinates(bool value)
+    {
+        if (!SetProperty(ref _suggestedUsesPrintedXCoordinates, value, nameof(SuggestedUsesPrintedXCoordinates))) return;
+        AxisSuggestionReviewed = false;
+        OnPropertyChanged(nameof(SuggestedFirstXLabel));
+        OnPropertyChanged(nameof(SuggestedFinalXLabel));
+        OnPropertyChanged(nameof(UseCalibrationLabelForFirstXText));
+        OnPropertyChanged(nameof(UseCalibrationLabelForFinalXText));
+        OnPropertyChanged(nameof(HasPrintedXReviewDraft));
+        OnPropertyChanged(nameof(AxisSuggestionSummary));
+        RelayCommand.RaiseCanExecuteChanged();
+    }
     public bool HasAxisGeometryReviewWarning => _axisSuggestion is { Provider: "opencv-review" };
     public string AxisGeometryReviewWarningText => !HasAxisGeometryReviewWarning ? string.Empty : GetLocalizedString(
         _axisSuggestion!.ReviewReasons.Any(reason => reason is "x_axis_partial" or "y_axis_partial")
@@ -76,7 +99,7 @@ public sealed partial class MainWindowViewModel
         }
     }
     public string AxisSuggestionSummary => _suggestedAnchors.Length == 3
-        ? FormatLocalizedString(LocalizationKeys.ManualAxisPositions,
+        ? FormatLocalizedString(SuggestedUsesPrintedXCoordinates ? LocalizationKeys.ManualPrintedXPositions : LocalizationKeys.ManualAxisPositions,
             _suggestedAnchors[0].X, _suggestedAnchors[0].Y, _suggestedAnchors[1].X,
             _suggestedAnchors[1].Y, _suggestedAnchors[2].X, _suggestedAnchors[2].Y) : "";
 
@@ -144,29 +167,31 @@ public sealed partial class MainWindowViewModel
     public Task ApplyAxisSuggestionAsync(CancellationToken cancellationToken) => RunBusyAsync(async token =>
     {
         token.ThrowIfCancellationRequested();
-        if (!AxisSuggestionReviewed || !TryGetSuggestedValues(out double y, out double final, out int first) ||
+        if (!AxisSuggestionReviewed || !TryGetSuggestedValues(out double y, out double final, out double first) ||
             SelectedTab is not { } tab || _manualWorkspaceService is null)
         {
             return;
         }
 
         WorkspaceTabSnapshot before = CaptureTabSnapshot(tab);
+        bool printedX = SuggestedUsesPrintedXCoordinates;
         _manualWorkspaceService.Calibrate(tab.TabId, new ManualCalibrationRequest(
             new(_suggestedAnchors[0].X, _suggestedAnchors[0].Y),
             new(_suggestedAnchors[1].X, _suggestedAnchors[1].Y),
-            new(_suggestedAnchors[2].X, _suggestedAnchors[2].Y), y, final, first));
+            new(_suggestedAnchors[2].X, _suggestedAnchors[2].Y), y, final, first) { UsesPrintedXCoordinates = printedX });
         ClearMarkerExemplarProposals(updateSample: true);
+        ManualUsesPrintedXCoordinates = printedX;
         ManualYMaximum = y;
         ManualXMaximum = final;
         ManualFirstVisibleSessionText = first.ToString(CultureInfo.InvariantCulture);
         ClearAxisSuggestion();
         EditorMode = ManualEditorMode.Select;
-        SetStatus(FormatLocalizedString(LocalizationKeys.ManualCalibrationSaved, first, final));
+        SetStatus(FormatLocalizedString(printedX ? LocalizationKeys.ManualPrintedXCalibrationSaved : LocalizationKeys.ManualCalibrationSaved, first, final));
         RecordManualEdit(tab, LocalizationKeys.EditCalibrate, before);
         await TryAutosaveAsync(SnapshotTrigger.CalibrationChanged, tab.TabId, null, token);
     }, cancellationToken);
 
-    private bool TryGetSuggestedValues(out double y, out double final, out int first)
+    private bool TryGetSuggestedValues(out double y, out double final, out double first)
     {
         y = final = 0;
         first = 0;
@@ -174,7 +199,9 @@ public sealed partial class MainWindowViewModel
             _workspaceService is IAxisSuggestionWorkspace workspace && workspace.IsAxisSuggestionCurrent(suggestion) &&
             _suggestedAnchors.Length == 3 &&
             double.TryParse(SuggestedYMaximum, NumberStyles.Float, CultureInfo.InvariantCulture, out y) && double.IsFinite(y) && y > 0 &&
-            int.TryParse(SuggestedFirstSession, NumberStyles.Integer, CultureInfo.InvariantCulture, out first) && first > 0 &&
+            double.TryParse(SuggestedFirstSession, NumberStyles.Float, CultureInfo.InvariantCulture, out first) && double.IsFinite(first) &&
+            (SuggestedUsesPrintedXCoordinates ||
+                int.TryParse(SuggestedFirstSession, NumberStyles.Integer, CultureInfo.InvariantCulture, out int session) && session > 0) &&
             double.TryParse(SuggestedFinalSession, NumberStyles.Float, CultureInfo.InvariantCulture, out final) && double.IsFinite(final) && final > first;
     }
 
@@ -198,6 +225,7 @@ public sealed partial class MainWindowViewModel
         ClearManualAxisDraftSelection();
         if (wasCollecting && EditorMode == ManualEditorMode.Calibration) EditorMode = ManualEditorMode.Select;
         _axisSuggestionGeneration++;
+        SetSuggestedPrintedXCoordinates(false);
         SetEstimatedCalibrationPositions(false);
         ClearCalibrationLabelResults(clearPickedValues: true);
         if (HasAxisSuggestion)

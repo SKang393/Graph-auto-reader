@@ -1,0 +1,120 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Sungwoo Kang
+using System.Globalization;
+using GraphReader.App.Services;
+using GraphReader.App.ViewModels;
+using GraphReader.Domain;
+
+namespace GraphReader.App.Tests;
+
+public sealed partial class CalibrationTickViewModelTests
+{
+    [TestMethod]
+    [DataRow(0d, 5d, 10d)]
+    [DataRow(-10d, -5d, 0d)]
+    [DataRow(.5d, 1.5d, 2.5d)]
+    public void PrintedXDraftRequiresExplicitChoiceAndReviewThenSupportsUndoRedo(double first, double middle, double final)
+    {
+        WithImage(path =>
+        {
+            CalibrationOcrProposal[] proposals = ZeroOriginProposals();
+            proposals[0] = Proposal("x-first", first.ToString("R", CultureInfo.InvariantCulture), first, "XTick", "X", 20, 112);
+            proposals[1] = Proposal("x-mid", middle.ToString("R", CultureInfo.InvariantCulture), middle, "XTick", "X", 80, 112);
+            proposals[2] = Proposal("x-final", final.ToString("R", CultureInfo.InvariantCulture), final, "XTick", "X", 140, 112);
+            var reader = new OcrStub(proposals);
+            using var workspace = CreateWorkspace(path, reader, MeasuredGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            var tab = vm.SelectedTab!;
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            Assert.IsTrue(vm.HasPrintedXReviewDraft);
+            Assert.IsFalse(vm.SuggestedUsesPrintedXCoordinates);
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+            Assert.IsNull(tab.Calibration);
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            vm.UsePrintedXCoordinatesCommand.Execute(null);
+            Assert.IsTrue(vm.SuggestedUsesPrintedXCoordinates);
+            Assert.IsFalse(vm.HasPrintedXReviewDraft);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsFalse(vm.FitForEnteredFirstSessionCommand.CanExecute(null));
+            Assert.AreEqual(first.ToString("R", CultureInfo.InvariantCulture), vm.SuggestedFirstSession);
+            Assert.AreEqual(final.ToString("R", CultureInfo.InvariantCulture), vm.SuggestedFinalSession);
+            Assert.HasCount(6, vm.CalibrationPairedTickRows);
+            Assert.AreEqual(1, reader.CallCount, "Changing coordinate mode must not rerun OCR.");
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.IsTrue(tab.Calibration!.UsesPrintedXCoordinates);
+            Assert.AreEqual(first, tab.Calibration.FirstVisibleSession);
+            Assert.AreEqual(final, tab.Calibration.XMaximum);
+            Assert.IsTrue(vm.ManualUsesPrintedXCoordinates);
+            Assert.AreEqual(first.ToString("R", CultureInfo.InvariantCulture), vm.ManualFirstVisibleSessionText);
+            Assert.IsFalse(vm.HasAxisSuggestion);
+            Assert.IsNull(workspace.CurrentProject.Panels.Single().Calibration!.SessionLattice);
+            Assert.IsTrue(workspace.CurrentProject.Panels.Single().Calibration!.Anchors.All(a => a.Kind == CalibrationAnchorKind.Manual));
+            vm.UndoCommand.Execute(null);
+            Assert.IsNull(tab.Calibration);
+            Assert.IsFalse(vm.ManualUsesPrintedXCoordinates);
+            vm.RedoCommand.Execute(null);
+            Assert.IsTrue(tab.Calibration!.UsesPrintedXCoordinates);
+            Assert.IsTrue(vm.ManualUsesPrintedXCoordinates);
+            Assert.AreEqual(first.ToString("R", CultureInfo.InvariantCulture), vm.ManualFirstVisibleSessionText);
+        });
+    }
+
+    [TestMethod]
+    public void PrintedXNumericEditInvalidatesReviewAndEvidenceEditRequiresRefit()
+    {
+        WithImage(path =>
+        {
+            using var workspace = CreateWorkspace(path, ZeroOriginProposals(), MeasuredGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            vm.UsePrintedXCoordinatesCommand.Execute(null);
+            vm.AxisSuggestionReviewed = true;
+            vm.SuggestedFirstSession = "-0.5";
+            Assert.IsTrue(vm.SuggestedUsesPrintedXCoordinates);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.HasCalibrationTickProposal);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            vm.CalibrationLabelRows.Single(row => row.Proposal.RegionId == "x-mid").CorrectedText = "8";
+            Assert.IsFalse(vm.SuggestedUsesPrintedXCoordinates);
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+            vm.RefitSelectedCalibrationLabels();
+            Assert.IsFalse(vm.HasPrintedXReviewDraft);
+            Assert.IsFalse(vm.UsePrintedXCoordinatesCommand.CanExecute(null));
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+        });
+    }
+
+    [TestMethod]
+    public void PrintedXChoiceIsInvalidatedByTabChangeAndSessionRefitRemainsAvailable()
+    {
+        WithImage(path =>
+        {
+            using var workspace = CreateWorkspace(path, ZeroOriginProposals(), MeasuredGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            var tab = vm.SelectedTab!;
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            vm.UsePrintedXCoordinatesCommand.Execute(null);
+            vm.RefitSelectedCalibrationLabels();
+            Assert.IsFalse(vm.SuggestedUsesPrintedXCoordinates);
+            Assert.IsTrue(vm.HasPrintedXReviewDraft);
+            vm.SuggestedFirstSession = "1";
+            vm.FitForEnteredFirstSessionCommand.Execute(null);
+            Assert.IsFalse(vm.SuggestedUsesPrintedXCoordinates);
+            Assert.AreEqual("1", vm.SuggestedFirstSession);
+            Assert.AreEqual("10", vm.SuggestedFinalSession);
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            vm.SelectedTab = null;
+            vm.SelectedTab = tab;
+            Assert.IsFalse(vm.HasPrintedXReviewDraft);
+            Assert.IsFalse(vm.SuggestedUsesPrintedXCoordinates);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(tab.Calibration);
+        });
+    }
+}

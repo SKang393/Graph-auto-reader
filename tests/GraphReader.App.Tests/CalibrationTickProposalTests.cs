@@ -12,6 +12,135 @@ namespace GraphReader.App.Tests;
 public sealed class CalibrationTickProposalTests
 {
     [TestMethod]
+    [DataRow(0d)]
+    [DataRow(-4d)]
+    [DataRow(0.5d)]
+    [DataRow(1.5d)]
+    public void PrintedXReviewRetainsValidatedLiteralEndpointsWithoutChangingSessionFailure(double first)
+    {
+        CalibrationOcrProposal[] labels = PrintedLabels(first);
+        CalibrationOcrResponse response = Response(labels);
+        string raw = JsonSerializer.Serialize(response);
+        CalibrationTickProposalResult strict = CalibrationTickProposal.Create(Geometry(), response);
+        CalibrationTickProposalResult review = CalibrationTickProposal.CreateReviewDraft(Geometry(), response);
+
+        Assert.IsFalse(strict.IsComplete);
+        Assert.IsNull(strict.PrintedXReviewDraft);
+        Assert.IsFalse(review.IsComplete);
+        Assert.IsNull(review.Anchors);
+        Assert.IsNull(review.FirstSession);
+        Assert.IsNull(review.FinalSession);
+        Assert.IsNull(review.YMaximum);
+        Assert.IsNull(review.XReviewDraft);
+        CollectionAssert.AreEqual(new[] { CalibrationTickProposalReasons.InvalidRange }, review.Reasons.ToArray());
+        Assert.AreEqual(JsonSerializer.Serialize(strict.PairedTicks), JsonSerializer.Serialize(review.PairedTicks));
+        Assert.HasCount(6, review.PairedTicks);
+        CalibrationPrintedXReviewDraft printed = review.PrintedXReviewDraft!;
+        Assert.IsNotNull(printed);
+        Assert.AreEqual(first, printed.FirstX);
+        Assert.AreEqual(first + 6, printed.FinalX);
+        Assert.AreEqual(10d, printed.YMaximum);
+        Assert.AreEqual(new CalibrationTickAnchors(new(100, 250), new(100, 50), new(300, 250)), printed.Anchors);
+        Assert.IsFalse(printed.UsesEstimatedPositions);
+        Assert.AreEqual(raw, JsonSerializer.Serialize(response));
+    }
+
+    [TestMethod]
+    [DataRow(1)]
+    [DataRow(29)]
+    public void PositiveIntegerSessionReviewDoesNotPublishAnAlternativePrintedDraft(int first)
+    {
+        CalibrationOcrResponse response = Response(Labels(first));
+        CalibrationTickProposalResult strict = CalibrationTickProposal.Create(Geometry(), response);
+        CalibrationTickProposalResult review = CalibrationTickProposal.CreateReviewDraft(Geometry(), response);
+        Assert.IsTrue(strict.IsComplete);
+        Assert.IsTrue(review.IsComplete);
+        Assert.AreEqual(first, review.FirstSession);
+        Assert.AreEqual(strict.Anchors, review.Anchors);
+        Assert.IsNull(strict.PrintedXReviewDraft);
+        Assert.IsNull(review.PrintedXReviewDraft);
+    }
+
+    [TestMethod]
+    [DataRow("X")]
+    [DataRow("Y")]
+    [DataRow("both")]
+    public void PrintedXReviewRetainsEstimatedCoordinateProvenance(string missingAxis)
+    {
+        RustAxisGeometry geometry = Geometry() with
+        {
+            XTickPositions = missingAxis is "X" or "both" ? [] : Geometry().XTickPositions,
+            YTickPositions = missingAxis is "Y" or "both" ? [] : Geometry().YTickPositions,
+        };
+        CalibrationTickProposalResult review = CalibrationTickProposal.CreateReviewDraft(geometry, Response(PrintedLabels(0)));
+        CalibrationPrintedXReviewDraft printed = review.PrintedXReviewDraft!;
+        Assert.IsNotNull(printed);
+        Assert.IsFalse(review.IsComplete);
+        Assert.IsNull(review.FirstSession);
+        Assert.IsTrue(printed.UsesEstimatedPositions);
+        Assert.IsTrue(review.UsesEstimatedPositions);
+        Assert.AreEqual(new CalibrationTickAnchors(new(100, 250), new(100, 50), new(300, 250)), printed.Anchors);
+        Assert.IsTrue(review.PairedTicks.All(pair => pair.IsEstimated == (missingAxis == "both" || pair.Axis == missingAxis)));
+    }
+
+    [TestMethod]
+    [DataRow("malformed")]
+    [DataRow("outlier")]
+    [DataRow("duplicate-position")]
+    [DataRow("duplicate-id")]
+    [DataRow("missing-zero")]
+    [DataRow("insufficient")]
+    [DataRow("nonmonotonic")]
+    [DataRow("zero-confidence")]
+    [DataRow("stale-plot")]
+    public void PrintedXReviewCannotHideAnyIncludedEvidenceOrFitFailure(string defect)
+    {
+        CalibrationOcrProposal[] labels = PrintedLabels(0);
+        switch (defect)
+        {
+            case "malformed": labels[1] = labels[1] with { NumericLiteral = false }; break;
+            case "outlier": labels[2] = Value(labels[2], 12); break;
+            case "duplicate-position": labels = [.. labels, labels[0] with { RegionId = "duplicate" }]; break;
+            case "duplicate-id": labels[3] = labels[3] with { RegionId = labels[0].RegionId }; break;
+            case "missing-zero": labels = labels.Select(row => row.SuggestedAxis == "Y" ? Value(row, row.NumericValue!.Value + 2) : row).ToArray(); break;
+            case "insufficient": labels = labels.Where(row => row.RegionId != "x-middle").ToArray(); break;
+            case "nonmonotonic": labels[1] = Value(labels[1], -1); break;
+            case "zero-confidence": labels[0] = labels[0] with { Confidence = 0 }; break;
+            case "stale-plot": break;
+            default: throw new ArgumentOutOfRangeException(nameof(defect));
+        }
+        CalibrationOcrResponse response = Response(labels);
+        if (defect == "stale-plot") response = response with { Request = response.Request! with { Plot = new(71, 20, 350, 280) } };
+        CalibrationTickProposalResult review = CalibrationTickProposal.CreateReviewDraft(Geometry(), response);
+        Assert.IsFalse(review.IsComplete);
+        Assert.IsNull(review.PrintedXReviewDraft);
+        Assert.IsNull(review.Anchors);
+        Assert.IsTrue(review.Reasons.Count > 0);
+    }
+
+    [TestMethod]
+    public void PrintedXReviewAndExplicitEnteredSessionRemainSeparateCachedEvidencePaths()
+    {
+        CalibrationOcrProposal[] labels = PrintedLabels(0);
+        CalibrationOcrResponse response = Response(labels);
+        string raw = JsonSerializer.Serialize(response);
+        CalibrationTickFitEvidence[] evidence = labels.Select(row => new CalibrationTickFitEvidence(row, null)).ToArray();
+        CalibrationTickProposalResult printed = CalibrationTickProposal.CreateReviewDraft(Geometry(), response, evidence);
+        Assert.IsNotNull(printed.PrintedXReviewDraft);
+        Assert.IsFalse(printed.IsComplete);
+
+        CalibrationTickProposalResult entered = CalibrationTickProposal.CreateReviewDraftForFirstSession(Geometry(), response, evidence, 1);
+        Assert.IsTrue(entered.IsComplete);
+        Assert.AreEqual(1, entered.FirstSession);
+        Assert.IsTrue(entered.UsesUserEnteredSessionPosition);
+        Assert.IsNull(entered.PrintedXReviewDraft);
+        CalibrationTickProposalResult invalidEntered = CalibrationTickProposal.CreateReviewDraftForFirstSession(Geometry(), response, evidence, 0);
+        Assert.IsFalse(invalidEntered.IsComplete);
+        Assert.IsNull(invalidEntered.PrintedXReviewDraft);
+        Assert.AreEqual(raw, JsonSerializer.Serialize(response));
+    }
+
+    [TestMethod]
     [DataRow(480)]
     [DataRow(1000)]
     public void SixLiteralLabelsRetainCompleteCalibrationAcrossPlotWidths(int plotWidth)
@@ -575,6 +704,9 @@ public sealed class CalibrationTickProposalTests
         Label("x-first", "X", 100, first), Label("x-middle", "X", 200, first + 3), Label("x-final", "X", 300, first + 6),
         Label("y-maximum", "Y", 50, 10), Label("y-middle", "Y", 150, 5), Label("y-zero", "Y", 250, 0),
     ];
+
+    private static CalibrationOcrProposal[] PrintedLabels(double first) => Labels()
+        .Select(row => row.SuggestedAxis == "X" ? Value(row, row.NumericValue!.Value + first - 1) : row).ToArray();
 
     private static CalibrationOcrProposal Label(string id, string axis, int pixel, double value)
     {

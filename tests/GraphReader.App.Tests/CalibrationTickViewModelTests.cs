@@ -14,7 +14,7 @@ using GraphReader.Axis;
 namespace GraphReader.App.Tests;
 
 [TestClass]
-public sealed class CalibrationTickViewModelTests
+public sealed partial class CalibrationTickViewModelTests
 {
     [TestMethod]
     public void EnteredFirstSessionUsesAllTickEvidenceThenSavesAndExportsConfirmedCalibration()

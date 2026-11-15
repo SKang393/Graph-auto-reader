@@ -523,6 +523,10 @@ internal static partial class RealDevCalibrationCheck
         internal static Candidate Verify452(string app, string assets, string rust, CancellationToken token) =>
             VerifyPinned(app, assets, rust, App452ExeHash, App452DllHash, Rust452Hash, Delivered452RuntimeLibraries, token);
 
+        internal static Candidate VerifyPrintedX(string app, string assets, string rust, CancellationToken token) =>
+            VerifyPinned(app, assets, rust, PrintedXAppExeHash, PrintedXAppDllHash, PrintedXRustHash,
+                PrintedXRuntimeLibraries, token, requirePrintedXReviewDraft: true);
+
         internal static Candidate VerifyPostGrouping(string app, string assets, string rust, CancellationToken token) =>
             VerifyPinned(app, assets, rust, PostGroupingAppExeHash, PostGroupingAppDllHash, PostGroupingRustHash, PostGroupingRuntimeLibraries, token);
 
@@ -558,7 +562,7 @@ internal static partial class RealDevCalibrationCheck
         }
 
         private static Candidate VerifyPinned(string app, string assets, string rust, string expectedExe, string expectedDll,
-            string expectedRust, FrozenDictionary<string, string> libraries, CancellationToken token)
+            string expectedRust, FrozenDictionary<string, string> libraries, CancellationToken token, bool requirePrintedXReviewDraft = false)
         {
             var result = new Candidate();
             try
@@ -570,6 +574,8 @@ internal static partial class RealDevCalibrationCheck
                 // must fail before private payload selection, even if pins are rebound.
                 RequireRasterCapability(typeof(CalibrationTickProposal).Assembly);
                 RequireReviewDraftCapability(typeof(CalibrationTickProposal).Assembly);
+                if (requirePrintedXReviewDraft && typeof(CalibrationTickProposalResult).GetProperty("PrintedXReviewDraft") is null)
+                    throw new InvalidDataException();
                 result.Pin(rust, expectedRust, token);
                 result.Pin(Path.Combine(assets, "en_PP-OCRv5_mobile_rec.onnx"), Program.ModelHash, token);
                 result.Pin(Path.Combine(assets, "recognizer.json"), Program.ManifestHash, token);

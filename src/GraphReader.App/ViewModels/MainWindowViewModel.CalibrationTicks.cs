@@ -15,16 +15,48 @@ public sealed partial class MainWindowViewModel
     private bool _hasEstimatedCalibrationPositions;
     private bool _refittingCalibrationLabels;
     private ICommand? _fitForEnteredFirstSessionCommand;
+    private ICommand? _usePrintedXCoordinatesCommand;
 
     public ICommand SuggestCalibrationFromTicksCommand { get; private set; } = null!;
     public ICommand RefitSelectedCalibrationLabelsCommand { get; private set; } = null!;
     public ICommand FitForEnteredFirstSessionCommand => _fitForEnteredFirstSessionCommand ??= new RelayCommand(
         _ => FitForEnteredFirstSession(), _ => CanFitForEnteredFirstSession());
+    public ICommand UsePrintedXCoordinatesCommand => _usePrintedXCoordinatesCommand ??= new RelayCommand(
+        _ => UsePrintedXCoordinates(), _ => !IsBusy && CanRefitCalibrationLabelsCore() && HasPrintedXReviewDraft);
     public ObservableCollection<string> CalibrationPairedTickRows { get; } = [];
     public bool HasCalibrationTickProposal => _calibrationTickProposal is not null;
     public bool HasCalibrationTickProposalStatus => _calibrationTickProposalStatusText.Length > 0;
     public string CalibrationTickProposalStatusText => _calibrationTickProposalStatusText;
     public bool HasEstimatedCalibrationPositions => _hasEstimatedCalibrationPositions;
+    public bool HasPrintedXReviewDraft => !SuggestedUsesPrintedXCoordinates && _calibrationTickProposal?.PrintedXReviewDraft is not null;
+
+    private void UsePrintedXCoordinates()
+    {
+        if (!UsePrintedXCoordinatesCommand.CanExecute(null) ||
+            _calibrationTickProposal is not { PrintedXReviewDraft: { } draft } proposal) return;
+        SuggestedYMaximum = draft.YMaximum.ToString("R", CultureInfo.InvariantCulture);
+        SuggestedFirstSession = draft.FirstX.ToString("R", CultureInfo.InvariantCulture);
+        SuggestedFinalSession = draft.FinalX.ToString("R", CultureInfo.InvariantCulture);
+        _suggestedAnchors =
+        [
+            new(draft.Anchors.FirstSessionY0.X, draft.Anchors.FirstSessionY0.Y),
+            new(draft.Anchors.FirstSessionYMaximum.X, draft.Anchors.FirstSessionYMaximum.Y),
+            new(draft.Anchors.FinalSessionY0.X, draft.Anchors.FinalSessionY0.Y),
+        ];
+        SetSuggestedPrintedXCoordinates(true);
+        SetEstimatedCalibrationPositions(_hasEstimatedCalibrationPositions || draft.UsesEstimatedPositions);
+        UpdateAxisSuggestionOverlay();
+        AxisSuggestionReviewed = false;
+        _calibrationTickProposal = proposal;
+        PopulateCalibrationPairedTickRows(proposal);
+        _calibrationTickProposalStatusText = GetLocalizedString(LocalizationKeys.ManualPrintedXReview);
+        OnPropertyChanged(nameof(HasCalibrationTickProposal));
+        OnPropertyChanged(nameof(HasPrintedXReviewDraft));
+        OnPropertyChanged(nameof(CalibrationTickProposalStatusText));
+        OnPropertyChanged(nameof(HasCalibrationTickProposalStatus));
+        OnPropertyChanged(nameof(AxisSuggestionSummary));
+        RelayCommand.RaiseCanExecuteChanged();
+    }
 
     public async Task SuggestCalibrationFromTicksAsync(CancellationToken cancellationToken)
     {
@@ -56,7 +88,7 @@ public sealed partial class MainWindowViewModel
 
     public void RefitSelectedCalibrationLabels() => RefitCalibrationLabels(null);
 
-    private bool CanFitForEnteredFirstSession() => !IsBusy && !_refittingCalibrationLabels && CanRefitCalibrationLabelsCore() &&
+    private bool CanFitForEnteredFirstSession() => !SuggestedUsesPrintedXCoordinates && !IsBusy && !_refittingCalibrationLabels && CanRefitCalibrationLabelsCore() &&
         int.TryParse(SuggestedFirstSession, NumberStyles.Integer, CultureInfo.InvariantCulture, out int first) && first > 0 &&
         CalibrationLabelRows.Any(row => row.IsIncluded && row.FitEvidence.EffectiveProposal is
             { Role: "XTick", NumericLiteral: true, NumericValue: <= 0 });
@@ -102,6 +134,7 @@ public sealed partial class MainWindowViewModel
 
     private void ClearCalibrationLabelComputedValues()
     {
+        SetSuggestedPrintedXCoordinates(false);
         ClearCalibrationTickProposal();
         SuggestedYMaximum = SuggestedFirstSession = SuggestedFinalSession = string.Empty;
         AxisSuggestionReviewed = false;
@@ -121,10 +154,12 @@ public sealed partial class MainWindowViewModel
             PopulatePartialCalibrationAxes(proposal);
             _calibrationTickProposal = proposal;
             PopulateCalibrationPairedTickRows(proposal);
-            _calibrationTickProposalStatusText = GetLocalizedString(proposal.XReviewDraft is not null
+            _calibrationTickProposalStatusText = GetLocalizedString(proposal.PrintedXReviewDraft is not null
+                ? LocalizationKeys.ManualPrintedXAvailable : proposal.XReviewDraft is not null
                 ? LocalizationKeys.ManualCalibrationTicksPartialX : proposal.YReviewDraft is not null
                     ? LocalizationKeys.ManualCalibrationTicksPartialY : LocalizationKeys.ManualCalibrationTicksIncomplete);
             OnPropertyChanged(nameof(HasCalibrationTickProposal));
+            OnPropertyChanged(nameof(HasPrintedXReviewDraft));
             OnPropertyChanged(nameof(CalibrationTickProposalStatusText));
             OnPropertyChanged(nameof(HasCalibrationTickProposalStatus));
             RelayCommand.RaiseCanExecuteChanged();
@@ -208,6 +243,7 @@ public sealed partial class MainWindowViewModel
         _calibrationTickProposalStatusText = string.Empty;
         CalibrationPairedTickRows.Clear();
         if (hadProposal) OnPropertyChanged(nameof(HasCalibrationTickProposal));
+        if (hadProposal) OnPropertyChanged(nameof(HasPrintedXReviewDraft));
         if (hadStatus) OnPropertyChanged(nameof(CalibrationTickProposalStatusText));
         if (hadStatus) OnPropertyChanged(nameof(HasCalibrationTickProposalStatus));
     }

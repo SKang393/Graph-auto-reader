@@ -108,6 +108,19 @@
   <sys:String x:Key="Manual.CalibrationTicks.EstimatedComplete">{0} axis labels form a draft. Check and adjust the anchor pixels and confirm the values before applying.</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.EstimatedWarning">Anchor positions may be estimated from labels or calculated from your entered session. Check and adjust each anchor before applying.</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.FitEnteredSession">Fit for entered first session</sys:String>
+  <sys:String x:Key="Manual.PrintedX.Available">The labels support a printed X range. Choose Use printed X values to keep that range, or enter a first session and refit.</sys:String>
+  <sys:String x:Key="Manual.PrintedX.Use">Use printed X values</sys:String>
+  <sys:String x:Key="Manual.PrintedX.Review">Printed X calibration: check all anchors and values before applying. Fitted point X values export as estimates; observation order stays separate.</sys:String>
+  <sys:String x:Key="Manual.PrintedX.First">First printed X</sys:String>
+  <sys:String x:Key="Manual.PrintedX.Final">Final printed X</sys:String>
+  <sys:String x:Key="Manual.PrintedX.UseFirst">Use as first printed X</sys:String>
+  <sys:String x:Key="Manual.PrintedX.UseFinal">Use as final printed X</sys:String>
+  <sys:String x:Key="Manual.PrintedX.Positions">Original pixels: first X at Y=0 ({0}, {1}); Y maximum ({2}, {3}); final X at Y=0 ({4}, {5}).</sys:String>
+  <sys:String x:Key="Manual.PrintedX.RangeHelp">Enter the printed X values at the left and right anchors. Zero, negative and fractional values are allowed. Fitted point X values export as estimates.</sys:String>
+  <sys:String x:Key="Manual.PrintedX.Invalid">Enter a finite first X value that is less than the final X value.</sys:String>
+  <sys:String x:Key="Manual.PrintedX.Saved">Reviewed printed X calibration saved from {0} through {1}. Point X values are estimates.</sys:String>
+  <sys:String x:Key="Manual.PrintedX.Prompt">Click ({0}, 0), then ({0}, {2}), then ({1}, 0) at the matching image positions.</sys:String>
+  <sys:String x:Key="Manual.PrintedX.DetectionUnsupported">Auto Detect cannot yet preserve reviewed printed X calibration. Keep this calibration and use the review tools to add or edit points.</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.AxisX">X-axis</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.AxisY">Y-axis</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Title">Find similar markers</sys:String>

@@ -192,16 +192,17 @@ public sealed partial class MainWindowViewModel
 
     private bool CanUseSelectedCalibrationLabelForFirstSession()
     {
-        if (IsBusy || !TryGetSelectedNumericCalibrationLabel(out double value) || value <= 0 ||
-            value != Math.Truncate(value) || value > int.MaxValue)
+        if (IsBusy || !TryGetSelectedNumericCalibrationLabel(out double value) ||
+            !SuggestedUsesPrintedXCoordinates && (value <= 0 || value != Math.Truncate(value) || value > int.MaxValue))
             return false;
         return !double.TryParse(SuggestedFinalSession, NumberStyles.Float, CultureInfo.InvariantCulture, out double final) ||
             !double.IsFinite(final) || value < final;
     }
 
     private bool CanUseSelectedCalibrationLabelForFinalSession() => !IsBusy &&
-        TryGetSelectedNumericCalibrationLabel(out double value) && int.TryParse(
-            SuggestedFirstSession, NumberStyles.Integer, CultureInfo.InvariantCulture, out int first) && first > 0 && value > first;
+        TryGetSelectedNumericCalibrationLabel(out double value) && double.TryParse(
+            SuggestedFirstSession, NumberStyles.Float, CultureInfo.InvariantCulture, out double first) && double.IsFinite(first) &&
+        (SuggestedUsesPrintedXCoordinates || first > 0 && first == Math.Truncate(first) && first <= int.MaxValue) && value > first;
 
     private void UseSelectedCalibrationLabelForYMaximum()
     {
@@ -213,7 +214,7 @@ public sealed partial class MainWindowViewModel
     private void UseSelectedCalibrationLabelForFirstSession()
     {
         if (!CanUseSelectedCalibrationLabelForFirstSession() || !TryGetSelectedNumericCalibrationLabel(out double value)) return;
-        SuggestedFirstSession = ((int)value).ToString(CultureInfo.InvariantCulture);
+        SuggestedFirstSession = value.ToString("R", CultureInfo.InvariantCulture);
         ResetAxisSuggestionReview();
     }
 
