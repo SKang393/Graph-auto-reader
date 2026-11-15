@@ -181,9 +181,11 @@ public static class CalibrationTickProposal
                 continue;
             }
             int tickIndex = Array.IndexOf(ticks, nearest[0]);
-            double neighbor = Math.Min(tickIndex > 0 ? ticks[tickIndex] - ticks[tickIndex - 1] : double.PositiveInfinity,
-                tickIndex + 1 < ticks.Length ? ticks[tickIndex + 1] - ticks[tickIndex] : double.PositiveInfinity);
-            // Font-height accommodates glyph alignment; half the neighboring tick spacing prevents cross-lane assignment.
+            double neighbor = position < nearest[0]
+                ? (tickIndex > 0 ? ticks[tickIndex] - ticks[tickIndex - 1] : double.PositiveInfinity)
+                : (tickIndex + 1 < ticks.Length ? ticks[tickIndex + 1] - ticks[tickIndex] : double.PositiveInfinity);
+            // Keep glyph alignment within the font bound and the neighboring midpoint
+            // toward its offset. The opposite cell edge does not constrain that offset.
             double labelTolerance = axis == "X" ? Math.Max((right - left) / 2, bottom - top) : bottom - top;
             if (nearestDistance > Math.Min(labelTolerance, neighbor / 2))
             {

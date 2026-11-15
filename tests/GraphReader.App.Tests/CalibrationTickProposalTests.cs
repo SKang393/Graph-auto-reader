@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 using System.Globalization;
+using System.Text.Json;
 using GraphReader.App.Services;
 using GraphReader.Axis;
 using GraphReader.Ocr;
@@ -80,6 +81,97 @@ public sealed class CalibrationTickProposalTests
         Assert.AreEqual(100, result.PairedTicks[0].PixelPosition);
         Assert.AreEqual(107d, result.PairedTicks[0].Label.Polygon.Average(point => point.X));
         Assert.AreEqual(new CalibrationOcrPoint(100, 250), result.Anchors!.FirstSessionY0);
+    }
+
+    [TestMethod]
+    [DataRow("X", -1, false)]
+    [DataRow("X", 1, false)]
+    [DataRow("Y", -1, false)]
+    [DataRow("Y", 1, false)]
+    [DataRow("X", -1, true)]
+    [DataRow("X", 1, true)]
+    [DataRow("Y", -1, true)]
+    [DataRow("Y", 1, true)]
+    public void DirectionalAssociationOppositeMinorTickRetainsObservedPairs(string axis, int direction, bool reviewDraft)
+    {
+        CalibrationOcrProposal[] labels = Labels();
+        int row = axis == "X" ? 0 : 4;
+        int pixel = axis == "X" ? 100 : 150;
+        labels[row] = OffsetLabel(labels[row], axis, direction * 7);
+        var response = Response(labels);
+        string original = JsonSerializer.Serialize(response);
+        CalibrationTickProposalResult expected = CalibrationTickProposal.Create(Geometry(), response);
+        Assert.IsTrue(expected.IsComplete);
+        RustAxisGeometry geometry = WithAdditionalTick(Geometry(), axis, pixel - direction * 10);
+
+        CalibrationTickProposalResult actual = reviewDraft
+            ? CalibrationTickProposal.CreateReviewDraft(geometry, response)
+            : CalibrationTickProposal.Create(geometry, response);
+
+        Assert.IsTrue(actual.IsComplete, string.Join(",", actual.Reasons));
+        Assert.AreEqual(expected.Anchors, actual.Anchors);
+        Assert.AreEqual(expected.FirstSession, actual.FirstSession);
+        Assert.AreEqual(expected.FinalSession, actual.FinalSession);
+        Assert.AreEqual(expected.YMaximum, actual.YMaximum);
+        Assert.AreEqual(JsonSerializer.Serialize(expected.PairedTicks), JsonSerializer.Serialize(actual.PairedTicks));
+        Assert.AreEqual(original, JsonSerializer.Serialize(response));
+    }
+
+    [TestMethod]
+    [DataRow("X", -1)]
+    [DataRow("X", 1)]
+    [DataRow("Y", -1)]
+    [DataRow("Y", 1)]
+    public void DirectionalAssociationExactHalfCellRemainsAmbiguous(string axis, int direction)
+    {
+        CalibrationOcrProposal[] labels = Labels();
+        int row = axis == "X" ? 0 : 4;
+        int pixel = axis == "X" ? 100 : 150;
+        labels[row] = OffsetLabel(labels[row], axis, direction * 5);
+        AssertRejected(WithAdditionalTick(Geometry(), axis, pixel + direction * 10), labels,
+            CalibrationTickProposalReasons.AmbiguousAssociation);
+    }
+
+    [TestMethod]
+    [DataRow("X", -10d)]
+    [DataRow("X", 10d)]
+    [DataRow("Y", -10d)]
+    [DataRow("Y", 10d)]
+    [DataRow("X", -10.01d)]
+    [DataRow("X", 10.01d)]
+    [DataRow("Y", -10.01d)]
+    [DataRow("Y", 10.01d)]
+    public void DirectionalAssociationFontBoundIsUnchanged(string axis, double offset)
+    {
+        CalibrationOcrProposal[] labels = Labels();
+        labels[axis == "X" ? 0 : 4] = OffsetLabel(labels[axis == "X" ? 0 : 4], axis, offset);
+        if (Math.Abs(offset) > 10)
+        {
+            AssertRejected(Geometry(), labels, CalibrationTickProposalReasons.UnpairedLabel);
+            return;
+        }
+        CalibrationTickProposalResult actual = CalibrationTickProposal.Create(Geometry(), Response(labels));
+        Assert.IsTrue(actual.IsComplete, string.Join(",", actual.Reasons));
+        Assert.AreEqual(CalibrationTickProposal.Create(Geometry(), Response(Labels())).Anchors, actual.Anchors);
+    }
+
+    [TestMethod]
+    [DataRow("X", -1)]
+    [DataRow("X", 1)]
+    [DataRow("Y", -1)]
+    [DataRow("Y", 1)]
+    public void DirectionalAssociationDoesNotSkipTheActualNearestMinorTick(string axis, int direction)
+    {
+        CalibrationOcrProposal[] labels = Labels();
+        int row = axis == "X" ? 0 : 4;
+        int pixel = axis == "X" ? 100 : 150;
+        labels[row] = OffsetLabel(labels[row], axis, direction * 6);
+        int minor = pixel + direction * 10;
+        CalibrationTickProposalResult actual = CalibrationTickProposal.Create(
+            WithAdditionalTick(Geometry(), axis, minor), Response(labels));
+        CalibrationPairedTick paired = actual.PairedTicks.Single(pair => pair.Label.RegionId == labels[row].RegionId);
+        Assert.AreEqual(minor, paired.PixelPosition);
+        Assert.AreEqual(labels[row].NumericValue, paired.Value);
     }
 
     [TestMethod]
@@ -497,6 +589,16 @@ public sealed class CalibrationTickProposalTests
         Text = value.ToString(CultureInfo.InvariantCulture), NumericValue = value,
         NormalizedText = value.ToString(CultureInfo.InvariantCulture),
     };
+
+    private static CalibrationOcrProposal OffsetLabel(CalibrationOcrProposal label, string axis, double offset) => label with
+    {
+        Polygon = label.Polygon.Select(point => axis == "X" ? point with { X = point.X + offset }
+            : point with { Y = point.Y + offset }).ToArray(),
+    };
+
+    private static RustAxisGeometry WithAdditionalTick(RustAxisGeometry geometry, string axis, int tick) => axis == "X"
+        ? geometry with { XTickPositions = geometry.XTickPositions.Append(tick).Order().ToArray() }
+        : geometry with { YTickPositions = geometry.YTickPositions.Append(tick).Order().ToArray() };
 
     private static CalibrationOcrResponse Response(IReadOnlyList<CalibrationOcrProposal> labels) =>
         new(new("owned-request", "binding", new string('a', 64), new string('b', 64), 450, 340, new(70, 20, 350, 280)),

@@ -187,3 +187,8 @@ the separately reported component tests cover those operations. No package,
 private input, model, production switch or shared user Data was changed. The
 floating-point display tail is a presentation limitation, not an altered
 stored coordinate. [REV-011](REVIEW_QUEUE.md) records completion of this subset.
+After this record reached `origin/main` in `04f6d6a7`, the owned PNG, isolated
+source-bin Data and five temporary asset hardlinks were retired at
+2026-11-15T08:58:36.7875720Z. The original retained OCR model/metadata passed
+keeper checks; shared user Data was untouched. The fixture remains regenerable
+with the recorded script and switch, rather than retained as a duplicate image.

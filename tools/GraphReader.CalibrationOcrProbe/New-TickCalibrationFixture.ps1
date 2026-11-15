@@ -11,6 +11,7 @@ param(
     [switch]$GridLines,
     [switch]$SmallPlotWithCaption,
     [switch]$ZeroOriginXLabels,
+    [switch]$OffsetLabelsWithMinorTicks,
     [ValidateRange(0, 1700)][int]$WhiteMarginPixels = 0
 )
 $ErrorActionPreference = 'Stop'
@@ -25,6 +26,9 @@ if ($SmallPlotWithCaption -and ($InwardXTicks -or $TransparentBackground -or $Le
 }
 if ($ZeroOriginXLabels -and ($InwardXTicks -or $TransparentBackground -or $LeftAxisContinuation -or $NoTickMarks -or $DenseXTicks -or $GridLines -or $SmallPlotWithCaption -or $WhiteMarginPixels -ne 0)) {
     throw 'ZeroOriginXLabels cannot be combined with other fixture options.'
+}
+if ($OffsetLabelsWithMinorTicks -and ($InwardXTicks -or $TransparentBackground -or $LeftAxisContinuation -or $NoTickMarks -or $DenseXTicks -or $GridLines -or $SmallPlotWithCaption -or $ZeroOriginXLabels -or $WhiteMarginPixels -ne 0)) {
+    throw 'OffsetLabelsWithMinorTicks cannot be combined with other fixture options.'
 }
 Add-Type -AssemblyName System.Drawing
 $baseWidth = if ($SmallPlotWithCaption) { 512 } else { 640 }
@@ -48,26 +52,32 @@ try {
     $axisStart = if ($LeftAxisContinuation) { 50 } else { 100 }
     $xPositions = if ($SmallPlotWithCaption) { @(110, 150, 190) } elseif ($DenseXTicks) { @(140, 160, 180) } else { @(140, 340, 540) }
     $yPositions = if ($SmallPlotWithCaption) { @(100, 145, 190) } elseif ($LeftAxisContinuation) { @(80, 215, 350) } else { @(80, 230, 380) }
+    $xLabelPositions = if ($OffsetLabelsWithMinorTicks) { @(147, 340, 540) } else { $xPositions }
+    $yLabelPositions = if ($OffsetLabelsWithMinorTicks) { @(80, 237, 380) } else { $yPositions }
     if ($GridLines) {
         foreach ($x in $xPositions) { $graphics.DrawLine($pen, $x, 80, $x, 380) }
         foreach ($y in $yPositions) { $graphics.DrawLine($pen, 100, $y, 580, $y) }
     }
     $graphics.DrawLine($pen, $axisStart, $plotBottom, $plotRight, $plotBottom)
     $graphics.DrawLine($pen, 100, $plotTop, 100, $plotBottom)
+    if ($OffsetLabelsWithMinorTicks) {
+        $graphics.DrawLine($pen, 130, $plotBottom, 130, ($plotBottom + $tickLength))
+        $graphics.DrawLine($pen, (100 - $tickLength), 220, 100, 220)
+    }
     $xLabels = if ($ZeroOriginXLabels) { @('0', '5', '10') } else { @('1', '2', '3') }
     for ($index = 0; $index -lt $xPositions.Count; $index++) {
         $x = $xPositions[$index]
         $tickEnd = if ($InwardXTicks) { $plotBottom - $tickLength } else { $plotBottom + $tickLength }
         if (-not $NoTickMarks) { $graphics.DrawLine($pen, $x, $plotBottom, $x, $tickEnd) }
         $graphics.DrawString($xLabels[$index], $font, [Drawing.Brushes]::Black,
-            [Drawing.PointF]::new($x, $xLabelY), $format)
+            [Drawing.PointF]::new($xLabelPositions[$index], $xLabelY), $format)
     }
     $yLabels = @('10', '5', '0')
     for ($index = 0; $index -lt $yPositions.Count; $index++) {
         $y = $yPositions[$index]
         if (-not $NoTickMarks) { $graphics.DrawLine($pen, (100 - $tickLength), $y, 100, $y) }
         $graphics.DrawString($yLabels[$index], $font, [Drawing.Brushes]::Black,
-            [Drawing.PointF]::new(74, $y), $format)
+            [Drawing.PointF]::new(74, $yLabelPositions[$index]), $format)
     }
     if ($SmallPlotWithCaption) {
         for ($x = 0; $x -lt $baseWidth; $x += 2) { $graphics.FillRectangle([Drawing.Brushes]::Black, $x, 400, 1, 1) }
@@ -104,8 +114,11 @@ finally {
     grid_lines = [bool]$GridLines
     small_plot_with_caption = [bool]$SmallPlotWithCaption
     zero_origin_x_labels = [bool]$ZeroOriginXLabels
+    offset_labels_with_minor_ticks = [bool]$OffsetLabelsWithMinorTicks
     plot_bounds = @((100 + $WhiteMarginPixels), ($plotTop + $WhiteMarginPixels), ($plotRight + $WhiteMarginPixels), ($plotBottom + $WhiteMarginPixels))
-    x_label_positions = @($xPositions | ForEach-Object { $_ + $WhiteMarginPixels })
-    y_label_positions = @($yPositions | ForEach-Object { $_ + $WhiteMarginPixels })
+    x_label_positions = @($xLabelPositions | ForEach-Object { $_ + $WhiteMarginPixels })
+    y_label_positions = @($yLabelPositions | ForEach-Object { $_ + $WhiteMarginPixels })
+    x_tick_positions = if ($NoTickMarks) { @() } elseif ($OffsetLabelsWithMinorTicks) { @(130, 140, 340, 540) } else { @($xPositions | ForEach-Object { $_ + $WhiteMarginPixels }) }
+    y_tick_positions = if ($NoTickMarks) { @() } elseif ($OffsetLabelsWithMinorTicks) { @(80, 220, 230, 380) } else { @($yPositions | ForEach-Object { $_ + $WhiteMarginPixels }) }
     renderer = 'Windows System.Drawing with installed Segoe UI; no font binary copied'
 } | ConvertTo-Json -Compress

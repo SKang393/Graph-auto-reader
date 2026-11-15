@@ -550,6 +550,13 @@ internal static partial class RealDevCalibrationCheck
                 NativeRejectionRustHash, IntersectionRuntimeLibraries, token);
         }
 
+        internal static Candidate VerifyDirectional(string app, string assets, string rust, CancellationToken token)
+        {
+            RequireNativeRejectionPins(DirectionalAppExeHash, DirectionalAppDllHash, DirectionalRustHash, DirectionalRuntimeLibraries);
+            return VerifyPinned(app, assets, rust, DirectionalAppExeHash, DirectionalAppDllHash,
+                DirectionalRustHash, DirectionalRuntimeLibraries, token);
+        }
+
         private static Candidate VerifyPinned(string app, string assets, string rust, string expectedExe, string expectedDll,
             string expectedRust, FrozenDictionary<string, string> libraries, CancellationToken token)
         {

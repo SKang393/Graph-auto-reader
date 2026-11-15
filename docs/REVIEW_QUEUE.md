@@ -269,7 +269,8 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   activation followed, and matching native observations now support the scoped
   fixes. Remaining engineering limitations stay in the native outcome and
   readiness records. The new [source check](CALIBRATION-ENTERED-ORIGIN-20261115.md)
-  is waiting only at image import; its fit/review/Apply behavior remains unchecked
+  subsequently completed image import, fit, fresh-review gating, Apply and Undo;
+  its isolated source window is closed and disposable inputs are retired
 
 ## REV-012 - identify the existing Windows test laptop
 

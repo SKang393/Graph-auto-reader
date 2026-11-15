@@ -75,13 +75,18 @@ internal static partial class RealDevCalibrationCheck
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, intersection: true);
 
+    internal static Task<object> RunDirectionalTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token, directional: true);
+
     private static async Task<object> RunTraceAsync(string corpusRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false)
+        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false)
     {
-        if ((pairPruning || intersection) && !geometryOnly || pairPruning && intersection) throw new InvalidDataException();
+        if ((pairPruning || intersection) && !geometryOnly || pairPruning && intersection || directional && (geometryOnly || !sourcePostGrouping)) throw new InvalidDataException();
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(app) ||
             !Path.IsPathFullyQualified(assets) || !Path.IsPathFullyQualified(rust)) throw new InvalidDataException();
-        using Candidate candidate = intersection ? Candidate.VerifyIntersection(app, assets, rust, token) :
+        using Candidate candidate = directional ? Candidate.VerifyDirectional(app, assets, rust, token) :
+            intersection ? Candidate.VerifyIntersection(app, assets, rust, token) :
             pairPruning ? Candidate.VerifyPairPruning(app, assets, rust, token) :
             geometryOnly ? Candidate.VerifyNativeRejection(app, assets, rust, token) : sourcePostGrouping
             ? Candidate.VerifyPostGrouping(app, assets, rust, token)
@@ -177,14 +182,14 @@ internal static partial class RealDevCalibrationCheck
                     runtime_files = intersection ? IntersectionRuntimeLibraries : pairPruning ? PairPruningRuntimeLibraries : NativeRejectionRuntimeLibraries },
                 sealed_payload_reads = 0, ocr_calls = 0, truth_scoring = false, image_writes = false, review_only = true,
                 project_deadline_seconds = 45, overall_deadline_seconds = 900, projects };
-        return new { schema = sourcePostGrouping ? PostGroupingTraceSchema : "graphreader.real-dev-452-association-trace.v1", scope = "development_only_sensitive_metadata",
+        return new { schema = directional ? DirectionalTraceSchema : sourcePostGrouping ? PostGroupingTraceSchema : "graphreader.real-dev-452-association-trace.v1", scope = "development_only_sensitive_metadata",
             selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
             attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
             attempted_panels = panelAttempted, finished_panels = panelFinished, unfinished_execution_panels = panelAttempted - panelFinished,
             terminal_status_counts = terminalStatusCounts,
             unattempted_panels = returned + fallback - panelAttempted, metadata.AssignmentSha256, metadata.SelectedInventorySha256,
             source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
-            candidate = sourcePostGrouping ? PostGroupingTraceIdentity() : (object)App452ExeHash,
+            candidate = directional ? DirectionalTraceIdentity() : sourcePostGrouping ? PostGroupingTraceIdentity() : (object)App452ExeHash,
             sealed_payload_reads = 0, truth_scoring = false, image_writes = false, review_only = true,
             project_deadline_seconds = 45, overall_deadline_seconds = 900, projects };
     }

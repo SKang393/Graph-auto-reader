@@ -130,10 +130,14 @@ The previously pending [native entered-session check](CALIBRATION-ENTERED-ORIGIN
 also completed fit, review gating, Apply and Undo in its isolated source window.
 That assistance is distinct from automatic calibration.
 
-After this outcome reaches `origin/main`, retire ten completed files / 187,470
-bytes under `artifacts/axis-pair-intersection-check`. Also retire the closed
-UI check's owned 4092-byte PNG, five temporary model-asset hardlinks and isolated
-source-bin Data. The retained 0.4.52 assets are the checksum-verified hardlink
-keepers; shared user Data and original inputs are outside this cleanup scope.
+After outcome `04f6d6a7` reached `origin/main`, guarded cleanup at
+2026-11-15T08:58:36.7875720Z removed ten completed files / 187,470 bytes under
+`artifacts/axis-pair-intersection-check`, the closed UI check's owned 4092-byte
+PNG, four isolated source-bin Data files / 6288 bytes and five temporary
+model-asset hardlinks. Their 7,868,039 logical bytes are not a second model
+payload. Retained 0.4.52 assets were verified as matching hardlink keepers
+before removal, and the model keeper was rehashed afterward. Canonical paths,
+reparse absence, no active consumers and remote integration were checked first.
+Shared user Data and original inputs were outside this cleanup scope.
 The current headless runtime remains an active compiler/test dependency for
 the next source batch. No package, dependency, model or production switch changed.
