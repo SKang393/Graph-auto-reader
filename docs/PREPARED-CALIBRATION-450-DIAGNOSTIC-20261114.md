@@ -84,3 +84,5 @@ dependencies are unchanged. No package activation occurred. Retain
 `artifacts/prepared-calibration-450-check` only until this source/outcome is pushed
 and active consumers finish; preserve original corpus and current runtime inputs.
 **Automatic calibration readiness remains FAIL: zero complete proposals.**
+
+The completed isolated probe and results were subsequently [retired after the outcome push](COMPLETED-DIAGNOSTIC-OUTPUTS-RETIREMENT-20261114.md).

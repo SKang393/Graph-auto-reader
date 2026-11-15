@@ -67,3 +67,5 @@ this later fix and still reported zero complete proposals. License/dependency
 scope is unchanged. Retain the bounded `artifacts/tick-human-correction-check`
 outputs until this outcome is pushed and active integration consumers finish,
 then retire them under the existing retention policy.
+
+The completed output folder was subsequently [retired with keeper checks](COMPLETED-DIAGNOSTIC-OUTPUTS-RETIREMENT-20261114.md).

@@ -51,3 +51,7 @@ The focused command ran with normal host access and E-local .NET, NuGet and
 temporary paths. During concurrent local compilation MSBuild issued `MSB3026`
 for `GraphReader.Ocr.dll`; its first retry succeeded. The full suite has not
 been rerun after the synchronization correction.
+
+The final 451 [Windows CI run](https://github.com/SKang393/Graph-auto-reader/actions/runs/43655058286)
+passed all 1,049 App tests, including the correction and two later corner-label
+cases. The earlier local isolated outputs were [retired after their records were pushed](COMPLETED-DIAGNOSTIC-OUTPUTS-RETIREMENT-20261114.md).

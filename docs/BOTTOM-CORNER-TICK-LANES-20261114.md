@@ -73,3 +73,5 @@ private-set improvement or native GUI behavior. No private rerun, model change,
 download or package occurred. License/dependencies remain unchanged. Retire
 `artifacts/corner-tick-classification-check` after the outcome is pushed and
 integration consumers finish; it currently holds 401 files/202854766 bytes.
+
+Those completed outputs were subsequently [retired with keeper checks](COMPLETED-DIAGNOSTIC-OUTPUTS-RETIREMENT-20261114.md).
