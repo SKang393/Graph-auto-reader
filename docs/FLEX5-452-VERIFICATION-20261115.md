@@ -99,7 +99,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File artifacts/flex5-452-check/cl
 powershell -NoProfile -ExecutionPolicy Bypass -File artifacts/flex5-452-check/cleanup.ps1 -Execute
 ```
 
-## Prepared local result retirement
+## Completed local result retirement
 
 After remote retirement, `artifacts/flex5-452-check` contains only 16 completed
 test/helper files, totaling 390,171 bytes. The sorted filename/size/SHA-256
@@ -108,9 +108,13 @@ This includes the copied owned PNG/gray input and disposable reports, with no
 user projects or private images. The original owned PNG remains in
 `artifacts/flex5-449-check` for active native QA projects.
 
-Retire this exact local result directory only after this record is pushed and
-the hosted-staging retirement helper has finished using it as a keeper.
-Recheck no consumers, exact flat inventory/hash manifest and literal containment
-before removing files. Preserve the primary 451/452 builds, shared Data, user
-handoff and all native QA originals. The scripts and commands above describe
-the completed run; local retirement is still pending at this checkpoint.
+Scope `4798994e9b8d495916f5a653d944db083964e909` reached `origin/main`, then
+the hosted-staging retirement helper finished using this directory as a keeper.
+The lead rechecked literal containment and ancestors, the exact flat inventory
+and manifest, and zero process consumers before removing only those sixteen
+files and their empty directory. The command exited 0 in 3.2851 seconds;
+the directory is absent. The primary 452 App/ZIP, original owned PNG and both
+native 451 QA projects retained their before/after SHA-256 identities.
+No build, shared Data, user handoff or original input was a deletion target.
+The scripts, inventories and results referenced above are retired historical
+run outputs, not current local prerequisites. Do not rerun their cleanup commands.

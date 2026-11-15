@@ -57,8 +57,10 @@ package hashes, no old/new app consumers, contained non-reparse paths and an
 unchanged shared Data snapshot. The authorized retirement target is only
 `artifacts/dev-portable/builds/0.4.51-20261114T235320548Z-e5491791`,
 478 files / 283,715,292 bytes including its matching ZIP. No old build has been
-removed at this checkpoint. Hosted staging remains until its evidence is
-recorded and active verification consumers finish.
+removed at this checkpoint. The completed hosted staging was subsequently
+[retired](INTERNAL-PREVIEW-452-RETIREMENT-20261115.md) after its pushed record
+and consumer checks. Its receipt/hash values above are historical evidence;
+the verified final build and inner ZIP remain intact.
 
 The [existing Flex5Laptop check](FLEX5-452-VERIFICATION-20261115.md) also passed
 portable/Production-guard startup and two owned CPU OCR reads on one reused,

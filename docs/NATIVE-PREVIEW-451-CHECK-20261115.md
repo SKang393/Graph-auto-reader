@@ -147,3 +147,41 @@ The previously recorded foreground device-check interruption and native
 verification of the updated device-picker/marker-history fixes also remain
 pending. No completed earlier save, export, crop or restoration check is changed
 by this attempt.
+
+## Isolated reset and state-read recovery
+
+The lead authorized one later read-only recovery to isolate the failing call.
+`js_reset` completed, followed by a fresh `sky.list_windows()` that returned
+promptly and again identified the unique 451 window `103491764` at the exact
+retained executable path above.
+
+The next request contained only `sky.get_window_state` on that returned window,
+with screenshot and accessibility text requested. It performed no `get_window`,
+activation or app input. The requested JavaScript timeout was 15 seconds and
+the outer tool yield was one second. No state, screenshot or tree returned.
+The lead interrupted at the approximately 60-second observation limit; the
+terminal tool result reported `aborted by user after 80.9s`.
+
+This narrows the tool blockage to the isolated state-read boundary after a
+successful reset and window listing. It does not establish an application
+failure, lock-screen condition or human Escape press. No further Computer Use
+calls or input were issued. All pending interaction checks above remain pending,
+and the lead's request for the user to close 451 normally remains unresolved.
+
+## Screenshot-only branch
+
+One final authorized observation disabled accessibility enumeration. The initial
+local JavaScript reference reported `sky is not defined` before any Sky call;
+the documented import restored the binding without a session reset. A fresh
+window list again returned the unique retained 451 window `103491764`.
+
+Exactly one direct `get_window_state(include_screenshot=true, include_text=false)`
+followed, with no get, activation or input. It requested a 15-second timeout and
+one-second outer yield but returned no screenshot or state. The lead interrupted
+roughly 60 seconds after notification; the terminal result was
+`aborted by user after 93.0s`. This is not evidence of a human Escape press or an
+application failure. Disabling accessibility text did not avoid the blockage,
+so accessibility enumeration alone is not established as its cause.
+
+No more Computer Use recovery or input is planned. Pending interaction checks
+remain unchanged; normal user closure of 451 remains the activation dependency.
