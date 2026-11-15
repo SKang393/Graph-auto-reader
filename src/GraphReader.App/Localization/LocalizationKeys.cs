@@ -54,6 +54,8 @@ public static class LocalizationKeys
     public const string ManualAffineDetectionUnsupported = "Errors.ManualAffineDetectionUnsupported";
     public const string ManualAffineCalibrationNotice = "Manual.AffineCalibrationNotice";
     public const string ManualAffineAxisSuggestionNotice = "Manual.AffineAxisSuggestionNotice";
+    public const string ManualCalibrationRectifiedWarning = "Manual.CalibrationRectifiedWarning";
+    public const string ManualCalibrationRectificationFailed = "Manual.CalibrationRectificationFailed";
     public const string ManualAxisPairBudgetExceeded = "Errors.ManualAxisPairBudgetExceeded";
     public const string ManualAxisRotatedUnsupported = "Errors.ManualAxisRotatedUnsupported";
     public const string ManualAxisTimeout = "Errors.ManualAxisTimeout";
@@ -114,6 +116,8 @@ public static class LocalizationKeys
     public const string ManualCalibrationTicksPartialY = "Manual.CalibrationTicks.PartialY";
     public const string ManualCalibrationTicksPairedRows = "Manual.CalibrationTicks.PairedRows";
     public const string ManualCalibrationTicksPairedRow = "Manual.CalibrationTicks.PairedRow";
+    public const string ManualCalibrationTicksPairedPointRow = "Manual.CalibrationTicks.PairedPointRow";
+    public const string ManualCalibrationTicksEstimatedPointRow = "Manual.CalibrationTicks.EstimatedPointRow";
     public const string ManualCalibrationTicksEstimatedRow = "Manual.CalibrationTicks.EstimatedRow";
     public const string ManualCalibrationTicksEstimatedComplete = "Manual.CalibrationTicks.EstimatedComplete";
     public const string ManualCalibrationTicksEstimatedWarning = "Manual.CalibrationTicks.EstimatedWarning";
@@ -506,6 +510,8 @@ public static class LocalizationKeys
         ManualAffineDetectionUnsupported,
         ManualAffineCalibrationNotice,
         ManualAffineAxisSuggestionNotice,
+        ManualCalibrationRectifiedWarning,
+        ManualCalibrationRectificationFailed,
         ManualAxisPairBudgetExceeded,
         ManualAxisRotatedUnsupported,
         ManualAxisTimeout,
@@ -561,6 +567,8 @@ public static class LocalizationKeys
         ManualCalibrationTicksPartialY,
         ManualCalibrationTicksPairedRows,
         ManualCalibrationTicksPairedRow,
+        ManualCalibrationTicksPairedPointRow,
+        ManualCalibrationTicksEstimatedPointRow,
         ManualCalibrationTicksEstimatedRow,
         ManualCalibrationTicksEstimatedComplete,
         ManualCalibrationTicksEstimatedWarning,

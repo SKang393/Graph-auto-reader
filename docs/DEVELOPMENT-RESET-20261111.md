@@ -3,32 +3,33 @@
 
 # Development direction, 2026-11-11
 
-Latest source checkpoint, 2026-11-15: [printed-X review](PRINTED-X-REVIEW-20261115.md)
-supports zero, negative and fractional printed origins through explicit review,
-preserving estimated-X export semantics. Its stale shell contract and missing
-language-refresh notifications are [fixed and full-CI verified](CALIBRATION-LOCALIZATION-20261115.md).
-The [spatial enumeration and label-row batch](SPATIAL-AXIS-LABEL-ROWS-20261115.md)
-recovers all six labels and a complete automatic draft on an owned jittered-row
-graph. The fixed development result remains 7/12 panels with geometry, two
-reviewable printed-X drafts and zero complete session drafts. Four native
-attempts still exhaust a resource budget and one rejects multiple candidates.
-Keep numeric/review safeguards and the independent split intact. The
-[bounded merge-sort repair](AXIS-BOUNDED-SORT-20261115.md) fixes the owned
-descending-order failure and clears development envelope-budget exhaustion;
-coverage remains 7/12 with four exact-pair failures and one ambiguity rejection.
-The [zero-forward-extent repair](AXIS-FORWARD-EXTENT-20261115.md) preserves all
-seven geometries and allows one more native search to finish: three exact-pair
-failures and two ambiguity rejections remain. The
-[explicit axis-choice review](AXIS-CANDIDATE-REVIEW-20261115.md) now exposes only
-completed native candidate sets with no default selection, source-bound overlay
-preview and the existing numeric review. Owned native QA reaches a six-label
-draft without applying calibration; real automatic coverage is not remeasured.
-Keep normal Suggest strict and do not repeat unchanged OCR. Next deliver the
-integrated preview after exact-head full CI, then address the remaining geometry
-resource failures using owned controls and the fixed development diagnostic.
-Native [foreground profiling cancellation](NATIVE-PROFILING-INTERRUPTION-20261115.md)
-is now verified. The sole retained package remains 0.4.52 until a meaningful
-integrated replacement is verified.
+Current state, 2026-11-15: the sole delivered package is **0.4.55**. The
+[tilted-axis source checkpoint](NATIVE-AFFINE-AXIS-REVIEW-20261115.md)
+`4fcf0b69e7a39e032fb862327b55d5aad9cdd3d1` has successful full Windows CI.
+The fixed development geometry diagnostic returns eight rectangles, one affine
+frame and three explicit pair-budget refusals. The earlier OCR evidence remains
+cached: two printed-X drafts and zero complete session drafts from eight
+axis-aligned panels. Those counts are not new measurements of the affine path.
+
+The active [reversible rectification batch](AFFINE-CALIBRATION-RECTIFICATION-20261115.md)
+lets the existing tick/OCR reader use the fitted tilted frame and maps review
+evidence back to original pixels. Local solution tests and eight owned worker
+paths pass. The one changed-stage development confirmation reached OCR in
+5.28 seconds but retained `AXIS_BOX_NOT_OBSERVED` and an insufficient-pairs
+refusal; no complete calibration was produced. New-head full CI remains pending.
+Native review waits after a fresh Computer Use Escape stop;
+independent code and headless work continue. Original data, review requirements,
+numeric checks, resource caps and independent evaluation boundaries remain fixed.
+
+The three remaining geometry budget refusals have no demonstrated safe pruning
+fix: the current search already prunes impossible envelopes and contacts while
+retaining complete ranking. Do not repeat unchanged private comparisons or drop
+possible winners to manufacture coverage. Finish the changed-stage calibration
+evidence, then address the next concrete editable-digitization limitation using
+owned controls. Package only a meaningful integrated checkpoint. The
+[printed-X accessibility/language contract](CALIBRATION-LOCALIZATION-20261115.md)
+and [foreground profiling cancellation](NATIVE-PROFILING-INTERRUPTION-20261115.md)
+already have their scoped verification and need no duplicate repair.
 
 The maintainer requested a Rust-based, responsive Windows application and
 authorized changing the development plan immediately. This amendment replaces

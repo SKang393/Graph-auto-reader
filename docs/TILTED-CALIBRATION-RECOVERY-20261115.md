@@ -179,8 +179,11 @@ correction passed the coordinated local full-solution validation: 3,130 passed,
 32 expected optional-input/worker skips, zero failures. App passed 1,269/1,269;
 integration passed 182 with seven expected skips, including the unchanged
 regression. See [native affine review validation](NATIVE-AFFINE-AXIS-REVIEW-20261115.md)
-for commands, times and hashes. Superseding hosted CI still must pass.
-Temporary owned test outputs remain active only through CI and outcome
-integration, then retire under
-the existing artifact policy. The current fixed-development report remains
-the next geometry revision's comparison input.
+for commands, times and hashes. Superseding hosted CI
+[43767186610](https://github.com/SKang393/Graph-auto-reader/actions/runs/43767186610)
+passed on integrated `4fcf0b69e7a39e032fb862327b55d5aad9cdd3d1`: 3,132 .NET
+passed, 30 expected skips, no failures, plus Rust and packaging checks.
+Temporary owned test outputs were retired after the pushed record and consumer
+completion, with absence verified on 2026-11-15 at 22:18:27 UTC. The current
+fixed-development reports remain comparison inputs for the next affine OCR
+coordinate bridge; originals and runtime dependencies are preserved.

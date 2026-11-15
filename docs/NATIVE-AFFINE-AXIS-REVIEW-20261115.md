@@ -123,6 +123,8 @@ and Redo disabled. The app then closed normally. The fixture has no printed
 numeric values, so this check entered none and did not Apply, save or export.
 Mode switching, numeric application and Undo/Redo are covered by owned tests,
 not claimed as native actions in this check.
+The source app's actual `native/graphreader-engine.exe` hash was also verified
+as the same unchanged `2cc6f263...` diagnostic worker.
 
 Fixture SHA-256: `c222c03c2772b669dc61c9cec36368a89f012db33ee1bb9491cfe8c38ccc9941`
 (730 bytes); local outcome SHA-256:
@@ -192,15 +194,29 @@ Per-panel geometry/metadata remains local and is not committed. No independent
 evaluation was used, no original was changed, and no values were applied/exported.
 
 New code is Apache-2.0 project code; no dependency, model or license changed.
-The current delivered artifact remains verified 0.4.55. Source validation and
-bounded native/development checks pass; superseding hosted CI is pending.
+The current delivered artifact remains verified 0.4.55. Source checkpoint
+`4fcf0b69e7a39e032fb862327b55d5aad9cdd3d1` was pushed to main and integrated in
+both checkouts without changing unrelated local edits.
+[Windows CI 43767186610](https://github.com/SKang393/Graph-auto-reader/actions/runs/43767186610)
+completed successfully on that exact commit: 13 .NET projects, **3,132 passed /
+30 expected optional checks skipped / zero failed**, 72 Rust tests and 68
+packaging-validation checks passed. Localization, evidence, handoff, upload and
+packaging-definition/audit checks passed. Release jobs were skipped as intended.
+This supersedes the two earlier failing CI runs. Source validation and bounded
+native/development checks pass; automatic rotated calibration is still absent
+at this checkpoint and no production/release approval is claimed.
 
-After this record is pushed and CI consumers finish, retire the completed
+After the record was pushed in `4fcf0b69` and CI consumers finished, the completed
 `affine-manual-calibration-check`, `native-affine-proposal-check`,
 `native-affine-trace-check` and `native-affine-ui-check` directories under this
-worktree's artifacts root: 65 files, 8,976,424 bytes at inventory. These contain
+worktree's artifacts root were retired: **65 files, 8,976,424 bytes**. Absence was
+verified at 2026-11-15 22:18:27.3953905 UTC. These contained
 owned inputs, temporary logs, TRXs, hashes and command receipts, all regenerable
-from source and commands above. The current 14,962-byte geometry trace and
+from source and commands above; cited temporary records are now historical
+identities, not locally available files. Resolved path containment, reparse
+exclusion and unchanged inventories were checked before removal. The current
+comparison reports, diagnostic Rust worker and existing autosave retained their
+hashes. The current 14,962-byte geometry trace and
 80,485-byte interval-cluster report remain active comparison inputs for the
 next affine OCR/coordinate-bridge stage; retire them after that comparison and
 its outcome integration finish. Runtime dependencies, original data, existing

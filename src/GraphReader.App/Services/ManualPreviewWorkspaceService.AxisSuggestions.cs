@@ -32,10 +32,42 @@ public interface IAxisSuggestionWorkspace
     bool IsAxisSuggestionCurrent(WorkspaceAxisSuggestion suggestion);
 }
 
-public sealed record WorkspaceCalibrationLabelSuggestion(WorkspaceAxisSuggestion AxisSuggestion, CalibrationOcrResponse Response)
+public sealed record WorkspaceCalibrationLabelSuggestion
 {
-    internal RustAxisGeometry FitGeometry { get; init; } = AxisSuggestion.Geometry ??
-        throw new ArgumentException("Label suggestions require rectangular axes.", nameof(AxisSuggestion));
+    public WorkspaceCalibrationLabelSuggestion(WorkspaceAxisSuggestion axisSuggestion, CalibrationOcrResponse response)
+        : this(axisSuggestion, response, axisSuggestion.Geometry ??
+            throw new ArgumentException("Label suggestions require a validated working frame.", nameof(axisSuggestion))) { }
+
+    internal WorkspaceCalibrationLabelSuggestion(WorkspaceAxisSuggestion axisSuggestion, CalibrationOcrResponse response,
+        RustAxisGeometry fitGeometry)
+    {
+        AxisSuggestion = axisSuggestion; Response = response; FitGeometry = fitGeometry;
+    }
+
+    public WorkspaceAxisSuggestion AxisSuggestion { get; init; }
+    public CalibrationOcrResponse Response { get; init; }
+    internal RustAxisGeometry FitGeometry { get; init; }
+    internal CalibrationWorkingFrame? WorkingFrame { get; init; }
+    internal object? WorkingFrameIdentity { get; init; }
+    internal AxisTickMeasurementResult? TickMeasurementReceipt { get; init; }
+    public bool IsRectified => WorkingFrame is not null;
+    public CalibrationTickAnchors OriginalAnchors(CalibrationTickAnchors anchors) => WorkingFrame?.ToOriginal(anchors) ?? anchors;
+    public CalibrationOcrPoint OriginalTickPoint(string axis, int position) => ToOriginal(axis switch
+    {
+        "X" => new(position, FitGeometry.Bottom),
+        "Y" => new(FitGeometry.Left, position),
+        _ => throw new ArgumentException("Unknown tick axis.", nameof(axis)),
+    });
+    public IReadOnlyList<CalibrationOcrPoint> OriginalPolygon(CalibrationOcrProposal proposal)
+    {
+        if (!Response.Proposals.Any(row => ReferenceEquals(row, proposal)))
+            throw new ArgumentException("The row does not belong to this receipt.", nameof(proposal));
+        return Array.AsReadOnly(proposal.Polygon.Select(ToOriginal).ToArray());
+    }
+    private CalibrationOcrPoint ToOriginal(CalibrationOcrPoint point) => WorkingFrame?.ToOriginal(point) ?? point;
+    internal bool ContainsOriginal(CalibrationTickAnchors anchors) => WorkingFrame is null ||
+        WorkingFrame.ContainsOriginal(anchors.FirstSessionY0) && WorkingFrame.ContainsOriginal(anchors.FirstSessionYMaximum) &&
+        WorkingFrame.ContainsOriginal(anchors.FinalSessionY0);
     internal object? TickEvidenceIdentity { get; init; }
     internal bool TickMeasurementAttempted { get; init; }
     internal string? TickMeasurementErrorCode { get; init; }
@@ -55,6 +87,9 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
     private readonly ICalibrationOcrSuggestionService? _calibrationOcrSuggestionService;
     private sealed record CalibrationTickEvidenceIdentity(WorkspaceAxisSuggestion Suggestion,
         object? OriginalImageIdentity, string Binding, string ImageSha256, RustAxisGeometry Geometry);
+    private sealed record CalibrationWorkingFrameIdentity(WorkspaceAxisSuggestion Suggestion, CalibrationWorkingFrame Frame,
+        object? OriginalImageIdentity, RustAxisGeometry Geometry, CalibrationOcrRequest Request, CalibrationOcrResponse Response,
+        AxisTickMeasurementResult? Measurement);
     private int _calibrationOcrDisposed;
     public bool CanSuggestAxes => _axisProposalService is not null &&
         RuntimeEnvironment == GraphReader.App.Integration.Workflow.WorkflowRuntimeEnvironment.ManualPreview;
@@ -171,8 +206,10 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
     {
         ArgumentNullException.ThrowIfNull(suggestion);
         cancellationToken.ThrowIfCancellationRequested();
-        if (!CanReadCalibrationLabels || suggestion.AffineGeometry is not null || suggestion.Geometry is not { } geometry ||
-            !IsAxisSuggestionCurrent(suggestion)) return null;
+        if (!CanReadCalibrationLabels || !IsAxisSuggestionCurrent(suggestion)) return null;
+        if (suggestion.AffineGeometry is not null)
+            return await ReadRectifiedCalibrationLabelsAsync(suggestion, cancellationToken);
+        if (suggestion.Geometry is not { } geometry) return null;
         WorkspaceTabViewModel tab = RequireTab(suggestion.TabId);
         if (geometry.Left < 0 || geometry.Top < 0 || geometry.Right >= tab.PixelWidth ||
             geometry.Bottom >= tab.PixelHeight || geometry.Left >= geometry.Right || geometry.Top >= geometry.Bottom)
@@ -189,7 +226,7 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
             AxisTickMeasurementResult measurement = await _axisTickMeasurementService!.MeasureAsync(image, geometry, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             if (!IsAxisSuggestionCurrent(suggestion)) return null;
-            if (TryBindMeasuredTicks(measurement, suggestion, imageHash, tab.PixelWidth, tab.PixelHeight) is { } measured)
+            if (TryBindMeasuredTicks(measurement, geometry, imageHash, tab.PixelWidth, tab.PixelHeight) is { } measured)
             {
                 geometry = measured;
                 tickIdentity = new(suggestion, suggestion.OriginalImageIdentity, suggestion.Binding, imageHash, measured);
@@ -214,20 +251,102 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
         return IsCalibrationLabelSuggestionCurrent(result) ? result : null;
     }
 
+    private async Task<WorkspaceCalibrationLabelSuggestion?> ReadRectifiedCalibrationLabelsAsync(
+        WorkspaceAxisSuggestion suggestion, CancellationToken token)
+    {
+        WorkspaceTabViewModel tab = RequireTab(suggestion.TabId);
+        var panel = CurrentProject.Panels.Single(item => item.PanelId.Value.ToString() == tab.PanelId);
+        var source = CurrentProject.Sources.Single(item => item.SourceId == panel.SourceId);
+        // Decode, normalization and resampling belong off the dispatcher. No source buffer is mutated.
+        var original = _originalPanelBytesByTab[suggestion.TabId];
+        int width = tab.PixelWidth, height = tab.PixelHeight;
+        RustAffineAxisGeometry affine = suggestion.AffineGeometry!;
+        (CalibrationWorkingFrame Frame, byte[] Image) prepared;
+        try
+        {
+            prepared = await Task.Run(() => CalibrationWorkingFrame.Create(original.Copy(), width, height,
+                affine, suggestion.Binding, token), token);
+        }
+        catch (Exception error) when (error is System.IO.IOException or NotSupportedException or ArgumentException or FormatException or OverflowException)
+        {
+            token.ThrowIfCancellationRequested();
+            if (!IsAxisSuggestionCurrent(suggestion)) return null;
+            throw new ProductionWorkflowStageException(new("CALIBRATION_RECTIFICATION_INVALID_FRAME",
+                LocalizationKeys.ManualCalibrationRectificationFailed, "The affine calibration frame cannot be rectified.",
+                true, "Review the original marked axes or enter calibration values manually."));
+        }
+        token.ThrowIfCancellationRequested();
+        if (!CanReadCalibrationLabels || !IsAxisSuggestionCurrent(suggestion)) return null;
+        CalibrationWorkingFrame frame = prepared.Frame;
+        RustAxisGeometry geometry = frame.Geometry;
+        bool attempted = _axisTickMeasurementService is not null;
+        string? measurementError = null;
+        AxisTickMeasurementResult? measurementReceipt = null;
+        if (attempted)
+        {
+            AxisTickMeasurementResult measurement = await _axisTickMeasurementService!.MeasureAsync(prepared.Image, geometry, token);
+            measurementReceipt = measurement;
+            token.ThrowIfCancellationRequested();
+            if (!CanReadCalibrationLabels || !IsAxisSuggestionCurrent(suggestion)) return null;
+            if (TryBindMeasuredTicks(measurement, geometry, frame.DerivedImageSha256, frame.Width, frame.Height) is { } measured)
+                geometry = measured;
+            else measurementError = measurement.ErrorCode ?? "INVALID_TICK_EVIDENCE";
+        }
+        var request = new CalibrationOcrRequest(Guid.NewGuid().ToString("N"), frame.Binding, source.Sha256,
+            frame.DerivedImageSha256, frame.Width, frame.Height, new(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom))
+        {
+            MeasuredXTicks = geometry.XTickPositions.Count > 0 ? geometry.XTickPositions.ToArray() : null,
+            MeasuredYTicks = geometry.YTickPositions.Count > 0 ? geometry.YTickPositions.ToArray() : null,
+        };
+        CalibrationOcrRequest expected = SnapshotRequest(request);
+        CalibrationOcrResponse response = await _calibrationOcrSuggestionService!.SuggestAsync(request, prepared.Image, token);
+        token.ThrowIfCancellationRequested();
+        if (!IsAxisSuggestionCurrent(suggestion) || !CalibrationOcrWorkerClient.IsValidResponse(expected, response)) return null;
+        var result = new WorkspaceCalibrationLabelSuggestion(suggestion, response, geometry)
+        {
+            WorkingFrame = frame,
+            WorkingFrameIdentity = new CalibrationWorkingFrameIdentity(suggestion, frame, original, geometry, expected, response, measurementReceipt),
+            TickMeasurementReceipt = measurementReceipt,
+            TickMeasurementAttempted = attempted, TickMeasurementErrorCode = measurementError,
+        };
+        return IsCalibrationLabelSuggestionCurrent(result) ? result : null;
+    }
+
+    private static CalibrationOcrRequest SnapshotRequest(CalibrationOcrRequest request) => request with
+    {
+        MeasuredXTicks = request.MeasuredXTicks?.ToArray(), MeasuredYTicks = request.MeasuredYTicks?.ToArray(),
+    };
+
     public bool IsCalibrationLabelSuggestionCurrent(WorkspaceCalibrationLabelSuggestion result) =>
-        result is not null && CanReadCalibrationLabels && result.AxisSuggestion.AffineGeometry is null &&
+        result is not null && CanReadCalibrationLabels && (result.IsRectified ? IsRectifiedCalibrationCurrent(result) :
+        result.AxisSuggestion.AffineGeometry is null &&
             result.AxisSuggestion.Geometry is { } geometry && IsAxisSuggestionCurrent(result.AxisSuggestion) &&
             result.Response.Request is { } request && CalibrationOcrWorkerClient.IsValidResponse(request, result.Response) &&
         request.Binding == result.AxisSuggestion.Binding &&
         request.Plot == new CalibrationOcrPlot(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom) &&
             IsCalibrationTickEvidenceCurrent(result) &&
             (request.MeasuredXTicks ?? []).SequenceEqual(result.FitGeometry.XTickPositions) &&
-            (request.MeasuredYTicks ?? []).SequenceEqual(result.FitGeometry.YTickPositions);
+            (request.MeasuredYTicks ?? []).SequenceEqual(result.FitGeometry.YTickPositions));
+
+    private bool IsRectifiedCalibrationCurrent(WorkspaceCalibrationLabelSuggestion result) =>
+        result.WorkingFrameIdentity is CalibrationWorkingFrameIdentity proof && result.WorkingFrame is { } frame &&
+        ReferenceEquals(proof.Frame, frame) && ReferenceEquals(proof.Suggestion, result.AxisSuggestion) &&
+        ReferenceEquals(proof.OriginalImageIdentity, result.AxisSuggestion.OriginalImageIdentity) &&
+        ReferenceEquals(proof.Geometry, result.FitGeometry) && ReferenceEquals(proof.Response, result.Response) &&
+        ReferenceEquals(proof.Measurement, result.TickMeasurementReceipt) &&
+        IsAxisSuggestionCurrent(result.AxisSuggestion) && result.AxisSuggestion.AffineGeometry is not null &&
+        result.TickEvidenceIdentity is null && result.Response.Request is { } request && proof.Request.Matches(request) &&
+        request.Binding == frame.Binding && request.PanelImageSha256 == frame.DerivedImageSha256 &&
+        request.Width == frame.Width && request.Height == frame.Height &&
+        request.Plot == new CalibrationOcrPlot(frame.Geometry.Left, frame.Geometry.Top, frame.Geometry.Right, frame.Geometry.Bottom) &&
+        CalibrationOcrWorkerClient.IsValidResponse(proof.Request, result.Response) &&
+        (request.MeasuredXTicks ?? []).SequenceEqual(result.FitGeometry.XTickPositions) &&
+        (request.MeasuredYTicks ?? []).SequenceEqual(result.FitGeometry.YTickPositions) &&
+        result.Response.Proposals.All(row => row.Polygon.All(point => frame.ContainsOriginalEdge(frame.ToOriginal(point))));
 
     private static RustAxisGeometry? TryBindMeasuredTicks(AxisTickMeasurementResult measurement,
-        WorkspaceAxisSuggestion suggestion, string imageHash, int width, int height)
+        RustAxisGeometry box, string imageHash, int width, int height)
     {
-        if (suggestion.AffineGeometry is not null || suggestion.Geometry is not { } box) return null;
         if (measurement.ErrorCode is not null || measurement.PanelImageSha256 != imageHash ||
             measurement.Width != width || measurement.Height != height || measurement.Evidence is not { } evidence ||
             evidence.Left != box.Left || evidence.Bottom != box.Bottom || evidence.Right != box.Right || evidence.Top != box.Top ||

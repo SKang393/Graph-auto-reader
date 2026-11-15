@@ -22,6 +22,11 @@ public sealed partial class MainWindowViewModel
         NotifyAxisCandidateLabelsChanged();
         OnPropertyChanged(nameof(AxisSuggestionSummary));
         OnPropertyChanged(nameof(AxisGeometryReviewWarningText));
+        OnPropertyChanged(nameof(CalibrationLabelWarningText));
+        OnPropertyChanged(nameof(CalibrationLabelStatusText));
+        foreach (CalibrationLabelRowViewModel row in CalibrationLabelRows)
+            row.UpdateDisplayText(FormatCalibrationLabelRow(row.Proposal));
+        if (_calibrationTickProposal is { } proposal) PopulateCalibrationPairedTickRows(proposal);
     }
 
     private void NotifyManualPrintedXLabelsChanged()

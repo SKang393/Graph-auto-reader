@@ -34,15 +34,10 @@ public sealed partial class MainWindowViewModel
     {
         if (!UsePrintedXCoordinatesCommand.CanExecute(null) ||
             _calibrationTickProposal is not { PrintedXReviewDraft: { } draft } proposal) return;
+        if (!SetCalibrationAnchorsFromWorkingFrame(draft.Anchors)) return;
         SuggestedYMaximum = draft.YMaximum.ToString("R", CultureInfo.InvariantCulture);
         SuggestedFirstSession = draft.FirstX.ToString("R", CultureInfo.InvariantCulture);
         SuggestedFinalSession = draft.FinalX.ToString("R", CultureInfo.InvariantCulture);
-        _suggestedAnchors =
-        [
-            new(draft.Anchors.FirstSessionY0.X, draft.Anchors.FirstSessionY0.Y),
-            new(draft.Anchors.FirstSessionYMaximum.X, draft.Anchors.FirstSessionYMaximum.Y),
-            new(draft.Anchors.FinalSessionY0.X, draft.Anchors.FinalSessionY0.Y),
-        ];
         SetSuggestedPrintedXCoordinates(true);
         SetEstimatedCalibrationPositions(_hasEstimatedCalibrationPositions || draft.UsesEstimatedPositions);
         UpdateAxisSuggestionOverlay();
@@ -62,11 +57,6 @@ public sealed partial class MainWindowViewModel
     {
         if (IsBusy) return;
         cancellationToken.ThrowIfCancellationRequested();
-        if (HasAffineAxisSuggestion)
-        {
-            SetStatus(GetLocalizedString(LocalizationKeys.ManualAffineAxisSuggestionNotice));
-            return;
-        }
         bool useCurrentGeometry = CanReadCalibrationLabelsCore();
         if (useCurrentGeometry) ClearCalibrationLabelComputedValues();
         else ClearCalibrationTickProposal();
@@ -79,11 +69,6 @@ public sealed partial class MainWindowViewModel
         if (!ReferenceEquals(SelectedTab, expectedTab) || _axisSuggestion is not { } suggestion ||
             suggestion.TabId != expectedTab.TabId || !axes.IsAxisSuggestionCurrent(suggestion))
             return;
-        if (HasAffineAxisSuggestion)
-        {
-            SetStatus(GetLocalizedString(LocalizationKeys.ManualAffineAxisSuggestionNotice));
-            return;
-        }
 
         await ReadCalibrationLabelsAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
@@ -164,7 +149,7 @@ public sealed partial class MainWindowViewModel
         SetEstimatedCalibrationPositions(_hasEstimatedCalibrationPositions || proposal.UsesEstimatedPositions || proposal.UsesUserEnteredSessionPosition);
         if (!proposal.IsComplete)
         {
-            PopulatePartialCalibrationAxes(proposal);
+            if (!PopulatePartialCalibrationAxes(proposal)) return;
             _calibrationTickProposal = proposal;
             PopulateCalibrationPairedTickRows(proposal);
             _calibrationTickProposalStatusText = GetLocalizedString(proposal.PrintedXReviewDraft is not null
@@ -180,15 +165,10 @@ public sealed partial class MainWindowViewModel
         }
 
         CalibrationTickAnchors anchors = proposal.Anchors!;
+        if (!SetCalibrationAnchorsFromWorkingFrame(anchors)) return;
         SuggestedYMaximum = proposal.YMaximum!.Value.ToString("R", CultureInfo.InvariantCulture);
         SuggestedFirstSession = proposal.FirstSession!.Value.ToString(CultureInfo.InvariantCulture);
         SuggestedFinalSession = proposal.FinalSession!.Value.ToString("R", CultureInfo.InvariantCulture);
-        _suggestedAnchors =
-        [
-            new(anchors.FirstSessionY0.X, anchors.FirstSessionY0.Y),
-            new(anchors.FirstSessionYMaximum.X, anchors.FirstSessionYMaximum.Y),
-            new(anchors.FinalSessionY0.X, anchors.FinalSessionY0.Y),
-        ];
         UpdateAxisSuggestionOverlay();
         AxisSuggestionReviewed = false;
         _calibrationTickProposal = proposal;
@@ -203,27 +183,31 @@ public sealed partial class MainWindowViewModel
         RelayCommand.RaiseCanExecuteChanged();
     }
 
-    private void PopulatePartialCalibrationAxes(CalibrationTickProposalResult proposal)
+    private bool PopulatePartialCalibrationAxes(CalibrationTickProposalResult proposal)
     {
         SuggestedFirstSession = proposal.XReviewDraft?.FirstSession.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
         SuggestedFinalSession = proposal.XReviewDraft?.FinalSession.ToString("R", CultureInfo.InvariantCulture) ?? string.Empty;
         SuggestedYMaximum = proposal.YReviewDraft?.YMaximum.ToString("R", CultureInfo.InvariantCulture) ?? string.Empty;
         AxisSuggestionReviewed = false;
-        if (_suggestedAnchors.Length != 3) return;
+        if (_suggestedAnchors.Length != 3) return false;
+        CalibrationOcrPoint[] working = _suggestedAnchors.Select(point =>
+            _calibrationLabelSuggestion?.WorkingFrame?.ToDerived(new(point.X, point.Y)) ?? new(point.X, point.Y)).ToArray();
         if (proposal.XReviewDraft is { } x)
         {
-            _suggestedAnchors[0] = new(x.FirstPixelPosition, _suggestedAnchors[0].Y);
-            _suggestedAnchors[1] = new(x.FirstPixelPosition, _suggestedAnchors[1].Y);
-            _suggestedAnchors[2] = new(x.FinalPixelPosition, _suggestedAnchors[2].Y);
+            working[0] = new(x.FirstPixelPosition, working[0].Y);
+            working[1] = new(x.FirstPixelPosition, working[1].Y);
+            working[2] = new(x.FinalPixelPosition, working[2].Y);
         }
         if (proposal.YReviewDraft is { } y)
         {
-            _suggestedAnchors[0] = new(_suggestedAnchors[0].X, y.ZeroPixelPosition);
-            _suggestedAnchors[1] = new(_suggestedAnchors[1].X, y.MaximumPixelPosition);
-            _suggestedAnchors[2] = new(_suggestedAnchors[2].X, y.ZeroPixelPosition);
+            working[0] = new(working[0].X, y.ZeroPixelPosition);
+            working[1] = new(working[1].X, y.MaximumPixelPosition);
+            working[2] = new(working[2].X, y.ZeroPixelPosition);
         }
+        if (!SetCalibrationAnchorsFromWorkingFrame(new(working[0], working[1], working[2]))) return false;
         UpdateAxisSuggestionOverlay();
         OnPropertyChanged(nameof(AxisSuggestionSummary));
+        return true;
     }
 
     private void PopulateCalibrationPairedTickRows(CalibrationTickProposalResult proposal)
@@ -233,10 +217,35 @@ public sealed partial class MainWindowViewModel
         {
             string axis = GetLocalizedString(pair.Axis == "X"
                 ? LocalizationKeys.ManualCalibrationTicksAxisX : LocalizationKeys.ManualCalibrationTicksAxisY);
+            if (_calibrationLabelSuggestion is { IsRectified: true } result)
+            {
+                CalibrationOcrPoint point = result.OriginalTickPoint(pair.Axis, pair.PixelPosition);
+                CalibrationPairedTickRows.Add(FormatLocalizedString(pair.IsEstimated
+                        ? LocalizationKeys.ManualCalibrationTicksEstimatedPointRow : LocalizationKeys.ManualCalibrationTicksPairedPointRow,
+                    axis, pair.Value.ToString("R", CultureInfo.InvariantCulture),
+                    point.X.ToString("0.##", CultureInfo.CurrentCulture), point.Y.ToString("0.##", CultureInfo.CurrentCulture)));
+                continue;
+            }
             CalibrationPairedTickRows.Add(FormatLocalizedString(pair.IsEstimated
                     ? LocalizationKeys.ManualCalibrationTicksEstimatedRow : LocalizationKeys.ManualCalibrationTicksPairedRow,
                 axis, pair.Value.ToString("R", CultureInfo.InvariantCulture), pair.PixelPosition));
         }
+    }
+
+    private bool SetCalibrationAnchorsFromWorkingFrame(CalibrationTickAnchors anchors)
+    {
+        CalibrationTickAnchors original = _calibrationLabelSuggestion?.OriginalAnchors(anchors) ?? anchors;
+        if (_calibrationLabelSuggestion?.ContainsOriginal(original) == false)
+        {
+            _calibrationTickProposalStatusText = GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsFailureInvalidFrame);
+            AxisSuggestionReviewed = false;
+            OnPropertyChanged(nameof(CalibrationTickProposalStatusText));
+            OnPropertyChanged(nameof(HasCalibrationTickProposalStatus));
+            return false;
+        }
+        _suggestedAnchors = [new(original.FirstSessionY0.X, original.FirstSessionY0.Y),
+            new(original.FirstSessionYMaximum.X, original.FirstSessionYMaximum.Y), new(original.FinalSessionY0.X, original.FinalSessionY0.Y)];
+        return true;
     }
 
     private void SetEstimatedCalibrationPositions(bool value)

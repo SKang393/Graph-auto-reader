@@ -190,11 +190,17 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 
 ## REV-011 - finish native preview verification
 
-- **Status:** resolved for the scoped native checks, including the entered-origin
-  source action and native foreground-profiling interruption on 2026-11-15
-- **Blocks:** none for this completed subset; full product acceptance remains open
-- **Effort:** no maintainer action needed
-- **Action:** completed. Screenshot-confirmed file-name focus allowed Computer
+- **Status:** waiting for renewed Computer Use access for the new affine-label
+  bridge; the earlier scoped checks remain resolved
+- **Blocks:** native review of rectified label reading and calibration Apply/Undo;
+  code, CI and headless work continue independently
+- **Effort:** one access confirmation, approximately one minute
+- **Action:** approve resuming native checks after the latest physical Escape
+  stop if desired. The first window-list call for the
+  [affine-label bridge](AFFINE-CALIBRATION-RECTIFICATION-20261115.md) stopped
+  before launch or input. Its four small owned images are retained for this
+  specific consumer. Earlier work is complete: screenshot-confirmed file-name
+  focus allowed Computer
   Use to import the owned graph despite stale accessibility focus. The source
   window verified six labels, incomplete default X, explicit session-1 fit,
   calculated-anchor warning, fresh review gating, Apply and Undo, then closed
@@ -227,7 +233,7 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   maintainer confirmed that the corrected launcher opens the app. Native GPU
   selection and label reading, reviewed calibration Apply/Undo, individual
   marker acceptance/Undo/Redo, save and export have now been observed. No further
-  access approval is currently needed. The subsequent
+  access approval was needed for that completed subset. The subsequent
   [native 451 check](NATIVE-PREVIEW-451-CHECK-20261115.md) verified fresh-process
   GPU/CPU preference and project restoration, corrected-label refit and review
   invalidation, marker bulk acceptance as one Undo/Redo operation, crop preview,

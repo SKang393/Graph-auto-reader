@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using GraphReader.App.Localization;
 using GraphReader.App.Services;
+using GraphReader.App.Integration.Workflow;
 
 namespace GraphReader.App.ViewModels;
 
@@ -25,13 +26,14 @@ public sealed partial class MainWindowViewModel
 
     public bool HasCalibrationLabelSuggestion => _calibrationLabelSuggestion is not null;
     public bool HasCalibrationLabelWarning => _calibrationLabelSuggestion is { } result &&
-        (result.Response.FailureCode is not null ||
+        (result.IsRectified || result.Response.FailureCode is not null ||
          result.Response.XSequence is { } x && (x.NeedsReview || x.RejectedCount > 0) ||
          result.Response.YSequence is { } y && (y.NeedsReview || y.RejectedCount > 0) ||
          result.Response.Proposals.Any(proposal => proposal.FailureCode is not null));
-    public string CalibrationLabelWarningText => HasCalibrationLabelWarning
-        ? GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsWarning)
-        : string.Empty;
+    public string CalibrationLabelWarningText => _calibrationLabelSuggestion is { IsRectified: true }
+        ? GetLocalizedString(LocalizationKeys.ManualCalibrationRectifiedWarning) + "\n" +
+            GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsWarning)
+        : HasCalibrationLabelWarning ? GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsWarning) : string.Empty;
     public string CalibrationLabelZeroReminder => GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsZeroReminder);
 
     public string CalibrationLabelStatusText
@@ -42,7 +44,6 @@ public sealed partial class MainWindowViewModel
             {
                 if (_calibrationLabelStatusOverride.Length > 0) return _calibrationLabelStatusOverride;
                 if (_axisSuggestion is null) return string.Empty;
-                if (HasAffineAxisSuggestion) return GetLocalizedString(LocalizationKeys.ManualAffineAxisSuggestionNotice);
                 return _workspaceService is ICalibrationLabelSuggestionWorkspace { CanReadCalibrationLabels: true }
                     ? GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsNotRead)
                     : GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsReaderUnavailable);
@@ -109,6 +110,15 @@ public sealed partial class MainWindowViewModel
             }
             throw;
         }
+        catch (ProductionWorkflowStageException error) when (error.Failure.Code == "CALIBRATION_RECTIFICATION_INVALID_FRAME")
+        {
+            if (generation == _calibrationLabelGeneration)
+            {
+                _calibrationLabelStatusOverride = GetCalibrationLabelFailure(error.Failure.Code);
+                OnPropertyChanged(nameof(CalibrationLabelStatusText));
+            }
+            return;
+        }
         catch
         {
             if (generation == _calibrationLabelGeneration)
@@ -148,7 +158,7 @@ public sealed partial class MainWindowViewModel
 
     private bool CanReadCalibrationLabelsCore() => EditorMode != ManualEditorMode.Calibration &&
         _calibrationAnchors.Count == 0 && SelectedTab is not null &&
-        _axisSuggestion is { AffineGeometry: null, Geometry: not null } suggestion &&
+        _axisSuggestion is { } suggestion && (suggestion.Geometry is not null || suggestion.AffineGeometry is not null) &&
         _suggestedAnchors.Length == 3 && SelectedTab.TabId == suggestion.TabId &&
         _workspaceService is IAxisSuggestionWorkspace axes && axes.IsAxisSuggestionCurrent(suggestion) &&
         _workspaceService is ICalibrationLabelSuggestionWorkspace labels && labels.CanReadCalibrationLabels;
@@ -255,8 +265,9 @@ public sealed partial class MainWindowViewModel
 
     private string FormatCalibrationLabelRow(CalibrationOcrProposal proposal)
     {
-        double? x = proposal.Polygon.Count > 0 ? proposal.Polygon.Average(point => point.X) : null;
-        double? y = proposal.Polygon.Count > 0 ? proposal.Polygon.Average(point => point.Y) : null;
+        IReadOnlyList<CalibrationOcrPoint> polygon = _calibrationLabelSuggestion?.OriginalPolygon(proposal) ?? proposal.Polygon;
+        double? x = polygon.Count > 0 ? polygon.Average(point => point.X) : null;
+        double? y = polygon.Count > 0 ? polygon.Average(point => point.Y) : null;
         string position = x is double px && y is double py
             ? FormatLocalizedString(LocalizationKeys.ManualCalibrationLabelsPosition,
                 px.ToString("0.##", CultureInfo.CurrentCulture), py.ToString("0.##", CultureInfo.CurrentCulture))
@@ -286,6 +297,7 @@ public sealed partial class MainWindowViewModel
     {
         string key = failureCode switch
         {
+            "CALIBRATION_RECTIFICATION_INVALID_FRAME" => LocalizationKeys.ManualCalibrationRectificationFailed,
             CalibrationOcrReasonCodes.Unavailable => LocalizationKeys.ManualCalibrationLabelsFailureUnavailable,
             CalibrationOcrReasonCodes.InvalidInput => LocalizationKeys.ManualCalibrationLabelsFailureInvalidInput,
             CalibrationOcrReasonCodes.AssetMismatch => LocalizationKeys.ManualCalibrationLabelsFailureAssetMismatch,
@@ -368,8 +380,10 @@ public sealed class CalibrationLabelRowViewModel(CalibrationOcrProposal proposal
 {
     private bool _isIncluded = true;
     private string _correctedText = proposal.Text;
+    private string _displayText = displayText;
     public CalibrationOcrProposal Proposal { get; } = proposal;
-    public string DisplayText { get; } = displayText;
+    public string DisplayText => _displayText;
+    internal void UpdateDisplayText(string value) => SetProperty(ref _displayText, value, nameof(DisplayText));
     public bool IsAxisTick => Proposal.SuggestedAxis is "X" or "Y";
     public bool CanEditCorrection => IsAxisTick && IsIncluded;
     public bool HasCorrection => !string.Equals(_correctedText, Proposal.Text, StringComparison.Ordinal);

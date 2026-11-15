@@ -119,8 +119,9 @@ public sealed partial class MainWindowViewModel
     }
     public string AxisSuggestionSummary => _suggestedAnchors.Length == 3
         ? FormatLocalizedString(SuggestedUsesPrintedXCoordinates ? LocalizationKeys.ManualPrintedXPositions : LocalizationKeys.ManualAxisPositions,
-            _suggestedAnchors[0].X, _suggestedAnchors[0].Y, _suggestedAnchors[1].X,
-            _suggestedAnchors[1].Y, _suggestedAnchors[2].X, _suggestedAnchors[2].Y) : "";
+            _suggestedAnchors[0].X.ToString("0.##", CultureInfo.CurrentCulture), _suggestedAnchors[0].Y.ToString("0.##", CultureInfo.CurrentCulture),
+            _suggestedAnchors[1].X.ToString("0.##", CultureInfo.CurrentCulture), _suggestedAnchors[1].Y.ToString("0.##", CultureInfo.CurrentCulture),
+            _suggestedAnchors[2].X.ToString("0.##", CultureInfo.CurrentCulture), _suggestedAnchors[2].Y.ToString("0.##", CultureInfo.CurrentCulture)) : "";
 
     private void InitializeAxisSuggestionCommands()
     {
@@ -132,7 +133,7 @@ public sealed partial class MainWindowViewModel
         SuggestAxesCommand = new AsyncRelayCommand(SuggestAxesAsync,
             () => !IsBusy && SelectedTab is not null && _workspaceService is IAxisSuggestionWorkspace { CanSuggestAxes: true });
         SuggestCalibrationFromTicksCommand = new AsyncRelayCommand(SuggestCalibrationFromTicksAsync,
-            () => !IsBusy && !HasAffineAxisSuggestion && SelectedTab is not null &&
+            () => !IsBusy && SelectedTab is not null &&
                 _workspaceService is ICalibrationLabelSuggestionWorkspace { CanReadCalibrationLabels: true } &&
                 (CanReadCalibrationLabelsCore() || _workspaceService is IAxisSuggestionWorkspace { CanSuggestAxes: true }));
         InitializeCalibrationLabelCommands();

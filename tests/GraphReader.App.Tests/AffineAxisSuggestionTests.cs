@@ -55,19 +55,20 @@ public sealed class AffineAxisSuggestionTests
     });
 
     [TestMethod]
-    public void CombinedStageStopsAtAffineManualDraftAndDismissLeavesProjectUntouched() => WithWorkspace((workspace, axes, ocr, ticks, _) =>
+    public void UnavailableRectifiedReaderRetainsAffineDraftAndDismissLeavesProjectUntouched() => WithWorkspace((workspace, axes, ocr, ticks, _) =>
     {
         using var vm = new MainWindowViewModel(workspace);
         var project = workspace.CurrentProject;
         Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
         Assert.IsTrue(vm.HasAffineAxisSuggestion);
         Assert.AreEqual(1, axes.Calls);
-        Assert.AreEqual(0, ocr.Calls);
-        Assert.AreEqual(0, ticks.Calls);
+        Assert.AreEqual(1, ocr.Calls);
+        Assert.AreEqual(1, ticks.Calls);
         Assert.IsNull(vm.SelectedTab!.Calibration);
         Assert.IsFalse(vm.AxisSuggestionReviewed);
         Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
-        Assert.AreEqual(LocalizationKeys.ManualAffineAxisSuggestionNotice, vm.StatusMessage);
+        Assert.IsTrue(vm.HasCalibrationLabelSuggestion);
+        Assert.IsTrue(vm.HasCalibrationLabelWarning);
         vm.DismissAxisSuggestionCommand.Execute(null);
         Assert.IsFalse(vm.HasAxisSuggestion);
         Assert.IsFalse(vm.HasAffineAxisSuggestion);
@@ -99,8 +100,8 @@ public sealed class AffineAxisSuggestionTests
         Assert.AreEqual(string.Empty, vm.SuggestedFinalSession);
         Assert.IsFalse(vm.AxisSuggestionReviewed);
         Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
-        Assert.IsFalse(vm.ReadCalibrationLabelsCommand.CanExecute(null));
-        Assert.IsFalse(vm.SuggestCalibrationFromTicksCommand.CanExecute(null));
+        Assert.IsTrue(vm.ReadCalibrationLabelsCommand.CanExecute(null));
+        Assert.IsTrue(vm.SuggestCalibrationFromTicksCommand.CanExecute(null));
         Assert.AreSame(originalProject, workspace.CurrentProject);
         Assert.AreSame(originalCalibration, tab.Calibration);
         Assert.AreEqual(dirty, tab.IsDirty);
@@ -114,13 +115,11 @@ public sealed class AffineAxisSuggestionTests
         vm.SuggestedFirstSession = printed ? "0" : "1";
         vm.SuggestedFinalSession = printed ? "4" : "5";
         vm.AxisSuggestionReviewed = true;
-        Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
-        Pump(vm.ReadCalibrationLabelsAsync(CancellationToken.None));
-        Assert.AreEqual(1, axes.Calls, "An existing affine proposal must not trigger another automatic geometry pass.");
+        Assert.AreEqual(1, axes.Calls);
         Assert.AreEqual(0, ocr.Calls);
         Assert.AreEqual(0, ticks.Calls);
         Assert.AreEqual("10", vm.SuggestedYMaximum);
-        Assert.IsTrue(vm.AxisSuggestionReviewed, "Blocked OCR actions must not clear an otherwise current manual draft.");
+        Assert.IsTrue(vm.AxisSuggestionReviewed);
         vm.SuggestedYMaximum = "11";
         Assert.IsFalse(vm.AxisSuggestionReviewed);
         Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
@@ -153,7 +152,7 @@ public sealed class AffineAxisSuggestionTests
     });
 
     [TestMethod]
-    public void DirectWorkspaceReadRejectsAffineAndMixedContextsBeforeAnyConsumer() => WithWorkspace((workspace, _, ocr, ticks, _) =>
+    public void DirectWorkspaceReadRectifiesAffineButRejectsMixedContextsBeforeConsumers() => WithWorkspace((workspace, _, ocr, ticks, _) =>
     {
         var tab = workspace.CreateWorkspace().Single();
         var suggestion = Pump(workspace.SuggestAxesAsync(tab.TabId, CancellationToken.None));
@@ -161,13 +160,16 @@ public sealed class AffineAxisSuggestionTests
         Assert.IsNull(suggestion.Geometry);
         Assert.AreEqual(Frame, suggestion.AffineGeometry);
         Assert.IsTrue(workspace.IsAxisSuggestionCurrent(suggestion));
-        Assert.IsNull(Pump(workspace.ReadCalibrationLabelsAsync(suggestion, CancellationToken.None)));
+        var labels = Pump(workspace.ReadCalibrationLabelsAsync(suggestion, CancellationToken.None));
+        Assert.IsNotNull(labels);
+        Assert.IsTrue(labels.IsRectified);
+        Assert.AreEqual(CalibrationOcrReasonCodes.Unavailable, labels.Response.FailureCode);
         var mixed = suggestion with { Geometry = new(90, 290, 350, 70, .6) };
         Assert.IsFalse(workspace.IsAxisSuggestionCurrent(mixed));
         Assert.IsNull(Pump(workspace.ReadCalibrationLabelsAsync(mixed, CancellationToken.None)));
         Assert.IsFalse(workspace.IsAxisSuggestionCurrent(suggestion with { AffineGeometry = Frame with { XEnd = new(1000, 291) } }));
-        Assert.AreEqual(0, ocr.Calls);
-        Assert.AreEqual(0, ticks.Calls);
+        Assert.AreEqual(1, ocr.Calls);
+        Assert.AreEqual(1, ticks.Calls);
         var request = new CalibrationOcrRequest("owned", suggestion.Binding, new string('a', 64), new string('b', 64), 480, 400, new(90, 70, 350, 290));
         Assert.ThrowsExactly<ArgumentException>(() => new WorkspaceCalibrationLabelSuggestion(suggestion,
             CalibrationOcrResponse.Failure(request, CalibrationOcrReasonCodes.InvalidInput)));
@@ -263,7 +265,7 @@ public sealed class AffineAxisSuggestionTests
     {
         internal int Calls { get; private set; }
         public Task<CalibrationOcrResponse> SuggestAsync(CalibrationOcrRequest request, ReadOnlyMemory<byte> image, CancellationToken token)
-        { Calls++; throw new InvalidOperationException("Affine proposals cannot call OCR."); }
+        { Calls++; return Task.FromResult(CalibrationOcrResponse.Failure(request, CalibrationOcrReasonCodes.Unavailable)); }
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 
@@ -271,7 +273,7 @@ public sealed class AffineAxisSuggestionTests
     {
         internal int Calls { get; private set; }
         public Task<AxisTickMeasurementResult> MeasureAsync(byte[] image, RustAxisGeometry geometry, CancellationToken token)
-        { Calls++; throw new InvalidOperationException("Affine proposals cannot call the rectangular tick scanner."); }
+        { Calls++; return Task.FromResult(new AxisTickMeasurementResult(string.Empty, 0, 0, null, "UNAVAILABLE")); }
     }
 
     private static void Pump(Task task) => Pump(Complete(task));
