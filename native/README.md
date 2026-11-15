@@ -46,6 +46,16 @@ request has a 60-second deadline; cancellation kills the child process tree.
 No image, result or cache is written by the worker. All proposed coordinates
 refer to the input's original pixel space.
 
+`--measure-ticks` accepts a `GRT1` request containing an exact caller-supplied
+box and returns only observed X/Y tick positions in `TICKS1`. It does not
+discover, move or rank boxes. This review-only path uses the native line
+provider's existing strong-ink criterion, Gray8 `<200` or the equivalent RGB
+mean, in a temporary mask of at most 16 MiB. Connected-axis and tick-shape
+checks still apply; missing evidence is never replaced with invented ticks.
+Global proposal/review detection retains its separate `<128` predicate.
+Pale or unsupported exact endpoints can still reject measurement. Numeric
+labels, calibration cross-checks and explicit review remain application work.
+
 `examples/blocking_test_worker.rs` is a test-only cancellation fixture. It is
 not included in application output. To exercise the process bridge:
 

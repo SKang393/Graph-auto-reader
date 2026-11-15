@@ -209,7 +209,7 @@ internal static partial class RealDevCalibrationCheck
         bool digestVerified = completed == TraceSampleCount && actualDigest == CachedAxisSourceDigest && cropCompleted == targets.Count;
         if (!digestVerified && blockedStage is null) { blockedStage = "source_digest"; blockedCategory = "DIGEST_MISMATCH"; }
         IReadOnlyList<object> published = PublishCachedAxisProperties(properties, digestVerified);
-        return new { schema = "graphreader.cached-axis-pixel-properties.v1", scope = "development_only_image_properties",
+        return new { schema = "graphreader.cached-axis-pixel-properties.v2", scope = "development_only_image_properties",
             status = digestVerified ? "completed" : "blocked", blocked_stage = blockedStage, blocked_category = blockedCategory,
             selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
             source_attempted = attempted, source_completed = completed, source_failed = failed, source_unattempted = TraceSampleCount - attempted,
@@ -231,20 +231,31 @@ internal static partial class RealDevCalibrationCheck
             image.Stride < image.Width || image.Pixels.Length < image.Stride * image.Height) throw new InvalidDataException();
         byte[] pixels = image.Pixels.ToArray();
         bool Dark(int x, int y) => pixels[y * image.Stride + x] < 128;
+        byte Gray8(int x, int y) => pixels[y * image.Stride + x];
         object Line(bool horizontal, int offset)
         {
             int fixedPosition = (horizontal ? bottom : left) + offset;
             int limit = horizontal ? image.Height : image.Width;
-            if (fixedPosition < 0 || fixedPosition >= limit) return new { offset, available = false, dark_count = (int?)null, total = (int?)null, longest_white_run = (int?)null };
+            if (fixedPosition < 0 || fixedPosition >= limit)
+                return new { offset, available = false, dark_count = (int?)null, total = (int?)null,
+                    longest_white_run = (int?)null, gray8_histogram_nonzero_bins = (object[]?)null };
             int dark = 0, run = 0, longest = 0, start = horizontal ? left : top, end = horizontal ? right : bottom;
+            var histogram = new int[256];
             for (int p = start; p <= end; p++)
             {
-                if (horizontal ? Dark(p, fixedPosition) : Dark(fixedPosition, p)) { dark++; run = 0; }
+                byte intensity = horizontal ? Gray8(p, fixedPosition) : Gray8(fixedPosition, p);
+                histogram[intensity]++;
+                if (intensity < 128) { dark++; run = 0; }
                 else { run++; longest = Math.Max(longest, run); }
             }
-            return new { offset, available = true, dark_count = (int?)dark, total = (int?)(end - start + 1), longest_white_run = (int?)longest };
+            object[] nonzeroBins = histogram.Select((count, intensity) => new { intensity, count })
+                .Where(bin => bin.count > 0).Cast<object>().ToArray();
+            return new { offset, available = true, dark_count = (int?)dark, total = (int?)(end - start + 1),
+                longest_white_run = (int?)longest, gray8_histogram_nonzero_bins = (object[]?)nonzeroBins };
         }
+        // Legacy v1 flags remain unchanged: *_dark means intensity < 128, while longest_white_run counts intensity >= 128.
         return new { origin_dark = Dark(left, bottom), x_end_dark = Dark(right, bottom), y_end_dark = Dark(left, top),
+            origin_gray8 = Gray8(left, bottom), x_end_gray8 = Gray8(right, bottom), y_end_gray8 = Gray8(left, top),
             horizontal = Enumerable.Range(-2, 5).Select(offset => Line(true, offset)).ToArray(),
             vertical = Enumerable.Range(-2, 5).Select(offset => Line(false, offset)).ToArray() };
     }
@@ -279,7 +290,31 @@ internal static partial class RealDevCalibrationCheck
             !result.GetProperty("y_end_dark").GetBoolean() || rows[2].GetProperty("dark_count").GetInt32() != 0 ||
             rows[1].GetProperty("dark_count").GetInt32() != 20 || rows[0].GetProperty("dark_count").GetInt32() != 20 ||
             rows[2].GetProperty("longest_white_run").GetInt32() != 20) throw new InvalidDataException();
-        return new { schema = "graphreader.cached-axis-pixel-properties-self-test.v1", tamper_refused_before_selector = true, image_only_xml_checked = true,
-            white_offset_and_thick_band_checked = true, crop_offset_once_checked = true, partial_properties_withheld = true, private_reads = 0 };
+
+        byte[] grayPixels = Enumerable.Repeat((byte)255, 32 * 32).ToArray();
+        grayPixels[20 * 32 + 5] = 128;
+        grayPixels[20 * 32 + 15] = 192;
+        grayPixels[5 * 32 + 5] = 192;
+        var grayImage = new OcrImage(32, 32, 32, grayPixels, OcrSourceImage.Original,
+            OcrFrameTransform.Identity);
+        JsonElement grayResult = JsonSerializer.SerializeToElement(
+            MeasureCachedAxisProperties(grayImage, 5, 20, 15, 5), Program.Json);
+        JsonElement baseline = grayResult.GetProperty("horizontal")[2];
+        JsonElement histogram = baseline.GetProperty("gray8_histogram_nonzero_bins");
+        var observedBins = histogram.EnumerateArray().ToDictionary(
+            bin => bin.GetProperty("intensity").GetInt32(), bin => bin.GetProperty("count").GetInt32());
+        if (grayResult.GetProperty("origin_gray8").GetByte() != 128 ||
+            grayResult.GetProperty("x_end_gray8").GetByte() != 192 ||
+            grayResult.GetProperty("y_end_gray8").GetByte() != 192 ||
+            grayResult.GetProperty("origin_dark").GetBoolean() ||
+            grayResult.GetProperty("x_end_dark").GetBoolean() ||
+            histogram.GetArrayLength() != 3 || baseline.GetProperty("total").GetInt32() != 11 ||
+            observedBins.GetValueOrDefault(128) != 1 || observedBins.GetValueOrDefault(192) != 1 ||
+            observedBins.GetValueOrDefault(255) != 9 || observedBins.Values.Sum() != 11)
+            throw new InvalidDataException();
+        return new { schema = "graphreader.cached-axis-pixel-properties-self-test.v2", tamper_refused_before_selector = true,
+            image_only_xml_checked = true, white_offset_and_thick_band_checked = true, crop_offset_once_checked = true,
+            partial_properties_withheld = true, gray8_endpoint_intensities_distinguished = true,
+            complete_histogram_bins_and_totals_checked = true, private_reads = 0 };
     }
 }

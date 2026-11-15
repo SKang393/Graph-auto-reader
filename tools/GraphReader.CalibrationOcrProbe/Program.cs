@@ -260,6 +260,12 @@ internal static class Program
                 Emit(await OwnedNativeAxisCheck.RunAsync(nativeAxisApp, nativeAxisRust, parentBudget, deadline.Token));
                 return 0;
             }
+            if (args is ["--owned-exact-box-contrast-check", var contrastApp, var contrastRust])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await OwnedExactBoxContrastCheck.RunAsync(contrastApp, contrastRust, parentBudget, deadline.Token));
+                return 0;
+            }
             if (args is ["--owned-gray-axis-check", var grayAxisApp, var grayAxisRust])
             {
                 using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
@@ -513,7 +519,7 @@ internal static class Program
                     }
                     if (realDevCachedAxisProperties)
                     {
-                        Emit(new { schema = "graphreader.cached-axis-pixel-properties.v1",
+                        Emit(new { schema = "graphreader.cached-axis-pixel-properties.v2",
                             status = "blocked_preflight_or_runtime", error = "CACHED_AXIS_PROPERTIES_FAILED",
                             sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
                             axis_calls = 0, ocr_calls = 0, truth_scoring = false, image_writes = false });

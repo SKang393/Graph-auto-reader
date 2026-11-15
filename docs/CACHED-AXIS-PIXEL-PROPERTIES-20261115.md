@@ -84,6 +84,11 @@ bytewise comparison. Native candidate fitting may also follow gray edges that
 Rust rejects; an owned cross-stage contrast control is the next check. No
 automatic calibration gain, accuracy or timing improvement is claimed.
 
+The distinct [raw-intensity follow-up](NATIVE-CONTRAST-TICKS-20261115.md)
+subsequently resolved the gray-versus-white ambiguity without repeating
+inference or selecting a new box. Its outcome supersedes this diagnosis's
+contrast uncertainty while preserving the original v1 result above.
+
 Axis calls, OCR calls, truth scoring, image writes and sealed payload reads were
 all **zero**. The 51 independent cases remained excluded. The frozen 120-case
 development assignment and fixed first-12 selection were unchanged. No model,
@@ -109,3 +114,11 @@ Keep originals, active runtime assets and independent evaluation inputs intact.
 Project source remains Apache-2.0. No new dependency, model, frozen public
 schema, package, version increment or production approval was added. Diagnostic
 completion is PASS; automatic geometry/calibration acceptance remains incomplete.
+
+Full Windows CI
+[43742745413](https://github.com/SKang393/Graph-auto-reader/actions/runs/43742745413)
+passed on `1b18cebad471db16e040a39cf5aab2ae75f89ad4`: 13 .NET suites with
+3,021 passed, 30 skipped and zero failed; 70 Rust tests; and applicable policy
+and packaging checks, including 68 packaging verification tests. Release jobs
+were skipped. This verifies the original v1 diagnostic source integration;
+the later contrast correction has its own outcome record.

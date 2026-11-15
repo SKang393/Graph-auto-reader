@@ -644,6 +644,15 @@ fn measure_box_ticks(width: usize, height: usize, channels: usize, pixels: &[u8]
     if !(32..=4096).contains(&width) || !(32..=4096).contains(&height) || !matches!(channels, 1 | 3)
         || width.checked_mul(height).filter(|&n| n <= MAX_PIXELS).and_then(|n| n.checked_mul(channels)) != Some(pixels.len())
         || left >= right || top >= bottom || right >= width || bottom >= height { return Err("INVALID_INPUT"); }
+    // Match the existing native line provider's strong-ink criterion only for
+    // this explicitly supplied box. Keep global proposal/review pixels intact.
+    const MAXIMUM_INK_GRAY: u32 = 200;
+    let mask: Vec<u8> = pixels.chunks_exact(channels).map(|pixel| {
+        let sum: u32 = pixel.iter().map(|&value| u32::from(value)).sum();
+        if sum < MAXIMUM_INK_GRAY * channels as u32 { 0 } else { 255 }
+    }).collect();
+    let pixels = mask.as_slice();
+    let channels = 1;
     BRIDGE_WORK.with(|work| work.set(0));
     BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
     let dark = |x: usize, y: usize| is_dark(pixels, (y * width + x) * channels, channels);
@@ -899,9 +908,48 @@ mod tests {
         assert_eq!(second, (vec![158, 198, 238], vec![148, 178, 208]));
         assert_eq!(measure_box_ticks(256, 256, 1, &image, 21, 100, 115, 10), Err("AXIS_BOX_NOT_OBSERVED"));
         let mut gray = grid_pixels(); for value in &mut gray { if *value == 0 { *value = 128; } }
-        assert_eq!(measure_box_ticks(128, 128, 1, &gray, 20, 100, 115, 10), Err("AXIS_BOX_NOT_OBSERVED"));
+        assert_eq!(measure_box_ticks(128, 128, 1, &gray, 20, 100, 115, 10).unwrap(), (vec![30, 70, 110], vec![20, 50, 80]));
         let mut disconnected = inward_tick_pixels(); disconnected[100 * 128 + 20] = 255;
         assert_eq!(measure_box_ticks(128, 128, 1, &disconnected, 20, 100, 115, 10), Err("AXIS_BOX_NOT_OBSERVED"));
+    }
+
+    #[test]
+    fn supplied_box_strong_gray_ink_preserves_observed_evidence_and_input() {
+        for ink in [0, 128, 192] {
+            let mut image = grid_pixels();
+            for value in &mut image { if *value == 0 { *value = ink; } }
+            for y in 58..=62 { for x in 58..=62 { image[y * 128 + x] = 0; } }
+            let before = image.clone();
+            let expected = (vec![30, 70, 110], vec![20, 50, 80]);
+            assert_eq!(measure_box_ticks(128, 128, 1, &image, 20, 100, 115, 10).unwrap(), expected);
+            let rgb: Vec<_> = image.iter().flat_map(|&p| [p; 3]).collect();
+            assert_eq!(measure_box_ticks(128, 128, 3, &rgb, 20, 100, 115, 10).unwrap(), expected);
+            assert_eq!(image, before);
+        }
+        let mut two = review_two_panels();
+        for value in &mut two { if *value == 0 { *value = 192; } }
+        assert_eq!(measure_box_ticks(256, 256, 1, &two, 20, 100, 115, 10).unwrap(), (vec![30, 70, 110], vec![20, 50, 80]));
+        assert_eq!(measure_box_ticks(256, 256, 1, &two, 148, 228, 243, 138).unwrap(), (vec![158, 198, 238], vec![148, 178, 208]));
+        assert_eq!(review_proposals(256, 256, 1, &two), Err("NO_AXIS"));
+    }
+
+    #[test]
+    fn supplied_box_gray_background_and_nontick_shapes_do_not_invent_ticks() {
+        for ink in [128, 192, 255] {
+            let image = vec![ink; 128 * 128];
+            let result = measure_box_ticks(128, 128, 1, &image, 20, 100, 115, 10);
+            assert!(matches!(result, Err("AXIS_BOX_NOT_OBSERVED") | Ok((_, _))));
+            if let Ok((x, y)) = result { assert!(x.is_empty() && y.is_empty()); }
+        }
+        let mut image = vec![255; 128 * 128];
+        for x in 20..=115 { image[100 * 128 + x] = 192; }
+        for y in 10..=100 { image[y * 128 + 20] = 192; }
+        // A no-tick axis plus a disconnected glyph-like outline is not tick evidence.
+        for x in 50..=60 { image[40 * 128 + x] = 128; image[55 * 128 + x] = 128; }
+        for y in 40..=55 { image[y * 128 + 50] = 128; image[y * 128 + 60] = 128; }
+        assert_eq!(measure_box_ticks(128, 128, 1, &image, 20, 100, 115, 10).unwrap(), (vec![], vec![]));
+        image[100 * 128 + 20] = 255;
+        assert_eq!(measure_box_ticks(128, 128, 1, &image, 20, 100, 115, 10), Err("AXIS_BOX_NOT_OBSERVED"));
     }
 
     #[test]

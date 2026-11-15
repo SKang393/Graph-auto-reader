@@ -383,3 +383,9 @@ The source runtime profile is pinned to independently verified hashes before sel
 ## Cached axis pixel properties
 
 `--real-dev-cached-axis-properties <absolute-cached-report> <corpus-root> <absolute-App-exe> <asset-root> <absolute-Rust-worker> --explicit-opt-in` checks the fixed cached report identity and pinned runtime before accessing the selector. It reopens only the same first 12 locked development sources to verify the combined source digest, using image-only streaming XML extraction and the existing PNG validator; it does not construct or inspect calibration or point values. Only the cached native exact-box failures are cropped in memory and measured. Output contains bounded Gray8 endpoint and fixed-offset baseline properties, no coordinates, text, values, case identities or image writes. There are no axis, OCR, truth-scoring or sealed calls. Use `--real-dev-cached-axis-properties-self-test` for owned tamper, image-only extraction, crop and offset controls. The property mode requires maintainer authorization before execution.
+
+The v2 property output adds exact endpoint intensities and lossless sparse
+Gray8 histograms for the same fixed offsets. A v1 `*_dark=false` means intensity
+at least 128, not necessarily white. The source reader and selection are unchanged.
+
+`--owned-exact-box-contrast-check <absolute-App-exe> <absolute-Rust-exe>` runs the existing owned black, gray and faint controls plus blank, disconnected and fixed antialias-phase controls through actual native geometry and, when geometry is returned, the exact-box Rust tick service. It reports Gray8 endpoint and baseline properties and all stage outcomes; fixture bounds are annotations rather than detector inputs, and it does not run OCR.
