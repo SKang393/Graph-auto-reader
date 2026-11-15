@@ -115,7 +115,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         IPdfImportService? pdfImportService = null,
         IAxisProposalService? axisProposalService = null,
         ICalibrationOcrSuggestionService? calibrationOcrSuggestionService = null,
-        IMarkerExemplarSuggestionService? markerExemplarSuggestionService = null)
+        IMarkerExemplarSuggestionService? markerExemplarSuggestionService = null,
+        IAxisTickMeasurementService? axisTickMeasurementService = null)
     {
         if (runtimeEnvironment == WorkflowRuntimeEnvironment.RecordedFake)
         {
@@ -128,6 +129,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         _imageImportService = imageImportService ?? new ImageImportService();
         _pdfImportService = pdfImportService;
         _axisProposalService = axisProposalService;
+        _axisTickMeasurementService = axisTickMeasurementService;
         _calibrationOcrSuggestionService = calibrationOcrSuggestionService;
         _markerExemplarSuggestionService = markerExemplarSuggestionService;
         _projectFileStore = projectFileStore ?? new ProjectFileStore();

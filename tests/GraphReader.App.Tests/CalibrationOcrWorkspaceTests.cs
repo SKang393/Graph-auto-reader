@@ -11,7 +11,7 @@ using GraphReader.Axis;
 namespace GraphReader.App.Tests;
 
 [TestClass]
-public sealed class CalibrationOcrWorkspaceTests
+public sealed partial class CalibrationOcrWorkspaceTests
 {
     private static readonly int[] ExpectedXTicks = [20, 60, 100];
     private static readonly int[] ExpectedYTicks = [10, 50, 100];

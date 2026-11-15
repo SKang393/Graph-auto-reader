@@ -534,6 +534,13 @@ internal static partial class RealDevCalibrationCheck
                 EndpointRuntimeLibraries, token, requirePrintedXReviewDraft: true);
         }
 
+        internal static Candidate VerifyExactBoxTick(string app, string assets, string rust, CancellationToken token)
+        {
+            RequireNativeRejectionPins(ExactBoxTickAppExeHash, ExactBoxTickAppDllHash, ExactBoxTickRustHash, ExactBoxTickRuntimeLibraries);
+            return VerifyPinned(app, assets, rust, ExactBoxTickAppExeHash, ExactBoxTickAppDllHash, ExactBoxTickRustHash,
+                ExactBoxTickRuntimeLibraries, token, requirePrintedXReviewDraft: true);
+        }
+
         internal static Candidate VerifyRankedReview(string app, string assets, string rust, CancellationToken token)
         {
             RequireRankedReviewPins();

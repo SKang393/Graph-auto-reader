@@ -124,8 +124,8 @@ public sealed partial class MainWindowViewModel
                 return;
             }
             CalibrationTickProposalResult proposal = enteredFirstSession is int first
-                ? CalibrationTickProposal.CreateReviewDraftForFirstSession(suggestion.Geometry, original.Response, included, first)
-                : CalibrationTickProposal.CreateReviewDraft(suggestion.Geometry, original.Response, included);
+                ? CalibrationTickProposal.CreateReviewDraftForFirstSession(original.FitGeometry, original.Response, included, first)
+                : CalibrationTickProposal.CreateReviewDraft(original.FitGeometry, original.Response, included);
             if (generation != _calibrationLabelGeneration || !ReferenceEquals(_calibrationLabelSuggestion, original) ||
                 !ReferenceEquals(_axisSuggestion, suggestion) || !labels.IsCalibrationLabelSuggestionCurrent(original) ||
                 !CanRefitCalibrationLabelsCore())

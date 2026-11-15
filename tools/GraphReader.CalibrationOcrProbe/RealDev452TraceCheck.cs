@@ -143,9 +143,15 @@ internal static partial class RealDevCalibrationCheck
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token,
             endpointTrace: true, rankedReviewTrace: true);
 
+    internal static Task<object> RunExactBoxTickTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token,
+            endpointTrace: true, rankedReviewTrace: true, exactBoxTickTrace: true);
+
     private static async Task<object> RunTraceAsync(string corpusRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false, bool nativeWorkTrace = false, bool reviewRoutingTrace = false, bool nativeEligibilityTrace = false, bool nativeReviewObservationTrace = false, bool roundedReviewObservationTrace = false, bool endpointTrace = false, bool rankedReviewTrace = false)
+        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false, bool nativeWorkTrace = false, bool reviewRoutingTrace = false, bool nativeEligibilityTrace = false, bool nativeReviewObservationTrace = false, bool roundedReviewObservationTrace = false, bool endpointTrace = false, bool rankedReviewTrace = false, bool exactBoxTickTrace = false)
     {
+        if (exactBoxTickTrace && !rankedReviewTrace) throw new InvalidDataException();
         if (rankedReviewTrace)
             ValidateRankedReviewTraceFlags(sourcePostGrouping, geometryOnly, endpointTrace,
                 pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace ||
@@ -165,7 +171,8 @@ internal static partial class RealDevCalibrationCheck
             forwardExtentGeometryTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || endpointTrace || sortedSpatialGeometryTrace)) throw new InvalidDataException();
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(app) ||
             !Path.IsPathFullyQualified(assets) || !Path.IsPathFullyQualified(rust)) throw new InvalidDataException();
-        using Candidate candidateLease = rankedReviewTrace ? Candidate.VerifyRankedReview(app, assets, rust, token) :
+        using Candidate candidateLease = exactBoxTickTrace ? Candidate.VerifyExactBoxTick(app, assets, rust, token) :
+            rankedReviewTrace ? Candidate.VerifyRankedReview(app, assets, rust, token) :
             endpointTrace ? Candidate.VerifyEndpoint(app, assets, rust, token) :
             roundedReviewObservationTrace ? Candidate.VerifyRoundedReviewObservation(app, assets, rust, token) :
             nativeReviewObservationTrace ? Candidate.VerifyNativeReviewObservation(app, assets, rust, token) :
@@ -187,6 +194,7 @@ internal static partial class RealDevCalibrationCheck
             OpenCvSharp.Cv2.SetNumThreads(1);
             if (OpenCvSharp.Cv2.GetNumThreads() != 1) throw new InvalidDataException();
         }
+        ExactBoxTickTrace? exactBoxTick = exactBoxTickTrace ? new(rust, ResolveExactBoxBinder()) : null;
         _ = AxisDecisionDiagnosticClient.SelfTest();
         var panelizer = ResolvePanelizer(typeof(CalibrationTickProposal).Assembly);
         FrozenDevTrainingSelector selector = FrozenDevTrainingSelector.Load(corpusRoot, token);
@@ -226,7 +234,7 @@ internal static partial class RealDevCalibrationCheck
                         TracePanelOutcome outcome = await TracePanelAsync(payload.Image, payload.Width, payload.Height,
                             new PdfRectD(0, 0, payload.Width, payload.Height), payload.Width, payload.Height, payload.ProjectHash,
                             candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token,
-                            includePrintedXReviewDraft: printedXTrace || spatialTrace || endpointTrace, nativeWork: nativeWork, reviewRouting: reviewRouting, directionalAssociationTrace: endpointTrace).ConfigureAwait(false);
+                            includePrintedXReviewDraft: printedXTrace || spatialTrace || endpointTrace, nativeWork: nativeWork, reviewRouting: reviewRouting, directionalAssociationTrace: endpointTrace, exactBoxTick: exactBoxTick).ConfigureAwait(false);
                         CountTracePanelStatus(terminalStatusCounts, outcome);
                         if (outcome.PrintedXReviewDraftAvailable) printedXReviewDraftPanels++;
                         panelResults.Add(outcome.Payload);
@@ -252,7 +260,7 @@ internal static partial class RealDevCalibrationCheck
                             var (bytes, width, height, crop) = ReadPreparedPanel(panel, payload.Width, payload.Height);
                             TracePanelOutcome outcome = await TracePanelAsync(bytes, width, height, crop, payload.Width, payload.Height,
                                 payload.ProjectHash, candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token,
-                                includePrintedXReviewDraft: printedXTrace || spatialTrace || endpointTrace, nativeWork: nativeWork, reviewRouting: reviewRouting, directionalAssociationTrace: endpointTrace).ConfigureAwait(false);
+                                includePrintedXReviewDraft: printedXTrace || spatialTrace || endpointTrace, nativeWork: nativeWork, reviewRouting: reviewRouting, directionalAssociationTrace: endpointTrace, exactBoxTick: exactBoxTick).ConfigureAwait(false);
                             CountTracePanelStatus(terminalStatusCounts, outcome);
                             if (outcome.PrintedXReviewDraftAvailable) printedXReviewDraftPanels++;
                             panelResults.Add(outcome.Payload);
@@ -305,14 +313,14 @@ internal static partial class RealDevCalibrationCheck
                     runtime_files = intersection ? IntersectionRuntimeLibraries : pairPruning ? PairPruningRuntimeLibraries : NativeRejectionRuntimeLibraries },
                 sealed_payload_reads = 0, ocr_calls = 0, truth_scoring = false, image_writes = false, review_only = true,
                 project_deadline_seconds = 45, overall_deadline_seconds = 900, projects };
-        object result = new { schema = rankedReviewTrace ? RankedReviewTraceSchema : endpointTrace ? EndpointTraceSchema : spatialTrace ? SpatialTraceSchema : printedXTrace ? PrintedXTraceSchema : directional ? DirectionalTraceSchema : sourcePostGrouping ? PostGroupingTraceSchema : "graphreader.real-dev-452-association-trace.v1", scope = "development_only_sensitive_metadata",
+        object result = new { schema = exactBoxTickTrace ? ExactBoxTickTraceSchema : rankedReviewTrace ? RankedReviewTraceSchema : endpointTrace ? EndpointTraceSchema : spatialTrace ? SpatialTraceSchema : printedXTrace ? PrintedXTraceSchema : directional ? DirectionalTraceSchema : sourcePostGrouping ? PostGroupingTraceSchema : "graphreader.real-dev-452-association-trace.v1", scope = "development_only_sensitive_metadata",
             selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
             attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
             attempted_panels = panelAttempted, finished_panels = panelFinished, unfinished_execution_panels = panelAttempted - panelFinished,
             terminal_status_counts = terminalStatusCounts,
             unattempted_panels = returned + fallback - panelAttempted, metadata.AssignmentSha256, metadata.SelectedInventorySha256,
             source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
-            candidate = rankedReviewTrace ? RankedReviewTraceIdentity() : endpointTrace ? EndpointTraceIdentity() : spatialTrace ? SpatialTraceIdentity() : printedXTrace ? PrintedXTraceIdentity() : directional ? DirectionalTraceIdentity() : sourcePostGrouping ? PostGroupingTraceIdentity() : (object)App452ExeHash,
+            candidate = exactBoxTickTrace ? ExactBoxTickTraceIdentity() : rankedReviewTrace ? RankedReviewTraceIdentity() : endpointTrace ? EndpointTraceIdentity() : spatialTrace ? SpatialTraceIdentity() : printedXTrace ? PrintedXTraceIdentity() : directional ? DirectionalTraceIdentity() : sourcePostGrouping ? PostGroupingTraceIdentity() : (object)App452ExeHash,
             sealed_payload_reads = 0, truth_scoring = false, image_writes = false, review_only = true,
             project_deadline_seconds = 45, overall_deadline_seconds = 900, projects };
         return printedXTrace || spatialTrace || endpointTrace ? AddPrintedXAggregate(result, printedXReviewDraftPanels) : result;
@@ -320,7 +328,7 @@ internal static partial class RealDevCalibrationCheck
 
     private static async Task<TracePanelOutcome> TracePanelAsync(byte[] image, int width, int height, PdfRectD crop, int sourceWidth, int sourceHeight,
         string projectHash, IReadOnlyDictionary<string, string> candidateFiles, IAxisProposalService axis, TraceRustAxis primary, TraceAxis secondary,
-        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool includePrintedXReviewDraft = false, NativeWorkTraceAxis? nativeWork = null, ReviewRoutingTraceServices? reviewRouting = null, bool directionalAssociationTrace = false)
+        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool includePrintedXReviewDraft = false, NativeWorkTraceAxis? nativeWork = null, ReviewRoutingTraceServices? reviewRouting = null, bool directionalAssociationTrace = false, ExactBoxTickTrace? exactBoxTick = null)
     {
         if (width is < 32 or > 4096 || height is < 32 or > 4096 || (long)width * height > 16_777_216)
             return PrintedXOutcome("UNSUPPORTED_DIMENSIONS", new { status = "UNSUPPORTED_DIMENSIONS", width, height, crop }, includePrintedXReviewDraft);
@@ -347,17 +355,20 @@ internal static partial class RealDevCalibrationCheck
                 native_in_process_milliseconds = fallbackCalled ? (double?)nativeWork.LastMilliseconds : null,
                 native_work_counts_are_prefix_on_incomplete_enumeration = true };
         if (result.Geometry is not { } geometry)
-            return PrintedXOutcome("NO_GEOMETRY", new { status = "NO_GEOMETRY", width, height, crop, stages, axis_milliseconds = axisMs }, includePrintedXReviewDraft);
+            return ExactBoxOutcome("NO_GEOMETRY", new { status = "NO_GEOMETRY", width, height, crop, stages, axis_milliseconds = axisMs }, includePrintedXReviewDraft, exactBoxTick is null ? null : new { attempted = false });
         if (geometryOnly)
             return new("GEOMETRY_RETURNED", new { status = "GEOMETRY_RETURNED", width, height, crop, stages,
                 axis_milliseconds = axisMs, geometry });
+        object? tickStage = exactBoxTick is null ? null : new { attempted = false };
+        if (exactBoxTick is not null && result.Provider == "opencv-review")
+            (geometry, tickStage) = await exactBoxTick.MeasureAsync(image, width, height, geometry, token).ConfigureAwait(false);
         string panelHash = Convert.ToHexStringLower(SHA256.HashData(image));
         CalibrationOcrRequest request = TraceRequest(projectHash, panelHash, width, height, geometry, sourcePostGrouping);
         timer.Restart();
         CalibrationOcrResponse response = await (ocr ?? throw new InvalidDataException()).SuggestAsync(request, image, token).ConfigureAwait(false);
         double ocrMs = timer.Elapsed.TotalMilliseconds;
         if (response.FailureCode is not null)
-            return PrintedXOutcome("OCR_FAILED", new { status = "OCR_FAILED", width, height, crop, stages, axis_milliseconds = axisMs, ocr_milliseconds = ocrMs, ocr_error = response.FailureCode }, includePrintedXReviewDraft);
+            return ExactBoxOutcome("OCR_FAILED", new { status = "OCR_FAILED", width, height, crop, stages, axis_milliseconds = axisMs, ocr_milliseconds = ocrMs, ocr_error = response.FailureCode }, includePrintedXReviewDraft, tickStage);
         CalibrationOcrRuntime runtime = response.Runtime ?? throw new InvalidDataException();
         if (runtime.Provider != "Cpu" || runtime.RequestedProvider != "Cpu" || runtime.ModelSha256 != Program.ModelHash ||
             runtime.ManifestSha256 != Program.ManifestHash || runtime.Files.Any(f => !candidateFiles.TryGetValue(f.Name, out string? expected) || f.Sha256 != expected))
@@ -375,7 +386,17 @@ internal static partial class RealDevCalibrationCheck
             rows, proposal.Reasons, proposal.IsComplete, proposal.UsesEstimatedPositions,
             x_review_draft_available = proposal.XReviewDraft is not null, y_review_draft_available = proposal.YReviewDraft is not null,
             paired_count = proposal.PairedTicks.Count };
-        return PrintedXOutcome("OCR_RETURNED", panelPayload, includePrintedXReviewDraft, proposal.PrintedXReviewDraft is not null);
+        return ExactBoxOutcome("OCR_RETURNED", panelPayload, includePrintedXReviewDraft, tickStage, proposal.PrintedXReviewDraft is not null);
+    }
+
+    private static TracePanelOutcome ExactBoxOutcome(string status, object payload, bool includePrintedX, object? tickStage, bool available = false)
+    {
+        if (tickStage is null) return PrintedXOutcome(status, payload, includePrintedX, available);
+        JsonElement serialized = JsonSerializer.SerializeToElement(payload, Program.Json);
+        var fields = serialized.EnumerateObject().ToDictionary(property => property.Name,
+            property => (object?)property.Value.Clone(), StringComparer.Ordinal);
+        fields["exact_box_tick_measurement"] = tickStage;
+        return PrintedXOutcome(status, fields, includePrintedX, available);
     }
 
     private const string PrintedXTraceSchema = "graphreader.real-dev-printed-x-review-trace.v1";

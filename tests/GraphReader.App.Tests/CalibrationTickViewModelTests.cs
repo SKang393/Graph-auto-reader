@@ -17,6 +17,45 @@ namespace GraphReader.App.Tests;
 public sealed partial class CalibrationTickViewModelTests
 {
     [TestMethod]
+    public void NativePixelTickEvidenceRefitsWithoutEstimatedPositionsAndStillRequiresReview()
+    {
+        WithImage(path =>
+        {
+            var native = new ResultAxisStub(new(EstimatedGeometry(estimateY: true), null)
+                { Provider = "opencv-review", ReviewReasons = ["native_multiple_ranked_candidates"] });
+            var scan = new MeasuredTickStub();
+            var reader = new OcrStub(ValidProposals());
+            using var workspace = new ManualPreviewWorkspaceService(axisProposalService: native,
+                calibrationOcrSuggestionService: reader, axisTickMeasurementService: scan);
+            Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            Assert.AreEqual(1, scan.Calls);
+            Assert.AreEqual(1, reader.CallCount);
+            Assert.IsTrue(vm.HasCalibrationTickProposal);
+            Assert.AreEqual("1", vm.SuggestedFirstSession);
+            Assert.AreEqual("24", vm.SuggestedFinalSession);
+            Assert.AreEqual("10", vm.SuggestedYMaximum);
+            Assert.IsFalse(vm.HasEstimatedCalibrationPositions);
+            Assert.IsTrue(vm.HasAxisGeometryReviewWarning);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            string warning = vm.AxisGeometryReviewWarningText;
+            vm.RefitSelectedCalibrationLabels();
+            Assert.AreEqual(1, scan.Calls);
+            Assert.AreEqual(1, reader.CallCount);
+            Assert.IsFalse(vm.HasEstimatedCalibrationPositions);
+            Assert.AreEqual(warning, vm.AxisGeometryReviewWarningText);
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.IsNotNull(vm.SelectedTab!.Calibration);
+            vm.UndoCommand.Execute(null);
+            Assert.IsNull(vm.SelectedTab.Calibration);
+        });
+    }
+
+    [TestMethod]
     public void AmbiguousNativeTopProposalRemainsReviewOnlyThroughOcrAndUndo()
     {
         WithImage(path =>
@@ -1140,6 +1179,18 @@ public sealed partial class CalibrationTickViewModelTests
     private sealed class ResultAxisStub(RustAxisProposalResult result) : IAxisProposalService
     {
         public Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken) => Task.FromResult(result);
+    }
+
+    private sealed class MeasuredTickStub : IAxisTickMeasurementService
+    {
+        public int Calls { get; private set; }
+        public Task<AxisTickMeasurementResult> MeasureAsync(byte[] originalImage, RustAxisGeometry box, CancellationToken cancellationToken)
+        {
+            Calls++;
+            return Task.FromResult(new AxisTickMeasurementResult(
+                Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(originalImage)), 160, 120,
+                new(box.Left, box.Bottom, box.Right, box.Top, [20, 80, 140], [20, 60, 100]), null));
+        }
     }
 
     private sealed class AxisStub(RustAxisGeometry geometry) : IAxisProposalService, IAxisCandidateReviewService

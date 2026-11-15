@@ -310,6 +310,7 @@ public static class ApplicationComposition
                         new RustAxisProposalService(Path.Combine(applicationRoot, "native", "graphreader-engine.exe")),
                         new OpenCvAxisProposalService(Path.GetFullPath(Path.Combine(applicationRoot, "GraphReader.App.exe")))),
                     calibrationOcrSuggestionService: calibrationService,
+                    axisTickMeasurementService: new RustAxisTickMeasurementService(Path.Combine(applicationRoot, "native", "graphreader-engine.exe")),
                     markerExemplarSuggestionService: File.Exists(Path.Combine(applicationRoot, "GraphReader.App.exe"))
                         ? new MarkerExemplarWorkerClient(Path.GetFullPath(Path.Combine(applicationRoot, "GraphReader.App.exe"))) : null),
                 null,

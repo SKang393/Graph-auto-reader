@@ -73,6 +73,7 @@ fn x_tick_positions(
     inward: bool,
     limit: usize,
     ignored: &[(usize, usize)],
+    scan_bounds: Option<(usize, usize)>,
 ) -> TickScan {
     let mut edge = bottom;
     if inward {
@@ -85,7 +86,7 @@ fn x_tick_positions(
     }
     let dark = |x: usize, dy: usize| {
         let y = if inward { edge.checked_sub(dy) } else { edge.checked_add(dy) };
-        y.filter(|&y| y < height)
+        y.filter(|&y| y < height && scan_bounds.is_none_or(|(lo, hi)| (lo..=hi).contains(&y)))
             .is_some_and(|y| is_dark(pixels, (y * width + x) * channels, channels))
     };
     let mut positions = Vec::new();
@@ -154,7 +155,7 @@ fn validate_positions(positions: Vec<usize>, legacy: bool) -> TickScan {
 fn y_tick_positions(
     pixels: &[u8], width: usize, channels: usize,
     left: usize, top: usize, bottom: usize, x_axis_top: usize, cols: &[usize], inward: bool, limit: usize,
-    ignored: &[(usize, usize)],
+    ignored: &[(usize, usize)], scan_bounds: Option<(usize, usize)>,
 ) -> TickScan {
     let mut edge = left;
     if inward {
@@ -165,7 +166,7 @@ fn y_tick_positions(
     if (!inward && edge < 2) || (inward && edge + 2 >= width) { return TickScan::Absent; }
     let dark = |y: usize, dx: usize| {
         let x = if inward { edge.checked_add(dx) } else { edge.checked_sub(dx) };
-        x.filter(|&x| x < width)
+        x.filter(|&x| x < width && scan_bounds.is_none_or(|(lo, hi)| (lo..=hi).contains(&x)))
             .is_some_and(|x| is_dark(pixels, (y * width + x) * channels, channels))
     };
     let mut positions = Vec::new();
@@ -407,6 +408,12 @@ fn resolve_grid(width: usize, height: usize, channels: usize, pixels: &[u8],
 fn observed_axis_span(pixels: &[u8], width: usize, height: usize, channels: usize,
     fixed: usize, start: usize, end: usize, horizontal: bool) -> Option<Vec<(usize, usize)>>
 {
+    observed_axis_span_clipped(pixels, width, height, channels, fixed, start, end, horizontal, None)
+}
+
+fn observed_axis_span_clipped(pixels: &[u8], width: usize, height: usize, channels: usize,
+    fixed: usize, start: usize, end: usize, horizontal: bool, clip: Option<(usize, usize, usize, usize)>) -> Option<Vec<(usize, usize)>>
+{
     let dark = |along: usize, across: usize| {
         let (x, y) = if horizontal { (along, across) } else { (across, along) };
         is_dark(pixels, (y * width + x) * channels, channels)
@@ -424,8 +431,13 @@ fn observed_axis_span(pixels: &[u8], width: usize, height: usize, channels: usiz
         let radius = max_span.min(24usize.max((to - from + 1) / 2 + 2));
         let along_max = if horizontal { width - 1 } else { height - 1 };
         let across_max = if horizontal { height - 1 } else { width - 1 };
-        let lo = from.saturating_sub(radius); let hi = to.saturating_add(radius).min(along_max);
-        let near = fixed.saturating_sub(radius); let far = fixed.saturating_add(radius).min(across_max);
+        let (along_lo, across_lo, along_hi, across_hi) = match (horizontal, clip) {
+            (true, Some((left, top, right, bottom))) => (left, top, right, bottom),
+            (false, Some((left, top, right, bottom))) => (top, left, bottom, right),
+            _ => (0, 0, along_max, across_max),
+        };
+        let lo = from.saturating_sub(radius).max(along_lo); let hi = to.saturating_add(radius).min(along_hi);
+        let near = fixed.saturating_sub(radius).max(across_lo); let far = fixed.saturating_add(radius).min(across_hi);
         let across_len = far - near + 1;
         let count = (hi - lo + 1) * across_len;
         let mut visited = vec![false; count];
@@ -504,12 +516,12 @@ fn measure_axes(width: usize, height: usize, channels: usize, pixels: &[u8], row
     }
     // Prefer outward ticks. Inward strokes are considered only if that side
     // has no evidence, never to rescue rejected or conflicting outward marks.
-    let x_ticks = match x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, false, x_limit, &x_bridges) {
-        TickScan::Absent if !outward_only => x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, true, x_limit, &x_bridges).positions(),
+    let x_ticks = match x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, false, x_limit, &x_bridges, None) {
+        TickScan::Absent if !outward_only => x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, false, true, x_limit, &x_bridges, None).positions(),
         scan => scan.positions(),
     };
-    let y_ticks = match y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, false, y_limit, &y_bridges) {
-        TickScan::Absent if !outward_only => y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, true, y_limit, &y_bridges).positions(),
+    let y_ticks = match y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, false, y_limit, &y_bridges, None) {
+        TickScan::Absent if !outward_only => y_tick_positions(pixels, width, channels, left, top, bottom, x_axis_top, &cols, true, y_limit, &y_bridges, None).positions(),
         scan => scan.positions(),
     };
     if require_ticks && (x_ticks.len() < 3 || y_ticks.len() < 3) {
@@ -520,7 +532,7 @@ fn measure_axes(width: usize, height: usize, channels: usize, pixels: &[u8], row
         return Err("NO_AXIS");
     }
     let legacy_ticks = if !require_ticks && x_ticks.is_empty() {
-        x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, true, false, x_limit, &[]).positions()
+        x_tick_positions(pixels, width, height, channels, left, y_axis_right, right, bottom, &rows, true, false, x_limit, &[], None).positions()
     } else { Vec::new() };
     let endpoints = if x_ticks.is_empty() { &legacy_ticks } else { &x_ticks };
     let ticks = endpoints.first().zip(endpoints.last()).map(|(&a, &b)| (a, b));
@@ -621,6 +633,69 @@ fn review_response(proposals: &[Proposal]) -> Result<String, &'static str> {
         if response.len() > MAX_REVIEW_RESPONSE_BYTES { return Err("AMBIGUOUS_AXIS"); }
     }
     Ok(response)
+}
+
+// A caller-supplied box is never shifted or expanded to another candidate.
+// Only pixels within its spans establish axes and band thickness; the small
+// region outside the box is sampled solely for outward tick strokes.
+fn measure_box_ticks(width: usize, height: usize, channels: usize, pixels: &[u8],
+    left: usize, bottom: usize, right: usize, top: usize) -> Result<(Vec<u32>, Vec<u32>), &'static str>
+{
+    if !(32..=4096).contains(&width) || !(32..=4096).contains(&height) || !matches!(channels, 1 | 3)
+        || width.checked_mul(height).filter(|&n| n <= MAX_PIXELS).and_then(|n| n.checked_mul(channels)) != Some(pixels.len())
+        || left >= right || top >= bottom || right >= width || bottom >= height { return Err("INVALID_INPUT"); }
+    BRIDGE_WORK.with(|work| work.set(0));
+    BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+    let dark = |x: usize, y: usize| is_dark(pixels, (y * width + x) * channels, channels);
+    if !dark(left, bottom) { return Err("AXIS_BOX_NOT_OBSERVED"); }
+    let clip = Some((left, top, right, bottom));
+    let x_bridges = observed_axis_span_clipped(pixels, width, height, channels, bottom, left, right, true, clip)
+        .ok_or("AXIS_BOX_NOT_OBSERVED")?;
+    let y_bridges = observed_axis_span_clipped(pixels, width, height, channels, left, top, bottom, false, clip)
+        .ok_or("AXIS_BOX_NOT_OBSERVED")?;
+    if BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) { return Err("AXIS_BOX_NOT_OBSERVED"); }
+
+    let mut rows = vec![0usize; height];
+    let mut cols = vec![0usize; width];
+    let row_length = right - left + 1; let col_length = bottom - top + 1;
+    rows[bottom] = row_length; cols[left] = col_length;
+    let mut axis_top = bottom; let mut axis_bottom = bottom;
+    while axis_top > top && (left..=right).all(|x| dark(x, axis_top - 1)) { axis_top -= 1; rows[axis_top] = row_length; }
+    while axis_bottom + 1 < height && (left..=right).all(|x| dark(x, axis_bottom + 1)) { axis_bottom += 1; rows[axis_bottom] = row_length; }
+    let mut axis_left = left; let mut axis_right = left;
+    while axis_left > 0 && (top..=bottom).all(|y| dark(axis_left - 1, y)) { axis_left -= 1; cols[axis_left] = col_length; }
+    while axis_right < right && (top..=bottom).all(|y| dark(axis_right + 1, y)) { axis_right += 1; cols[axis_right] = col_length; }
+    let x_limit = ((bottom - top + 1) / 20).clamp(3, 32);
+    let y_limit = ((right - left + 1) / 20).clamp(3, 32);
+    let x_bounds = Some((top, axis_bottom.saturating_add(x_limit + 1).min(height - 1)));
+    let y_bounds = Some((axis_left.saturating_sub(y_limit + 1), right));
+    let x = match x_tick_positions(pixels, width, height, channels, left, axis_right, right, bottom, &rows, false, false, x_limit, &x_bridges, x_bounds) {
+        TickScan::Absent => x_tick_positions(pixels, width, height, channels, left, axis_right, right, bottom, &rows, false, true, x_limit, &x_bridges, x_bounds).positions(),
+        scan => scan.positions(),
+    };
+    let y = match y_tick_positions(pixels, width, channels, left, top, bottom, axis_top, &cols, false, y_limit, &y_bridges, y_bounds) {
+        TickScan::Absent => y_tick_positions(pixels, width, channels, left, top, bottom, axis_top, &cols, true, y_limit, &y_bridges, y_bounds).positions(),
+        scan => scan.positions(),
+    };
+    Ok((x, y))
+}
+
+fn process_measure_ticks(mut input: impl Read) -> Result<String, &'static str> {
+    let mut header = [0u8; 36];
+    input.read_exact(&mut header).map_err(|_| "INVALID_PROTOCOL")?;
+    if &header[..4] != b"GRT1" { return Err("INVALID_PROTOCOL"); }
+    let get = |i| u32::from_le_bytes(header[i..i + 4].try_into().unwrap()) as usize;
+    let (w, h, c, len, left, bottom, right, top) = (get(4), get(8), get(12), get(16), get(20), get(24), get(28), get(32));
+    if !(32..=4096).contains(&w) || !(32..=4096).contains(&h) || !matches!(c, 1 | 3)
+        || w.checked_mul(h).filter(|&n| n <= MAX_PIXELS).and_then(|n| n.checked_mul(c)) != Some(len)
+        || left >= right || top >= bottom || right >= w || bottom >= h { return Err("INVALID_INPUT"); }
+    let mut pixels = vec![0; len];
+    input.read_exact(&mut pixels).map_err(|_| "INVALID_PROTOCOL")?;
+    let mut trailing = [0];
+    if input.read(&mut trailing).map_err(|_| "INVALID_PROTOCOL")? != 0 { return Err("INVALID_PROTOCOL"); }
+    let (x, y) = measure_box_ticks(w, h, c, &pixels, left, bottom, right, top)?;
+    let list = |values: &[u32]| if values.is_empty() { "-".to_string() } else { values.iter().map(u32::to_string).collect::<Vec<_>>().join(",") };
+    Ok(format!("TICKS1 {left} {bottom} {right} {top} {} {}\n", list(&x), list(&y)))
 }
 
 fn read_frame(mut input: impl Read) -> Result<(usize, usize, usize, Vec<u8>), &'static str> {
@@ -728,6 +803,18 @@ fn set_budget() -> Result<usize, &'static str> {
 }
 
 fn main() {
+    let args: Vec<_> = std::env::args_os().skip(1).collect();
+    let measure = match measure_mode_requested(&args) {
+        Ok(value) => value,
+        Err(reason) => { println!("ERR {reason}"); std::process::exit(1); }
+    };
+    if measure {
+        match set_budget().and_then(|_| process_measure_ticks(io::stdin().lock())) {
+            Ok(response) => print!("{response}"),
+            Err(reason) => { println!("ERR {reason}"); std::process::exit(1); }
+        }
+        return;
+    }
     let diagnostics = std::env::args_os().skip(1).any(|arg| arg == "--diagnostics");
     if std::env::args_os().skip(1).any(|arg| arg == "--review-candidates") {
         if diagnostics { println!("ERR INVALID_PROTOCOL"); std::process::exit(1); }
@@ -762,9 +849,118 @@ fn main() {
     }
 }
 
+fn measure_mode_requested(args: &[std::ffi::OsString]) -> Result<bool, &'static str> {
+    if args.iter().any(|arg| arg == "--measure-ticks") {
+        if args.len() != 1 { return Err("INVALID_PROTOCOL"); }
+        return Ok(true);
+    }
+    Ok(false)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn supplied_box_measures_only_observed_outward_and_inward_ticks() {
+        let inward = inward_tick_pixels();
+        let result = measure_box_ticks(128, 128, 1, &inward, 20, 100, 115, 10).unwrap();
+        assert_eq!(result.0, vec![30, 50, 70, 90, 110]);
+        assert_eq!(result.1, vec![20, 40, 60, 80]);
+        let outward = grid_pixels();
+        let result = measure_box_ticks(128, 128, 1, &outward, 20, 100, 115, 10).unwrap();
+        assert_eq!(result.0, vec![30, 70, 110]);
+        assert_eq!(result.1, vec![20, 50, 80]);
+        let color: Vec<_> = outward.iter().flat_map(|&pixel| [pixel; 3]).collect();
+        assert_eq!(measure_box_ticks(128, 128, 3, &color, 20, 100, 115, 10).unwrap(), result);
+    }
+
+    #[test]
+    fn supplied_observed_box_supports_thick_axis_bands_without_snapping() {
+        for thickness in [5, 6, 7, 8] {
+            let mut pixels = vec![255; 128 * 128];
+            for y in 100..100 + thickness { for x in 20..=115 { pixels[y * 128 + x] = 0; } }
+            for x in 20..20 + thickness { for y in 10..=100 { pixels[y * 128 + x] = 0; } }
+            for x in [40, 70, 100] { for y in 100 + thickness..104 + thickness { pixels[y * 128 + x] = 0; } }
+            for y in [20, 50, 80] { for x in 16..20 { pixels[y * 128 + x] = 0; } }
+            let before = pixels.clone();
+            assert_eq!(measure_box_ticks(128, 128, 1, &pixels, 20, 100, 115, 10).unwrap(),
+                (vec![40, 70, 100], vec![20, 50, 80]), "thickness={thickness}");
+            assert_eq!(measure_box_ticks(128, 128, 1, &pixels, 19, 100, 115, 10), Err("AXIS_BOX_NOT_OBSERVED"));
+            assert_eq!(pixels, before);
+        }
+    }
+
+    #[test]
+    fn supplied_box_isolates_panels_and_rejects_unobserved_geometry() {
+        let image = review_two_panels();
+        let first = measure_box_ticks(256, 256, 1, &image, 20, 100, 115, 10).unwrap();
+        let second = measure_box_ticks(256, 256, 1, &image, 148, 228, 243, 138).unwrap();
+        assert_eq!(first, (vec![30, 70, 110], vec![20, 50, 80]));
+        assert_eq!(second, (vec![158, 198, 238], vec![148, 178, 208]));
+        assert_eq!(measure_box_ticks(256, 256, 1, &image, 21, 100, 115, 10), Err("AXIS_BOX_NOT_OBSERVED"));
+        let mut gray = grid_pixels(); for value in &mut gray { if *value == 0 { *value = 128; } }
+        assert_eq!(measure_box_ticks(128, 128, 1, &gray, 20, 100, 115, 10), Err("AXIS_BOX_NOT_OBSERVED"));
+        let mut disconnected = inward_tick_pixels(); disconnected[100 * 128 + 20] = 255;
+        assert_eq!(measure_box_ticks(128, 128, 1, &disconnected, 20, 100, 115, 10), Err("AXIS_BOX_NOT_OBSERVED"));
+    }
+
+    #[test]
+    fn supplied_box_preserves_tick_rejections_and_missing_evidence() {
+        let mut plain = inward_tick_pixels();
+        for x in [30, 50, 70, 90, 110] { for y in 96..100 { plain[y * 128 + x] = 255; } }
+        for y in [20, 40, 60, 80] { for x in 21..=24 { plain[y * 128 + x] = 255; } }
+        assert_eq!(measure_box_ticks(128, 128, 1, &plain, 20, 100, 115, 10).unwrap(), (vec![], vec![]));
+        let mut partial = inward_tick_pixels();
+        for x in [30, 50] { for y in 101..=104 { partial[y * 128 + x] = 0; } }
+        for y in [20, 40] { for x in 16..20 { partial[y * 128 + x] = 0; } }
+        assert_eq!(measure_box_ticks(128, 128, 1, &partial, 20, 100, 115, 10).unwrap(), (vec![], vec![]));
+        let mut long = inward_tick_pixels();
+        for y in 80..100 { long[y * 128 + 70] = 0; }
+        for x in 21..=40 { long[40 * 128 + x] = 0; }
+        assert_eq!(measure_box_ticks(128, 128, 1, &long, 20, 100, 115, 10).unwrap(), (vec![], vec![]));
+        let mut adjacent = inward_tick_pixels();
+        for y in 96..100 { adjacent[y * 128 + 71] = 0; }
+        for x in 21..=24 { adjacent[41 * 128 + x] = 0; }
+        for y in 90..100 { adjacent[y * 128 + 71] = 0; }
+        for x in 21..=30 { adjacent[41 * 128 + x] = 0; }
+        assert_eq!(measure_box_ticks(128, 128, 1, &adjacent, 20, 100, 115, 10).unwrap(), (vec![], vec![]));
+    }
+
+    #[test]
+    fn supplied_box_uses_observed_outline_bridge_without_inventing_ticks() {
+        let image = owned_outline_axis_fixture(true);
+        let result = measure_box_ticks(768, 768, 1, &image, 230, 330, 425, 220).unwrap();
+        assert_eq!(result, (vec![260, 320, 400], vec![240, 270, 320]));
+        let empty = owned_outline_axis_fixture(false);
+        assert_eq!(measure_box_ticks(768, 768, 1, &empty, 230, 330, 425, 220), Err("AXIS_BOX_NOT_OBSERVED"));
+        BRIDGE_WORK.with(|work| work.set(MAX_PIXELS));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+        assert!(observed_axis_span_clipped(&image, 768, 768, 1, 230, 220, 330, false,
+            Some((230, 220, 425, 330))).is_none());
+        assert!(BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()));
+        BRIDGE_WORK.with(|work| work.set(0));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+    }
+
+    #[test]
+    fn measured_tick_protocol_echoes_box_and_rejects_bad_frames_and_flags() {
+        let pixels = grid_pixels();
+        let mut frame = Vec::from(*b"GRT1");
+        for value in [128u32, 128, 1, pixels.len() as u32, 20, 100, 115, 10] { frame.extend_from_slice(&value.to_le_bytes()); }
+        frame.extend_from_slice(&pixels);
+        assert_eq!(process_measure_ticks(&frame[..]).unwrap(), "TICKS1 20 100 115 10 30,70,110 20,50,80\n");
+        assert_eq!(process_measure_ticks(&frame[..35]), Err("INVALID_PROTOCOL"));
+        assert_eq!(process_measure_ticks(&frame[..frame.len() - 1]), Err("INVALID_PROTOCOL"));
+        let mut trailing = frame.clone(); trailing.push(0);
+        assert_eq!(process_measure_ticks(&trailing[..]), Err("INVALID_PROTOCOL"));
+        let mut bad = frame.clone(); bad[0] = b'X';
+        assert_eq!(process_measure_ticks(&bad[..]), Err("INVALID_PROTOCOL"));
+        let mut bad_box = frame.clone(); bad_box[20..24].copy_from_slice(&127u32.to_le_bytes());
+        assert_eq!(process_measure_ticks(&bad_box[..]), Err("INVALID_INPUT"));
+        assert_eq!(measure_mode_requested(&["--measure-ticks".into()]), Ok(true));
+        assert_eq!(measure_mode_requested(&["--measure-ticks".into(), "--diagnostics".into()]), Err("INVALID_PROTOCOL"));
+        assert_eq!(measure_mode_requested(&["--measure-ticks".into(), "--review-candidates".into()]), Err("INVALID_PROTOCOL"));
+    }
     #[test]
     fn diagnostic_trace_preserves_result_and_has_bounded_fields() {
         let pixels = grid_pixels();

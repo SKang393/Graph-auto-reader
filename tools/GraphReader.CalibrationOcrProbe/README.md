@@ -373,3 +373,9 @@ accuracy or a private-data confirmation. Use
 `artifacts/owned-digit-orientation-check` for disposable compiler/report output;
 retain only until the pushed outcome and integrated consumers finish. Existing
 170/175-second probe deadlines and 1 MB output bound apply.
+
+## Exact-box measured-tick development trace
+
+`--real-dev-exact-box-tick-trace <corpus-root> <absolute-App-exe> <asset-root> <absolute-Rust-worker> --explicit-opt-in` reuses the fixed first 12 development projects and full ranked-review pipeline. For an `opencv-review` geometry only, it invokes the current source `RustAxisTickMeasurementService` on the same panel and exact box, then uses the production `TryBindMeasuredTicks` helper before OCR and refit. Structured scan errors retain the original geometry. Per-panel timing, error and measured counts are recorded; no geometry is selected by truth and no value is applied or exported. This diagnostic helper uses a transient suggestion solely for binding checks; it does not exercise workspace-currentness or establish native UI acceptance.
+
+The source runtime profile is pinned to independently verified hashes before selector access. Historical profile pins remain unchanged. The companion `--real-dev-exact-box-tick-trace-self-test` requires no private input. Do not run the development mode until the maintainer authorizes the fixed confirmation.

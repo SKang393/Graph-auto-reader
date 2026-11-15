@@ -143,12 +143,18 @@ This source batch is based on verified checkpoint
 The full runtime map is in `RealDevRankedReviewTracePins.cs`. No dependency,
 weights, license, frozen schema, version increment or package was added. Source
 remains Apache-2.0. The sole delivered 0.4.54 preview is unchanged and does not
-contain this unpackaged change. Full Windows CI on the integrated source is
-still required before calling that source batch green.
+contain this unpackaged change. Full Windows CI
+[43738490205](https://github.com/SKang393/Graph-auto-reader/actions/runs/43738490205)
+passed on integrated source `1ca57645e2eda111143ce9c09895f8ef661db482`:
+all 13 .NET suites, **2,999 passed, 30 skipped, zero failed**, including
+1,175 App tests and 204 Axis tests; **64/64 Rust tests** and all applicable
+localization, packaging and policy checks passed. Release jobs were skipped.
 
-Raw files under `artifacts/native-ranked-proposal-check` and
-`artifacts/native-ranked-review-trace` are temporary integration/diagnosis
-inputs. Retire them after this record is pushed and consumers finish. Original
+After the source/outcome reached `origin/main` and integration/diagnosis
+consumers finished, `artifacts/native-ranked-proposal-check` and
+`artifacts/native-ranked-review-trace` were retired at
+`2026-11-15T17:13:46.1369065Z`: five files, 240,011 bytes. The recorded report
+and TRX hashes were rechecked before deletion; both scopes are absent. Original
 data, reviewed runtime assets and independent evaluation inputs remain intact.
 The next bounded work is original-pixel tick evidence for an exact native
 review box; it must not silently move geometry or infer absent tick marks.
