@@ -444,3 +444,12 @@ calls: regular and irregular 256-pair bounded/unlimited comparisons plus a
 reports CPU, wall time, allocation and failure counts. No private inputs, raster
 detection, IPC or spawned-child watchdog behavior are exercised. This mode does
 not choose a capacity by searching private results.
+
+`--real-dev-interval-cluster-trace <corpus-root> <absolute-App-exe> <asset-root> <absolute-Rust-worker> --explicit-opt-in`
+uses a separate frozen profile for local ambiguity containment and the exact
+grid subset completion optimization. The fixed source selection, pipeline and
+limits are unchanged. Each row retains interval-position provenance and adds
+`ambiguous_interval_label`; the latter blocks association even when literal OCR
+returns a valid number. No row is silently excluded and no draft is applied.
+Run `--real-dev-interval-cluster-trace-self-test` before the authorized changed-stage
+confirmation. This does not authorize historical baseline reruns or sealed reads.

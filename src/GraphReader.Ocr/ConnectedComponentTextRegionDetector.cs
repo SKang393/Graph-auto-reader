@@ -41,6 +41,7 @@ public sealed record OcrMeasuredTickGrouping(IReadOnlyList<int> XTicks, double P
 public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
 {
     internal const string IntervalXLabelReason = "x_label_between_measured_ticks";
+    internal const string AmbiguousIntervalXLabelReason = "x_label_spans_measured_tick_intervals";
     private readonly ConnectedComponentTextRegionDetectorOptions _options;
 
     public ConnectedComponentTextRegionDetector(ConnectedComponentTextRegionDetectorOptions? options = null)
@@ -52,7 +53,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
     public string ConfigurationFingerprint => string.Create(
         CultureInfo.InvariantCulture,
         $"cc-v3:{_options.MinimumComponentArea}:{_options.MaximumComponentWidthFraction:R}:{_options.MaximumComponentHeightFraction:R}:{_options.MaximumLineGapHeightRatio:R}:{_options.MinimumVerticalOverlapFraction:R}:{_options.ForegroundThreshold?.ToString(CultureInfo.InvariantCulture) ?? "auto"}") +
-        (_options.GroupComponentsIntoLines ? ":interval-x-labels-v1" : ":ungrouped") +
+        (_options.GroupComponentsIntoLines ? ":interval-x-labels-v2" : ":ungrouped") +
         (_options.UseObservedVerticalGroupingOrientation ? ":observed-vertical-orientation-v1" : string.Empty);
 
     public ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
@@ -323,6 +324,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
 
     // Work only with the original members of this exact merged line. A single
     // unsupported or boundary-crossing component leaves the original line intact.
+    // An uncertain gap joins neighboring bins without suppressing independent bins.
     private List<ComponentBounds>? TrySplitIntervalLabels(ComponentBounds line, List<ComponentBounds> members,
         OcrMeasuredTickGrouping? grouping, bool validContext, CancellationToken token)
     {
@@ -361,17 +363,11 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                 throw;
             }
         }).ToArray();
-        for (int i = 1; i < ordered.Length; i++)
+        var clusters = new List<(ComponentBounds Bounds, int IntervalCount)>(ordered.Length);
+        for (int groupIndex = 0; groupIndex < ordered.Length; groupIndex++)
         {
             token.ThrowIfCancellationRequested();
-            ComponentBounds previous = ordered[i - 1].MaxBy(RightWithCancellation);
-            ComponentBounds next = ordered[i].MinBy(LeftWithCancellation);
-            if (next.Left - previous.Right - 1 <= Math.Max(previous.Width, next.Width)) return null;
-        }
-        var split = new List<ComponentBounds>(ordered.Length);
-        foreach (ComponentBounds[] group in ordered)
-        {
-            token.ThrowIfCancellationRequested();
+            ComponentBounds[] group = ordered[groupIndex];
             ComponentBounds part = group[0];
             for (int i = 1; i < group.Length; i++)
             {
@@ -381,9 +377,28 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             int overlap = Math.Min(part.Bottom, line.Bottom) - Math.Max(part.Top, line.Top) + 1;
             int union = Math.Max(part.Bottom, line.Bottom) - Math.Min(part.Top, line.Top) + 1;
             if (overlap <= 0 || overlap / (double)union < _options.MinimumVerticalOverlapFraction) return null;
-            split.Add(part with { IntervalXLabel = true });
+            if (groupIndex > 0)
+            {
+                ComponentBounds previous = ordered[groupIndex - 1].MaxBy(RightWithCancellation);
+                ComponentBounds next = group.MinBy(LeftWithCancellation);
+                if (next.Left - previous.Right - 1 <= Math.Max(previous.Width, next.Width))
+                {
+                    var last = clusters[^1];
+                    clusters[^1] = (last.Bounds.Merge(part), last.IntervalCount + 1);
+                    continue;
+                }
+            }
+            clusters.Add((part, 1));
         }
-        return split;
+        // There is measured interval evidence for the whole row, but too few
+        // independent labels to split it. Preserve both its pixels and ambiguity.
+        if (clusters.Count(static cluster => cluster.IntervalCount == 1) < 3)
+            return [line with { AmbiguousIntervalXLabel = true }];
+        return clusters.Select(static cluster => cluster.Bounds with
+        {
+            IntervalXLabel = cluster.IntervalCount == 1,
+            AmbiguousIntervalXLabel = cluster.IntervalCount > 1,
+        }).ToList();
     }
 
     private List<ComponentBounds> GroupVerticalGlyphs(List<ComponentBounds> horizontalLines,
@@ -445,7 +460,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
         {
             var line = remaining[0];
             remaining.RemoveAt(0);
-            if (line.IntervalXLabel || !IsRotatedGlyphCandidate(line))
+            if (line.IntervalXLabel || line.AmbiguousIntervalXLabel || !IsRotatedGlyphCandidate(line))
             {
                 lines.Add(line);
                 continue;
@@ -459,7 +474,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var candidate = remaining[index];
-                    if (candidate.IntervalXLabel || !IsRotatedGlyphCandidate(candidate))
+                    if (candidate.IntervalXLabel || candidate.AmbiguousIntervalXLabel || !IsRotatedGlyphCandidate(candidate))
                     {
                         continue;
                     }
@@ -517,6 +532,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             : line.Height > line.Width * 1.4 ? -90d : 0d;
         var structureReasons = StructureReasons(line);
         if (line.IntervalXLabel) structureReasons.Add(IntervalXLabelReason);
+        if (line.AmbiguousIntervalXLabel) structureReasons.Add(AmbiguousIntervalXLabelReason);
         return new OcrDetectedRegion(
             DeterministicRegionId(rectangle),
             OcrPolygon.FromRectangle(rectangle),
@@ -689,6 +705,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
     {
         public bool ObservedVerticalGrouping { get; init; }
         public bool IntervalXLabel { get; init; }
+        public bool AmbiguousIntervalXLabel { get; init; }
 
         public int Width => Right - Left + 1;
 

@@ -111,17 +111,24 @@ public static class CalibrationTickProposal
         var yReasons = new List<string>();
         bool identityConflict = false;
         var estimatedIntervals = new Dictionary<string, List<(double Start, double End)>>(StringComparer.Ordinal);
-        foreach (CalibrationOcrProposal row in response.Proposals.Where(row => row.Role is "XTick" or "YTick"))
+        foreach (CalibrationOcrProposal row in response.Proposals.Where(row => row.Role is "XTick" or "YTick" || row.IsAmbiguousIntervalXLabel))
         {
             bool isUserCorrected = userCorrected?.Contains(row) == true;
-            string axis = row.Role == "XTick" ? "X" : "Y";
+            string axis = row.Role == "YTick" ? "Y" : "X";
             List<string> axisReasons = axis == "X" ? xReasons : yReasons;
             void AddReason(string reason)
             {
                 reasons.Add(reason);
                 axisReasons.Add(reason);
             }
-            if (row.SuggestedAxis != axis || (row.IsIntervalXLabel && axis != "X"))
+            if (row.IsIntervalXLabel && row.IsAmbiguousIntervalXLabel)
+            {
+                identityConflict = true;
+                AddReason(CalibrationTickProposalReasons.InvalidEvidence);
+                continue;
+            }
+            if ((row.SuggestedAxis != axis && !(row.IsAmbiguousIntervalXLabel && axis == "X" && row.SuggestedAxis == "")) ||
+                ((row.IsIntervalXLabel || row.IsAmbiguousIntervalXLabel) && axis != "X"))
             {
                 identityConflict = true;
                 AddReason(CalibrationTickProposalReasons.WrongAxis);
@@ -131,6 +138,11 @@ public static class CalibrationTickProposal
             {
                 identityConflict = true;
                 AddReason(CalibrationTickProposalReasons.DuplicateAssociation);
+            }
+            if (row.IsAmbiguousIntervalXLabel)
+            {
+                AddReason(CalibrationTickProposalReasons.AmbiguousAssociation);
+                continue;
             }
             if (!row.NumericLiteral || row.FailureCode is not null || !CalibrationNumericLiteral.IsLiteral(row.Text) ||
                 row.NumericValue is not { } value || !double.IsFinite(value) ||

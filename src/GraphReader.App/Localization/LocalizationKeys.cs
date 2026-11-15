@@ -169,6 +169,7 @@ public static class LocalizationKeys
     public const string ManualCalibrationLabelsUseFinalSession = "Manual.CalibrationLabels.UseFinalSession";
     public const string ManualCalibrationLabelsRow = "Manual.CalibrationLabels.Row";
     public const string ManualCalibrationLabelsRowWithFailure = "Manual.CalibrationLabels.RowWithFailure";
+    public const string ManualCalibrationLabelsAmbiguousInterval = "Manual.CalibrationLabels.AmbiguousInterval";
     public const string ManualCalibrationLabelsPosition = "Manual.CalibrationLabels.Position";
     public const string ManualCalibrationLabelsPositionUnknown = "Manual.CalibrationLabels.PositionUnknown";
     public const string ManualCalibrationLabelsNotNumeric = "Manual.CalibrationLabels.NotNumeric";
@@ -572,6 +573,7 @@ public static class LocalizationKeys
         ManualCalibrationLabelsInvalidCorrection,
         ManualCalibrationLabelsRefit,
         ManualCalibrationLabelsSelectionChanged,
+        ManualCalibrationLabelsAmbiguousInterval,
         ManualMarkerExemplarTitle,
         ManualMarkerExemplarExampleSize,
         ManualMarkerExemplarFind,

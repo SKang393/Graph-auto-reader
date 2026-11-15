@@ -5,6 +5,8 @@ namespace GraphReader.Ocr.Tests;
 [TestClass]
 public sealed class IntervalCenteredLabelGroupingTests
 {
+    private static readonly int[] ExpectedMixedComponentCounts = [2, 1, 1, 1];
+
     public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
@@ -34,6 +36,60 @@ public sealed class IntervalCenteredLabelGroupingTests
         TestContext.WriteLine("ticks=" + string.Join(",", ticks) + "; plotBottom=65");
         TestContext.WriteLine("tick_centered_control=" + Format(tickRegions));
         TestContext.WriteLine("interval_centered_actual=" + Format(intervalRegions));
+    }
+
+    [TestMethod]
+    public async Task StrictlyAmbiguousIntervalPairStaysMergedWhileSafeLaterIntervalsSplit()
+    {
+        int[] ticks = [20, 40, 60, 80, 100, 120, 140];
+        (int X, int Y, int Width, int Height)[] components =
+        [
+            (36, 75, 3, 8), // interval 20..40, right edge 38
+            (42, 75, 3, 8), // interval 40..60, left edge 42: gap is exactly 3
+            (61, 75, 3, 8), // later interval groups have strictly safe gaps
+            (81, 75, 3, 8),
+            (101, 75, 3, 8),
+        ];
+        OcrImage image = Raster(ticks, components);
+        byte[] original = image.Pixels.ToArray();
+
+        IReadOnlyList<OcrDetectedRegion> regions = await new ConnectedComponentTextRegionDetector().DetectAsync(image,
+            new OcrMeasuredTickGrouping(ticks, 65), CancellationToken.None);
+
+        CollectionAssert.AreEqual(
+            new[] { new OcrRectangle(36, 75, 9, 8), new OcrRectangle(61, 75, 3, 8),
+                new OcrRectangle(81, 75, 3, 8), new OcrRectangle(101, 75, 3, 8) },
+            regions.Select(region => region.Polygon.Bounds).ToArray());
+        CollectionAssert.AreEqual(ExpectedMixedComponentCounts, regions.Select(region => region.Evidence!.ComponentCount).ToArray());
+        Assert.IsTrue(HasAmbiguousIntervalProvenance(regions[0]), "The two-interval cluster needs its distinct ambiguity provenance.");
+        Assert.IsFalse(HasIntervalProvenance(regions[0]), "An ambiguous cluster is not an eligible interval label.");
+        Assert.IsTrue(regions.Skip(1).All(HasIntervalProvenance), "Only independently safe interval groups receive provenance.");
+        Assert.AreEqual(components.Length, regions.Sum(region => region.Evidence!.ComponentCount),
+            "Every original component must be represented exactly once.");
+        CollectionAssert.AreEqual(original, image.Pixels.ToArray());
+    }
+
+    [TestMethod]
+    public async Task AmbiguousPairWithOnlyTwoSafeSingletonGroupsPreservesWholeRowAsAmbiguous()
+    {
+        int[] ticks = [20, 40, 60, 80, 100];
+        OcrImage image = Raster(ticks,
+        [
+            (36, 75, 3, 8),
+            (42, 75, 3, 8),
+            (61, 75, 3, 8),
+            (81, 75, 3, 8),
+        ]);
+        byte[] original = image.Pixels.ToArray();
+
+        IReadOnlyList<OcrDetectedRegion> regions = await new ConnectedComponentTextRegionDetector().DetectAsync(image,
+            new OcrMeasuredTickGrouping(ticks, 65), CancellationToken.None);
+
+        Assert.AreEqual(new OcrRectangle(36, 75, 48, 8), regions.Single().Polygon.Bounds);
+        Assert.AreEqual(4, regions[0].Evidence!.ComponentCount);
+        Assert.IsTrue(HasAmbiguousIntervalProvenance(regions[0]));
+        Assert.IsFalse(HasIntervalProvenance(regions[0]));
+        CollectionAssert.AreEqual(original, image.Pixels.ToArray());
     }
 
     [TestMethod]
@@ -96,6 +152,45 @@ public sealed class IntervalCenteredLabelGroupingTests
         Assert.AreEqual(new OcrRectangle(34, 75, 34, 8), regions.Single().Polygon.Bounds);
         Assert.AreEqual(6, regions[0].Evidence!.ComponentCount);
         Assert.IsFalse(HasIntervalProvenance(regions[0]));
+        Assert.IsFalse(HasAmbiguousIntervalProvenance(regions[0]));
+    }
+
+    [TestMethod]
+    public async Task EntirelyAmbiguousIntervalRunStaysMergedWithDistinctProvenance()
+    {
+        int[] ticks = [20, 25, 30, 35, 40];
+        OcrImage image = Raster(ticks,
+        [
+            (21, 75, 3, 8),
+            (26, 75, 3, 8),
+            (31, 75, 3, 8),
+            (36, 75, 3, 8),
+        ]);
+        byte[] original = image.Pixels.ToArray();
+
+        IReadOnlyList<OcrDetectedRegion> regions = await new ConnectedComponentTextRegionDetector().DetectAsync(image,
+            new OcrMeasuredTickGrouping(ticks, 65), CancellationToken.None);
+
+        Assert.AreEqual(new OcrRectangle(21, 75, 18, 8), regions.Single().Polygon.Bounds);
+        Assert.AreEqual(4, regions[0].Evidence!.ComponentCount);
+        Assert.IsTrue(HasAmbiguousIntervalProvenance(regions[0]));
+        Assert.IsFalse(HasIntervalProvenance(regions[0]));
+        CollectionAssert.AreEqual(original, image.Pixels.ToArray());
+    }
+
+    [TestMethod]
+    public async Task TwoSafeSingletonIntervalsDoNotTriggerIntervalClassification()
+    {
+        int[] ticks = [30, 50, 70];
+        OcrImage image = Raster(ticks, [(34, 75, 3, 8), (54, 75, 3, 8)]);
+
+        IReadOnlyList<OcrDetectedRegion> regions = await new ConnectedComponentTextRegionDetector().DetectAsync(image,
+            new OcrMeasuredTickGrouping(ticks, 65), CancellationToken.None);
+
+        Assert.AreEqual(new OcrRectangle(34, 75, 23, 8), regions.Single().Polygon.Bounds);
+        Assert.AreEqual(2, regions[0].Evidence!.ComponentCount);
+        Assert.IsFalse(HasIntervalProvenance(regions[0]));
+        Assert.IsFalse(HasAmbiguousIntervalProvenance(regions[0]));
     }
 
     [TestMethod]
@@ -119,6 +214,9 @@ public sealed class IntervalCenteredLabelGroupingTests
     private static bool HasIntervalProvenance(OcrDetectedRegion region) =>
         region.Evidence?.Reasons.Contains(ConnectedComponentTextRegionDetector.IntervalXLabelReason) == true;
 
+    private static bool HasAmbiguousIntervalProvenance(OcrDetectedRegion region) =>
+        region.Evidence?.Reasons.Contains("x_label_spans_measured_tick_intervals") == true;
+
     private static string Format(IReadOnlyList<OcrDetectedRegion> regions) =>
         $"count={regions.Count}; " + string.Join("; ", regions.Select(region =>
             $"bounds={region.Polygon.Bounds.X:R},{region.Polygon.Bounds.Y:R},{region.Polygon.Bounds.Width:R},{region.Polygon.Bounds.Height:R},components={region.Evidence?.ComponentCount ?? 0}"));
@@ -136,7 +234,7 @@ public sealed class IntervalCenteredLabelGroupingTests
     {
         const int width = 160, height = 100;
         byte[] pixels = Enumerable.Repeat(byte.MaxValue, width * height).ToArray();
-        Fill(20, 65, 81, 1);
+        Fill(10, 65, 141, 1);
         foreach (int tick in ticks)
             for (int y = 65; y <= 70; y++) pixels[y * width + tick] = 0;
         foreach ((int x, int y, int componentWidth, int componentHeight) in components)

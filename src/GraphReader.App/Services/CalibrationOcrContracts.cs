@@ -53,6 +53,9 @@ public sealed record CalibrationOcrProposal(string RegionId, IReadOnlyList<Calib
     // Optional private worker provenance, never a measured calibration tick.
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool IsIntervalXLabel { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool IsAmbiguousIntervalXLabel { get; init; }
 }
 
 public sealed record CalibrationOcrSequenceCheck(bool NeedsReview, int CandidateCount, int ResolvedCount,

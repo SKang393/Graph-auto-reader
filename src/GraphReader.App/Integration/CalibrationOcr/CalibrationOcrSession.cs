@@ -182,6 +182,8 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
         {
             IsIntervalXLabel = candidate.Evidence?.Reasons.Contains(
                 ConnectedComponentTextRegionDetector.IntervalXLabelReason, StringComparer.Ordinal) == true,
+            IsAmbiguousIntervalXLabel = candidate.Evidence?.Reasons.Contains(
+                ConnectedComponentTextRegionDetector.AmbiguousIntervalXLabelReason, StringComparer.Ordinal) == true,
         };
     }
 

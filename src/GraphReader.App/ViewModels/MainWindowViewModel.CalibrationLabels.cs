@@ -178,7 +178,7 @@ public sealed partial class MainWindowViewModel
             _workspaceService is not ICalibrationLabelSuggestionWorkspace workspace ||
             !workspace.IsCalibrationLabelSuggestionCurrent(result) ||
             !ReferenceEquals(_axisSuggestion, result.AxisSuggestion) ||
-            !result.Response.Proposals.Contains(row.Proposal))
+            !result.Response.Proposals.Contains(row.Proposal) || row.Proposal.IsAmbiguousIntervalXLabel)
             return false;
         CalibrationOcrProposal effective = row.EffectiveProposal;
         if (effective.FailureCode is not null || !effective.NumericLiteral || effective.NumericValue is not double parsed || !double.IsFinite(parsed))
@@ -267,9 +267,15 @@ public sealed partial class MainWindowViewModel
         };
         string role = GetLocalizedString(roleKey);
         string confidence = proposal.Confidence.ToString("P0", CultureInfo.CurrentCulture);
-        return proposal.FailureCode is { } failureCode
+        string? detail = proposal.FailureCode is { } failureCode ? GetCalibrationLabelFailure(failureCode) : null;
+        if (proposal.IsAmbiguousIntervalXLabel)
+        {
+            string warning = GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsAmbiguousInterval);
+            detail = detail is null ? warning : $"{detail} {warning}";
+        }
+        return detail is not null
             ? FormatLocalizedString(LocalizationKeys.ManualCalibrationLabelsRowWithFailure,
-                proposal.Text, position, role, confidence, GetCalibrationLabelFailure(failureCode))
+                proposal.Text, position, role, confidence, detail)
             : FormatLocalizedString(LocalizationKeys.ManualCalibrationLabelsRow,
                 proposal.Text, position, role, confidence);
     }
