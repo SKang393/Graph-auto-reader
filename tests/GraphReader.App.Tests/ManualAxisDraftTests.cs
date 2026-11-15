@@ -10,12 +10,42 @@ using System.Windows.Threading;
 using GraphReader.App.Services;
 using GraphReader.App.ViewModels;
 using GraphReader.Axis;
+using GraphReader.Domain;
 
 namespace GraphReader.App.Tests;
 
 [TestClass]
 public sealed class ManualAxisDraftTests
 {
+    [TestMethod]
+    public void ReopenedOnePointProjectKeepsManualDraftAfterFirstInBoundsClick()
+    {
+        WithImage(path =>
+        {
+            string saved = Path.Combine(Path.GetDirectoryName(path)!, "one-point.garproj");
+            using (var original = new ManualPreviewWorkspaceService())
+            {
+                WorkspaceTabViewModel tab = Pump(original.ImportImagesAsync([path], CancellationToken.None)).Single();
+                original.Calibrate(tab.TabId, new(new(20, 100), new(20, 20), new(140, 100), 10, 3, 1));
+                string series = original.AddSeries(tab.TabId,
+                    new("Owned", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention)).SeriesId;
+                original.AddPoint(tab.TabId, series, 80, 60);
+                Assert.IsTrue(Pump(original.SaveProjectAsync(saved, CancellationToken.None)).IsSuccess);
+            }
+            using var reopened = new ManualPreviewWorkspaceService(calibrationOcrSuggestionService: new OcrStub(ValidProposals()));
+            WorkspaceTabViewModel restored = Pump(reopened.OpenProjectAsync(saved, CancellationToken.None)).Single();
+            using var vm = new MainWindowViewModel(reopened);
+            Assert.AreSame(restored, vm.SelectedTab);
+            Assert.IsNotNull(restored.Calibration);
+            Assert.HasCount(1, restored.Points);
+            Assert.IsTrue(vm.BeginManualAxisDraftCommand.CanExecute(null));
+            vm.BeginManualAxisDraftCommand.Execute(null);
+            Pump(vm.HandleCanvasPointAsync(new Point(20, 100)));
+            Assert.IsTrue(vm.IsCollectingManualAxisDraft, "A valid first point must not cancel a reopened project's draft.");
+            Assert.IsFalse(vm.HasAxisSuggestion);
+            Assert.IsFalse(vm.UndoCommand.CanExecute(null));
+        });
+    }
     [TestMethod]
     public void ManualDraftAfterUnavailableGeometryIsReviewOnlyUntilExplicitApplyAndUndo()
     {

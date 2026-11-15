@@ -114,6 +114,9 @@ TRX SHA-256:
 `ee0bd3355d72b2e145372a2d162898c501d6daeeec0c68316c77e2c49c80172d`.
 Independent source review found no actionable issue; it did not rerun tests.
 This establishes source integration, not updated-package native acceptance.
+The pushed checkpoint also passed
+[Windows CI run 43660888089](https://github.com/SKang393/Graph-auto-reader/actions/runs/43660888089),
+job `132649733800`; release jobs were skipped.
 
 ## Limits and retention
 
@@ -124,5 +127,6 @@ No private read, tuning, package, dependency, schema or license change occurred.
 Source remains Apache-2.0, with no font binary copied. Retain
 `artifacts/owned-digit-orientation-check` (231 files / 145,252,904 bytes,
 compiler dependencies and reports, zero image files) only until the pushed
-outcome and integrated consumers finish, then retire it. Preserve the current
+outcome and integrated consumers finish, then retire it under the
+[reviewed scope](OWNED-ORIENTATION-RETIREMENT-20261115.md). Preserve the current
 package, original corpus and other tasks' work.

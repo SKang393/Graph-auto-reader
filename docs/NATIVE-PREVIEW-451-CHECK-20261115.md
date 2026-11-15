@@ -93,3 +93,22 @@ seed/export outputs after this outcome is pushed. Foreground interruption,
 native row-selection/inclusion independence, proposal Remove and explicit
 three-click draft Cancel/Dismiss remain unchecked in this 451 batch. Full visual
 acceptance, clean-machine acceptance and production approval are not established.
+
+## Later draft-control attempt
+
+A subsequent native attempt opened the existing one-point seed and began
+manual-axis collection. A canvas click appeared to end collection with invalid
+anchor guidance, but recovery then returned GraphReader accessibility text with
+a screenshot of another application. This is inconclusive native evidence,
+not an established product defect. The lead stopped coordinate input, recovered
+the unique GraphReader window, verified its screenshot and closed it normally
+without saving. The seed SHA-256 remained
+`c5076e5e432fa7ecec35a5e050e629a14881b72d91ab259bcc10a4475f8f29dd`.
+
+An owned STA regression imported, calibrated and saved a one-point project,
+reopened it, then sent one in-bounds pixel click through the view model. Draft
+collection remained active and Undo disabled. All seven `ManualAxisDraftTests`
+passed with zero skips, about two seconds in tests / 105.791 seconds command
+wall time, using the existing Release test command filtered to that class.
+Only the test changed; no production repair was justified. Native Cancel/Dismiss
+acceptance remains pending and is not replaced by this test.
