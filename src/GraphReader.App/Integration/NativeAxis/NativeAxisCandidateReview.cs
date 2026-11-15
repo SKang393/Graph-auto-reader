@@ -81,16 +81,21 @@ internal static class NativeAxisCandidateReview
         }
         catch (AxisGeometryDetectionException) { return Failure("OPENCV_AXIS_AMBIGUOUS"); }
         if (observer.Snapshots is not { Count: > 0 and <= MaximumCandidates } snapshots) return Failure("OPENCV_AXIS_AMBIGUOUS");
-        var candidates = new AxisReviewCandidate[snapshots.Count];
+        var candidates = new List<AxisReviewCandidate>(snapshots.Count);
         for (int i = 0; i < snapshots.Count; i++)
         {
             token.ThrowIfCancellationRequested();
             AxisGeometryCandidateSnapshot snapshot = snapshots[i];
             PixelPoint[] corners = [snapshot.Intersection, snapshot.BottomRight, snapshot.TopRight, snapshot.TopLeft];
+            // Enumeration is complete. Unsupported rotation excludes only this review
+            // option; malformed geometry still invalidates the complete response.
+            string? rejection = NativeAxisWorker.GeometryRejection(corners, 1, width, height);
+            if (rejection == "native_rotated_geometry") continue;
+            if (rejection is not null) return Failure("OPENCV_AXIS_AMBIGUOUS");
             if (!TryGeometry(corners, width, height, out RustAxisGeometry? geometry)) return Failure("OPENCV_AXIS_AMBIGUOUS");
-            candidates[i] = new AxisReviewCandidate(i, geometry!);
+            candidates.Add(new AxisReviewCandidate(candidates.Count, geometry!));
         }
-        return new(Array.AsReadOnly(candidates), null);
+        return candidates.Count == 0 ? Failure("OPENCV_AXIS_AMBIGUOUS") : new(candidates.AsReadOnly(), null);
     }
 
     internal static bool TryGeometry(PixelPoint[] corners, int width, int height, out RustAxisGeometry? geometry)

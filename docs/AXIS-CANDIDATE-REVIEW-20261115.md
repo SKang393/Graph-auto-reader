@@ -166,8 +166,10 @@ At `2026-11-15T11:12:39.3259856Z`, after the preceding outcome was pushed, six
 completed diagnostic files totaling 333,511 bytes were removed from the exact
 axis-merge-sort-check and axis-forward-extent-check scratch directories.
 Originals, the independent split, active models and the sole 0.4.52 package were
-preserved. This batch's TRXs, generated control and source-local QA Data/links
-will be retired after their evidence is pushed and package verification ends.
+preserved. After the outcome reached main in `9e694ca5`, the five completed
+TRXs totaling 2,021,512 bytes were retired at `2026-11-15T13:33:54Z`. The
+generated control and source-local QA Data/links remain active for package
+verification and will be retired after that consumer finishes.
 Keep 0.4.52 until its single replacement is uploaded, verified and recorded.
 
 The first hosted packaging attempt, run 43712247817 on exact source 20edf2f4,

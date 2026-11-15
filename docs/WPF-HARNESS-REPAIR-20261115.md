@@ -87,5 +87,6 @@ verifies that source revision; later Rust review integration and an actual
 replacement package require separate verification.
 The failed attempt created no package: 0.4.52 stays the
 sole retained build, and 0.4.53 remains the next actual package version.
-After this source/outcome is pushed and the packaging investigation closes,
-retire `artifacts/wpf-harness-repair-check` and retain this concise record.
+After this source/outcome reached main in `9e694ca5` and its consumers finished,
+the three TRXs totaling 1,731,165 bytes in `artifacts/wpf-harness-repair-check`
+were retired at `2026-11-15T13:33:54Z`. This document is the retained record.

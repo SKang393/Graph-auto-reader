@@ -228,8 +228,14 @@ attempts. Review widgets required inspector scrolling on this window size.
 
 This proves an owned assisted calibration path with explicit plot selection,
 label read, refit and review. It does not prove fully automatic calibration,
-real-graph accuracy or end-to-end marker digitization. Exact-head CI remains
-pending; the passing run for `e1da376b` does not cover these later changes.
+real-graph accuracy or end-to-end marker digitization. Exact-head
+[Windows CI 43719235200](https://github.com/SKang393/Graph-auto-reader/actions/runs/43719235200)
+passed on `9e694ca5c0418b7ffcb9c90fe0de741d3c38d67c`, completed at
+`2026-11-15T13:37:31Z`: all thirteen .NET suites, 2,955 passed, 30 skipped,
+zero failed, including 1,151 App and 204 Axis tests. Rust passed 63/63;
+version policy 62/62, ledger 6/6, portable retention 12/12, packaging verification
+68/68 and the remaining evidence checks passed. Public-release jobs were
+skipped. This result covers that checkpoint, not later eligibility changes.
 
 ## Fixed development review-availability diagnostic
 
@@ -299,9 +305,11 @@ external source or paid service was added. The sole retained package remains
 The Rust/App changes are consolidated into the pending 0.4.53 preview rather
 than generating another adjacent package.
 
-After this source/outcome is pushed and consumers finish, retire the 32 small
-files totaling 25,946 bytes in `artifacts/rust-review-owned-check`, along with
-completed managed TRXs and owned UI/probe outputs. The two-panel PNG in
+After this source/outcome reached main in `9e694ca5`, the 32 initial Rust review
+scratch files totaling 25,946 bytes were retired as part of the
+[recorded cleanup](NATIVE-AXIS-REVIEW-ELIGIBILITY-20261115.md#retention).
+Completed managed TRXs and the remaining owned UI/probe outputs can be retired
+after their active consumers finish. The two-panel PNG in
 `artifacts/rust-review-ocr-owned-check` remains active for packaged native checks;
 it is generated project-owned material, not a private figure. Originals, sealed
 inputs, current runtime assets, user Data and the sole verified build remain

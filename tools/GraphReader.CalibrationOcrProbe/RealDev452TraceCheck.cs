@@ -102,6 +102,10 @@ internal static partial class RealDevCalibrationCheck
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, reviewRoutingTrace: true);
 
+    internal static Task<object> RunNativeEligibilityTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, nativeEligibilityTrace: true);
+
     internal static Task<object> RunPostGroupingTraceAsync(string corpusRoot, string app, string assets, string rust,
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token);
@@ -123,8 +127,9 @@ internal static partial class RealDevCalibrationCheck
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token, directional: true);
 
     private static async Task<object> RunTraceAsync(string corpusRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false, bool nativeWorkTrace = false, bool reviewRoutingTrace = false)
+        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false, bool nativeWorkTrace = false, bool reviewRoutingTrace = false, bool nativeEligibilityTrace = false)
     {
+        if (nativeEligibilityTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace || forwardExtentGeometryTrace || nativeWorkTrace || reviewRoutingTrace)) throw new InvalidDataException();
         if (reviewRoutingTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace || forwardExtentGeometryTrace || nativeWorkTrace)) throw new InvalidDataException();
         if (nativeWorkTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace || forwardExtentGeometryTrace)) throw new InvalidDataException();
         if ((pairPruning || intersection) && !geometryOnly || pairPruning && intersection || directional && (geometryOnly || !sourcePostGrouping) ||
@@ -134,7 +139,8 @@ internal static partial class RealDevCalibrationCheck
             forwardExtentGeometryTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace)) throw new InvalidDataException();
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(app) ||
             !Path.IsPathFullyQualified(assets) || !Path.IsPathFullyQualified(rust)) throw new InvalidDataException();
-        using Candidate candidateLease = reviewRoutingTrace ? Candidate.VerifyReviewRouting(app, assets, rust, token) :
+        using Candidate candidateLease = nativeEligibilityTrace ? Candidate.VerifyNativeEligibility(app, assets, rust, token) :
+            reviewRoutingTrace ? Candidate.VerifyReviewRouting(app, assets, rust, token) :
             nativeWorkTrace ? Candidate.VerifyNativeWork(app, assets, rust, token) :
             forwardExtentGeometryTrace ? Candidate.VerifyForwardExtent(app, assets, rust, token) :
             sortedSpatialGeometryTrace ? Candidate.VerifySortedSpatial(app, assets, rust, token) :
@@ -162,11 +168,11 @@ internal static partial class RealDevCalibrationCheck
         var nativeWork = nativeWorkTrace ? new NativeWorkTraceAxis() : null;
         var secondary = new TraceAxis(nativeWork is null ? new OpenCvAxisProposalService(app) : nativeWork);
         IAxisProposalService axis = new RustFirstAxisProposalService(primary, secondary);
-        ReviewRoutingTraceServices? reviewRouting = reviewRoutingTrace ? new(rust, app) : null;
+        ReviewRoutingTraceServices? reviewRouting = reviewRoutingTrace || nativeEligibilityTrace ? new(rust, app) : null;
         await using CalibrationOcrWorkerClient? ocr = geometryOnly ? null : new(app, assets, () => CalibrationOcrDeviceSelection.Cpu);
         using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         int attempted = 0, returned = 0, fallback = 0, panelAttempted = 0, panelFinished = 0, printedXReviewDraftPanels = 0;
-        Dictionary<string, int> terminalStatusCounts = NewTracePanelStatusCounts(geometryOnly, reviewRoutingTrace);
+        Dictionary<string, int> terminalStatusCounts = NewTracePanelStatusCounts(geometryOnly, reviewRoutingTrace || nativeEligibilityTrace);
         for (int i = 0; i < TraceSampleCount && !token.IsCancellationRequested; i++)
         {
             attempted++; var panelResults = new List<object>(); string status = "completed"; string? errorCategory = null; int effective = 0;
@@ -237,13 +243,13 @@ internal static partial class RealDevCalibrationCheck
             projects.Add(new { index = i, status, error_category = errorCategory, preparation_milliseconds = preparationMs, effective_panels = effective, panels = panelResults });
         }
         if (geometryOnly)
-            return new { schema = reviewRoutingTrace ? ReviewRoutingTraceSchema : nativeWorkTrace ? NativeWorkTraceSchema : forwardExtentGeometryTrace ? ForwardExtentTraceSchema : sortedSpatialGeometryTrace ? SortedSpatialTraceSchema : intersection ? IntersectionTraceSchema : pairPruning ? PairPruningTraceSchema : NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
+            return new { schema = nativeEligibilityTrace ? NativeEligibilityTraceSchema : reviewRoutingTrace ? ReviewRoutingTraceSchema : nativeWorkTrace ? NativeWorkTraceSchema : forwardExtentGeometryTrace ? ForwardExtentTraceSchema : sortedSpatialGeometryTrace ? SortedSpatialTraceSchema : intersection ? IntersectionTraceSchema : pairPruning ? PairPruningTraceSchema : NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
                 selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
                 attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
                 attempted_panels = panelAttempted, finished_panels = panelFinished, unfinished_execution_panels = panelAttempted - panelFinished,
                 terminal_status_counts = terminalStatusCounts, unattempted_panels = returned + fallback - panelAttempted,
                 metadata.AssignmentSha256, metadata.SelectedInventorySha256, source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
-                candidate = reviewRoutingTrace ? ReviewRoutingTraceIdentity() : nativeWorkTrace ? NativeWorkTraceIdentity() : forwardExtentGeometryTrace ? ForwardExtentTraceIdentity() : sortedSpatialGeometryTrace ? SortedSpatialTraceIdentity() : (object)new { app_exe_sha256 = intersection ? IntersectionAppExeHash : NativeRejectionAppExeHash, app_dll_sha256 = intersection ? IntersectionAppDllHash : NativeRejectionAppDllHash,
+                candidate = nativeEligibilityTrace ? NativeEligibilityTraceIdentity() : reviewRoutingTrace ? ReviewRoutingTraceIdentity() : nativeWorkTrace ? NativeWorkTraceIdentity() : forwardExtentGeometryTrace ? ForwardExtentTraceIdentity() : sortedSpatialGeometryTrace ? SortedSpatialTraceIdentity() : (object)new { app_exe_sha256 = intersection ? IntersectionAppExeHash : NativeRejectionAppExeHash, app_dll_sha256 = intersection ? IntersectionAppDllHash : NativeRejectionAppDllHash,
                     rust_sha256 = NativeRejectionRustHash,
                     runtime_files = intersection ? IntersectionRuntimeLibraries : pairPruning ? PairPruningRuntimeLibraries : NativeRejectionRuntimeLibraries },
                 sealed_payload_reads = 0, ocr_calls = 0, truth_scoring = false, image_writes = false, review_only = true,

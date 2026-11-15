@@ -190,6 +190,71 @@ public sealed class NativeAxisCandidateReviewTests
         Assert.IsFalse(NativeAxisCandidateReview.TryGeometry(rotated, 100, 100, out _));
         PixelPoint[] outOfBounds = [new(-1, 90), new(90, 90), new(90, 10), new(-1, 10)];
         Assert.IsFalse(NativeAxisCandidateReview.TryGeometry(outOfBounds, 100, 100, out _));
+        PixelPoint[] nonfinite = [new(double.NaN, 90), new(90, 90), new(90, 10), new(10, 10)];
+        Assert.IsFalse(NativeAxisCandidateReview.TryGeometry(nonfinite, 100, 100, out _));
+    }
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    public async Task CompleteMixedSnapshotRetainsEveryRepresentableChoice(bool reverse, bool divider)
+    {
+        List<GeometryLineCandidate> lines =
+        [
+            new("clean-x", new(new(100, 300), new(350, 300)), LineCandidateSource.RecordedFixture),
+            new("clean-y", new(new(100, 300), new(100, 50)), LineCandidateSource.RecordedFixture),
+            new("tilted-x", new(new(500, 300), new(750, 290)), LineCandidateSource.RecordedFixture),
+            new("tilted-y", new(new(500, 300), new(490, 50)), LineCandidateSource.RecordedFixture),
+        ];
+        if (divider) lines.Add(new("clean-divider", new(new(200, 300), new(200, 50)), LineCandidateSource.RecordedFixture));
+        if (reverse) lines.Reverse();
+        var observer = new SnapshotObserver();
+        _ = await new AxisGeometryDetector().DetectAsync(new AxisGeometryRequest(800, 400, lines)
+            { CandidateObserver = observer, MaximumExaminedPairs = 128 });
+        Assert.IsNotNull(observer.Snapshots);
+        Assert.HasCount(divider ? 3 : 2, observer.Snapshots);
+        RustAxisGeometry[] eligible = observer.Snapshots.Select(snapshot =>
+            NativeAxisCandidateReview.TryGeometry(
+                [snapshot.Intersection, snapshot.BottomRight, snapshot.TopRight, snapshot.TopLeft],
+                800, 400, out RustAxisGeometry? geometry) ? geometry : null)
+            .OfType<RustAxisGeometry>().ToArray();
+        Assert.HasCount(divider ? 2 : 1, eligible);
+        Assert.IsTrue(eligible.Contains(new RustAxisGeometry(100, 300, 350, 50, 0)));
+
+        AxisCandidateReviewResult result = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400, CancellationToken.None);
+        Assert.IsNull(result.ErrorCode);
+        CollectionAssert.AreEqual(eligible, result.Candidates.Select(candidate => candidate.Geometry).ToArray());
+        CollectionAssert.AreEqual(Enumerable.Range(0, eligible.Length).ToArray(), result.Candidates.Select(candidate => candidate.Index).ToArray());
+        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(result, 800, 400));
+    }
+
+    [TestMethod]
+    public async Task CompleteAllRotatedSnapshotReturnsNoCandidates()
+    {
+        GeometryLineCandidate[] lines =
+        [
+            new("tilted-x", new(new(500, 300), new(750, 290)), LineCandidateSource.RecordedFixture),
+            new("tilted-y", new(new(500, 300), new(490, 50)), LineCandidateSource.RecordedFixture),
+        ];
+        var observer = new SnapshotObserver();
+        _ = await new AxisGeometryDetector().DetectAsync(new AxisGeometryRequest(800, 400, lines)
+            { CandidateObserver = observer, MaximumExaminedPairs = 128 });
+        Assert.IsNotNull(observer.Snapshots);
+        Assert.HasCount(1, observer.Snapshots);
+        AxisGeometryCandidateSnapshot snapshot = observer.Snapshots[0];
+        Assert.AreEqual("native_rotated_geometry", NativeAxisWorker.GeometryRejection(
+            [snapshot.Intersection, snapshot.BottomRight, snapshot.TopRight, snapshot.TopLeft], 1, 800, 400));
+        AxisCandidateReviewResult result = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400, CancellationToken.None);
+        Assert.AreEqual("OPENCV_AXIS_AMBIGUOUS", result.ErrorCode);
+        Assert.IsEmpty(result.Candidates);
+    }
+
+    private sealed class SnapshotObserver : IAxisGeometryCandidateObserver
+    {
+        internal IReadOnlyList<AxisGeometryCandidateSnapshot>? Snapshots { get; private set; }
+        public void OnCandidatesRanked(IReadOnlyList<AxisGeometryCandidateSnapshot> candidates) => Snapshots = candidates;
     }
 
     private static T Pump<T>(Task<T> task)

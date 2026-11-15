@@ -603,6 +603,13 @@ internal static partial class RealDevCalibrationCheck
                 ReviewRoutingRustHash, ReviewRoutingRuntimeLibraries, token);
         }
 
+        internal static Candidate VerifyNativeEligibility(string app, string assets, string rust, CancellationToken token)
+        {
+            RequireNativeRejectionPins(NativeEligibilityAppExeHash, NativeEligibilityAppDllHash, NativeEligibilityRustHash, NativeEligibilityRuntimeLibraries);
+            return VerifyPinned(app, assets, rust, NativeEligibilityAppExeHash, NativeEligibilityAppDllHash,
+                NativeEligibilityRustHash, NativeEligibilityRuntimeLibraries, token);
+        }
+
         private static Candidate VerifyPinned(string app, string assets, string rust, string expectedExe, string expectedDll,
             string expectedRust, FrozenDictionary<string, string> libraries, CancellationToken token, bool requirePrintedXReviewDraft = false)
         {
