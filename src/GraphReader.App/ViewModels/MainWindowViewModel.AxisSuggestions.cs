@@ -52,9 +52,21 @@ public sealed partial class MainWindowViewModel
         OnPropertyChanged(nameof(UseCalibrationLabelForFinalXText));
     }
     public bool HasAxisGeometryReviewWarning => _axisSuggestion is { Provider: "opencv-review" or "rust-review" };
-    public string AxisGeometryReviewWarningText => !HasAxisGeometryReviewWarning ? string.Empty : GetLocalizedString(
-        _axisSuggestion!.ReviewReasons.Any(reason => reason is "x_axis_partial" or "y_axis_partial")
-            ? LocalizationKeys.ManualAxisGeometryPartialWarning : LocalizationKeys.ManualAxisGeometryReviewWarning);
+    public string AxisGeometryReviewWarningText
+    {
+        get
+        {
+            if (!HasAxisGeometryReviewWarning) return string.Empty;
+            bool partial = _axisSuggestion!.ReviewReasons.Any(reason => reason is "x_axis_partial" or "y_axis_partial");
+            if (_axisSuggestion.ReviewReasons.Contains("native_multiple_ranked_candidates", StringComparer.Ordinal))
+            {
+                string warning = GetLocalizedString(LocalizationKeys.ManualAxisGeometryAmbiguousWarning);
+                return partial ? warning + "\n" + GetLocalizedString(LocalizationKeys.ManualAxisGeometryPartialWarning) : warning;
+            }
+            return GetLocalizedString(partial ? LocalizationKeys.ManualAxisGeometryPartialWarning
+                : LocalizationKeys.ManualAxisGeometryReviewWarning);
+        }
+    }
     public string SuggestedYMaximum
     {
         get => _suggestedYMaximum;

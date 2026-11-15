@@ -67,6 +67,12 @@ internal static class NativeAxisWorker
         byte[] pixels = new byte[checked(width * height)];
         gray.CopyPixels(pixels, width, 0);
         var lines = await new OpenCvLineCandidateProvider().DetectLinesAsync(new(width, height, width, pixels), token).ConfigureAwait(false);
+        return await ProcessLinesAsync(lines, width, height, workObserver, token).ConfigureAwait(false);
+    }
+
+    internal static async Task<RustAxisProposalResult> ProcessLinesAsync(IReadOnlyList<GeometryLineCandidate> lines,
+        int width, int height, IAxisGeometryWorkObserver? workObserver, CancellationToken token)
+    {
         var observer = new Observer();
         AxisGeometryResult geometry;
         try
@@ -88,6 +94,7 @@ internal static class NativeAxisWorker
             return Failure("OPENCV_AXIS_AMBIGUOUS", "native_invalid_rounded_geometry");
         string[] reasons = geometry.Uncertainty.Reasons.ToArray();
         if (geometry.Uncertainty.NeedsReview && reasons.Length == 0) reasons = ["needs_review"];
+        if (observer.Count > 1) reasons = reasons.Append("native_multiple_ranked_candidates").Distinct(StringComparer.Ordinal).ToArray();
         return new(new RustAxisGeometry(left, bottom, right, top, geometry.Confidence), null) { Provider = "opencv-review", ReviewReasons = reasons };
     }
     internal static string FailureDetail(AxisGeometryDetectionException error) => error.Reason switch
@@ -101,7 +108,7 @@ internal static class NativeAxisWorker
     };
     internal static string? GeometryRejection(PixelPoint[] corners, int count, int width, int height)
     {
-        if (count != 1) return count > 1 ? "native_multiple_ranked_candidates" : "native_no_ranked_candidates";
+        if (count < 1) return "native_no_ranked_candidates";
         if (corners.Any(c => !double.IsFinite(c.X) || !double.IsFinite(c.Y) || c.X < 0 || c.Y < 0 || c.X >= width || c.Y >= height))
             return "native_invalid_corner_bounds";
         if (Math.Abs(corners[0].Y - corners[1].Y) > 1 || Math.Abs(corners[3].Y - corners[2].Y) > 1 ||

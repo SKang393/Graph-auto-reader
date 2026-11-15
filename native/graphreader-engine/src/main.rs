@@ -1630,6 +1630,30 @@ mod tests {
     }
 
     #[test]
+    fn review_two_inward_panels_retains_existing_outward_only_guard() {
+        let source = inward_tick_pixels();
+        let single = propose(128, 128, 1, &source).unwrap();
+        assert_eq!(single.x_ticks, vec![30, 50, 70, 90, 110]);
+        assert_eq!(single.y_ticks, vec![20, 40, 60, 80]);
+        let mut inward = padded_pixels(&source, 256, 0, 0);
+        for y in 0..128 {
+            let start = (y + 128) * 256 + 128;
+            inward[start..start + 128].copy_from_slice(&source[y * 128..(y + 1) * 128]);
+        }
+        assert_eq!(propose(256, 256, 1, &inward), Err("AMBIGUOUS_AXIS"));
+        assert_eq!(review_proposals(256, 256, 1, &inward), Err("NO_AXIS"));
+
+        let outward = review_two_panels();
+        assert_eq!(propose(256, 256, 1, &outward), Err("AMBIGUOUS_AXIS"));
+        let choices = review_proposals(256, 256, 1, &outward).unwrap();
+        assert_eq!(choices.len(), 2);
+        assert_eq!(choices[0].x_ticks, vec![30, 70, 110]);
+        assert_eq!(choices[0].y_ticks, vec![20, 50, 80]);
+        assert_eq!(choices[1].x_ticks, vec![158, 198, 238]);
+        assert_eq!(choices[1].y_ticks, vec![148, 178, 208]);
+    }
+
+    #[test]
     fn ambiguous_rows_cannot_hide_missing_column_extent_before_run_recovery() {
         let mut pixels = vec![255; 1280 * 960];
         for (ox, oy) in [(0, 0), (640, 480)] {

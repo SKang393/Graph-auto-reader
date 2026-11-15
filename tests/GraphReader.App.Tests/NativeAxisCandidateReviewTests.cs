@@ -176,7 +176,7 @@ public sealed class NativeAxisCandidateReviewTests
     }
 
     [TestMethod]
-    public void DividerReturnsAllReviewCandidatesWhileNormalProposalRemainsAmbiguous() => StaTestHost.Run(() =>
+    public void DividerReturnsAllReviewCandidatesAndNormalTopRankedReviewProposal() => StaTestHost.Run(() =>
     {
         const int width = 800, height = 400;
         byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
@@ -202,8 +202,16 @@ public sealed class NativeAxisCandidateReviewTests
         Assert.IsTrue(candidates.Candidates.All(candidate => candidate.Geometry.Confidence == 0 &&
             candidate.Geometry.XTickPositions.Count == 0 && candidate.Geometry.YTickPositions.Count == 0));
         RustAxisProposalResult normal = Pump(NativeAxisWorker.ProcessAsync(encoded, CancellationToken.None));
-        Assert.IsNull(normal.Geometry);
-        Assert.AreEqual("OPENCV_AXIS_AMBIGUOUS", normal.ErrorCode);
+        Assert.IsNull(normal.ErrorCode);
+        Assert.IsNotNull(normal.Geometry);
+        Assert.AreEqual("opencv-review", normal.Provider);
+        CollectionAssert.Contains(normal.ReviewReasons.ToArray(), "native_multiple_ranked_candidates");
+        Assert.AreEqual(candidates.Candidates[0].Geometry.Left, normal.Geometry.Left);
+        Assert.AreEqual(candidates.Candidates[0].Geometry.Right, normal.Geometry.Right);
+        Assert.AreEqual(candidates.Candidates[0].Geometry.Top, normal.Geometry.Top);
+        Assert.AreEqual(candidates.Candidates[0].Geometry.Bottom, normal.Geometry.Bottom);
+        Assert.IsEmpty(normal.Geometry.XTickPositions);
+        Assert.IsEmpty(normal.Geometry.YTickPositions);
     });
 
     [TestMethod]

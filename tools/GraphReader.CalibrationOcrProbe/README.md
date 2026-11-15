@@ -198,6 +198,15 @@ existing trace payload. The explicit opt-in and normal reserved-split
 exclusions remain required. Run `--real-dev-printed-x-trace-self-test` for the
 owned in-memory check; it performs no private reads.
 
+`--real-dev-ranked-review-trace <absolute-dev-root> <absolute-source-App.exe> <absolute-reviewed-assets-root> <absolute-Rust-worker> --explicit-opt-in`
+reuses the endpoint-v2 fixed-development workflow, including the same first-12
+selection, preparation, Rust-first/native fallback, CPU OCR, association,
+printed-X accounting and terminal failure accounting. It has its own schema and
+source-runtime pin profile. It fails closed before selection unless all recorded
+App/runtime hashes match the independently verified source build.
+Run `--real-dev-ranked-review-trace-self-test` for the owned guard
+check; it opens no corpus payload and invokes no inference.
+
 `--automatic-device-check <absolute-App-exe> <absolute-assets> <absolute-empty-settings-root>`
 uses the real in-memory owned benchmark and checks automatic profile persistence,
 identity invalidation and an explicit CPU override. The supplied settings directory

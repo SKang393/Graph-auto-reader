@@ -84,6 +84,7 @@ public static class LocalizationKeys
     public const string ManualAxisReview = "Manual.AxisReview";
     public const string ManualAxisGeometryPartialWarning = "Manual.AxisGeometry.PartialWarning";
     public const string ManualAxisGeometryReviewWarning = "Manual.AxisGeometry.ReviewWarning";
+    public const string ManualAxisGeometryAmbiguousWarning = "Manual.AxisGeometry.AmbiguousWarning";
     public const string ManualAxisPositions = "Manual.AxisPositions";
     public const string ManualAxisUnavailable = "Manual.AxisUnavailable";
     public const string ManualAxisCandidatesFind = "Manual.AxisCandidates.Find";
@@ -527,6 +528,7 @@ public static class LocalizationKeys
         ManualAxisReview,
         ManualAxisGeometryPartialWarning,
         ManualAxisGeometryReviewWarning,
+        ManualAxisGeometryAmbiguousWarning,
         ManualAxisPositions,
         ManualAxisUnavailable,
         ManualAxisReviewed,

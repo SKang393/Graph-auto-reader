@@ -201,13 +201,16 @@ public sealed class AxisSuggestionTests
     });
 
     [TestMethod]
-    [DataRow("y_axis_partial", true)]
-    [DataRow("low_geometry_confidence", false)]
-    [DataRow("", false)]
-    public void NativeGeometryWarningPersistsUntilExplicitApplyOrDismiss(string reason, bool partial) => WithImage(path =>
+    [DataRow("y_axis_partial", true, false)]
+    [DataRow("low_geometry_confidence", false, false)]
+    [DataRow("", false, false)]
+    [DataRow("y_axis_partial", true, true)]
+    [DataRow("low_geometry_confidence", false, true)]
+    public void NativeGeometryWarningPersistsUntilExplicitApplyOrDismiss(string reason, bool partial, bool ambiguous) => WithImage(path =>
     {
         var reasons = new List<string>();
         if (reason.Length > 0) reasons.Add(reason);
+        if (ambiguous) reasons.Add("native_multiple_ranked_candidates");
         var provider = new ProposalStub { Result = new(new(8, 110, 155, 5, .3), null)
             { Provider = "opencv-review", ReviewReasons = reasons } };
         using var workspace = new ManualPreviewWorkspaceService(axisProposalService: provider);
@@ -223,8 +226,11 @@ public sealed class AxisSuggestionTests
         reasons.Clear(); // Later producer mutations cannot change the published caution.
 
         Assert.IsTrue(vm.HasAxisGeometryReviewWarning);
-        Assert.AreEqual(localization.GetString(partial ? LocalizationKeys.ManualAxisGeometryPartialWarning
-            : LocalizationKeys.ManualAxisGeometryReviewWarning), vm.AxisGeometryReviewWarningText);
+        string expectedWarning = ambiguous
+            ? localization.GetString(LocalizationKeys.ManualAxisGeometryAmbiguousWarning) +
+                (partial ? "\n" + localization.GetString(LocalizationKeys.ManualAxisGeometryPartialWarning) : string.Empty)
+            : localization.GetString(partial ? LocalizationKeys.ManualAxisGeometryPartialWarning : LocalizationKeys.ManualAxisGeometryReviewWarning);
+        Assert.AreEqual(expectedWarning, vm.AxisGeometryReviewWarningText);
         Assert.IsFalse(vm.IsManualAxisDraft);
         Assert.AreSame(old, tab.Calibration);
         Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
@@ -241,6 +247,7 @@ public sealed class AxisSuggestionTests
         vm.UndoCommand.Execute(null);
         Assert.AreEqual(old, tab.Calibration);
         if (reason.Length > 0) reasons.Add(reason);
+        if (ambiguous) reasons.Add("native_multiple_ranked_candidates");
         Pump(vm.SuggestAxesAsync(CancellationToken.None));
         Assert.IsTrue(vm.HasAxisGeometryReviewWarning);
         vm.DismissAxisSuggestionCommand.Execute(null);

@@ -17,6 +17,48 @@ namespace GraphReader.App.Tests;
 public sealed partial class CalibrationTickViewModelTests
 {
     [TestMethod]
+    public void AmbiguousNativeTopProposalRemainsReviewOnlyThroughOcrAndUndo()
+    {
+        WithImage(path =>
+        {
+            var native = new ResultAxisStub(new(EstimatedGeometry(), null)
+                { Provider = "opencv-review", ReviewReasons = ["native_multiple_ranked_candidates"] });
+            var rust = new ResultAxisStub(new(null, "AMBIGUOUS_AXIS"));
+            var composite = new RustFirstAxisProposalService(rust, native);
+            RustAxisProposalResult wrapped = Pump(composite.SuggestAsync([1], CancellationToken.None));
+            CollectionAssert.Contains(wrapped.ReviewReasons.ToArray(), "native_multiple_ranked_candidates");
+            CollectionAssert.Contains(wrapped.ReviewReasons.ToArray(), "rust_axis_ambiguous");
+            var reader = new OcrStub(ValidProposals());
+            using var workspace = new ManualPreviewWorkspaceService(axisProposalService: composite,
+                calibrationOcrSuggestionService: reader);
+            Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestAxesAsync(CancellationToken.None));
+            Assert.IsTrue(vm.HasAxisGeometryReviewWarning);
+            string warning = vm.AxisGeometryReviewWarningText;
+            Assert.IsFalse(string.IsNullOrWhiteSpace(warning));
+            Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+            Assert.AreEqual(string.Empty, vm.SuggestedFinalSession);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Pump(vm.ReadCalibrationLabelsAsync(CancellationToken.None));
+            vm.RefitSelectedCalibrationLabels();
+            Assert.AreEqual(1, reader.CallCount);
+            Assert.IsTrue(vm.HasAxisGeometryReviewWarning);
+            Assert.AreEqual(warning, vm.AxisGeometryReviewWarningText);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(vm.SelectedTab!.Calibration);
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.IsNotNull(vm.SelectedTab.Calibration);
+            vm.UndoCommand.Execute(null);
+            Assert.IsNull(vm.SelectedTab.Calibration);
+        });
+    }
+
+    [TestMethod]
     public void SuggestCalibrationPreservesExplicitMeasuredChoiceWhenOrdinaryAxesAreAmbiguous()
     {
         WithImage(path =>
@@ -1093,6 +1135,11 @@ public sealed partial class CalibrationTickViewModelTests
             CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.FromCurrentSynchronizationContext());
         if (!task.IsCompleted) Dispatcher.PushFrame(frame);
         task.GetAwaiter().GetResult();
+    }
+
+    private sealed class ResultAxisStub(RustAxisProposalResult result) : IAxisProposalService
+    {
+        public Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken) => Task.FromResult(result);
     }
 
     private sealed class AxisStub(RustAxisGeometry geometry) : IAxisProposalService, IAxisCandidateReviewService

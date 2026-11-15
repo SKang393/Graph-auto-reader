@@ -534,6 +534,13 @@ internal static partial class RealDevCalibrationCheck
                 EndpointRuntimeLibraries, token, requirePrintedXReviewDraft: true);
         }
 
+        internal static Candidate VerifyRankedReview(string app, string assets, string rust, CancellationToken token)
+        {
+            RequireRankedReviewPins();
+            return VerifyPinned(app, assets, rust, RankedReviewAppExeHash, RankedReviewAppDllHash,
+                RankedReviewRustHash, RankedReviewRuntimeLibraries, token, requirePrintedXReviewDraft: true);
+        }
+
         internal static Candidate VerifySpatial(string app, string assets, string rust, CancellationToken token) =>
             VerifyPinned(app, assets, rust, SpatialAppExeHash, SpatialAppDllHash, SpatialRustHash,
                 SpatialRuntimeLibraries, token, requirePrintedXReviewDraft: true);
