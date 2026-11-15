@@ -149,7 +149,12 @@ The complete map is in `RealDevExactBoxTickTracePins.cs`. Source remains
 Apache-2.0; there is no new dependency, model, license or frozen public schema.
 No package/version increment, installer, public release or production approval
 was made. The sole delivered 0.4.54 build remains unchanged. Full Windows CI
-is required after integration before calling this source batch green.
+[43741078318](https://github.com/SKang393/Graph-auto-reader/actions/runs/43741078318)
+passed on `9b2b915f4971bbfebd16c58cbeae146575d7c08c`: all 13 .NET suites,
+3,021 passed and 30 skipped, including 218 Axis and 1,183 App tests; all 70 Rust
+tests; and applicable policy and packaging checks, including 68 packaging
+verification tests. The release jobs were skipped. This validates the source
+batch, not automatic calibration accuracy or a new packaged build.
 
 `artifacts/exact-box-ticks-check` is temporary integration evidence.
 `artifacts/exact-box-tick-dev-trace/report.json` remains temporarily needed by
@@ -157,3 +162,16 @@ the next native-box alignment diagnosis for its saved crop/geometry metadata;
 this avoids repeating unchanged inference. Retire these outputs after the
 source/outcome is pushed and those named consumers finish. Original user data
 and independent evaluation inputs are not disposable outputs.
+
+The obsolete unpackaged `artifacts/native-axis-reasons-runtime` copy was retired
+at `2026-11-15T17:28:53.3746994Z`: 220 files, 53,786,088 bytes. Its Rust
+`cfc8e59a...a1880fd` identity matched the completed historical spatial profile;
+the associated outcomes were verified in pushed history at this batch's
+`9b2b915f4971bbfebd16c58cbeae146575d7c08c` integration. A scoped consumer audit
+found no current path reference or running process. Exact inventory, absence of
+models/user data and absence of reparse points were verified before deletion;
+the scope is now absent. Historical pins/outcomes, current runtime assets and
+the sole verified 0.4.54 package remain.
+
+The subsequent [cached pixel-property diagnosis](CACHED-AXIS-PIXEL-PROPERTIES-20261115.md)
+reused this run's crop and geometry without repeating axis detection or OCR.

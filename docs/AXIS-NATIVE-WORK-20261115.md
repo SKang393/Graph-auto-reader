@@ -144,4 +144,6 @@ run metadata and TRXs were retired at `2026-11-15T12:39:51.8888986Z`: ten files,
 `artifacts/native-work-trace-check` and `artifacts/axis-work-dev-check`; their
 integration consumers had finished. Originals, independent inputs, reviewed
 runtime assets and the sole verified package were preserved. The existing
-diagnostic Rust keeper remains an active input for subsequent source-owned work.
+diagnostic Rust keeper remained an active input for subsequent source-owned
+work, then was retired after those consumers finished; see the
+[later retention closure](EXACT-BOX-TICK-EVIDENCE-20261115.md).
