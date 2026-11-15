@@ -129,14 +129,38 @@ model. The last real development availability result remains 0/12 complete
 automatic drafts; an explicit origin action is assistance, not automatic origin
 detection. Native visual acceptance of this new action remains unverified.
 
-Bounded temporary outputs are `artifacts/minor-tick-anchor-check` and
-`artifacts/native-candidate-owned-check`. Retire them after the active worker
-consumer finishes and this source/outcome reaches `origin/main`.
-Their reviewed scope is respectively 10 files / 1,792,495 bytes and six files /
-17,182 bytes, including the owned generated PNG and the void runtime output.
-The former `artifacts/hardware-final-build` has 236 files / 145,490,174 bytes of
-superseded compiler output, no image/model/project assets, no current source or
-script references, and zero consumers in a successful normal-host process
-scan. It is also eligible for retirement after this record is pushed. Keep the
-active source compiler dependencies, original inputs, shared user Data and the
-sole 0.4.52 package.
+After source/outcome commit `7f0b537d` reached `origin/main`, guarded cleanup at
+2026-11-15T07:40:12.4473303Z removed **251 files / 147,295,759 bytes**:
+nine finished files from `artifacts/minor-tick-anchor-check`, all six files from
+`artifacts/native-candidate-owned-check`, and all 236 files from the superseded
+`artifacts/hardware-final-build`. The last directory had no image/model/project
+assets, current source/script references or active consumers. Canonical scope
+and reparse checks preceded removal. The 4092-byte owned PNG remains temporarily
+for the native check below. Active source compiler dependencies, original inputs,
+shared user Data and the sole 0.4.52 package remain intact.
+
+## Isolated native check, waiting at image import
+
+The unpackaged source app launched through Computer Use from its existing
+`src/GraphReader.App/bin/Release/net10.0-windows/win-x64` output. App DLL SHA-256
+remained `499f931028157b201ce0603516cb701f25d675c6fa573268ca427d0547a6dd6a`;
+reviewed OpenCV remained
+`c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31`.
+The window and Open dialog were observed with matching native accessibility
+and screenshots. This is startup/import-dialog evidence only.
+
+The source output had no `Data` directory before launch and created its own
+portable `Data` afterward. The shared preview Data override was absent. Five
+temporary hardlinks reuse the retained package's OCR assets without a second
+model payload; each hash matched its source. These links and the isolated Data
+remain active until this source window closes and its check is recorded.
+
+Computer Use file-name edits repeatedly returned
+`element 91 is not available in cached app state for GraphReader.App.exe`.
+Refreshing the unique returned window and one clean JavaScript-tool reset did
+not repair that boundary. Keyboard/coordinate focus attempts did not produce
+a verifiable focus change. No image was imported or calibration applied. The
+maintainer was asked to select the owned PNG in the already-open dialog;
+[REV-011](REVIEW_QUEUE.md) tracks the waiting native phase. Independent geometry
+work continues. No package was created, and this attempt does not establish
+visual acceptance of the new fit action.

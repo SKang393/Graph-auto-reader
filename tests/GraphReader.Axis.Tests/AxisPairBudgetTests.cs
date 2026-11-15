@@ -15,7 +15,18 @@ public sealed class AxisPairBudgetTests
         var detector = new AxisGeometryDetector();
         AxisGeometryResult unrestricted = await detector.DetectAsync(request);
         Assert.IsNotNull(unrestricted);
-        await Assert.ThrowsExactlyAsync<AxisGeometryDetectionException>(async () =>
+        AxisGeometryDetectionException failure = await Assert.ThrowsExactlyAsync<AxisGeometryDetectionException>(async () =>
             await detector.DetectAsync(request with { MaximumExaminedPairs = 1 }));
+        Assert.AreEqual(AxisGeometryFailureReason.PairBudgetExceeded, failure.Reason);
+        Assert.AreEqual("AXIS_GEOMETRY_NOT_FOUND", failure.Code);
+    }
+
+    [TestMethod]
+    public void ExistingStringConstructorRetainsItsCodeAndUnspecifiedReason()
+    {
+        var failure = new AxisGeometryDetectionException("owned");
+        Assert.AreEqual("AXIS_GEOMETRY_NOT_FOUND", failure.Code);
+        Assert.AreEqual(AxisGeometryFailureReason.Unspecified, failure.Reason);
+        Assert.AreEqual("owned", failure.Message);
     }
 }

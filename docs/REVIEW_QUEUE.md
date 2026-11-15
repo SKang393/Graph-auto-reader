@@ -190,11 +190,16 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 
 ## REV-011 - finish native preview verification
 
-- **Status:** resolved for access and window handoff; scoped native checks passed
-- **Blocks:** none requiring maintainer action. Foreground profiling interruption
-  remains an unverified engineering observation, not a passed check
-- **Effort:** none for the maintainer
-- **Action:** no further closure or access approval is needed. The 452 handoff
+- **Status:** waiting for the new entered-origin source check; earlier 452
+  access, handoff and scoped native checks remain resolved
+- **Blocks:** native visual acceptance of the new entered-first-session action.
+  Foreground profiling interruption remains an unverified engineering observation
+- **Effort:** about one minute
+- **Action:** select the [owned zero-origin image](../artifacts/minor-tick-anchor-check/entered-zero-origin.png)
+  in the isolated source app's already-open file dialog. Computer Use can observe
+  the dialog but cannot address its file-name control, even after a clean tool
+  reset. Geometry/source work continues independently. No new access approval is
+  needed. The 452 handoff
   and old-build retirement are complete. The native 452 record verifies the
   device-picker/history fixes, marker Remove and Undo/Redo, manual drafts and
   independent OCR row selection/inclusion/refit. Keep the inconclusive
@@ -259,10 +264,11 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   [connection-context outcome](MARKER-CONNECTION-CONTROLS-20261114.md),
   [crop workflow outcome](PANEL-CROP-WORKFLOW-20261114.md),
   [current implementation plan](DEVELOPMENT-RESET-20261111.md)
-- **Resolution:** maintainer access and closure actions completed, verified 452
+- **Earlier resolution:** maintainer access and closure actions completed, verified 452
   activation followed, and matching native observations now support the scoped
   fixes. Remaining engineering limitations stay in the native outcome and
-  readiness records; no new maintainer input is required
+  readiness records. The new [source check](CALIBRATION-ENTERED-ORIGIN-20261115.md)
+  is waiting only at image import; its fit/review/Apply behavior remains unchecked
 
 ## REV-012 - identify the existing Windows test laptop
 

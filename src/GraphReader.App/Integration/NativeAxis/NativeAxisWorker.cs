@@ -71,23 +71,41 @@ internal static class NativeAxisWorker
             geometry = await new AxisGeometryDetector().DetectAsync(
                 new AxisGeometryRequest(width, height, lines) { CandidateObserver = observer, MaximumExaminedPairs = 128 }, token).ConfigureAwait(false);
         }
-        catch (AxisGeometryDetectionException)
+        catch (AxisGeometryDetectionException error)
         {
-            return Failure("OPENCV_AXIS_AMBIGUOUS");
+            string detail = error.Reason switch
+            {
+                AxisGeometryFailureReason.NoLineEvidence => "native_no_line_evidence",
+                AxisGeometryFailureReason.MissingOrientation => "native_missing_orientation",
+                AxisGeometryFailureReason.PairBudgetExceeded => "native_pair_budget_exceeded",
+                AxisGeometryFailureReason.NoIntersectingPair => "native_no_intersecting_pair",
+                _ => "native_geometry_unavailable",
+            };
+            return Failure("OPENCV_AXIS_AMBIGUOUS", detail);
         }
         var p = geometry.PlotPolygon;
         PixelPoint[] corners = [p.BottomLeft, p.BottomRight, p.TopRight, p.TopLeft];
-        if (observer.Count != 1 || corners.Any(c => !double.IsFinite(c.X) || !double.IsFinite(c.Y) || c.X < 0 || c.Y < 0 || c.X >= width || c.Y >= height) ||
-            Math.Abs(p.BottomLeft.Y - p.BottomRight.Y) > 1 || Math.Abs(p.TopLeft.Y - p.TopRight.Y) > 1 ||
-            Math.Abs(p.BottomLeft.X - p.TopLeft.X) > 1 || Math.Abs(p.BottomRight.X - p.TopRight.X) > 1)
-            return Failure("OPENCV_AXIS_AMBIGUOUS");
+        string? rejection = GeometryRejection(corners, observer.Count, width, height);
+        if (rejection is not null) return Failure("OPENCV_AXIS_AMBIGUOUS", rejection);
         int left = (int)Math.Round(p.BottomLeft.X), right = (int)Math.Round(p.BottomRight.X);
         int bottom = (int)Math.Round(p.BottomLeft.Y), top = (int)Math.Round(p.TopLeft.Y);
         if (left < 0 || top < 0 || right >= width || bottom >= height || left >= right || top >= bottom || !double.IsFinite(geometry.Confidence))
-            return Failure("OPENCV_AXIS_AMBIGUOUS");
+            return Failure("OPENCV_AXIS_AMBIGUOUS", "native_invalid_rounded_geometry");
         string[] reasons = geometry.Uncertainty.Reasons.ToArray();
         if (geometry.Uncertainty.NeedsReview && reasons.Length == 0) reasons = ["needs_review"];
         return new(new RustAxisGeometry(left, bottom, right, top, geometry.Confidence), null) { Provider = "opencv-review", ReviewReasons = reasons };
     }
-    private static RustAxisProposalResult Failure(string reason) => new(null, reason) { Provider = "opencv-review" };
+    internal static string? GeometryRejection(PixelPoint[] corners, int count, int width, int height)
+    {
+        if (count != 1) return count > 1 ? "native_multiple_ranked_candidates" : "native_no_ranked_candidates";
+        if (corners.Any(c => !double.IsFinite(c.X) || !double.IsFinite(c.Y) || c.X < 0 || c.Y < 0 || c.X >= width || c.Y >= height))
+            return "native_invalid_corner_bounds";
+        if (Math.Abs(corners[0].Y - corners[1].Y) > 1 || Math.Abs(corners[3].Y - corners[2].Y) > 1 ||
+            Math.Abs(corners[0].X - corners[3].X) > 1 || Math.Abs(corners[1].X - corners[2].X) > 1)
+            return "native_rotated_geometry";
+        return null;
+    }
+
+    private static RustAxisProposalResult Failure(string reason, string? detail = null) => new(null, reason)
+    { Provider = "opencv-review", ReviewReasons = detail is null ? [] : [detail] };
 }

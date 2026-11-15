@@ -80,7 +80,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
 
         if (accepted.Count == 0)
         {
-            throw DetectionFailure("No finite line candidates were available for axis fitting.");
+            throw DetectionFailure("No finite line candidates were available for axis fitting.", AxisGeometryFailureReason.NoLineEvidence);
         }
 
         EnsureUniqueIds(accepted);
@@ -89,7 +89,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
 
         if (horizontal.Length == 0 || vertical.Length == 0)
         {
-            throw DetectionFailure("Both horizontal and vertical line evidence are required.");
+            throw DetectionFailure("Both horizontal and vertical line evidence are required.", AxisGeometryFailureReason.MissingOrientation);
         }
 
         var horizontalFamilies = BuildFamilies(
@@ -125,7 +125,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (request.MaximumExaminedPairs is int maximum && ++examinedPairs > maximum)
-                    throw DetectionFailure("Axis pair examination limit exceeded.");
+                    throw DetectionFailure("Axis pair examination limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded);
                 if (!TryIntersect(horizontalFamily, verticalFamily, out var intersection))
                 {
                     continue;
@@ -157,7 +157,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
 
         if (pairCandidates.Count == 0)
         {
-            throw DetectionFailure("No intersecting x-axis and y-axis pair could be fitted.");
+            throw DetectionFailure("No intersecting x-axis and y-axis pair could be fitted.", AxisGeometryFailureReason.NoIntersectingPair);
         }
 
         // A score tie must not make the selected review candidate depend on
@@ -1563,8 +1563,8 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
 
     private static double Clamp01(double value) => Math.Clamp(value, 0d, 1d);
 
-    private static AxisGeometryDetectionException DetectionFailure(string technicalMessage) =>
-        new(technicalMessage);
+    private static AxisGeometryDetectionException DetectionFailure(string technicalMessage, AxisGeometryFailureReason reason) =>
+        new(technicalMessage, reason);
 
     private enum Orientation
     {

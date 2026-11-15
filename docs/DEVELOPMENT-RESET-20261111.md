@@ -8,8 +8,10 @@ Latest source checkpoint, 2026-11-15: the
 the original printed ticks and can calculate anchors for an explicitly entered
 first-visible session without changing project semantics. Owned real-worker and
 save/reopen/export checks pass; the last automatic development result is still
-0/12 complete drafts. Continue specific geometry/grouping diagnosis on owned
-controls and preserve the independent split. The sole retained package remains
+0/12 complete drafts. The [new geometry-only diagnosis](NATIVE-AXIS-REJECTION-DIAGNOSIS-20261115.md)
+identifies pair-budget exhaustion in all five native failures. Prioritize bounded
+pruning of irrelevant pair checks, preserving candidate completeness and the
+independent split. The sole retained package remains
 0.4.52 until a meaningful integrated replacement is verified.
 
 The maintainer requested a Rust-based, responsive Windows application and

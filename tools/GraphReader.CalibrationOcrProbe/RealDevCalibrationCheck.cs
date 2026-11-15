@@ -526,6 +526,14 @@ internal static partial class RealDevCalibrationCheck
         internal static Candidate VerifyPostGrouping(string app, string assets, string rust, CancellationToken token) =>
             VerifyPinned(app, assets, rust, PostGroupingAppExeHash, PostGroupingAppDllHash, PostGroupingRustHash, PostGroupingRuntimeLibraries, token);
 
+        internal static Candidate VerifyNativeRejection(string app, string assets, string rust, CancellationToken token)
+        {
+            RequireNativeRejectionPins(NativeRejectionAppExeHash, NativeRejectionAppDllHash,
+                NativeRejectionRustHash, NativeRejectionRuntimeLibraries);
+            return VerifyPinned(app, assets, rust, NativeRejectionAppExeHash, NativeRejectionAppDllHash,
+                NativeRejectionRustHash, NativeRejectionRuntimeLibraries, token);
+        }
+
         private static Candidate VerifyPinned(string app, string assets, string rust, string expectedExe, string expectedDll,
             string expectedRust, FrozenDictionary<string, string> libraries, CancellationToken token)
         {

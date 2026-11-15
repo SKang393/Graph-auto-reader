@@ -90,7 +90,19 @@ public sealed class AxisGeometryPairContactTests
         catch (AxisGeometryDetectionException failure)
         {
             Assert.AreEqual("AXIS_GEOMETRY_NOT_FOUND", failure.Code);
+            Assert.AreEqual(AxisGeometryFailureReason.NoIntersectingPair, failure.Reason);
         }
+    }
+
+    [TestMethod]
+    public async Task MissingOrientationHasTypedReasonWithoutChangingLegacyCode()
+    {
+        AxisGeometryRequest request = new AxisFixtureBuilder()
+            .Line(100, 300, 700, 300, id: "horizontal-only").Build();
+        AxisGeometryDetectionException failure = await Assert.ThrowsExactlyAsync<AxisGeometryDetectionException>(
+            async () => await new AxisGeometryDetector().DetectAsync(request));
+        Assert.AreEqual("AXIS_GEOMETRY_NOT_FOUND", failure.Code);
+        Assert.AreEqual(AxisGeometryFailureReason.MissingOrientation, failure.Reason);
     }
 
     [TestMethod]

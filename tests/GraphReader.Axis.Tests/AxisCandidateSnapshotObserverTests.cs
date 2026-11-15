@@ -133,6 +133,7 @@ public sealed class AxisCandidateSnapshotObserverTests
             async () => await new AxisGeometryDetector().DetectAsync(request));
 
         Assert.AreEqual("AXIS_GEOMETRY_NOT_FOUND", failure.Code);
+        Assert.AreEqual(AxisGeometryFailureReason.NoLineEvidence, failure.Reason);
         Assert.IsNull(observer.Candidates);
     }
 

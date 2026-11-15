@@ -320,11 +320,26 @@ public interface IAxisGeometryDetector
         CancellationToken cancellationToken = default);
 }
 
+public enum AxisGeometryFailureReason
+{
+    Unspecified,
+    NoLineEvidence,
+    MissingOrientation,
+    PairBudgetExceeded,
+    NoIntersectingPair,
+}
+
 public sealed class AxisGeometryDetectionException : InvalidOperationException
 {
     public AxisGeometryDetectionException(string technicalMessage)
+        : this(technicalMessage, AxisGeometryFailureReason.Unspecified)
+    {
+    }
+
+    public AxisGeometryDetectionException(string technicalMessage, AxisGeometryFailureReason reason)
         : base(technicalMessage)
     {
+        Reason = reason;
         Code = "AXIS_GEOMETRY_NOT_FOUND";
         UserMessageKey = "Errors.AxisGeometryNotFound";
         Recoverable = true;
@@ -332,6 +347,8 @@ public sealed class AxisGeometryDetectionException : InvalidOperationException
     }
 
     public string Code { get; }
+
+    public AxisGeometryFailureReason Reason { get; }
 
     public string UserMessageKey { get; }
 

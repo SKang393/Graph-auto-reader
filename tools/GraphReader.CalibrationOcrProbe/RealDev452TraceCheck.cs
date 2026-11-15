@@ -18,9 +18,12 @@ internal static partial class RealDevCalibrationCheck
 
     private static readonly string[] TracePanelStatuses =
         ["NO_GEOMETRY", "OCR_FAILED", "UNSUPPORTED_DIMENSIONS", "PANEL_FAILED", "OCR_RETURNED"];
+    private static readonly string[] NativeRejectionPanelStatuses =
+        ["NO_GEOMETRY", "GEOMETRY_RETURNED", "UNSUPPORTED_DIMENSIONS", "PANEL_FAILED"];
 
-    private static Dictionary<string, int> NewTracePanelStatusCounts() =>
-        TracePanelStatuses.ToDictionary(static status => status, static _ => 0, StringComparer.Ordinal);
+    private static Dictionary<string, int> NewTracePanelStatusCounts(bool geometryOnly = false) =>
+        (geometryOnly ? NativeRejectionPanelStatuses : TracePanelStatuses)
+            .ToDictionary(static status => status, static _ => 0, StringComparer.Ordinal);
 
     private static void CountTracePanelStatus(Dictionary<string, int> counts, TracePanelOutcome outcome)
     {
@@ -54,18 +57,22 @@ internal static partial class RealDevCalibrationCheck
 
     internal static Task<object> Run452TraceAsync(string corpusRoot, string app, string assets, string rust,
         CpuBudgetJob budget, CancellationToken token) =>
-        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: false, token);
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: false, geometryOnly: false, token);
 
     internal static Task<object> RunPostGroupingTraceAsync(string corpusRoot, string app, string assets, string rust,
         CpuBudgetJob budget, CancellationToken token) =>
-        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, token);
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token);
+
+    internal static Task<object> RunNativeRejectionTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token);
 
     private static async Task<object> RunTraceAsync(string corpusRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, bool sourcePostGrouping, CancellationToken token)
+        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token)
     {
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(app) ||
             !Path.IsPathFullyQualified(assets) || !Path.IsPathFullyQualified(rust)) throw new InvalidDataException();
-        using Candidate candidate = sourcePostGrouping
+        using Candidate candidate = geometryOnly ? Candidate.VerifyNativeRejection(app, assets, rust, token) : sourcePostGrouping
             ? Candidate.VerifyPostGrouping(app, assets, rust, token)
             : Candidate.Verify452(app, assets, rust, token);
         _ = AxisDecisionDiagnosticClient.SelfTest();
@@ -78,10 +85,10 @@ internal static partial class RealDevCalibrationCheck
         var primary = new TraceRustAxis(rust);
         var secondary = new TraceAxis(new OpenCvAxisProposalService(app));
         IAxisProposalService axis = new RustFirstAxisProposalService(primary, secondary);
-        await using var ocr = new CalibrationOcrWorkerClient(app, assets, () => CalibrationOcrDeviceSelection.Cpu);
+        await using CalibrationOcrWorkerClient? ocr = geometryOnly ? null : new(app, assets, () => CalibrationOcrDeviceSelection.Cpu);
         using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         int attempted = 0, returned = 0, fallback = 0, panelAttempted = 0, panelFinished = 0;
-        Dictionary<string, int> terminalStatusCounts = NewTracePanelStatusCounts();
+        Dictionary<string, int> terminalStatusCounts = NewTracePanelStatusCounts(geometryOnly);
         for (int i = 0; i < TraceSampleCount && !token.IsCancellationRequested; i++)
         {
             attempted++; var panelResults = new List<object>(); string status = "completed"; string? errorCategory = null; int effective = 0;
@@ -103,7 +110,7 @@ internal static partial class RealDevCalibrationCheck
                     {
                         TracePanelOutcome outcome = await TracePanelAsync(payload.Image, payload.Width, payload.Height,
                             new PdfRectD(0, 0, payload.Width, payload.Height), payload.Width, payload.Height, payload.ProjectHash,
-                            candidate, axis, primary, secondary, ocr, sourcePostGrouping, deadline.Token).ConfigureAwait(false);
+                            candidate, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token).ConfigureAwait(false);
                         CountTracePanelStatus(terminalStatusCounts, outcome);
                         panelResults.Add(outcome.Payload);
                     }
@@ -127,7 +134,7 @@ internal static partial class RealDevCalibrationCheck
                         {
                             var (bytes, width, height, crop) = ReadPreparedPanel(panel, payload.Width, payload.Height);
                             TracePanelOutcome outcome = await TracePanelAsync(bytes, width, height, crop, payload.Width, payload.Height,
-                                payload.ProjectHash, candidate, axis, primary, secondary, ocr, sourcePostGrouping, deadline.Token).ConfigureAwait(false);
+                                payload.ProjectHash, candidate, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token).ConfigureAwait(false);
                             CountTracePanelStatus(terminalStatusCounts, outcome);
                             panelResults.Add(outcome.Payload);
                             panelFinished++;
@@ -147,6 +154,17 @@ internal static partial class RealDevCalibrationCheck
             catch (Exception error) when (error is not OutOfMemoryException) { status = "project_failed"; errorCategory = TraceExceptionCategory(error); }
             projects.Add(new { index = i, status, error_category = errorCategory, preparation_milliseconds = preparationMs, effective_panels = effective, panels = panelResults });
         }
+        if (geometryOnly)
+            return new { schema = NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
+                selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
+                attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
+                attempted_panels = panelAttempted, finished_panels = panelFinished, unfinished_execution_panels = panelAttempted - panelFinished,
+                terminal_status_counts = terminalStatusCounts, unattempted_panels = returned + fallback - panelAttempted,
+                metadata.AssignmentSha256, metadata.SelectedInventorySha256, source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
+                candidate = new { app_exe_sha256 = NativeRejectionAppExeHash, app_dll_sha256 = NativeRejectionAppDllHash,
+                    rust_sha256 = NativeRejectionRustHash, runtime_files = NativeRejectionRuntimeLibraries },
+                sealed_payload_reads = 0, ocr_calls = 0, truth_scoring = false, image_writes = false, review_only = true,
+                project_deadline_seconds = 45, overall_deadline_seconds = 900, projects };
         return new { schema = sourcePostGrouping ? PostGroupingTraceSchema : "graphreader.real-dev-452-association-trace.v1", scope = "development_only_sensitive_metadata",
             selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
             attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
@@ -161,7 +179,7 @@ internal static partial class RealDevCalibrationCheck
 
     private static async Task<TracePanelOutcome> TracePanelAsync(byte[] image, int width, int height, PdfRectD crop, int sourceWidth, int sourceHeight,
         string projectHash, Candidate candidate, IAxisProposalService axis, TraceRustAxis primary, TraceAxis secondary,
-        CalibrationOcrWorkerClient ocr, bool sourcePostGrouping, CancellationToken token)
+        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token)
     {
         if (width is < 32 or > 4096 || height is < 32 or > 4096 || (long)width * height > 16_777_216)
             return new("UNSUPPORTED_DIMENSIONS", new { status = "UNSUPPORTED_DIMENSIONS", width, height, crop });
@@ -176,13 +194,17 @@ internal static partial class RealDevCalibrationCheck
         var stages = new { rust_error = primary.Last?.Proposal.ErrorCode, rust_returned = primary.Last?.Proposal.Geometry is not null,
             rust_trace = primary.Last?.Trace,
             native_attempted = fallbackCalled, native_error = fallbackCalled ? secondary.Last?.ErrorCode : null,
+            native_review_reasons = fallbackCalled ? secondary.Last?.ReviewReasons : null,
             native_returned = fallbackCalled && secondary.Last?.Geometry is not null, result.Provider, result.ReviewReasons };
         if (result.Geometry is not { } geometry)
             return new("NO_GEOMETRY", new { status = "NO_GEOMETRY", width, height, crop, stages, axis_milliseconds = axisMs });
+        if (geometryOnly)
+            return new("GEOMETRY_RETURNED", new { status = "GEOMETRY_RETURNED", width, height, crop, stages,
+                axis_milliseconds = axisMs, geometry });
         string panelHash = Convert.ToHexStringLower(SHA256.HashData(image));
         CalibrationOcrRequest request = TraceRequest(projectHash, panelHash, width, height, geometry, sourcePostGrouping);
         timer.Restart();
-        CalibrationOcrResponse response = await ocr.SuggestAsync(request, image, token).ConfigureAwait(false);
+        CalibrationOcrResponse response = await (ocr ?? throw new InvalidDataException()).SuggestAsync(request, image, token).ConfigureAwait(false);
         double ocrMs = timer.Elapsed.TotalMilliseconds;
         if (response.FailureCode is not null)
             return new("OCR_FAILED", new { status = "OCR_FAILED", width, height, crop, stages, axis_milliseconds = axisMs, ocr_milliseconds = ocrMs, ocr_error = response.FailureCode });
@@ -265,5 +287,27 @@ internal static partial class RealDevCalibrationCheck
             selfTestUnfinishedPanels != 2) throw new InvalidDataException();
         return new { schema = "graphreader.real-dev-452-trace-self-test.v1", owned_tie_rejected = true,
             crop_offset_once = true, terminal_status_accounting = true, private_reads = 0 };
+    }
+
+    internal static object NativeRejectionTraceSelfTest()
+    {
+        Dictionary<string, int> counts = NewTracePanelStatusCounts(geometryOnly: true);
+        foreach (string status in NativeRejectionPanelStatuses)
+            CountTracePanelStatus(counts, new TracePanelOutcome(status, new { status }));
+        if (counts.Values.Any(static count => count != 1) || counts.Values.Sum() != 4) throw new InvalidDataException();
+        bool ocrStatusRejected = false;
+        try { CountTracePanelStatus(counts, new TracePanelOutcome("OCR_RETURNED", new { })); }
+        catch (InvalidDataException) { ocrStatusRejected = true; }
+        bool selectorReached = false, missingPinsRejected = false;
+        try
+        {
+            RequireNativeRejectionPins("", "", "", new Dictionary<string, string>(StringComparer.Ordinal));
+            selectorReached = true;
+        }
+        catch (InvalidDataException) { missingPinsRejected = true; }
+        if (!ocrStatusRejected || !missingPinsRejected || selectorReached) throw new InvalidDataException();
+        return new { schema = "graphreader.real-dev-native-rejection-geometry-self-test.v1",
+            geometry_terminal_statuses = counts.Count, ocr_status_rejected = true,
+            missing_pins_rejected_before_selector = true, private_reads = 0 };
     }
 }

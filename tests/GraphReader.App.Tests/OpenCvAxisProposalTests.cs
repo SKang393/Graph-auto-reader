@@ -28,6 +28,15 @@ public sealed class OpenCvAxisProposalTests
     }
 
     [TestMethod]
+    public void NativeFailureAcceptsLegacyEmptyAndBoundedDiagnosticReasons()
+    {
+        var failure = new RustAxisProposalResult(null, "OPENCV_AXIS_AMBIGUOUS") { Provider = "opencv-review" };
+        Assert.IsTrue(OpenCvAxisProposalService.Valid(failure, 100, 100));
+        Assert.IsTrue(OpenCvAxisProposalService.Valid(failure with { ReviewReasons = ["native_pair_budget_exceeded"] }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.Valid(failure with { ReviewReasons = [new string('x', 129)] }, 100, 100));
+    }
+
+    [TestMethod]
     public async Task CancellationBeforeStartDoesNotLaunchWorker()
     {
         var service = new OpenCvAxisProposalService(System.IO.Path.GetFullPath("missing-worker.exe"));
