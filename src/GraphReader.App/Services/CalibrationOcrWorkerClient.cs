@@ -41,7 +41,7 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
     {
         ArgumentNullException.ThrowIfNull(request);
         // Snapshot mutable optional evidence before scheduling or waiting for the request gate.
-        CalibrationOcrRequest snapshot = request with { MeasuredXTicks = request.MeasuredXTicks?.ToArray() };
+        CalibrationOcrRequest snapshot = request with { MeasuredXTicks = request.MeasuredXTicks?.ToArray(), MeasuredYTicks = request.MeasuredYTicks?.ToArray() };
         return Task.Run(() => SuggestCoreAsync(snapshot, encodedOriginalPanel, cancellationToken), CancellationToken.None);
     }
 
@@ -160,7 +160,7 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
         request.Width > 0 && request.Height > 0 && request.Plot is { } plot &&
         double.IsFinite(plot.Left) && double.IsFinite(plot.Top) && double.IsFinite(plot.Right) && double.IsFinite(plot.Bottom) &&
         plot.Left >= 0 && plot.Top >= 0 && plot.Right < request.Width && plot.Bottom < request.Height &&
-        plot.Left < plot.Right && plot.Top < plot.Bottom && request.ValidMeasuredXTicks() &&
+        plot.Left < plot.Right && plot.Top < plot.Bottom && request.ValidMeasuredXTicks() && request.ValidMeasuredYTicks() &&
         string.Equals(Convert.ToHexString(SHA256.HashData(image.Span)), request.PanelImageSha256, StringComparison.OrdinalIgnoreCase);
 
     internal static bool IsValidResponse(CalibrationOcrRequest request, CalibrationOcrResponse? response,

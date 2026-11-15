@@ -22,15 +22,25 @@ public sealed record CalibrationOcrRequest(string RequestId, string Binding, str
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int[]? MeasuredXTicks { get; init; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int[]? MeasuredYTicks { get; init; }
+
     internal bool ValidMeasuredXTicks() => MeasuredXTicks is null ||
         (MeasuredXTicks.Length <= 128 && Plot is not null &&
          MeasuredXTicks.All(x => x >= Plot.Left && x <= Plot.Right && x >= 0 && x < Width) &&
          MeasuredXTicks.Zip(MeasuredXTicks.Skip(1)).All(pair => pair.First < pair.Second));
 
+    internal bool ValidMeasuredYTicks() => MeasuredYTicks is null ||
+        (MeasuredYTicks.Length <= 128 && Plot is not null &&
+         MeasuredYTicks.All(y => y >= Plot.Top && y <= Plot.Bottom && y >= 0 && y < Height) &&
+         MeasuredYTicks.Zip(MeasuredYTicks.Skip(1)).All(pair => pair.First < pair.Second));
+
     internal bool Matches(CalibrationOcrRequest? other) => other is not null &&
-        (this with { MeasuredXTicks = null }) == (other with { MeasuredXTicks = null }) &&
+        (this with { MeasuredXTicks = null, MeasuredYTicks = null }) == (other with { MeasuredXTicks = null, MeasuredYTicks = null }) &&
         ((MeasuredXTicks is null && other.MeasuredXTicks is null) ||
-         (MeasuredXTicks is not null && other.MeasuredXTicks is not null && MeasuredXTicks.SequenceEqual(other.MeasuredXTicks)));
+         (MeasuredXTicks is not null && other.MeasuredXTicks is not null && MeasuredXTicks.SequenceEqual(other.MeasuredXTicks))) &&
+        ((MeasuredYTicks is null && other.MeasuredYTicks is null) ||
+         (MeasuredYTicks is not null && other.MeasuredYTicks is not null && MeasuredYTicks.SequenceEqual(other.MeasuredYTicks)));
 
 }
 

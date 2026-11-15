@@ -479,6 +479,14 @@ owned negative controls and was removed; Rust production behavior is unchanged.
 Keep 0.4.52 as the sole package while source-backed grouping/geometry repairs
 advance. Do not repeat the private comparison to select thresholds or readers.
 
+The [measured Y-label increment](CALIBRATION-MEASURED-Y-GROUPING-20261115.md)
+now forwards observed Y ticks into the private OCR worker pipe and prevents
+separate supported label rows from merging into one rotated crop. Its owned
+failing-before reproduction is repaired, with 51 OCR and 15 App checks passing.
+The actual owned source-worker pipeline returned a complete measured draft in
+4.242 seconds. Source integration remains separate from the retained package
+and from representative private accuracy; no additional private run was used.
+
 ## Cactus assessment
 
 Cactus v4.1.0 is a runtime and model family, not an ONNX replacement. Its Mirage

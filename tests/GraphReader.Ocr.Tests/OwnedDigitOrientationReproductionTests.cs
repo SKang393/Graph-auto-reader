@@ -5,6 +5,7 @@ namespace GraphReader.Ocr.Tests;
 [TestClass]
 public sealed class OwnedDigitOrientationReproductionTests
 {
+    private static readonly int[] RotatedTitleYTicks = [22, 30, 38];
     private static readonly string[] Seven =
     [
         "#####", "...##", "...##", "..##.", "..##.", ".##..",
@@ -29,15 +30,19 @@ public sealed class OwnedDigitOrientationReproductionTests
     }
 
     [TestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public async Task GenuinelyRotatedMultiGlyphRowStillNormalizesToUprightSourcePixels(bool observedGroupingOnly)
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    public async Task GenuinelyRotatedMultiGlyphRowStillNormalizesToUprightSourcePixels(bool observedGroupingOnly, bool measuredYContext)
     {
         byte[] glyphs = UprightRow(3);
         OcrImage image = Place(glyphs, 21, 11, clockwise: true);
         IReadOnlyList<OcrDetectedRegion> regions = await new ConnectedComponentTextRegionDetector(new()
             { UseObservedVerticalGroupingOrientation = observedGroupingOnly })
-            .DetectAsync(image, CancellationToken.None);
+            .DetectAsync(image, measuredYContext
+                ? new OcrMeasuredTickGrouping([], 150) { YTicks = RotatedTitleYTicks, PlotLeft = 60 } : null,
+                CancellationToken.None);
         Assert.HasCount(1, regions);
         Assert.AreEqual(new OcrRectangle(30, 20, 11, 21), regions[0].Polygon.Bounds);
 

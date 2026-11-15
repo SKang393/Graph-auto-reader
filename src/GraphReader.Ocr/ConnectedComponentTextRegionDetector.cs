@@ -27,8 +27,12 @@ public sealed record ConnectedComponentTextRegionDetectorOptions
     public bool UseObservedVerticalGroupingOrientation { get; init; }
 }
 
-/// <summary>Optional original-pixel X ticks and plot edge for conservative axis-label grouping.</summary>
-public sealed record OcrMeasuredTickGrouping(IReadOnlyList<int> XTicks, double PlotBottom);
+/// <summary>Optional original-pixel ticks and plot edges for conservative axis-label grouping.</summary>
+public sealed record OcrMeasuredTickGrouping(IReadOnlyList<int> XTicks, double PlotBottom)
+{
+    public IReadOnlyList<int>? YTicks { get; init; }
+    public double? PlotLeft { get; init; }
+}
 
 /// <summary>
 /// Finds bounded dark connected components and groups nearby glyphs into text
@@ -260,11 +264,59 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             lines.Add(line);
         }
 
-        return GroupVerticalGlyphs(lines, cancellationToken);
+        return GroupVerticalGlyphs(lines, image, grouping, cancellationToken);
     }
 
-    private List<ComponentBounds> GroupVerticalGlyphs(List<ComponentBounds> horizontalLines, CancellationToken cancellationToken)
+    private List<ComponentBounds> GroupVerticalGlyphs(List<ComponentBounds> horizontalLines,
+        OcrImage image, OcrMeasuredTickGrouping? grouping, CancellationToken cancellationToken)
     {
+        int[] yTicks = grouping?.YTicks is { Count: >= 3 and <= 128 } suppliedTicks ? suppliedTicks.ToArray() : [];
+        double plotLeft = grouping?.PlotLeft ?? double.NaN;
+        if (image.OriginalToImage != OcrFrameTransform.Identity || !double.IsFinite(plotLeft) ||
+            plotLeft < 0 || plotLeft >= image.Width || grouping is null ||
+            !double.IsFinite(grouping.PlotBottom) || grouping.PlotBottom < 0 || grouping.PlotBottom >= image.Height ||
+            yTicks.Length is < 3 or > 128 || yTicks.Any(tick => tick < 0 || tick > grouping.PlotBottom || tick >= image.Height) ||
+            !yTicks.Zip(yTicks.Skip(1)).All(pair => pair.First < pair.Second)) yTicks = [];
+        var boundaries = new List<(double Position, ComponentBounds[] Crossing)>();
+        for (int index = 1; index < yTicks.Length; index++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            double position = (yTicks[index - 1] + (double)yTicks[index]) / 2;
+            var crossing = new List<ComponentBounds>();
+            foreach (ComponentBounds component in horizontalLines)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (component.Top < position && component.Bottom + 1 > position) crossing.Add(component);
+            }
+            boundaries.Add((position, crossing.ToArray()));
+        }
+        int SupportedLane(ComponentBounds component)
+        {
+            if (component.Right >= plotLeft) return -1;
+            for (int index = 0; index < yTicks.Length; index++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (component.Top > yTicks[index] || component.Bottom < yTicks[index]) continue;
+                double start = index > 0 ? boundaries[index - 1].Position : 0;
+                double end = index < boundaries.Count ? boundaries[index].Position : image.Height;
+                return component.Top >= start && component.Bottom + 1 <= end ? index : -1;
+            }
+            return -1;
+        }
+        bool SeparateMeasuredRows(ComponentBounds first, ComponentBounds second, int gap)
+        {
+            if (gap <= Math.Max(first.Height, second.Height)) return false;
+            int firstLane = SupportedLane(first), secondLane = SupportedLane(second);
+            if (firstLane < 0 || secondLane < 0 || firstLane == secondLane) return false;
+            for (int index = Math.Min(firstLane, secondLane); index < Math.Max(firstLane, secondLane); index++)
+                foreach (ComponentBounds crossing in boundaries[index].Crossing)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (crossing.Left <= Math.Min(first.Right, second.Right) &&
+                        crossing.Right >= Math.Max(first.Left, second.Left)) return false;
+                }
+            return true;
+        }
         var remaining = horizontalLines
             .OrderBy(static component => component.Left)
             .ThenBy(static component => component.Top)
@@ -304,7 +356,8 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                             ? line.Top - candidate.Bottom - 1
                             : 0;
                     var maximumGap = Math.Max(line.Width, candidate.Width) * _options.MaximumLineGapHeightRatio;
-                    if (overlapFraction >= _options.MinimumVerticalOverlapFraction && verticalGap <= maximumGap)
+                    if (overlapFraction >= _options.MinimumVerticalOverlapFraction && verticalGap <= maximumGap &&
+                        !SeparateMeasuredRows(line, candidate, verticalGap))
                     {
                         line = line.Merge(candidate) with { ObservedVerticalGrouping = true };
                         remaining.RemoveAt(index);

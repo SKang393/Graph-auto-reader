@@ -44,7 +44,10 @@ internal static class TickProposalCheck
         var request = new CalibrationOcrRequest("tick-proposal-check", binding, source.ImageSha256,
             Program.Hash(panel), image.Width, image.Height,
             new(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom))
-        { MeasuredXTicks = geometry.XTickPositions.Count > 0 ? geometry.XTickPositions.ToArray() : null };
+        {
+            MeasuredXTicks = geometry.XTickPositions.Count > 0 ? geometry.XTickPositions.ToArray() : null,
+            MeasuredYTicks = geometry.YTickPositions.Count > 0 ? geometry.YTickPositions.ToArray() : null,
+        };
         // Use detected geometry, never the known plot in an older diagnostic request.
         await using var reader = new CalibrationOcrWorkerClient(appExe, assetRoot);
         CalibrationOcrResponse response = await reader.SuggestAsync(request, panel, token);
@@ -59,6 +62,8 @@ internal static class TickProposalCheck
             source_sha256 = source.ImageSha256, source_crop_xywh = crop,
             coordinate_space = "original_panel_pixels", panel_sha256 = request.PanelImageSha256,
             geometry, axis.Provider, axis.ReviewReasons, geometry_milliseconds = geometryMilliseconds,
+            measured_x_tick_count = request.MeasuredXTicks?.Length ?? 0,
+            measured_y_tick_count = request.MeasuredYTicks?.Length ?? 0,
             candidate_count = response.Proposals.Count,
             numeric_candidate_count = response.Proposals.Count(row => row.NumericLiteral),
             proposal, pairing_milliseconds = pairingMilliseconds,

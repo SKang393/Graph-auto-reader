@@ -229,6 +229,7 @@ public sealed class CalibrationOcrWorkerTests
             valid with { Width = 95 },
             valid with { Plot = new(-1, 10, 80, 70) },
             valid with { ProtocolVersion = 2 },
+            valid with { MeasuredYTicks = [20, 20] },
         })
         {
             CalibrationOcrException failure = await Assert.ThrowsExactlyAsync<CalibrationOcrException>(

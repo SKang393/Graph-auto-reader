@@ -72,8 +72,7 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             // Keep rotation only when the detector actually grouped vertical glyphs.
             IReadOnlyList<OcrDetectedRegion> components = await new ConnectedComponentTextRegionDetector(new()
                 { UseObservedVerticalGroupingOrientation = true })
-                .DetectAsync(image, item.Request.MeasuredXTicks is { Length: >= 2 } ticks
-                    ? new OcrMeasuredTickGrouping(ticks, item.Request.Plot.Bottom) : null, token).ConfigureAwait(false);
+                .DetectAsync(image, CreateMeasuredTickGrouping(item.Request), token).ConfigureAwait(false);
             OcrDetectedRegion[] candidates = components.Where(region => AxisFor(region, bounds) is "X" or "Y").ToArray();
             if (candidates.Length > 128) throw new CalibrationOcrException(CalibrationOcrReasonCodes.TooManyCandidates);
             double component = stage.Elapsed.TotalMilliseconds;
@@ -190,6 +189,17 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             _ => "",
         };
 
+    internal static OcrMeasuredTickGrouping? CreateMeasuredTickGrouping(CalibrationOcrRequest request)
+    {
+        int[]? xTicks = request.MeasuredXTicks is { Length: >= 2 } ? request.MeasuredXTicks : null;
+        int[]? yTicks = request.MeasuredYTicks is { Length: >= 3 } ? request.MeasuredYTicks : null;
+        return xTicks is null && yTicks is null ? null : new OcrMeasuredTickGrouping(xTicks ?? [], request.Plot.Bottom)
+        {
+            YTicks = yTicks,
+            PlotLeft = yTicks is null ? null : request.Plot.Left,
+        };
+    }
+
     private static void Validate(CalibrationOcrWorkItem item)
     {
         CalibrationOcrRequest request = item.Request;
@@ -201,7 +211,7 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             !double.IsFinite(request.Plot.Left) || !double.IsFinite(request.Plot.Top) ||
             !double.IsFinite(request.Plot.Right) || !double.IsFinite(request.Plot.Bottom) ||
             request.Plot.Left < 0 || request.Plot.Top < 0 || request.Plot.Right >= request.Width || request.Plot.Bottom >= request.Height ||
-            request.Plot.Left >= request.Plot.Right || request.Plot.Top >= request.Plot.Bottom || !request.ValidMeasuredXTicks() ||
+            request.Plot.Left >= request.Plot.Right || request.Plot.Top >= request.Plot.Bottom || !request.ValidMeasuredXTicks() || !request.ValidMeasuredYTicks() ||
             !string.Equals(Hash(item.EncodedImage), request.PanelImageSha256, StringComparison.OrdinalIgnoreCase))
             throw new CalibrationOcrException(CalibrationOcrReasonCodes.InvalidInput);
     }

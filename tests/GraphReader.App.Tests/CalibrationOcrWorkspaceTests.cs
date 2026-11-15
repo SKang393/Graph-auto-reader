@@ -13,6 +13,8 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class CalibrationOcrWorkspaceTests
 {
+    private static readonly int[] ExpectedXTicks = [20, 60, 100];
+    private static readonly int[] ExpectedYTicks = [10, 50, 100];
     [TestMethod]
     public void SendsOriginalBytesAndDiscardsResultAfterCalibrationChanges() => StaTestHost.Run(() =>
     {
@@ -35,6 +37,8 @@ public sealed class CalibrationOcrWorkspaceTests
             CollectionAssert.AreEqual(File.ReadAllBytes(imagePath), ocr.Image!);
             Assert.AreEqual(Convert.ToHexString(SHA256.HashData(ocr.Image!)).ToLowerInvariant(), ocr.Request.PanelImageSha256);
             Assert.AreEqual(new CalibrationOcrPlot(8, 5, 155, 110), ocr.Request.Plot);
+            CollectionAssert.AreEqual(ExpectedXTicks, ocr.Request.MeasuredXTicks!);
+            CollectionAssert.AreEqual(ExpectedYTicks, ocr.Request.MeasuredYTicks!);
             workspace.Calibrate(tab.TabId, new(new(10, 100), new(10, 10), new(150, 100), 100, 20));
             ocr.Pending.SetResult(CalibrationOcrClientTests.Success(ocr.Request));
             Assert.IsNull(Pump(pending));
@@ -45,7 +49,8 @@ public sealed class CalibrationOcrWorkspaceTests
     private sealed class FakeAxes : IAxisProposalService
     {
         public Task<RustAxisProposalResult> SuggestAsync(byte[] originalImage, CancellationToken cancellationToken) =>
-            Task.FromResult(new RustAxisProposalResult(new(8, 110, 155, 5, .8), null));
+            Task.FromResult(new RustAxisProposalResult(new RustAxisGeometry(8, 110, 155, 5, .8)
+            { XTickPositions = [20, 60, 100], YTickPositions = [10, 50, 100] }, null));
     }
     private sealed class FakeOcr : ICalibrationOcrSuggestionService
     {

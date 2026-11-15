@@ -162,19 +162,25 @@ No package, tag, release or model activation is part of this source batch.
 0.4.52 remains the sole verified packaged build. Originals, shared user Data,
 current runtime models and independent evaluation remain preserved.
 
-The active diagnostic consumer uses `artifacts/real-dev-452-trace` for one probe
+The completed diagnostic used `artifacts/real-dev-452-trace` for one probe
 dependency set (42,886,486 bytes before tests), its bounded trace and the one
 temporary inspection image. The owned grouping evidence uses
-`artifacts/tick-gap-owned-check`. Retire these disposable outputs after the
-source/outcome record is pushed and integration consumers finish; no private
-output belongs in Git. Routine compiler dependencies still needed by the next
-authorized batch are not historical result archives.
+`artifacts/tick-gap-owned-check`. These disposable directories are now retired;
+no private output was committed. Routine compiler dependencies still needed by
+the next authorized batch are not historical result archives.
 
 The reviewed closeout scope is 48 files / 45,107,347 bytes in the trace directory
 and 173 files / 102,149,268 bytes in the owned grouping directory. Both roots and
 their contents had no reparse points, and no diagnostic process remained. This
 scope includes temporary runtime staging, raw results and the one inspection
 PNG, not originals, the current package or shared user Data.
+
+After source/outcome commit `bbde57d24c8ca064edadca7e4f31f7c1fd63f9b7` was verified
+on `origin/main`, guarded removal completed at `2026-11-15T06:19:36.5350535Z`:
+**221 files / 147,256,615 bytes**. Both target directories were confirmed absent;
+the current package, shared Data and original corpus remained present. The next
+Y-label grouping work uses the documented source defect and owned controls,
+without retaining private prediction dumps or repeating inference.
 
 Source controls passed as reported above. **Automatic-calibration acceptance
 remains FAIL**: this fixed sample produced no complete draft, gray axes remain
