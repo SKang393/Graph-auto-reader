@@ -62,6 +62,11 @@ public sealed partial class MainWindowViewModel
     {
         if (IsBusy) return;
         cancellationToken.ThrowIfCancellationRequested();
+        if (HasAffineAxisSuggestion)
+        {
+            SetStatus(GetLocalizedString(LocalizationKeys.ManualAffineAxisSuggestionNotice));
+            return;
+        }
         bool useCurrentGeometry = CanReadCalibrationLabelsCore();
         if (useCurrentGeometry) ClearCalibrationLabelComputedValues();
         else ClearCalibrationTickProposal();
@@ -74,6 +79,11 @@ public sealed partial class MainWindowViewModel
         if (!ReferenceEquals(SelectedTab, expectedTab) || _axisSuggestion is not { } suggestion ||
             suggestion.TabId != expectedTab.TabId || !axes.IsAxisSuggestionCurrent(suggestion))
             return;
+        if (HasAffineAxisSuggestion)
+        {
+            SetStatus(GetLocalizedString(LocalizationKeys.ManualAffineAxisSuggestionNotice));
+            return;
+        }
 
         await ReadCalibrationLabelsAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();

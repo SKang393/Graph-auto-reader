@@ -25,6 +25,7 @@ public sealed partial class MainWindowViewModel
     public ICommand ApplyAxisSuggestionCommand { get; private set; } = null!;
     public ICommand DismissAxisSuggestionCommand { get; private set; } = null!;
     public bool HasAxisSuggestion => _axisSuggestion is not null;
+    public bool HasAffineAxisSuggestion => _axisSuggestion is { Geometry: null, AffineGeometry: not null };
     public bool SuggestedUsesPrintedXCoordinates => _suggestedUsesPrintedXCoordinates;
     public string SuggestedFirstXLabel => GetLocalizedString(SuggestedUsesPrintedXCoordinates
         ? LocalizationKeys.ManualFirstPrintedX : LocalizationKeys.ManualFirstVisibleSession);
@@ -131,7 +132,7 @@ public sealed partial class MainWindowViewModel
         SuggestAxesCommand = new AsyncRelayCommand(SuggestAxesAsync,
             () => !IsBusy && SelectedTab is not null && _workspaceService is IAxisSuggestionWorkspace { CanSuggestAxes: true });
         SuggestCalibrationFromTicksCommand = new AsyncRelayCommand(SuggestCalibrationFromTicksAsync,
-            () => !IsBusy && SelectedTab is not null &&
+            () => !IsBusy && !HasAffineAxisSuggestion && SelectedTab is not null &&
                 _workspaceService is ICalibrationLabelSuggestionWorkspace { CanReadCalibrationLabels: true } &&
                 (CanReadCalibrationLabelsCore() || _workspaceService is IAxisSuggestionWorkspace { CanSuggestAxes: true }));
         InitializeCalibrationLabelCommands();
@@ -173,29 +174,39 @@ public sealed partial class MainWindowViewModel
     private void SetAxisSuggestion(WorkspaceAxisSuggestion suggestion)
     {
         _axisSuggestion = suggestion;
-        var geometry = suggestion.Geometry;
-        int firstX = geometry.Left;
-        int finalX = geometry.Right;
-        if (geometry is { FirstTickX: int firstTick, LastTickX: int lastTick })
+        if (suggestion.AffineGeometry is { } frame && suggestion.Geometry is null)
         {
-            firstX = firstTick;
-            finalX = lastTick;
+            _calibrationAnchors.Clear();
+            _suggestedAnchors = [new(frame.Origin.X, frame.Origin.Y), new(frame.YEnd.X, frame.YEnd.Y), new(frame.XEnd.X, frame.XEnd.Y)];
+            SetSuggestedPrintedXCoordinates(ManualUsesPrintedXCoordinates);
+            SuggestedYMaximum = SuggestedFirstSession = SuggestedFinalSession = string.Empty;
+            AxisSuggestionReviewed = false;
         }
-        _suggestedAnchors =
-        [
-            new(firstX, geometry.Bottom),
-            new(firstX, geometry.Top),
-            new(finalX, geometry.Bottom),
-        ];
+        else if (suggestion.Geometry is { } geometry && suggestion.AffineGeometry is null)
+        {
+            int firstX = geometry.Left, finalX = geometry.Right;
+            if (geometry is { FirstTickX: int firstTick, LastTickX: int lastTick })
+            {
+                firstX = firstTick;
+                finalX = lastTick;
+            }
+            _suggestedAnchors = [new(firstX, geometry.Bottom), new(firstX, geometry.Top), new(finalX, geometry.Bottom)];
+        }
+        else
+        {
+            ClearAxisSuggestion();
+            return;
+        }
         EditorMode = ManualEditorMode.Select;
         UpdateAxisSuggestionOverlay();
         OnPropertyChanged(nameof(HasAxisSuggestion));
+        OnPropertyChanged(nameof(HasAffineAxisSuggestion));
         OnPropertyChanged(nameof(IsManualAxisDraft));
         OnPropertyChanged(nameof(AxisSuggestionSummary));
         OnPropertyChanged(nameof(CalibrationLabelStatusText));
         OnPropertyChanged(nameof(HasAxisGeometryReviewWarning));
         OnPropertyChanged(nameof(AxisGeometryReviewWarningText));
-        SetStatus(GetLocalizedString(LocalizationKeys.ManualAxisReview));
+        SetStatus(GetLocalizedString(HasAffineAxisSuggestion ? LocalizationKeys.ManualAffineAxisSuggestionNotice : LocalizationKeys.ManualAxisReview));
     }
 
     public Task ApplyAxisSuggestionAsync(CancellationToken cancellationToken) => RunBusyAsync(async token =>
@@ -212,7 +223,8 @@ public sealed partial class MainWindowViewModel
         _manualWorkspaceService.Calibrate(tab.TabId, new ManualCalibrationRequest(
             new(_suggestedAnchors[0].X, _suggestedAnchors[0].Y),
             new(_suggestedAnchors[1].X, _suggestedAnchors[1].Y),
-            new(_suggestedAnchors[2].X, _suggestedAnchors[2].Y), y, final, first) { UsesPrintedXCoordinates = printedX });
+            new(_suggestedAnchors[2].X, _suggestedAnchors[2].Y), y, final, first)
+            { UsesPrintedXCoordinates = printedX, PreserveAffineGeometry = HasAffineAxisSuggestion });
         ClearMarkerExemplarProposals(updateSample: true);
         ManualUsesPrintedXCoordinates = printedX;
         ManualYMaximum = y;
@@ -282,6 +294,7 @@ public sealed partial class MainWindowViewModel
         SuggestedYMaximum = SuggestedFirstSession = SuggestedFinalSession = "";
         AxisSuggestionReviewed = false;
         OnPropertyChanged(nameof(HasAxisSuggestion));
+        OnPropertyChanged(nameof(HasAffineAxisSuggestion));
         OnPropertyChanged(nameof(IsManualAxisDraft));
         OnPropertyChanged(nameof(AxisSuggestionSummary));
         OnPropertyChanged(nameof(CalibrationLabelStatusText));

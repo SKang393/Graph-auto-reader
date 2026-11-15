@@ -49,6 +49,14 @@ public sealed class RustFirstAxisProposalService(IAxisProposalService primary, I
         if (result.Geometry is not null || result.ErrorCode is not ("NO_AXIS" or "NO_INTERSECTION" or "AMBIGUOUS_AXIS")) return result;
         RustAxisProposalResult review = await _fallback.SuggestAsync(originalImage, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
+        if (review.Geometry is null && review.AffineGeometry is not null && review.Provider == "opencv-review" &&
+            review.ErrorCode is null && review.ReviewReasons is { Count: <= 32 } &&
+            review.ReviewReasons.All(reason => !string.IsNullOrWhiteSpace(reason) && reason.Length <= 128) &&
+            review.ReviewReasons.Contains("native_affine_geometry", StringComparer.Ordinal) &&
+            OpenCvAxisProposalService.ValidAffineGeometry(review.AffineGeometry, int.MaxValue, int.MaxValue))
+            return result.ErrorCode == "AMBIGUOUS_AXIS"
+                ? review with { ReviewReasons = Array.AsReadOnly(review.ReviewReasons.Append("rust_axis_ambiguous").Distinct(StringComparer.Ordinal).ToArray()) }
+                : review;
         if (review.Geometry is null)
         {
             if (review.Provider != "opencv-review" || review.ReviewReasons is not { Count: <= 32 } ||

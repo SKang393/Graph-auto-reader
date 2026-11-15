@@ -751,6 +751,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         set
         {
             if (!SetProperty(ref _manualUsesPrintedXCoordinates, value)) return;
+            if (HasAffineAxisSuggestion)
+            {
+                SetSuggestedPrintedXCoordinates(value);
+                SuggestedFirstSession = string.Empty;
+                SuggestedFinalSession = string.Empty;
+                AxisSuggestionReviewed = false;
+            }
             NotifyManualPrintedXLabelsChanged();
             OnPropertyChanged(nameof(IsManualFirstVisibleSessionInputValid));
             UpdateCalibrationPromptIfActive();

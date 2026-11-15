@@ -10,8 +10,9 @@ using GraphReader.Axis;
 
 namespace GraphReader.App.Services;
 
-public sealed record WorkspaceAxisSuggestion(string TabId, string Binding, RustAxisGeometry Geometry)
+public sealed record WorkspaceAxisSuggestion(string TabId, string Binding, RustAxisGeometry? Geometry)
 {
+    public RustAffineAxisGeometry? AffineGeometry { get; init; }
     internal object? OriginalImageIdentity { get; init; }
     public bool IsUserDefined { get; init; }
     public string Provider { get; init; } = "rust";
@@ -33,7 +34,8 @@ public interface IAxisSuggestionWorkspace
 
 public sealed record WorkspaceCalibrationLabelSuggestion(WorkspaceAxisSuggestion AxisSuggestion, CalibrationOcrResponse Response)
 {
-    internal RustAxisGeometry FitGeometry { get; init; } = AxisSuggestion.Geometry;
+    internal RustAxisGeometry FitGeometry { get; init; } = AxisSuggestion.Geometry ??
+        throw new ArgumentException("Label suggestions require rectangular axes.", nameof(AxisSuggestion));
     internal object? TickEvidenceIdentity { get; init; }
     internal bool TickMeasurementAttempted { get; init; }
     internal string? TickMeasurementErrorCode { get; init; }
@@ -95,6 +97,16 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
         cancellationToken.ThrowIfCancellationRequested();
         if (!_tabs.Contains(tab) || !_originalPanelBytesByTab.TryGetValue(tabId, out var currentImage) ||
             !ReferenceEquals(currentImage, originalImage) || binding != AxisSuggestionBinding(tab)) return null;
+        if (result.AffineGeometry is { } frame)
+        {
+            if (!OpenCvAxisProposalService.Valid(result, tab.PixelWidth, tab.PixelHeight)) return null;
+            var affine = new WorkspaceAxisSuggestion(tabId, binding, null)
+            {
+                AffineGeometry = frame, OriginalImageIdentity = originalImage, Provider = result.Provider,
+                ReviewReasons = Array.AsReadOnly(result.ReviewReasons.ToArray()),
+            };
+            return IsAxisSuggestionCurrent(affine) ? affine : null;
+        }
         if (result.Geometry is null && AxisFailure(result) is { } failure)
             throw new ProductionWorkflowStageException(failure);
         if (result.Geometry is not { } geometry || geometry.Left < 0 || geometry.Right >= tab.PixelWidth ||
@@ -113,7 +125,7 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
 
     private static ProductionWorkflowFailure? AxisFailure(RustAxisProposalResult result)
     {
-        if (result.Geometry is not null || result.Provider is not ("rust" or "opencv-review")) return null;
+        if (result.Geometry is not null || result.AffineGeometry is not null || result.Provider is not ("rust" or "opencv-review")) return null;
         string? reason = result.ErrorCode is "WORKER_TIMEOUT" or "OPENCV_AXIS_TIMEOUT" ? "timeout" : null;
         if (reason is null && result.ErrorCode is ("NO_AXIS" or "NO_INTERSECTION" or "AMBIGUOUS_AXIS" or "OPENCV_AXIS_AMBIGUOUS") &&
             result.ReviewReasons is { Count: <= 32 } reasons &&
@@ -140,7 +152,14 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
     {
         WorkspaceTabViewModel? tab = _tabs.SingleOrDefault(tab => tab.TabId == suggestion.TabId);
         return tab is not null && _originalPanelBytesByTab.TryGetValue(tab.TabId, out var image) &&
-            ReferenceEquals(image, suggestion.OriginalImageIdentity) && suggestion.Binding == AxisSuggestionBinding(tab);
+            ReferenceEquals(image, suggestion.OriginalImageIdentity) && suggestion.Binding == AxisSuggestionBinding(tab) &&
+            (suggestion.AffineGeometry is { } frame
+                ? suggestion.Geometry is null && !suggestion.IsUserDefined && suggestion.Provider == "opencv-review" &&
+                    suggestion.ReviewReasons is { Count: <= 32 } reasons &&
+                    reasons.All(reason => !string.IsNullOrWhiteSpace(reason) && reason.Length <= 128) &&
+                    suggestion.ReviewReasons.Contains("native_affine_geometry", StringComparer.Ordinal) &&
+                    OpenCvAxisProposalService.ValidAffineGeometry(frame, tab.PixelWidth, tab.PixelHeight)
+                : suggestion.Geometry is not null);
     }
 
     public bool CanReadCalibrationLabels => _calibrationOcrSuggestionService is not null &&
@@ -152,9 +171,9 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
     {
         ArgumentNullException.ThrowIfNull(suggestion);
         cancellationToken.ThrowIfCancellationRequested();
-        if (!CanReadCalibrationLabels || !IsAxisSuggestionCurrent(suggestion)) return null;
+        if (!CanReadCalibrationLabels || suggestion.AffineGeometry is not null || suggestion.Geometry is not { } geometry ||
+            !IsAxisSuggestionCurrent(suggestion)) return null;
         WorkspaceTabViewModel tab = RequireTab(suggestion.TabId);
-        RustAxisGeometry geometry = suggestion.Geometry;
         if (geometry.Left < 0 || geometry.Top < 0 || geometry.Right >= tab.PixelWidth ||
             geometry.Bottom >= tab.PixelHeight || geometry.Left >= geometry.Right || geometry.Top >= geometry.Bottom)
             return null;
@@ -196,11 +215,11 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
     }
 
     public bool IsCalibrationLabelSuggestionCurrent(WorkspaceCalibrationLabelSuggestion result) =>
-        result is not null && CanReadCalibrationLabels && IsAxisSuggestionCurrent(result.AxisSuggestion) &&
+        result is not null && CanReadCalibrationLabels && result.AxisSuggestion.AffineGeometry is null &&
+            result.AxisSuggestion.Geometry is { } geometry && IsAxisSuggestionCurrent(result.AxisSuggestion) &&
             result.Response.Request is { } request && CalibrationOcrWorkerClient.IsValidResponse(request, result.Response) &&
         request.Binding == result.AxisSuggestion.Binding &&
-        request.Plot == new CalibrationOcrPlot(result.AxisSuggestion.Geometry.Left, result.AxisSuggestion.Geometry.Top,
-                result.AxisSuggestion.Geometry.Right, result.AxisSuggestion.Geometry.Bottom) &&
+        request.Plot == new CalibrationOcrPlot(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom) &&
             IsCalibrationTickEvidenceCurrent(result) &&
             (request.MeasuredXTicks ?? []).SequenceEqual(result.FitGeometry.XTickPositions) &&
             (request.MeasuredYTicks ?? []).SequenceEqual(result.FitGeometry.YTickPositions);
@@ -208,7 +227,7 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
     private static RustAxisGeometry? TryBindMeasuredTicks(AxisTickMeasurementResult measurement,
         WorkspaceAxisSuggestion suggestion, string imageHash, int width, int height)
     {
-        RustAxisGeometry box = suggestion.Geometry;
+        if (suggestion.AffineGeometry is not null || suggestion.Geometry is not { } box) return null;
         if (measurement.ErrorCode is not null || measurement.PanelImageSha256 != imageHash ||
             measurement.Width != width || measurement.Height != height || measurement.Evidence is not { } evidence ||
             evidence.Left != box.Left || evidence.Bottom != box.Bottom || evidence.Right != box.Right || evidence.Top != box.Top ||

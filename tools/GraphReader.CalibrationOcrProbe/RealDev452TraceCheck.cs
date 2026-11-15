@@ -23,11 +23,13 @@ internal static partial class RealDevCalibrationCheck
         ["NO_GEOMETRY", "OCR_FAILED", "UNSUPPORTED_DIMENSIONS", "PANEL_FAILED", "OCR_RETURNED"];
     private static readonly string[] NativeRejectionPanelStatuses =
         ["NO_GEOMETRY", "GEOMETRY_RETURNED", "UNSUPPORTED_DIMENSIONS", "PANEL_FAILED"];
+    private static readonly string[] NativeAffinePanelStatuses =
+        ["NO_GEOMETRY", "GEOMETRY_RETURNED", "AFFINE_GEOMETRY_RETURNED", "UNSUPPORTED_DIMENSIONS", "PANEL_FAILED"];
     private static readonly string[] ReviewRoutingPanelStatuses =
         ["REVIEW_CHOICES_AVAILABLE", "REVIEW_UNAVAILABLE", "UNSUPPORTED_DIMENSIONS", "PANEL_FAILED"];
 
-    private static Dictionary<string, int> NewTracePanelStatusCounts(bool geometryOnly = false, bool reviewRouting = false) =>
-        (reviewRouting ? ReviewRoutingPanelStatuses : geometryOnly ? NativeRejectionPanelStatuses : TracePanelStatuses)
+    private static Dictionary<string, int> NewTracePanelStatusCounts(bool geometryOnly = false, bool reviewRouting = false, bool nativeAffine = false) =>
+        (nativeAffine ? NativeAffinePanelStatuses : reviewRouting ? ReviewRoutingPanelStatuses : geometryOnly ? NativeRejectionPanelStatuses : TracePanelStatuses)
             .ToDictionary(static status => status, static _ => 0, StringComparer.Ordinal);
 
     private static void CountTracePanelStatus(Dictionary<string, int> counts, TracePanelOutcome outcome)
@@ -165,9 +167,14 @@ internal static partial class RealDevCalibrationCheck
             endpointTrace: true, rankedReviewTrace: true, exactBoxTickTrace: true, nativeRasterEndpointTrace: true,
             intervalLabelTrace: true, intervalClusterTrace: true);
 
+    internal static Task<object> RunNativeAffineGeometryTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, nativeAffineTrace: true);
+
     private static async Task<object> RunTraceAsync(string corpusRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false, bool nativeWorkTrace = false, bool reviewRoutingTrace = false, bool nativeEligibilityTrace = false, bool nativeReviewObservationTrace = false, bool roundedReviewObservationTrace = false, bool endpointTrace = false, bool rankedReviewTrace = false, bool exactBoxTickTrace = false, bool nativeRasterEndpointTrace = false, bool intervalLabelTrace = false, bool intervalClusterTrace = false)
+        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false, bool nativeWorkTrace = false, bool reviewRoutingTrace = false, bool nativeEligibilityTrace = false, bool nativeReviewObservationTrace = false, bool roundedReviewObservationTrace = false, bool endpointTrace = false, bool rankedReviewTrace = false, bool exactBoxTickTrace = false, bool nativeRasterEndpointTrace = false, bool intervalLabelTrace = false, bool intervalClusterTrace = false, bool nativeAffineTrace = false)
     {
+        if (nativeAffineTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace || forwardExtentGeometryTrace || nativeWorkTrace || reviewRoutingTrace || nativeEligibilityTrace || nativeReviewObservationTrace || roundedReviewObservationTrace || endpointTrace || rankedReviewTrace || exactBoxTickTrace || nativeRasterEndpointTrace || intervalLabelTrace || intervalClusterTrace)) throw new InvalidDataException();
         if (intervalClusterTrace && !intervalLabelTrace) throw new InvalidDataException();
         if (intervalLabelTrace && !nativeRasterEndpointTrace) throw new InvalidDataException();
         if (exactBoxTickTrace && !rankedReviewTrace) throw new InvalidDataException();
@@ -195,7 +202,7 @@ internal static partial class RealDevCalibrationCheck
             forwardExtentGeometryTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || endpointTrace || sortedSpatialGeometryTrace)) throw new InvalidDataException();
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(app) ||
             !Path.IsPathFullyQualified(assets) || !Path.IsPathFullyQualified(rust)) throw new InvalidDataException();
-        using Candidate candidateLease = intervalClusterTrace ? Candidate.VerifyIntervalCluster(app, assets, rust, token) :
+        using Candidate candidateLease = nativeAffineTrace ? Candidate.VerifyNativeAffine(app, assets, rust, token) : intervalClusterTrace ? Candidate.VerifyIntervalCluster(app, assets, rust, token) :
             intervalLabelTrace ? Candidate.VerifyIntervalLabel(app, assets, rust, token) :
             nativeRasterEndpointTrace ? Candidate.VerifyNativeRasterEndpoint(app, assets, rust, token) :
             exactBoxTickTrace ? Candidate.VerifyExactBoxTick(app, assets, rust, token) :
@@ -238,7 +245,7 @@ internal static partial class RealDevCalibrationCheck
         await using CalibrationOcrWorkerClient? ocr = geometryOnly ? null : new(app, assets, () => CalibrationOcrDeviceSelection.Cpu);
         using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         int attempted = 0, returned = 0, fallback = 0, panelAttempted = 0, panelFinished = 0, printedXReviewDraftPanels = 0;
-        Dictionary<string, int> terminalStatusCounts = NewTracePanelStatusCounts(geometryOnly, reviewRoutingTrace || nativeEligibilityTrace || nativeReviewObservationTrace || roundedReviewObservationTrace);
+        Dictionary<string, int> terminalStatusCounts = NewTracePanelStatusCounts(geometryOnly, reviewRoutingTrace || nativeEligibilityTrace || nativeReviewObservationTrace || roundedReviewObservationTrace, nativeAffineTrace);
         for (int i = 0; i < TraceSampleCount && !token.IsCancellationRequested; i++)
         {
             attempted++; var panelResults = new List<object>(); string status = "completed"; string? errorCategory = null; int effective = 0;
@@ -261,7 +268,7 @@ internal static partial class RealDevCalibrationCheck
                         TracePanelOutcome outcome = await TracePanelAsync(payload.Image, payload.Width, payload.Height,
                             new PdfRectD(0, 0, payload.Width, payload.Height), payload.Width, payload.Height, payload.ProjectHash,
                             candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token,
-                            includePrintedXReviewDraft: printedXTrace || spatialTrace || endpointTrace, nativeWork: nativeWork, reviewRouting: reviewRouting, directionalAssociationTrace: endpointTrace, exactBoxTick: exactBoxTick, includeIntervalProvenance: intervalLabelTrace, includeIntervalClusterProvenance: intervalClusterTrace).ConfigureAwait(false);
+                            includePrintedXReviewDraft: printedXTrace || spatialTrace || endpointTrace, nativeWork: nativeWork, reviewRouting: reviewRouting, directionalAssociationTrace: endpointTrace, exactBoxTick: exactBoxTick, includeIntervalProvenance: intervalLabelTrace, includeIntervalClusterProvenance: intervalClusterTrace, nativeAffineTrace: nativeAffineTrace).ConfigureAwait(false);
                         CountTracePanelStatus(terminalStatusCounts, outcome);
                         if (outcome.PrintedXReviewDraftAvailable) printedXReviewDraftPanels++;
                         panelResults.Add(outcome.Payload);
@@ -287,7 +294,7 @@ internal static partial class RealDevCalibrationCheck
                             var (bytes, width, height, crop) = ReadPreparedPanel(panel, payload.Width, payload.Height);
                             TracePanelOutcome outcome = await TracePanelAsync(bytes, width, height, crop, payload.Width, payload.Height,
                                 payload.ProjectHash, candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token,
-                                includePrintedXReviewDraft: printedXTrace || spatialTrace || endpointTrace, nativeWork: nativeWork, reviewRouting: reviewRouting, directionalAssociationTrace: endpointTrace, exactBoxTick: exactBoxTick, includeIntervalProvenance: intervalLabelTrace, includeIntervalClusterProvenance: intervalClusterTrace).ConfigureAwait(false);
+                                includePrintedXReviewDraft: printedXTrace || spatialTrace || endpointTrace, nativeWork: nativeWork, reviewRouting: reviewRouting, directionalAssociationTrace: endpointTrace, exactBoxTick: exactBoxTick, includeIntervalProvenance: intervalLabelTrace, includeIntervalClusterProvenance: intervalClusterTrace, nativeAffineTrace: nativeAffineTrace).ConfigureAwait(false);
                             CountTracePanelStatus(terminalStatusCounts, outcome);
                             if (outcome.PrintedXReviewDraftAvailable) printedXReviewDraftPanels++;
                             panelResults.Add(outcome.Payload);
@@ -329,13 +336,13 @@ internal static partial class RealDevCalibrationCheck
                 sealed_payload_reads = 0, ocr_calls = 0, truth_scoring = false, image_writes = false, review_only = true,
                 project_deadline_seconds = 45, overall_deadline_seconds = 900, native_observation_summary = reviewObservation?.Summary, projects };
         if (geometryOnly)
-            return new { schema = nativeEligibilityTrace ? NativeEligibilityTraceSchema : reviewRoutingTrace ? ReviewRoutingTraceSchema : nativeWorkTrace ? NativeWorkTraceSchema : forwardExtentGeometryTrace ? ForwardExtentTraceSchema : sortedSpatialGeometryTrace ? SortedSpatialTraceSchema : intersection ? IntersectionTraceSchema : pairPruning ? PairPruningTraceSchema : NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
+            return new { schema = nativeAffineTrace ? NativeAffineTraceSchema : nativeEligibilityTrace ? NativeEligibilityTraceSchema : reviewRoutingTrace ? ReviewRoutingTraceSchema : nativeWorkTrace ? NativeWorkTraceSchema : forwardExtentGeometryTrace ? ForwardExtentTraceSchema : sortedSpatialGeometryTrace ? SortedSpatialTraceSchema : intersection ? IntersectionTraceSchema : pairPruning ? PairPruningTraceSchema : NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
                 selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
                 attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
                 attempted_panels = panelAttempted, finished_panels = panelFinished, unfinished_execution_panels = panelAttempted - panelFinished,
                 terminal_status_counts = terminalStatusCounts, unattempted_panels = returned + fallback - panelAttempted,
                 metadata.AssignmentSha256, metadata.SelectedInventorySha256, source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
-                candidate = nativeEligibilityTrace ? NativeEligibilityTraceIdentity() : reviewRoutingTrace ? ReviewRoutingTraceIdentity() : nativeWorkTrace ? NativeWorkTraceIdentity() : forwardExtentGeometryTrace ? ForwardExtentTraceIdentity() : sortedSpatialGeometryTrace ? SortedSpatialTraceIdentity() : (object)new { app_exe_sha256 = intersection ? IntersectionAppExeHash : NativeRejectionAppExeHash, app_dll_sha256 = intersection ? IntersectionAppDllHash : NativeRejectionAppDllHash,
+                candidate = nativeAffineTrace ? NativeAffineTraceIdentity() : nativeEligibilityTrace ? NativeEligibilityTraceIdentity() : reviewRoutingTrace ? ReviewRoutingTraceIdentity() : nativeWorkTrace ? NativeWorkTraceIdentity() : forwardExtentGeometryTrace ? ForwardExtentTraceIdentity() : sortedSpatialGeometryTrace ? SortedSpatialTraceIdentity() : (object)new { app_exe_sha256 = intersection ? IntersectionAppExeHash : NativeRejectionAppExeHash, app_dll_sha256 = intersection ? IntersectionAppDllHash : NativeRejectionAppDllHash,
                     rust_sha256 = NativeRejectionRustHash,
                     runtime_files = intersection ? IntersectionRuntimeLibraries : pairPruning ? PairPruningRuntimeLibraries : NativeRejectionRuntimeLibraries },
                 sealed_payload_reads = 0, ocr_calls = 0, truth_scoring = false, image_writes = false, review_only = true,
@@ -355,7 +362,7 @@ internal static partial class RealDevCalibrationCheck
 
     private static async Task<TracePanelOutcome> TracePanelAsync(byte[] image, int width, int height, PdfRectD crop, int sourceWidth, int sourceHeight,
         string projectHash, IReadOnlyDictionary<string, string> candidateFiles, IAxisProposalService axis, TraceRustAxis primary, TraceAxis secondary,
-        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool includePrintedXReviewDraft = false, NativeWorkTraceAxis? nativeWork = null, ReviewRoutingTraceServices? reviewRouting = null, bool directionalAssociationTrace = false, ExactBoxTickTrace? exactBoxTick = null, bool includeIntervalProvenance = false, bool includeIntervalClusterProvenance = false)
+        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool includePrintedXReviewDraft = false, NativeWorkTraceAxis? nativeWork = null, ReviewRoutingTraceServices? reviewRouting = null, bool directionalAssociationTrace = false, ExactBoxTickTrace? exactBoxTick = null, bool includeIntervalProvenance = false, bool includeIntervalClusterProvenance = false, bool nativeAffineTrace = false)
     {
         if (width is < 32 or > 4096 || height is < 32 or > 4096 || (long)width * height > 16_777_216)
             return PrintedXOutcome("UNSUPPORTED_DIMENSIONS", new { status = "UNSUPPORTED_DIMENSIONS", width, height, crop }, includePrintedXReviewDraft);
@@ -372,7 +379,7 @@ internal static partial class RealDevCalibrationCheck
             rust_trace = primary.Last?.Trace,
             native_attempted = fallbackCalled, native_error = fallbackCalled ? secondary.Last?.ErrorCode : null,
             native_review_reasons = fallbackCalled ? secondary.Last?.ReviewReasons : null,
-            native_returned = fallbackCalled && secondary.Last?.Geometry is not null, result.Provider, result.ReviewReasons } :
+            native_returned = fallbackCalled && (secondary.Last?.Geometry is not null || nativeAffineTrace && secondary.Last?.AffineGeometry is not null), result.Provider, result.ReviewReasons } :
             new { rust_error = primary.Last?.Proposal.ErrorCode, rust_returned = primary.Last?.Proposal.Geometry is not null,
                 rust_trace = primary.Last?.Trace,
                 native_attempted = fallbackCalled, native_error = fallbackCalled ? secondary.Last?.ErrorCode : null,
@@ -381,6 +388,11 @@ internal static partial class RealDevCalibrationCheck
                 native_work = fallbackCalled ? nativeWork.LastSnapshot : null,
                 native_in_process_milliseconds = fallbackCalled ? (double?)nativeWork.LastMilliseconds : null,
                 native_work_counts_are_prefix_on_incomplete_enumeration = true };
+        if (nativeAffineTrace && result.AffineGeometry is not null)
+        {
+            if (!NativeAffineTraceAccepted(result, width, height)) throw new InvalidDataException();
+            return new("AFFINE_GEOMETRY_RETURNED", new { status = "AFFINE_GEOMETRY_RETURNED", width, height, crop, stages, axis_milliseconds = axisMs });
+        }
         if (result.Geometry is not { } geometry)
             return ExactBoxOutcome("NO_GEOMETRY", new { status = "NO_GEOMETRY", width, height, crop, stages, axis_milliseconds = axisMs }, includePrintedXReviewDraft, exactBoxTick is null ? null : new { attempted = false });
         if (geometryOnly)

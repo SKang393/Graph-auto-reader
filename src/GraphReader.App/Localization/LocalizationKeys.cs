@@ -53,6 +53,7 @@ public static class LocalizationKeys
     public const string ManualAffinePhasesUnsupported = "Errors.ManualAffinePhasesUnsupported";
     public const string ManualAffineDetectionUnsupported = "Errors.ManualAffineDetectionUnsupported";
     public const string ManualAffineCalibrationNotice = "Manual.AffineCalibrationNotice";
+    public const string ManualAffineAxisSuggestionNotice = "Manual.AffineAxisSuggestionNotice";
     public const string ManualAxisPairBudgetExceeded = "Errors.ManualAxisPairBudgetExceeded";
     public const string ManualAxisRotatedUnsupported = "Errors.ManualAxisRotatedUnsupported";
     public const string ManualAxisTimeout = "Errors.ManualAxisTimeout";
@@ -504,6 +505,7 @@ public static class LocalizationKeys
         ManualAffinePhasesUnsupported,
         ManualAffineDetectionUnsupported,
         ManualAffineCalibrationNotice,
+        ManualAffineAxisSuggestionNotice,
         ManualAxisPairBudgetExceeded,
         ManualAxisRotatedUnsupported,
         ManualAxisTimeout,

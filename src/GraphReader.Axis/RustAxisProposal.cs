@@ -3,6 +3,7 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace GraphReader.Axis;
 
@@ -13,8 +14,12 @@ public sealed record RustAxisGeometry(int Left, int Bottom, int Right, int Top, 
     public IReadOnlyList<int> XTickPositions { get; init; } = Array.Empty<int>();
     public IReadOnlyList<int> YTickPositions { get; init; } = Array.Empty<int>();
 }
+public sealed record RustAxisPoint(double X, double Y);
+public sealed record RustAffineAxisGeometry(RustAxisPoint Origin, RustAxisPoint XEnd, RustAxisPoint YEnd, double Confidence);
 public sealed record RustAxisProposalResult(RustAxisGeometry? Geometry, string? ErrorCode)
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RustAffineAxisGeometry? AffineGeometry { get; init; }
     public string Provider { get; init; } = "rust";
     public IReadOnlyList<string> ReviewReasons { get; init; } = Array.Empty<string>();
 }

@@ -60,6 +60,7 @@ internal static class Program
         bool realDevExactBoxTickTrace = args.Length > 0 && args[0] == "--real-dev-exact-box-tick-trace";
         bool realDevNativeRasterEndpointTrace = args.Length > 0 && args[0] == "--real-dev-native-raster-endpoint-trace";
         bool realDevIntervalLabelTrace = args.Length > 0 && args[0] == "--real-dev-interval-label-trace";
+        bool realDevNativeAffineTrace = args.Length > 0 && args[0] == "--real-dev-native-affine-geometry-trace";
         bool realDevIntervalClusterTrace = args.Length > 0 && args[0] == "--real-dev-interval-cluster-trace";
         bool realDevRankedReviewTrace = args.Length > 0 && args[0] == "--real-dev-ranked-review-trace";
         bool realDevSpatialTrace = args.Length > 0 && args[0] == "--real-dev-spatial-trace";
@@ -78,7 +79,7 @@ internal static class Program
         bool ownedNativeRejection = args.Length > 0 && args[0] == "--owned-native-rejection-check";
         bool ownedNativePruning = args.Length > 0 && args[0] == "--owned-native-pruning-check";
         bool ownedNativeIntersection = args.Length > 0 && args[0] == "--owned-native-intersection-check";
-        bool realDevPrivate = realDevIntervalClusterTrace || realDevIntervalLabelTrace || realDevCachedXRowProperties || realDevNativeRasterEndpointTrace || realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevRankedReviewTrace || realDevExactBoxTickTrace || realDevCachedAxisProperties || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
+        bool realDevPrivate = realDevNativeAffineTrace || realDevIntervalClusterTrace || realDevIntervalLabelTrace || realDevCachedXRowProperties || realDevNativeRasterEndpointTrace || realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevRankedReviewTrace || realDevExactBoxTickTrace || realDevCachedAxisProperties || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -199,6 +200,11 @@ internal static class Program
             if (args is ["--real-dev-interval-label-trace-self-test"])
             {
                 Emit(RealDevCalibrationCheck.IntervalLabelTraceSelfTest());
+                return 0;
+            }
+            if (args is ["--real-dev-native-affine-geometry-trace-self-test"])
+            {
+                Emit(RealDevCalibrationCheck.NativeAffineTraceSelfTest());
                 return 0;
             }
             if (args is ["--real-dev-interval-cluster-trace-self-test"])
@@ -439,6 +445,11 @@ internal static class Program
                         Emit(await RealDevCalibrationCheck.RunIntervalLabelTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
                         return 0;
                     }
+                    if (realDevNativeAffineTrace)
+                    {
+                        Emit(await RealDevCalibrationCheck.RunNativeAffineGeometryTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
+                        return 0;
+                    }
                     if (realDevIntervalClusterTrace)
                     {
                         Emit(await RealDevCalibrationCheck.RunIntervalClusterTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
@@ -609,6 +620,14 @@ internal static class Program
                     {
                         Emit(new { schema = RealDevCalibrationCheck.IntervalLabelTraceSchema,
                             status = "blocked_preflight_or_runtime", error = "REAL_DEV_INTERVAL_LABEL_TRACE_FAILED",
+                            sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
+                            review_only = true, production_approved = false });
+                        return 1;
+                    }
+                    if (realDevNativeAffineTrace)
+                    {
+                        Emit(new { schema = RealDevCalibrationCheck.NativeAffineTraceSchema,
+                            status = "blocked_preflight_or_runtime", error = "REAL_DEV_NATIVE_AFFINE_GEOMETRY_TRACE_FAILED",
                             sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
                             review_only = true, production_approved = false });
                         return 1;

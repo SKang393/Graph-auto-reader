@@ -201,11 +201,25 @@ public sealed class OpenCvAxisProposalService : IAxisProposalService, IAxisCandi
     {
         if (result is null || result.Provider != "opencv-review" || result.ReviewReasons is null || result.ReviewReasons.Count > 32 ||
             result.ReviewReasons.Any(x => string.IsNullOrWhiteSpace(x) || x.Length > 128)) return false;
+        if (result.AffineGeometry is { } affine)
+            return result.Geometry is null && result.ErrorCode is null &&
+                result.ReviewReasons.Contains("native_affine_geometry", StringComparer.Ordinal) && ValidAffineGeometry(affine, width, height);
         if (result.Geometry is null) return result.ErrorCode is "OPENCV_AXIS_UNAVAILABLE" or "OPENCV_AXIS_AMBIGUOUS" or "INVALID_INPUT";
         RustAxisGeometry g = result.Geometry;
         return result.ErrorCode is null && g.Left >= 0 && g.Top >= 0 && g.Right < width && g.Bottom < height && g.Left < g.Right && g.Top < g.Bottom &&
             double.IsFinite(g.Confidence) && g.Confidence is >= 0 and <= 1 && g.FirstTickX is null && g.LastTickX is null &&
             g.XTickPositions is { Count: 0 } && g.YTickPositions is { Count: 0 };
     }
+    internal static bool ValidAffineGeometry(RustAffineAxisGeometry? frame, int width, int height)
+    {
+        if (frame?.Origin is not { } origin || frame.XEnd is not { } xEnd || frame.YEnd is not { } yEnd ||
+            width <= 0 || height <= 0 || !double.IsFinite(frame.Confidence) || frame.Confidence is < 0 or > 1) return false;
+        bool InFrame(double x, double y) => double.IsFinite(x) && double.IsFinite(y) && x >= 0 && y >= 0 && x < width && y < height;
+        if (!InFrame(origin.X, origin.Y) || !InFrame(xEnd.X, xEnd.Y) || !InFrame(yEnd.X, yEnd.Y)) return false;
+        double fourthX = xEnd.X + yEnd.X - origin.X, fourthY = xEnd.Y + yEnd.Y - origin.Y;
+        double determinant = (xEnd.X - origin.X) * (yEnd.Y - origin.Y) - (xEnd.Y - origin.Y) * (yEnd.X - origin.X);
+        return InFrame(fourthX, fourthY) && xEnd.X > origin.X && yEnd.Y < origin.Y && double.IsFinite(determinant) && determinant < 0;
+    }
+
     private static RustAxisProposalResult Failure(string code) => new(null, code) { Provider = "opencv-review" };
 }

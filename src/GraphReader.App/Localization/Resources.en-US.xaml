@@ -56,6 +56,7 @@
   <sys:String x:Key="Errors.ManualAffinePhasesUnsupported">Phase dividers require horizontal and vertical axes. Remove existing dividers before applying rotated calibration.</sys:String>
   <sys:String x:Key="Errors.ManualAffineDetectionUnsupported">Automatic detection requires horizontal and vertical axes. Manual point editing and export remain available for this rotated calibration.</sys:String>
   <sys:String x:Key="Manual.AffineCalibrationNotice">Rotated calibration supports manual points and export. Automatic detection and phase dividers are currently unavailable.</sys:String>
+  <sys:String x:Key="Manual.AffineAxisSuggestionNotice">The detected axes are tilted. Confirm the marked points and visible zero, then enter the actual axis values. Automatic label reading is unavailable for this proposal.</sys:String>
   <sys:String x:Key="Errors.ManualAxisPairBudgetExceeded">The axis search found too many possible intersections. Crop one graph including its labels, or choose Calibrate axes to mark three points manually.</sys:String>
   <sys:String x:Key="Errors.ManualAxisRotatedUnsupported">The detected axes are tilted, so automatic calibration is unavailable. Choose Calibrate axes to mark the three actual axis points.</sys:String>
   <sys:String x:Key="Errors.ManualAxisTimeout">The axis search reached its time limit. Crop one graph including its labels, or choose Calibrate axes to mark three points manually.</sys:String>

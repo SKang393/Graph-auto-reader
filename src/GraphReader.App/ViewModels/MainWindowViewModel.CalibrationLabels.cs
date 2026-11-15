@@ -42,6 +42,7 @@ public sealed partial class MainWindowViewModel
             {
                 if (_calibrationLabelStatusOverride.Length > 0) return _calibrationLabelStatusOverride;
                 if (_axisSuggestion is null) return string.Empty;
+                if (HasAffineAxisSuggestion) return GetLocalizedString(LocalizationKeys.ManualAffineAxisSuggestionNotice);
                 return _workspaceService is ICalibrationLabelSuggestionWorkspace { CanReadCalibrationLabels: true }
                     ? GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsNotRead)
                     : GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsReaderUnavailable);
@@ -146,7 +147,8 @@ public sealed partial class MainWindowViewModel
     }, cancellationToken);
 
     private bool CanReadCalibrationLabelsCore() => EditorMode != ManualEditorMode.Calibration &&
-        _calibrationAnchors.Count == 0 && SelectedTab is not null && _axisSuggestion is { } suggestion &&
+        _calibrationAnchors.Count == 0 && SelectedTab is not null &&
+        _axisSuggestion is { AffineGeometry: null, Geometry: not null } suggestion &&
         _suggestedAnchors.Length == 3 && SelectedTab.TabId == suggestion.TabId &&
         _workspaceService is IAxisSuggestionWorkspace axes && axes.IsAxisSuggestionCurrent(suggestion) &&
         _workspaceService is ICalibrationLabelSuggestionWorkspace labels && labels.CanReadCalibrationLabels;
@@ -326,13 +328,25 @@ public sealed partial class MainWindowViewModel
         Point origin = _suggestedAnchors[0];
         Point top = _suggestedAnchors[1];
         Point final = _suggestedAnchors[2];
+        if (suggestion.AffineGeometry is { } frame && suggestion.Geometry is null)
+        {
+            _axisSuggestion = suggestion with
+            {
+                AffineGeometry = new(new(origin.X, origin.Y), new(final.X, final.Y), new(top.X, top.Y), frame.Confidence),
+            };
+            AxisSuggestionReviewed = false;
+            OnPropertyChanged(nameof(AxisSuggestionSummary));
+            RelayCommand.RaiseCanExecuteChanged();
+            return;
+        }
+        if (suggestion.Geometry is not { } rectangle) return;
         _axisSuggestion = suggestion with
         {
             Geometry = new GraphReader.Axis.RustAxisGeometry(
                 (int)Math.Round(origin.X, MidpointRounding.AwayFromZero),
                 (int)Math.Round(origin.Y, MidpointRounding.AwayFromZero),
                 (int)Math.Round(final.X, MidpointRounding.AwayFromZero),
-                (int)Math.Round(top.Y, MidpointRounding.AwayFromZero), suggestion.Geometry.Confidence),
+                (int)Math.Round(top.Y, MidpointRounding.AwayFromZero), rectangle.Confidence),
         };
         OnPropertyChanged(nameof(AxisSuggestionSummary));
         RelayCommand.RaiseCanExecuteChanged();

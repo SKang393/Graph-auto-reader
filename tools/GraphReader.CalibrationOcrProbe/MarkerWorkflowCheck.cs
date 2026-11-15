@@ -81,12 +81,14 @@ internal static class MarkerWorkflowCheck
             ? workspace.CreateManualAxisDraft(tab.TabId, [new(140, 380), new(140, 80), new(540, 380)])
             : await workspace.SuggestAxesAsync(tab.TabId, cancellationToken);
         if (axis is null) return new { completed = false, reason = "AXIS_PROPOSAL_UNAVAILABLE", review_only = true };
-        if (manualAxes && (!axis.IsUserDefined || axis.Geometry.XTickPositions.Count != 0 || axis.Geometry.YTickPositions.Count != 0 ||
+        if (axis.AffineGeometry is not null || axis.Geometry is not { } axisGeometry)
+            return new { completed = false, reason = "AXIS_GEOMETRY_UNSUPPORTED", review_only = true };
+        if (manualAxes && (!axis.IsUserDefined || axisGeometry.XTickPositions.Count != 0 || axisGeometry.YTickPositions.Count != 0 ||
             workspace.CanSuggestAxes || !ReferenceEquals(beforeDraft, workspace.CurrentProject) || tab.Calibration is not null || tab.IsDirty != dirtyBeforeDraft))
             throw new InvalidDataException("Manual draft changed scientific state or supplied measured axis evidence.");
         WorkspaceCalibrationLabelSuggestion? labels = await workspace.ReadCalibrationLabelsAsync(axis, cancellationToken);
         if (labels is null) return new { completed = false, reason = "OCR_UNAVAILABLE_OR_STALE", review_only = true };
-        CalibrationTickProposalResult proposal = CalibrationTickProposal.CreateReviewDraft(axis.Geometry, labels.Response);
+        CalibrationTickProposalResult proposal = CalibrationTickProposal.CreateReviewDraft(axisGeometry, labels.Response);
         var positionEvidence = new
         {
             measured_count = proposal.PairedTicks.Count(pair => !pair.IsEstimated),

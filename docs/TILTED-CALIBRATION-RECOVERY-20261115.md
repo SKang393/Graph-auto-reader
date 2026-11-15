@@ -167,6 +167,19 @@ The private real-data opt-in test was not executed. Integration TRX SHA-256:
 `6d6aae5f3265862c204ccc94ac1c979f9623bcefe95d04feacfff251477b81e6`.
 Windows CI must pass on the corrected checkpoint before it is called green;
 native UI behavior for this unpackaged change has not been checked.
+The follow-up [CI run](https://github.com/SKang393/Graph-auto-reader/actions/runs/43764253100)
+on `28c7fbb0ce6b639c938160387c20435849e66557` built successfully, and App passed
+1,248/1,248, but integration reported 181 passed / one failed / seven skipped.
+`AutomaticRunBindingRejectsMisalignedPersistedManualAnchors` exposed a separate
+restore defect: a malformed legacy lattice was reconstructed as a nonseparable
+state despite lacking explicit affine provenance, then triggered the rotated
+operation refusal. Restore now rejects that malformed legacy state rather than
+reinterpreting it. The existing integration test remains unchanged. This
+correction passed the coordinated local full-solution validation: 3,130 passed,
+32 expected optional-input/worker skips, zero failures. App passed 1,269/1,269;
+integration passed 182 with seven expected skips, including the unchanged
+regression. See [native affine review validation](NATIVE-AFFINE-AXIS-REVIEW-20261115.md)
+for commands, times and hashes. Superseding hosted CI still must pass.
 Temporary owned test outputs remain active only through CI and outcome
 integration, then retire under
 the existing artifact policy. The current fixed-development report remains

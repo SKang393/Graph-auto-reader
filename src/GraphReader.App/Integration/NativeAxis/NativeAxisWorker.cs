@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GraphReader.App.Integration.CalibrationOcr;
 using GraphReader.App.Integration.Workflow;
+using GraphReader.App.Services;
 using GraphReader.Axis;
 using OpenCvSharp;
 
@@ -94,6 +95,17 @@ internal static class NativeAxisWorker
         var p = geometry.PlotPolygon;
         PixelPoint[] corners = [p.BottomLeft, p.BottomRight, p.TopRight, p.TopLeft];
         string? rejection = GeometryRejection(corners, observer.Count, width, height);
+        if (rejection == "native_rotated_geometry")
+        {
+            var affine = new RustAffineAxisGeometry(new(p.BottomLeft.X, p.BottomLeft.Y),
+                new(p.BottomRight.X, p.BottomRight.Y), new(p.TopLeft.X, p.TopLeft.Y), geometry.Confidence);
+            if (!OpenCvAxisProposalService.ValidAffineGeometry(affine, width, height))
+                return Failure("OPENCV_AXIS_AMBIGUOUS", rejection);
+            string[] affineReasons = geometry.Uncertainty.Reasons.Append("native_affine_geometry")
+                .Concat(observer.Count > 1 ? ["native_multiple_ranked_candidates"] : Array.Empty<string>())
+                .Distinct(StringComparer.Ordinal).ToArray();
+            return new(null, null) { Provider = "opencv-review", AffineGeometry = affine, ReviewReasons = affineReasons };
+        }
         if (rejection is not null) return Failure("OPENCV_AXIS_AMBIGUOUS", rejection);
         int left = (int)Math.Round(p.BottomLeft.X), right = (int)Math.Round(p.BottomRight.X);
         int bottom = (int)Math.Round(p.BottomLeft.Y), top = (int)Math.Round(p.TopLeft.Y);

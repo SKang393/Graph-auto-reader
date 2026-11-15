@@ -118,6 +118,8 @@ public sealed class ManualAxisDraftTests
             Assert.IsNull(service.CreateManualAxisDraft("missing-tab", [new(20, 100), new(20, 20), new(140, 100)]));
             WorkspaceAxisSuggestion? draft = service.CreateManualAxisDraft(tab, [new(20, 100), new(20, 20), new(140, 100)]);
             Assert.IsNotNull(draft);
+            Assert.IsNotNull(draft.Geometry);
+            Assert.IsNull(draft.AffineGeometry);
             Assert.IsTrue(draft.IsUserDefined);
             Assert.AreEqual(0, draft.Geometry.XTickPositions.Count);
             Assert.AreEqual(0, draft.Geometry.YTickPositions.Count);

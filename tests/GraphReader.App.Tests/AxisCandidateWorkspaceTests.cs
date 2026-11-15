@@ -66,6 +66,8 @@ public sealed class AxisCandidateWorkspaceTests
         Assert.IsFalse(workspace.IsAxisCandidateReviewCurrent(review with { Provider = "opencv-review" }));
         Assert.IsFalse(workspace.IsAxisCandidateReviewCurrent(review with { Candidates = [candidate] }));
         WorkspaceAxisSuggestion selected = workspace.SelectAxisCandidate(review, 0)!;
+        Assert.IsNotNull(selected.Geometry);
+        Assert.IsNull(selected.AffineGeometry);
         Assert.AreEqual("rust-review", selected.Provider);
         Assert.AreEqual(50, selected.Geometry.XTickPositions[1]);
         Assert.AreEqual(50, selected.Geometry.YTickPositions[1]);
@@ -98,6 +100,8 @@ public sealed class AxisCandidateWorkspaceTests
             ((IList<AxisReviewCandidate>)review.Candidates)[0] = new(0, new(2, 100, 80, 5, 0)));
 
         WorkspaceAxisSuggestion selected = workspace.SelectAxisCandidate(review, 1)!;
+        Assert.IsNotNull(selected.Geometry);
+        Assert.IsNull(selected.AffineGeometry);
         Assert.AreEqual(20, selected.Geometry.Left);
         Assert.AreEqual("opencv-review", selected.Provider);
         Assert.IsTrue(workspace.IsAxisSuggestionCurrent(selected));

@@ -4094,6 +4094,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         }
         bool axisAligned = ManualCalibrationMapper.IsAxisAligned(request.Session1Y0, request.Session1YMaximum, request.SessionMaximumY0) ||
             IsConfirmedManualThreeAnchorCalibration(calibration);
+        // A malformed legacy lattice is not explicit consent to an affine mapping.
+        if (calibration.SessionLattice is not null && !axisAligned) return null;
         var xTransform = axisAligned ? FitTransform(y0.Screen.X, y0.Graph.X, xMax.Screen.X, xMaximum) : null;
         var yTransform = axisAligned ? FitTransform(y0.Screen.Y, 0, yMax.Screen.Y, yMaximum) : null;
         return new ManualCalibrationState(

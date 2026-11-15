@@ -22,6 +22,8 @@ public sealed partial class CalibrationOcrWorkspaceTests
         Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
         var tab = workspace.CreateWorkspace().Single();
         WorkspaceAxisSuggestion suggestion = Pump(workspace.SuggestAxesAsync(tab.TabId, CancellationToken.None))!;
+        Assert.IsNotNull(suggestion.Geometry);
+        Assert.IsNull(suggestion.AffineGeometry);
         Task<WorkspaceCalibrationLabelSuggestion?> pending = workspace.ReadCalibrationLabelsAsync(suggestion, CancellationToken.None);
         Assert.AreEqual(1, scan.Calls);
         CollectionAssert.AreEqual(File.ReadAllBytes(path), scan.Image!);
@@ -74,6 +76,8 @@ public sealed partial class CalibrationOcrWorkspaceTests
             calibrationOcrSuggestionService: ocr, axisTickMeasurementService: scan);
         Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
         WorkspaceAxisSuggestion suggestion = Pump(workspace.SuggestAxesAsync(workspace.CreateWorkspace().Single().TabId, CancellationToken.None))!;
+        Assert.IsNotNull(suggestion.Geometry);
+        Assert.IsNull(suggestion.AffineGeometry);
         Task<WorkspaceCalibrationLabelSuggestion?> pending = workspace.ReadCalibrationLabelsAsync(suggestion, CancellationToken.None);
         Assert.IsNotNull(ocr.Request);
         Assert.IsNull(ocr.Request.MeasuredXTicks);
@@ -101,6 +105,8 @@ public sealed partial class CalibrationOcrWorkspaceTests
         Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
         var tab = workspace.CreateWorkspace().Single();
         WorkspaceAxisSuggestion suggestion = Pump(workspace.SuggestAxesAsync(tab.TabId, CancellationToken.None))!;
+        Assert.IsNotNull(suggestion.Geometry);
+        Assert.IsNull(suggestion.AffineGeometry);
         Task<WorkspaceCalibrationLabelSuggestion?> pending = workspace.ReadCalibrationLabelsAsync(suggestion, cancellation.Token);
         Assert.IsNull(ocr.Request);
         if (cancel) cancellation.Cancel();

@@ -1064,6 +1064,11 @@
               <TextBlock Margin="0,0,0,6" Text="{DynamicResource Manual.AxisDraft.Ready}" TextWrapping="Wrap"
                          Visibility="{Binding IsManualAxisDraft, Converter={StaticResource BooleanToVisibilityConverter}}" />
               <TextBlock x:Name="AxisSuggestionReviewHeader" Text="{DynamicResource Manual.AxisReview}" TextWrapping="Wrap" />
+              <TextBlock Margin="0,4,0,6" TextWrapping="Wrap"
+                         Text="{DynamicResource Manual.AffineAxisSuggestionNotice}"
+                         Visibility="{Binding HasAffineAxisSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}"
+                         automation:AutomationProperties.AutomationId="Manual.AffineAxisSuggestionNotice"
+                         automation:AutomationProperties.Name="{DynamicResource Manual.AffineAxisSuggestionNotice}" />
               <TextBlock Margin="0,4,0,6" Text="{Binding AxisGeometryReviewWarningText}"
                          Foreground="{DynamicResource App.Brush.Warning}" TextWrapping="Wrap"
                          Visibility="{Binding HasAxisGeometryReviewWarning, Converter={StaticResource BooleanToVisibilityConverter}}"
