@@ -190,20 +190,16 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 
 ## REV-011 - finish native preview verification
 
-- **Status:** access authorized; native checks waiting on usable window state
-- **Blocks:** remaining native control checks and verification of the latest
-  device-picker/history fixes; headless development and validation continue
-- **Effort:** about 5 minutes for checks when window capture is available
-- **Action:** the maintainer confirmed the old window is closed; a process
-  query verified its exit. No further closure or access approval is needed.
-  The verified 452 handoff and old-build retirement are complete. Continue native checks
-  for foreground interruption of device checks, separate OCR row selection and
-  inclusion/refit review invalidation, proposal Remove, and the explicit
-  three-click axis draft with Cancel/Dismiss. In the next meaningful integrated
-  preview, verify that Automatic retains its visible label after profiling and
-  marker-assistance status clears after Undo/Redo. Do not repeat completed
-  save/reopen, corrected-text refit, bulk marker or crop checks without a relevant
-  implementation change
+- **Status:** resolved for access and window handoff; scoped native checks passed
+- **Blocks:** none requiring maintainer action. Foreground profiling interruption
+  remains an unverified engineering observation, not a passed check
+- **Effort:** none for the maintainer
+- **Action:** no further closure or access approval is needed. The 452 handoff
+  and old-build retirement are complete. The native 452 record verifies the
+  device-picker/history fixes, marker Remove and Undo/Redo, manual drafts and
+  independent OCR row selection/inclusion/refit. Keep the inconclusive
+  foreground-profiling observation explicit; do not repeat completed checks or
+  treat this subset as full visual or production acceptance
 - **Why:** the user stopped Computer Use with physical Escape. Initial native
   CPU/default and adapter-list display was observed; saved-choice verification
   was not completed. The actual worker lifecycle and headless persistence tests
@@ -246,6 +242,12 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   452 activation and old-build retirement completed with all sixteen shared Data
   files unchanged; the latest launcher smoke passed. Disposable validation
   copies are retired.
+  Refreshing and activating the unique 452 window subsequently returned a
+  matching screenshot/tree. The [native 452 checks](NATIVE-PREVIEW-452-CHECK-20261114.md)
+  passed the updated fixes and listed owned review interactions. CPU preference
+  and the original one-point state were restored; owned project hashes are
+  unchanged. Profiling completed before the foreground operation could interrupt
+  it, so that observation remains inconclusive and was not retried.
   See the [native workflow result](NATIVE-PREVIEW-449-CHECK-20261114.md) and the
   [native attempt](NATIVE-PREVIEW-448-CHECK-20261114.md).
   Owned headless package checks passed, but do not replace these visual checks
@@ -257,8 +259,10 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   [connection-context outcome](MARKER-CONNECTION-CONTROLS-20261114.md),
   [crop workflow outcome](PANEL-CROP-WORKFLOW-20261114.md),
   [current implementation plan](DEVELOPMENT-RESET-20261111.md)
-- **Unblocks when:** the listed remaining controls and updated-source fixes are
-  observed, without treating the completed subset as full visual acceptance
+- **Resolution:** maintainer access and closure actions completed, verified 452
+  activation followed, and matching native observations now support the scoped
+  fixes. Remaining engineering limitations stay in the native outcome and
+  readiness records; no new maintainer input is required
 
 ## REV-012 - identify the existing Windows test laptop
 

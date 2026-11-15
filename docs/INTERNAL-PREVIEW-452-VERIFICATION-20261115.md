@@ -80,5 +80,10 @@ startup and handoff, not completed native interaction.
 The [existing Flex5Laptop check](FLEX5-452-VERIFICATION-20261115.md) also passed
 portable/Production-guard startup and two owned CPU OCR reads on one reused,
 bounded worker. This internal ZIP is not an installer, clean-machine
-acceptance, public release or production model approval. Native 452 interaction
-is pending and is not implied by source CI, laptop or startup smoke results.
+acceptance, public release or production model approval. A subsequent
+[native 452 check](NATIVE-PREVIEW-452-CHECK-20261114.md) verified the two packaged
+UI fixes and owned marker/calibration review interactions. CPU preference and
+the original one-point project state were restored; both owned input project
+hashes are unchanged. Foreground profiling interruption remains inconclusive
+because the check finished before the foreground operation was reached. Native
+save/export and full production acceptance are not inferred from this subset.
