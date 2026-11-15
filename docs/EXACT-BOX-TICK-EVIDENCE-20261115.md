@@ -156,11 +156,14 @@ tests; and applicable policy and packaging checks, including 68 packaging
 verification tests. The release jobs were skipped. This validates the source
 batch, not automatic calibration accuracy or a new packaged build.
 
-`artifacts/exact-box-ticks-check` is temporary integration evidence.
+The three completed TRXs in `artifacts/exact-box-ticks-check` were retired
+after source integration and full CI passed; its runtime pin manifest remains
+only for the current source-runtime transition. See the
+[retention closure](NATIVE-CONTRAST-TICKS-20261115.md).
 `artifacts/exact-box-tick-dev-trace/report.json` remains temporarily needed by
 the next native-box alignment diagnosis for its saved crop/geometry metadata;
-this avoids repeating unchanged inference. Retire these outputs after the
-source/outcome is pushed and those named consumers finish. Original user data
+this avoids repeating unchanged inference. Retire remaining outputs after
+those named consumers finish. Original user data
 and independent evaluation inputs are not disposable outputs.
 
 The obsolete unpackaged `artifacts/native-axis-reasons-runtime` copy was retired

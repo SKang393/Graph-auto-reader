@@ -507,7 +507,7 @@ internal static partial class RealDevCalibrationCheck
         return Convert.ToHexStringLower(hash.GetHashAndReset());
     }
 
-    private sealed class Candidate : IDisposable
+    private sealed partial class Candidate : IDisposable
     {
         private readonly List<FileStream> held = [];
         internal Dictionary<string, string> Files { get; } = new(StringComparer.Ordinal);

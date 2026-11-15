@@ -110,7 +110,7 @@ internal static class NativeAxisCandidateReview
             gray.CopyPixels(pixels, width, 0);
             observer.Stage = "line_detection";
             var lines = await new OpenCvLineCandidateProvider().DetectLinesAsync(new(width, height, width, pixels), token).ConfigureAwait(false);
-            return await ProcessLinesCoreAsync(lines, width, height, observer, token).ConfigureAwait(false);
+            return await ProcessLinesCoreAsync(lines, width, height, observer, pixels, token).ConfigureAwait(false);
         }
         catch (OperationCanceledException) { observer.Cancelled = true; observer.FailureDetail = "cancelled"; throw; }
         catch (Exception) { observer.FailureDetail ??= "native_" + observer.Stage + "_failed"; throw; }
@@ -126,14 +126,14 @@ internal static class NativeAxisCandidateReview
         Action<NativeAxisCandidateReviewObservation>? observation, CancellationToken token)
     {
         var observer = new Observer(observation);
-        try { return await ProcessLinesCoreAsync(lines, width, height, observer, token).ConfigureAwait(false); }
+        try { return await ProcessLinesCoreAsync(lines, width, height, observer, null, token).ConfigureAwait(false); }
         catch (OperationCanceledException) { observer.Cancelled = true; observer.FailureDetail = "cancelled"; throw; }
         catch (Exception) { observer.FailureDetail ??= "native_" + observer.Stage + "_failed"; throw; }
         finally { observer.Notify(); }
     }
 
     private static async Task<AxisCandidateReviewResult> ProcessLinesCoreAsync(
-        IReadOnlyList<GeometryLineCandidate> lines, int width, int height, Observer observer, CancellationToken token)
+        IReadOnlyList<GeometryLineCandidate> lines, int width, int height, Observer observer, byte[]? pixels, CancellationToken token)
     {
         observer.Stage = "enumeration";
         try
@@ -183,6 +183,7 @@ internal static class NativeAxisCandidateReview
                 if (observer.Enabled) observer.RoundedExclusionCount++;
                 continue;
             }
+            if (pixels is not null) geometry = NativeAxisRasterGeometry.Adjust(geometry!, pixels, width, height, token);
             if (!distinct.Add((geometry!.Left, geometry.Bottom, geometry.Right, geometry.Top)))
             {
                 if (observer.Enabled) observer.DuplicateExclusionCount++;

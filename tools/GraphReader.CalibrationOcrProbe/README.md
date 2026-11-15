@@ -389,3 +389,23 @@ Gray8 histograms for the same fixed offsets. A v1 `*_dark=false` means intensity
 at least 128, not necessarily white. The source reader and selection are unchanged.
 
 `--owned-exact-box-contrast-check <absolute-App-exe> <absolute-Rust-exe>` runs the existing owned black, gray and faint controls plus blank, disconnected and fixed antialias-phase controls through actual native geometry and, when geometry is returned, the exact-box Rust tick service. It reports Gray8 endpoint and baseline properties and all stage outcomes; fixture bounds are annotations rather than detector inputs, and it does not run OCR.
+
+## Native raster endpoint confirmation
+
+`--real-dev-native-raster-endpoint-trace <corpus-root> <absolute-App-exe> <asset-root> <absolute-Rust-worker> --explicit-opt-in`
+uses its own frozen source-runtime profile while reusing the exact fixed-first-12
+preparation, automatic geometry, exact-box measurement, literal OCR and association
+pipeline. Historical profiles remain unchanged. Run
+`--real-dev-native-raster-endpoint-trace-self-test` without private inputs before
+the authorized confirmation. Transient binding checks do not establish workspace
+currentness or native UI acceptance.
+
+## Owned solver resource observation
+
+`--owned-native-search-work-check` compares five fixed recorded-line solver calls,
+including a global winner after pair 128 and two fail-closed budget refusals.
+It verifies complete bounded/unlimited parity and reports work counts, wall/CPU
+time and process memory observations. This excludes raster detection, IPC and
+the native child watchdog. It changes no production budget and uses no private
+or sealed input. Its `safety_passed` and failure accounting must be inspected;
+an exit-zero observation report alone is not a pass.

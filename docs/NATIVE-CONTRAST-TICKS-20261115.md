@@ -164,13 +164,28 @@ data, independent evaluation boundaries, unchanged451/Mirage outcomes and the
 sole delivered 0.4.54 package remain unchanged. Source remains Apache-2.0 with
 no new dependency, model, license or frozen public schema.
 
-Temporary outputs are `artifacts/owned-exact-box-contrast-check`,
-`artifacts/owned-exact-box-contrast-after` and
-`artifacts/cached-axis-intensity-properties`. Retire them, the preceding cached
-property report and the exact-box integration evidence after the owned paired
-check/mapping consumers finish and this source/outcome record is pushed. They
-are disposable results; original user inputs and active runtime assets are not.
+After source/outcome `0642f21f42894cfc2997dab40dcce4ae932ad480` reached
+`origin/main` and the associated mapping/paired-check consumers finished,
+**13 files / 173,061 bytes** were retired at `2026-11-15T18:03:37.7595538Z`:
 
-The scoped contrast repair and owned checks pass. Exact-head Windows CI remains
-required after integration. Complete automatic calibration acceptance remains
-incomplete, including the owned endpoint failures above.
+- `artifacts/cached-axis-pixel-properties`: three files / 2,343 bytes.
+- `artifacts/cached-axis-intensity-properties`: three files / 7,830 bytes.
+- `artifacts/owned-exact-box-contrast-check`: four files / 4,895 bytes.
+- Three completed TRXs in `artifacts/exact-box-ticks-check`: 157,993 bytes.
+
+Resolved paths, exact report/TRX hashes, inventories and absence of reparse
+points/running consumers were checked before deletion; the listed targets are
+absent. `artifacts/owned-exact-box-contrast-after` remains only as the fixed
+nine-case baseline for the native endpoint repair. The cached exact-box trace
+remains only for the changed-stage development confirmation; its runtime pin
+manifest remains for the current runtime transition. Retire these once those
+consumers finish and their outcomes are pushed. Original user data, independent
+inputs, active runtime assets and the sole 0.4.54 package remain intact.
+
+The scoped contrast repair and owned checks pass. Full Windows CI
+[43744182879](https://github.com/SKang393/Graph-auto-reader/actions/runs/43744182879)
+passed on `0642f21f42894cfc2997dab40dcce4ae932ad480`: 13 .NET suites with
+3,021 passed, 30 skipped and zero failed, all 72 Rust tests, and applicable
+policy/packaging checks including 68 packaging verification tests. Release jobs
+were skipped. Complete automatic calibration acceptance remains incomplete,
+including the owned endpoint failures above.

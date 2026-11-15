@@ -67,11 +67,15 @@ internal static class NativeAxisWorker
         byte[] pixels = new byte[checked(width * height)];
         gray.CopyPixels(pixels, width, 0);
         var lines = await new OpenCvLineCandidateProvider().DetectLinesAsync(new(width, height, width, pixels), token).ConfigureAwait(false);
-        return await ProcessLinesAsync(lines, width, height, workObserver, token).ConfigureAwait(false);
+        return await ProcessLinesCoreAsync(lines, width, height, workObserver, pixels, token).ConfigureAwait(false);
     }
 
     internal static async Task<RustAxisProposalResult> ProcessLinesAsync(IReadOnlyList<GeometryLineCandidate> lines,
         int width, int height, IAxisGeometryWorkObserver? workObserver, CancellationToken token)
+        => await ProcessLinesCoreAsync(lines, width, height, workObserver, null, token).ConfigureAwait(false);
+
+    private static async Task<RustAxisProposalResult> ProcessLinesCoreAsync(IReadOnlyList<GeometryLineCandidate> lines,
+        int width, int height, IAxisGeometryWorkObserver? workObserver, byte[]? pixels, CancellationToken token)
     {
         var observer = new Observer();
         AxisGeometryResult geometry;
@@ -95,7 +99,9 @@ internal static class NativeAxisWorker
         string[] reasons = geometry.Uncertainty.Reasons.ToArray();
         if (geometry.Uncertainty.NeedsReview && reasons.Length == 0) reasons = ["needs_review"];
         if (observer.Count > 1) reasons = reasons.Append("native_multiple_ranked_candidates").Distinct(StringComparer.Ordinal).ToArray();
-        return new(new RustAxisGeometry(left, bottom, right, top, geometry.Confidence), null) { Provider = "opencv-review", ReviewReasons = reasons };
+        var resultGeometry = new RustAxisGeometry(left, bottom, right, top, geometry.Confidence);
+        if (pixels is not null) resultGeometry = NativeAxisRasterGeometry.Adjust(resultGeometry, pixels, width, height, token);
+        return new(resultGeometry, null) { Provider = "opencv-review", ReviewReasons = reasons };
     }
     internal static string FailureDetail(AxisGeometryDetectionException error) => error.Reason switch
     {

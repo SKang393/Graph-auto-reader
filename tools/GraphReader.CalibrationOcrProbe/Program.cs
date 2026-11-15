@@ -57,6 +57,7 @@ internal static class Program
         bool realDevEndpointTrace = args.Length > 0 && args[0] == "--real-dev-endpoint-trace";
         bool realDevCachedAxisProperties = args.Length > 0 && args[0] == "--real-dev-cached-axis-properties";
         bool realDevExactBoxTickTrace = args.Length > 0 && args[0] == "--real-dev-exact-box-tick-trace";
+        bool realDevNativeRasterEndpointTrace = args.Length > 0 && args[0] == "--real-dev-native-raster-endpoint-trace";
         bool realDevRankedReviewTrace = args.Length > 0 && args[0] == "--real-dev-ranked-review-trace";
         bool realDevSpatialTrace = args.Length > 0 && args[0] == "--real-dev-spatial-trace";
         bool realDevSortedSpatialGeometryTrace = args.Length > 0 && args[0] == "--real-dev-sorted-spatial-geometry-trace";
@@ -74,7 +75,7 @@ internal static class Program
         bool ownedNativeRejection = args.Length > 0 && args[0] == "--owned-native-rejection-check";
         bool ownedNativePruning = args.Length > 0 && args[0] == "--owned-native-pruning-check";
         bool ownedNativeIntersection = args.Length > 0 && args[0] == "--owned-native-intersection-check";
-        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevRankedReviewTrace || realDevExactBoxTickTrace || realDevCachedAxisProperties || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
+        bool realDevPrivate = realDevNativeRasterEndpointTrace || realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevRankedReviewTrace || realDevExactBoxTickTrace || realDevCachedAxisProperties || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -182,6 +183,11 @@ internal static class Program
                 Emit(RealDevCalibrationCheck.ExactBoxTickTraceSelfTest());
                 return 0;
             }
+            if (args is ["--real-dev-native-raster-endpoint-trace-self-test"])
+            {
+                Emit(RealDevCalibrationCheck.NativeRasterEndpointTraceSelfTest());
+                return 0;
+            }
             if (args is ["--real-dev-ranked-review-trace-self-test"])
             {
                 Emit(RealDevCalibrationCheck.RankedReviewTraceSelfTest());
@@ -264,6 +270,12 @@ internal static class Program
             {
                 using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
                 Emit(await OwnedExactBoxContrastCheck.RunAsync(contrastApp, contrastRust, parentBudget, deadline.Token));
+                return 0;
+            }
+            if (args is ["--owned-native-search-work-check"])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await OwnedNativeSearchWorkCheck.RunAsync(parentBudget, deadline.Token));
                 return 0;
             }
             if (args is ["--owned-gray-axis-check", var grayAxisApp, var grayAxisRust])
@@ -386,6 +398,11 @@ internal static class Program
                     if (realDevExactBoxTickTrace)
                     {
                         Emit(await RealDevCalibrationCheck.RunExactBoxTickTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
+                        return 0;
+                    }
+                    if (realDevNativeRasterEndpointTrace)
+                    {
+                        Emit(await RealDevCalibrationCheck.RunNativeRasterEndpointTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
                         return 0;
                     }
                     if (realDevRankedReviewTrace)
@@ -529,6 +546,14 @@ internal static class Program
                     {
                         Emit(new { schema = RealDevCalibrationCheck.ExactBoxTickTraceSchema,
                             status = "blocked_preflight_or_runtime", error = "REAL_DEV_EXACT_BOX_TICK_TRACE_FAILED",
+                            sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
+                            review_only = true, production_approved = false });
+                        return 1;
+                    }
+                    if (realDevNativeRasterEndpointTrace)
+                    {
+                        Emit(new { schema = RealDevCalibrationCheck.NativeRasterEndpointTraceSchema,
+                            status = "blocked_preflight_or_runtime", error = "REAL_DEV_NATIVE_RASTER_ENDPOINT_TRACE_FAILED",
                             sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
                             review_only = true, production_approved = false });
                         return 1;

@@ -106,10 +106,12 @@ threshold, training, Apply/export, unchanged451 or Mirage run was involved.
 | Selected inventory | `03b36370813337087eb9970ff9a9b7a0431f67dfb59be1e47062034b2d81b81d` |
 | Selected-source digest | `4736ba4a0e3a9727076f82c3ff83f315f76cd8d00456fc60943b3ddd7ff48fd1` |
 
-The temporary `artifacts/cached-axis-pixel-properties` report and the previous
-exact-box raw report remain only for the coordinate-mapping review. Retire them
-after that consumer finishes and this source/outcome record reaches `origin/main`.
-Keep originals, active runtime assets and independent evaluation inputs intact.
+The temporary `artifacts/cached-axis-pixel-properties` report was retired after
+the coordinate-mapping consumer finished and this source/outcome reached
+`origin/main`; see the [retention closure](NATIVE-CONTRAST-TICKS-20261115.md).
+The exact-box raw report remains a named input for the changed-stage endpoint
+confirmation, avoiding repeated unchanged geometry/OCR. Originals, active
+runtime assets and independent evaluation inputs remain intact.
 
 Project source remains Apache-2.0. No new dependency, model, frozen public
 schema, package, version increment or production approval was added. Diagnostic
