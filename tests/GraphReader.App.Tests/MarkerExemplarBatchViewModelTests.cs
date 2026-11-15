@@ -68,11 +68,16 @@ public sealed class MarkerExemplarBatchViewModelTests
         Assert.AreEqual(1, fixture.Workspace.AutosavedStates.Count, "Batch queues one completed-state autosave.");
         string after = ScientificState(fixture.Workspace);
         Assert.AreEqual(after, fixture.Workspace.AutosavedStates[0]);
+        StringAssert.Contains(fixture.Vm.MarkerExemplarStatusText, "Added 2");
         fixture.Vm.UndoCommand.Execute(null);
         Assert.AreEqual(before, ScientificState(fixture.Workspace), "One Undo removes the entire batch.");
+        Assert.IsFalse(fixture.Vm.MarkerExemplarStatusText.Contains("Added 2", StringComparison.Ordinal));
+        Assert.IsEmpty(fixture.Vm.MarkerExemplarCandidates);
         Assert.IsFalse(fixture.Vm.CanUndo, "Setup was outside the VM edit history.");
         fixture.Vm.RedoCommand.Execute(null);
         Assert.AreEqual(after, ScientificState(fixture.Workspace), "One Redo restores every batch point and its scientific coordinates.");
+        Assert.IsFalse(fixture.Vm.MarkerExemplarStatusText.Contains("Added 2", StringComparison.Ordinal));
+        Assert.IsEmpty(fixture.Vm.MarkerExemplarCandidates);
     });
 
     [TestMethod]

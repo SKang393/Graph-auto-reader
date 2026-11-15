@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Media;
 using System.Windows.Threading;
 using GraphReader.App.Localization;
 using GraphReader.App.Services;
@@ -16,6 +17,7 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class CalibrationDeviceViewModelTests
 {
+    private static readonly string[] DevicePickerThemes = ["DesignTokens", "DarkTheme", "Controls"];
     [TestMethod]
     public void DeviceChoiceUsesSharedSettingsAndSurvivesFreshViewModel() => WithSettings(root =>
     {
@@ -92,26 +94,38 @@ public sealed class CalibrationDeviceViewModelTests
         using var vm = new MainWindowViewModel(new FakeWorkspaceService(), Localizer(),
             calibrationOcrDevices: settings, calibrationDeviceOptimizer: optimizer);
         var combo = new ComboBox { DataContext = vm, DisplayMemberPath = nameof(CalibrationOcrDeviceChoice.Label) };
+        foreach (string theme in DevicePickerThemes)
+            combo.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri($"/GraphReader.App;component/Themes/{theme}.xaml", UriKind.Relative) });
+        combo.SetResourceReference(FrameworkElement.StyleProperty, "App.Style.ComboBox");
         combo.SetBinding(ItemsControl.ItemsSourceProperty, new Binding(nameof(vm.CalibrationOcrDeviceChoices)));
         combo.SetBinding(Selector.SelectedItemProperty, new Binding(nameof(vm.SelectedCalibrationOcrDevice)) { Mode = BindingMode.TwoWay });
+        combo.Measure(new Size(400, 100));
+        combo.Arrange(new Rect(0, 0, 400, 40));
+        combo.UpdateLayout();
         Assert.AreEqual(vm.SelectedCalibrationOcrDevice, combo.SelectedItem);
         int uiThread = Environment.CurrentManagedThreadId;
         int notificationThread = 0;
         var refreshed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        vm.PropertyChanged += (_, args) =>
+        CalibrationOcrDeviceChoice originalChoice = vm.SelectedCalibrationOcrDevice!;
+        originalChoice.PropertyChanged += (_, args) =>
         {
-            if (args.PropertyName == nameof(MainWindowViewModel.SelectedCalibrationOcrDevice) &&
-                settings.ProfileIsCurrent && vm.SelectedCalibrationOcrDevice?.Label.Contains("Discrete test GPU", StringComparison.Ordinal) == true)
+            if (args.PropertyName == nameof(CalibrationOcrDeviceChoice.Label) &&
+                settings.ProfileIsCurrent && originalChoice.Label.Contains("Discrete test GPU", StringComparison.Ordinal))
             {
                 notificationThread = Environment.CurrentManagedThreadId;
                 refreshed.TrySetResult();
             }
         };
         Pump(Task.WhenAll(optimizer.CheckAsync(CancellationToken.None), refreshed.Task.WaitAsync(TimeSpan.FromSeconds(5))));
+        Pump(Dispatcher.CurrentDispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle).Task);
+        combo.UpdateLayout();
         Assert.AreEqual(uiThread, notificationThread);
         Assert.AreEqual(CalibrationOcrDeviceSelection.Automatic, vm.SelectedCalibrationOcrDevice!.Device);
+        Assert.AreSame(originalChoice, vm.SelectedCalibrationOcrDevice);
         StringAssert.Contains(vm.SelectedCalibrationOcrDevice.Label, "Discrete test GPU");
         Assert.AreSame(vm.SelectedCalibrationOcrDevice, combo.SelectedItem);
+        Assert.IsTrue(Descendants(combo).OfType<TextBlock>().Any(text => text.Text.Contains("Discrete test GPU", StringComparison.Ordinal)),
+            "The themed collapsed picker must render the selected GPU label.");
         StringAssert.Contains(((CalibrationOcrDeviceChoice)combo.SelectedItem).Label, "Discrete test GPU");
         Assert.AreEqual(gpu, settings.SelectedDevice);
         Assert.IsTrue(vm.CheckCalibrationDevicesCommand.CanExecute(null));
@@ -123,6 +137,16 @@ public sealed class CalibrationDeviceViewModelTests
         Directory.CreateDirectory(root);
         try { StaTestHost.Run(() => action(root)); }
         finally { Directory.Delete(root, recursive: true); }
+    }
+
+    private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+            yield return child;
+            foreach (DependencyObject descendant in Descendants(child)) yield return descendant;
+        }
     }
 
     private sealed class TestInventory : IDxgiAdapterInventory

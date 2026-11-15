@@ -2685,6 +2685,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             _isRestoringHistory = false;
         }
+        ClearMarkerExemplarProposals(updateSample: true);
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
         SetStatus(GetLocalizedString(LocalizationKeys.StatusUndoCompleted));
@@ -2707,6 +2708,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             _isRestoringHistory = false;
         }
+        ClearMarkerExemplarProposals(updateSample: true);
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
         SetStatus(GetLocalizedString(LocalizationKeys.StatusRedoCompleted));

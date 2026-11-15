@@ -7,7 +7,19 @@ using GraphReader.App.Services;
 
 namespace GraphReader.App.ViewModels;
 
-public sealed record CalibrationOcrDeviceChoice(CalibrationOcrDeviceSelection Device, string Label);
+public sealed class CalibrationOcrDeviceChoice(CalibrationOcrDeviceSelection device, string label) : INotifyPropertyChanged
+{
+    public CalibrationOcrDeviceSelection Device { get; } = device;
+    public string Label { get; private set; } = label;
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    internal void UpdateLabel(string value)
+    {
+        if (Label == value) return;
+        Label = value;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Label)));
+    }
+}
 
 public sealed partial class MainWindowViewModel
 {
@@ -144,13 +156,26 @@ public sealed partial class MainWindowViewModel
     {
         IReadOnlyList<CalibrationOcrDeviceSelection> devices = _calibrationOcrDevices?.AvailableDevices ?? [CalibrationOcrDeviceSelection.Cpu];
         CalibrationOcrDeviceSelection selected = _calibrationOcrDevices?.Preference ?? CalibrationOcrDeviceSelection.Cpu;
-        CalibrationOcrDeviceChoices = devices.Select(device => new CalibrationOcrDeviceChoice(device,
+        CalibrationOcrDeviceChoice[] refreshed = devices.Select(device => new CalibrationOcrDeviceChoice(device,
             device.Provider == "Auto"
                 ? _calibrationOcrDevices?.NeedsAutomaticProfile == true
                     ? GetLocalizedString(LocalizationKeys.SettingsAxisLabelsAutomaticPending)
                     : FormatLocalizedString(LocalizationKeys.SettingsAxisLabelsAutomaticSelected,
                         DeviceLabel(_calibrationOcrDevices?.SelectedDevice ?? CalibrationOcrDeviceSelection.Cpu))
                 : DeviceLabel(device))).ToArray();
+        if (CalibrationOcrDeviceChoices.Select(choice => choice.Device).SequenceEqual(devices))
+        {
+            for (int i = 0; i < refreshed.Length; i++)
+                CalibrationOcrDeviceChoices[i].UpdateLabel(refreshed[i].Label);
+            var current = CalibrationOcrDeviceChoices.FirstOrDefault(choice => choice.Device == selected);
+            if (!ReferenceEquals(_selectedCalibrationOcrDevice, current))
+            {
+                _selectedCalibrationOcrDevice = current;
+                OnPropertyChanged(nameof(SelectedCalibrationOcrDevice));
+            }
+            return;
+        }
+        CalibrationOcrDeviceChoices = refreshed;
         _selectedCalibrationOcrDevice = CalibrationOcrDeviceChoices.FirstOrDefault(choice => choice.Device == selected);
         _refreshingCalibrationDeviceChoices = true;
         try { OnPropertyChanged(nameof(CalibrationOcrDeviceChoices)); }
