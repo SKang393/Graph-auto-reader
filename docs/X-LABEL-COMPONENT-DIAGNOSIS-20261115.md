@@ -87,7 +87,12 @@ replaced only its probe-local Axis DLL after this diagnosis finished.
 
 Source remains Apache-2.0; no new dependency, model, license, public contract,
 packaged build or production approval. Diagnostic accounting passes; automatic
-calibration remains incomplete. Full source integration CI is still required.
+calibration remains incomplete. Full Windows CI
+[43750130103](https://github.com/SKang393/Graph-auto-reader/actions/runs/43750130103)
+passed on `11196b00d4afa18c208700ddae456d4236c74b40`: 13 .NET suites,
+3,043 passed / 30 skipped / zero failed, 72 Rust tests, and applicable
+policy/packaging checks including 68 packaging verification tests. Release jobs
+were skipped. This does not establish a native UI or production calibration pass.
 
 Retain the local property report only until the owned interval-layout
 reproduction consumes this diagnosis and the aggregate outcome is pushed. Keep

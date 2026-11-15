@@ -82,8 +82,13 @@ diagnostic which was not invoked during this solver comparison.
 | Solver after report, 9,777 bytes | `7e8d3ac8c17447fc37cc3388a0bcc79b22a69dae227267801b499f47934caf84` |
 
 No dependency/license change; source remains Apache-2.0. No package or version
-increment. Local equivalence/resource checks pass; full Windows CI is required
-after integration. Automatic calibration remains incomplete.
+increment. Local equivalence/resource checks pass. Full Windows CI
+[43750130103](https://github.com/SKang393/Graph-auto-reader/actions/runs/43750130103)
+passed on integrated head `11196b00d4afa18c208700ddae456d4236c74b40`: 13 .NET
+suites, 3,043 passed / 30 skipped / zero failed; 72 Rust tests; and applicable
+policy/packaging checks including 68 packaging verification tests. All 229 Axis
+tests ran there, including the four worker tests skipped locally. Release jobs
+were skipped. Automatic calibration remains incomplete.
 
 Retain solver before/after reports only for the next bounded owned capacity
 decision. Retire completed TRXs after this outcome reaches `origin/main` and
