@@ -7,7 +7,7 @@ namespace GraphReader.CalibrationOcrProbe;
 
 internal static partial class RealDevCalibrationCheck
 {
-    private const string EndpointTraceSchema = "graphreader.real-dev-endpoint-review-trace.v1";
+    private const string EndpointTraceSchema = "graphreader.real-dev-endpoint-review-trace.v2";
     // Frozen unpackaged endpoint source runtime, independently hashed.
     private const string EndpointAppExeHash = "47b68cee094370d6d8a5c291ec73bf5cd2bc6234c69ab5f330360e42dc4a2199";
     private const string EndpointAppDllHash = "b585892bd357067cc8086d610364a559c85e069475ed0a806893db6fd35125d8";
@@ -41,7 +41,8 @@ internal static partial class RealDevCalibrationCheck
         kind = "unpackaged_endpoint_source_runtime", app_exe_sha256 = EndpointAppExeHash,
         app_dll_sha256 = EndpointAppDllHash, rust_sha256 = EndpointRustHash,
         runtime_files = EndpointRuntimeLibraries, model_sha256 = Program.ModelHash,
-        manifest_sha256 = Program.ManifestHash, diagnostic_scope = "automatic_geometry_literal_ocr_and_review_drafts" };
+        manifest_sha256 = Program.ManifestHash, diagnostic_scope = "automatic_geometry_literal_ocr_and_review_drafts",
+        association_tolerance_policy = "legacy_symmetric_plus_directional_toward_label_offset" };
 
     private static void ValidateEndpointTraceFlags(bool sourcePostGrouping, bool geometryOnly, bool incompatible)
     {
@@ -59,7 +60,32 @@ internal static partial class RealDevCalibrationCheck
         }
         try { RequireNativeRejectionPins("", "", "", new Dictionary<string, string>(StringComparer.Ordinal)); throw new InvalidOperationException(); }
         catch (InvalidDataException) { }
+        TestDirectionalAssociation();
         return new { schema = "graphreader.real-dev-endpoint-trace-self-test.v1", incompatible_flags_rejected = true,
-            missing_pins_rejected = true, printed_x_and_terminal_accounting = true, private_reads = 0 };
+            missing_pins_rejected = true, printed_x_and_terminal_accounting = true, directional_association_checked = true, private_reads = 0 };
+    }
+
+    private static void TestDirectionalAssociation()
+    {
+        var geometry = new GraphReader.Axis.RustAxisGeometry(10, 90, 110, 10, .9) { XTickPositions = [10, 20, 60, 100] };
+        var request = new GraphReader.App.Services.CalibrationOcrRequest("owned", "owned", new string('a', 64), new string('a', 64), 130, 120, new(10, 10, 110, 90));
+        Check(27, true, 5, 10, 1);
+        Check(40, false, null, null, 2);
+        Check(110, true, 10, 10, 1);
+
+        void Check(double center, bool expectedAssociated, double? legacy, double? directional, int ties)
+        {
+            var row = new GraphReader.App.Services.CalibrationOcrProposal("owned", [new(center - 6, 94), new(center + 6, 94),
+                new(center + 6, 104), new(center - 6, 104)], "1", .9, 1, "1", true, "XTick", "X", null);
+            var response = new GraphReader.App.Services.CalibrationOcrResponse(request, [row], null, null, null, null, null);
+            var proposal = GraphReader.App.Services.CalibrationTickProposal.CreateReviewDraft(geometry, response);
+            var trace = System.Text.Json.JsonSerializer.SerializeToElement(TraceRow(row, geometry, proposal, true), Program.Json);
+            if (trace.GetProperty("nearest_tick_ties").GetInt32() != ties || trace.GetProperty("associated").GetBoolean() != expectedAssociated ||
+                Number(trace.GetProperty("association_tolerance")) != legacy || Number(trace.GetProperty("directional_association_tolerance")) != directional)
+                throw new InvalidDataException();
+            var historical = System.Text.Json.JsonSerializer.SerializeToElement(TraceRow(row, geometry, proposal), Program.Json);
+            if (historical.TryGetProperty("directional_association_tolerance", out _)) throw new InvalidDataException();
+        }
+        static double? Number(System.Text.Json.JsonElement value) => value.ValueKind == System.Text.Json.JsonValueKind.Null ? null : value.GetDouble();
     }
 }

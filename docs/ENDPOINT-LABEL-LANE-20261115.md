@@ -126,6 +126,26 @@ insufficient pairs 4, invalid numeric label 1, invalid range 2, nonmonotonic 2,
 observed zero required 2 and unpaired label 3. Counts overlap by panel. Saved
 trace diagnosis, rather than unchanged inference, is the next consumer.
 
+That saved-trace diagnosis inspected only the three panels with unpaired or
+duplicate-association reasons. All nine valid numeric-role rows marked
+unassociated exceed the current unchanged glyph-size bound; eight are fragments
+three to four pixels high and at most six pixels wide. The remaining full-height
+row has no nearby measured tick. No tie or directional-cell-only rejection was
+found. One duplicate group has three vertically separated boxes with the same
+horizontal bounds, each legitimately targeting the same measured X tick. Metadata
+cannot establish glyph identity or a correct reading. This does not justify
+widening tolerances, inventing ticks or choosing alternate values to fit.
+Explicit row inclusion/exclusion and cached refit remain the visible recovery.
+
+The saved report's legacy `association_tolerance` field uses the old symmetric
+neighbor formula. Diagnosis recomputed the actual directional bound from current
+production source; paired flags and proposal reasons are authoritative. The
+legacy field can understate an accepted offset's bound and must not be treated
+as the current runtime decision. The [separately identified v2 correction](ASSOCIATION-TRACE-TOLERANCE-20261115.md)
+preserves historical output semantics; this private invocation is not rerun
+to replace its evidence. No original pixels, truth or independent data were
+accessed for this metadata/source diagnosis.
+
 Stage totals were preparation 2,537.9439 ms, axes 14,760.1967 ms, OCR
 23,732.4235 ms and association 58.3353 ms. Median OCR panel time was
 2,800.2315 ms; maximum 6,739.5678 ms. The existing bounded CPU policy was used
@@ -168,18 +188,25 @@ project source remains Apache-2.0.
 
 ## Integration and retention
 
-The final owned source checks passed. The changed-source full confirmation
-completed, but real automatic-calibration coverage remains unmet; exact-source
-Windows CI is pending integration. No real accuracy improvement is claimed from
+The final owned source checks passed. Full Windows CI
+[43728338868](https://github.com/SKang393/Graph-auto-reader/actions/runs/43728338868)
+passed exact commit `8a0cfb87eeb0b8d4a18ef6a2d7984c2953aa17a0`: thirteen .NET
+suites, 2,991 passed / 30 skipped / zero failed, including 919 OCR and 1,167
+App passes, plus 63 Rust tests. Version/ledger/retention, localization, evidence
+and packaging checks passed; public release jobs were skipped. The changed-source
+full confirmation completed, but real automatic-calibration coverage remains
+unmet. No real accuracy improvement is claimed from
 the owned supplied-geometry/string controls. A separate pixel control was considered
 but not generated: nominal rendered text bounds would not establish the actual
 detected component condition, and existing frozen worker probes require different
 runtime/geometry contracts. No repeated rendering variants were tried.
 
-After the source/outcome is pushed and its consumers finish, retire the 22
-completed files totaling 794,979 bytes in `artifacts/endpoint-label-lane-check`.
-The four files totaling 58,459 bytes in `artifacts/endpoint-full-development-check`
-remain active only for the next saved-trace association diagnosis; retire them
-after its aggregate outcome is recorded and pushed. Do not rerun unchanged OCR.
+After the source/outcome reached origin/main in `8a0cfb87`, the 22 completed
+files totaling 794,979 bytes in `artifacts/endpoint-label-lane-check` were retired
+at `2026-11-15T15:18:15.4895913Z`. Exact path, reparse, inventory and consumer
+guards passed. The source regressions remain available for regeneration.
+The saved-trace association diagnosis is complete. Retire the four files totaling
+58,459 bytes in `artifacts/endpoint-full-development-check` after its aggregate
+outcome and diagnostic correction are pushed. Do not rerun unchanged OCR.
 Preserve the source tests, current runtime/model assets, originals, independent
 evaluation and user Data. Do not package another build for this isolated fix.

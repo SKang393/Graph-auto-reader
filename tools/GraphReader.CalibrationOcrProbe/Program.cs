@@ -472,7 +472,7 @@ internal static class Program
                     }
                     if (realDevEndpointTrace)
                     {
-                        Emit(new { schema = "graphreader.real-dev-endpoint-review-trace.v1",
+                        Emit(new { schema = "graphreader.real-dev-endpoint-review-trace.v2",
                             status = "blocked_preflight_or_runtime", error = "REAL_DEV_ENDPOINT_TRACE_FAILED",
                             sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
                             review_only = true, production_approved = false });

@@ -214,7 +214,7 @@ internal static partial class RealDevCalibrationCheck
                         TracePanelOutcome outcome = await TracePanelAsync(payload.Image, payload.Width, payload.Height,
                             new PdfRectD(0, 0, payload.Width, payload.Height), payload.Width, payload.Height, payload.ProjectHash,
                             candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token,
-                            includePrintedXReviewDraft: printedXTrace || spatialTrace || endpointTrace, nativeWork: nativeWork, reviewRouting: reviewRouting).ConfigureAwait(false);
+                            includePrintedXReviewDraft: printedXTrace || spatialTrace || endpointTrace, nativeWork: nativeWork, reviewRouting: reviewRouting, directionalAssociationTrace: endpointTrace).ConfigureAwait(false);
                         CountTracePanelStatus(terminalStatusCounts, outcome);
                         if (outcome.PrintedXReviewDraftAvailable) printedXReviewDraftPanels++;
                         panelResults.Add(outcome.Payload);
@@ -240,7 +240,7 @@ internal static partial class RealDevCalibrationCheck
                             var (bytes, width, height, crop) = ReadPreparedPanel(panel, payload.Width, payload.Height);
                             TracePanelOutcome outcome = await TracePanelAsync(bytes, width, height, crop, payload.Width, payload.Height,
                                 payload.ProjectHash, candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token,
-                                includePrintedXReviewDraft: printedXTrace || spatialTrace || endpointTrace, nativeWork: nativeWork, reviewRouting: reviewRouting).ConfigureAwait(false);
+                                includePrintedXReviewDraft: printedXTrace || spatialTrace || endpointTrace, nativeWork: nativeWork, reviewRouting: reviewRouting, directionalAssociationTrace: endpointTrace).ConfigureAwait(false);
                             CountTracePanelStatus(terminalStatusCounts, outcome);
                             if (outcome.PrintedXReviewDraftAvailable) printedXReviewDraftPanels++;
                             panelResults.Add(outcome.Payload);
@@ -308,7 +308,7 @@ internal static partial class RealDevCalibrationCheck
 
     private static async Task<TracePanelOutcome> TracePanelAsync(byte[] image, int width, int height, PdfRectD crop, int sourceWidth, int sourceHeight,
         string projectHash, IReadOnlyDictionary<string, string> candidateFiles, IAxisProposalService axis, TraceRustAxis primary, TraceAxis secondary,
-        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool includePrintedXReviewDraft = false, NativeWorkTraceAxis? nativeWork = null, ReviewRoutingTraceServices? reviewRouting = null)
+        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool includePrintedXReviewDraft = false, NativeWorkTraceAxis? nativeWork = null, ReviewRoutingTraceServices? reviewRouting = null, bool directionalAssociationTrace = false)
     {
         if (width is < 32 or > 4096 || height is < 32 or > 4096 || (long)width * height > 16_777_216)
             return PrintedXOutcome("UNSUPPORTED_DIMENSIONS", new { status = "UNSUPPORTED_DIMENSIONS", width, height, crop }, includePrintedXReviewDraft);
@@ -353,7 +353,7 @@ internal static partial class RealDevCalibrationCheck
         timer.Restart();
         CalibrationTickProposalResult proposal = CalibrationTickProposal.CreateReviewDraft(geometry, response);
         ValidatePanelMapping(response.Proposals, proposal, geometry, crop, width, height, sourceWidth, sourceHeight);
-        var rows = response.Proposals.Select(row => TraceRow(row, geometry, proposal)).ToArray();
+        var rows = response.Proposals.Select(row => TraceRow(row, geometry, proposal, directionalAssociationTrace)).ToArray();
         double associationMs = timer.Elapsed.TotalMilliseconds;
         object panelPayload = new { status = "OCR_RETURNED", width, height, crop, source_width = sourceWidth, source_height = sourceHeight,
             mapping = "source_position_equals_panel_position_plus_crop_offset", stages,
@@ -398,7 +398,7 @@ internal static partial class RealDevCalibrationCheck
         _ => "OTHER_FAILURE",
     };
 
-    private static object TraceRow(CalibrationOcrProposal row, RustAxisGeometry geometry, CalibrationTickProposalResult proposal)
+    private static object TraceRow(CalibrationOcrProposal row, RustAxisGeometry geometry, CalibrationTickProposalResult proposal, bool includeDirectional = false)
     {
         // The existing OCR wire permits responses up to one million bytes. Do not truncate text.
         if (System.Text.Encoding.UTF8.GetByteCount(row.Text) > 1_000_000) throw new InvalidDataException();
@@ -409,7 +409,7 @@ internal static partial class RealDevCalibrationCheck
         double center = x ? (left + right) / 2 : (top + bottom) / 2;
         double? nearest = ticks.Count > 0 ? ticks.Min(t => Math.Abs(t - center)) : null;
         int ties = nearest is null ? 0 : ticks.Count(t => Math.Abs(Math.Abs(t - center) - nearest.Value) <= 1e-9);
-        double? tolerance = null;
+        double? tolerance = null, directionalTolerance = null;
         if (nearest is not null && ties == 1)
         {
             int index = Enumerable.Range(0, ticks.Count).Single(i => Math.Abs(Math.Abs(ticks[i] - center) - nearest.Value) <= 1e-9);
@@ -417,11 +417,21 @@ internal static partial class RealDevCalibrationCheck
                 index + 1 < ticks.Count ? ticks[index + 1] - ticks[index] : double.PositiveInfinity);
             double labelTolerance = x ? Math.Max((right - left) / 2, bottom - top) : bottom - top;
             tolerance = Math.Min(labelTolerance, neighbor / 2);
+            double directionalNeighbor = center < ticks[index]
+                ? (index > 0 ? ticks[index] - ticks[index - 1] : double.PositiveInfinity)
+                : (index + 1 < ticks.Count ? ticks[index + 1] - ticks[index] : double.PositiveInfinity);
+            directionalTolerance = Math.Min(labelTolerance, directionalNeighbor / 2);
         }
-        return new { row.Text, row.NumericValue, row.Confidence, row.Role, row.SuggestedAxis, row.NumericLiteral, row.FailureCode, bounds = new { left, top, right, bottom },
+        object legacy = new { row.Text, row.NumericValue, row.Confidence, row.Role, row.SuggestedAxis, row.NumericLiteral, row.FailureCode, bounds = new { left, top, right, bottom },
             nearest_tick_distance = nearest, nearest_tick_ties = ties, association_tolerance = tolerance,
             associated = proposal.PairedTicks.Any(p => p.Label.RegionId == row.RegionId),
             estimated = proposal.PairedTicks.Any(p => p.Label.RegionId == row.RegionId && p.IsEstimated) };
+        if (!includeDirectional) return legacy;
+        JsonElement serialized = JsonSerializer.SerializeToElement(legacy, Program.Json);
+        var fields = serialized.EnumerateObject().ToDictionary(property => property.Name,
+            property => (object?)property.Value.Clone(), StringComparer.Ordinal);
+        fields["directional_association_tolerance"] = directionalTolerance;
+        return fields;
     }
 
     internal static object Trace452SelfTest()
