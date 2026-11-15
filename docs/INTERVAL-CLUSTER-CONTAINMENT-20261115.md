@@ -150,17 +150,22 @@ The full trace uses the existing materializer, not the image-only property reade
 No model, threshold, dependency, package, or frozen contract was changed. The
 owned test artifacts under
 `artifacts/interval-cluster-containment-check` remain active until integrated
-validation and its outcome record are complete. Native UI acceptance and full
-Windows CI for this source revision remain pending. The current delivered build
-remains 0.4.54. No production accuracy or automatic-calibration completion is claimed.
+validation and its outcome record are complete. Full Windows
+[CI 43755505445](https://github.com/SKang393/Graph-auto-reader/actions/runs/43755505445)
+for integrated head `991b3f3031ac315e8b93692a15de30fcebaa0b29` passed all
+13 .NET suites: 3,081 passed, 30 skipped, zero failed, including all 1,218 App
+tests and 930 OCR tests. Rust passed 72 tests; all applicable policy and
+packaging checks passed. Public release jobs were skipped. Native UI acceptance
+is pending. The current delivered build remains 0.4.54. No production accuracy
+or automatic-calibration completion is claimed.
 
 ## Completed-output retirement
 
-After this outcome and the grid subset outcome reach `origin/main`, the following
-completed generated outputs are eligible for removal. Their named comparison and
+After this outcome and the grid subset outcome reached `origin/main`, the following
+completed generated outputs were removed. Their named comparison and
 component-diagnosis consumers have finished. Historical results remain in their
 pushed outcome documents; originals, active runtime assets and the current build
-are outside this scope. These are retirement targets, not deletion claims.
+are outside this scope.
 
 | Local artifact directory | Files | Bytes |
 | --- | ---: | ---: |
@@ -174,6 +179,10 @@ are outside this scope. These are retirement targets, not deletion claims.
 | `native-endpoint-owned-check` | 9 | 20,676 |
 
 Total: **43 files / 4,304,071 bytes**, all under this worktree's `artifacts/`.
-Resolved paths and zero reparse points were checked before recording the list.
+Guarded retirement completed at `2026-11-15T20:01:19.4766273Z`, after outcome
+`29076d7b` reached remote head `991b3f3031ac315e8b93692a15de30fcebaa0b29`.
+Result hashes, exact inventories, resolved contained paths, zero reparse points
+and no active task runtime consumers were rechecked. All eight paths were absent
+after removal.
 The new cluster report/test directory remains active through this batch's final
 integration/CI review, then follows the same pushed-record retirement rule.

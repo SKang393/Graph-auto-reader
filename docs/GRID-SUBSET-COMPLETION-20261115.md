@@ -89,7 +89,12 @@ No dependency or license change; source remains Apache-2.0. No private/sealed
 reads, private rerun, scientific-value change or new package. This optimization
 cannot clear pair-budget refusals, which occur before grid finalization.
 
-Owned validation passed; lead integration remains pending. Retire disposable
-`artifacts/grid-subset-completion-check` and the prior owned capacity comparison
-outputs after this record is pushed and active consumers finish. Preserve
-originals, current runtime inputs, user Data and the sole verified package.
+Owned validation passed and source/outcome `a65f180c` was pushed in integrated
+head `991b3f3031ac315e8b93692a15de30fcebaa0b29`. Full Windows
+[CI 43755505445](https://github.com/SKang393/Graph-auto-reader/actions/runs/43755505445)
+passed all 13 .NET suites: 3,081 passed, 30 skipped, zero failed. Rust passed
+72 tests, and all applicable policy and packaging checks passed, including
+68 release-artifact validation controls. Public release jobs were skipped.
+Completed owned capacity and grid outputs were retired after push and
+consumer checks; see the [retirement record](INTERVAL-CLUSTER-CONTAINMENT-20261115.md#completed-output-retirement).
+Originals, current runtime inputs, user Data and the sole verified package remain.
