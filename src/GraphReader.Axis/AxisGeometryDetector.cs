@@ -284,7 +284,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             options,
             cancellationToken);
 
-        var gridFamilies = FindRegularGridFamilies(candidateDividerFamilies, bestPair, options);
+        var gridFamilies = FindRegularGridFamilies(candidateDividerFamilies, bestPair, options, cancellationToken);
         var dividerFamilies = candidateDividerFamilies
             .Where(family => !gridFamilies.Contains(family))
             .ToArray();
@@ -1164,14 +1164,26 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
     private static HashSet<LineFamily> FindRegularGridFamilies(
         IReadOnlyList<LineFamily> candidates,
         AxisPair pair,
-        AxisGeometryOptions options)
+        AxisGeometryOptions options,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var fullSolid = candidates
             .Where(family =>
-                family.CoverageFraction >= 0.85d &&
-                family.Members.All(member => member.Candidate.PatternHint is
-                    LinePatternHint.Solid or LinePatternHint.Unknown))
-            .OrderBy(family => Project(family.Midpoint, pair.Intersection, pair.XDirection))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return family.CoverageFraction >= 0.85d &&
+                family.Members.All(member =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return member.Candidate.PatternHint is LinePatternHint.Solid or LinePatternHint.Unknown;
+                });
+            })
+            .OrderBy(family =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return Project(family.Midpoint, pair.Intersection, pair.XDirection);
+            })
             .ToArray();
 
         if (fullSolid.Length < options.GridMinimumAlignedLines)
@@ -1180,27 +1192,66 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         }
 
         var result = new HashSet<LineFamily>();
+        var fullPositions = fullSolid.Select(family =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Project(family.Midpoint, pair.Intersection, pair.XDirection);
+        }).ToArray();
+        var fullGaps = fullPositions.Zip(fullPositions.Skip(1), (left, right) =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return right - left;
+        }).ToArray();
+        if (IsRegularGridSpacing(fullGaps, options.GridSpacingCoefficientOfVariation, cancellationToken))
+        {
+            // The original start=0 loop eventually admits this full interval.
+            // Earlier admitted prefixes and all later intervals add no other
+            // families, so sorted insertion order and membership are identical.
+            foreach (var family in fullSolid)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                result.Add(family);
+            }
+            return result;
+        }
+
         for (var start = 0; start <= fullSolid.Length - options.GridMinimumAlignedLines; start++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             for (var end = start + options.GridMinimumAlignedLines; end <= fullSolid.Length; end++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var run = fullSolid[start..end];
                 var positions = run
-                    .Select(family => Project(family.Midpoint, pair.Intersection, pair.XDirection))
+                    .Select(family =>
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        return Project(family.Midpoint, pair.Intersection, pair.XDirection);
+                    })
                     .ToArray();
-                var gaps = positions.Zip(positions.Skip(1), (left, right) => right - left).ToArray();
+                var gaps = positions.Zip(positions.Skip(1), (left, right) =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return right - left;
+                }).ToArray();
                 var mean = gaps.Average();
+                cancellationToken.ThrowIfCancellationRequested();
                 if (mean <= 0d)
                 {
                     continue;
                 }
 
-                var variance = gaps.Sum(gap => (gap - mean) * (gap - mean)) / gaps.Length;
+                var variance = gaps.Sum(gap =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return (gap - mean) * (gap - mean);
+                }) / gaps.Length;
                 var coefficientOfVariation = Math.Sqrt(variance) / mean;
                 if (coefficientOfVariation <= options.GridSpacingCoefficientOfVariation)
                 {
                     foreach (var family in run)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
                         result.Add(family);
                     }
                 }
@@ -1208,6 +1259,23 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         }
 
         return result;
+    }
+
+    private static bool IsRegularGridSpacing(double[] gaps, double maximumCoefficientOfVariation,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        // Retain exactly the existing Average/Sum arithmetic, including the
+        // coefficient comparison. No prefix sums or alternate variance formula.
+        var mean = gaps.Average();
+        cancellationToken.ThrowIfCancellationRequested();
+        if (mean <= 0d) return false;
+        var variance = gaps.Sum(gap =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return (gap - mean) * (gap - mean);
+        }) / gaps.Length;
+        return Math.Sqrt(variance) / mean <= maximumCoefficientOfVariation;
     }
 
     private static List<PhaseDividerGeometry> CreateDividers(
