@@ -123,16 +123,24 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         long maximumEnvelopeComparisons = request.MaximumExaminedPairs is int limit ? checked((long)limit * limit) : 0;
         var pairCandidates = new List<AxisPair>();
         long examinedPairs = 0, envelopeComparisons = 0;
+        bool useEnvelopeIndex = request.MaximumExaminedPairs is not null &&
+            (long)horizontalAxisFamilies.Count * verticalAxisFamilies.Count > maximumEnvelopeComparisons;
+        EnvelopeIndex? envelopeIndex = useEnvelopeIndex
+            ? BuildEnvelopeIndex(verticalEnvelopes, maximumEnvelopeComparisons, ref envelopeComparisons, cancellationToken) : null;
         for (int horizontalIndex = 0; horizontalIndex < horizontalAxisFamilies.Count; horizontalIndex++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             LineFamily horizontalFamily = horizontalAxisFamilies[horizontalIndex];
 
-            for (int verticalIndex = 0; verticalIndex < verticalAxisFamilies.Count; verticalIndex++)
+            List<int>? overlaps = envelopeIndex is null ? null : FindOverlaps(envelopeIndex,
+                horizontalEnvelopes[horizontalIndex], maximumEnvelopeComparisons, ref envelopeComparisons, cancellationToken);
+            int verticalCount = overlaps?.Count ?? verticalAxisFamilies.Count;
+            for (int verticalPosition = 0; verticalPosition < verticalCount; verticalPosition++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                int verticalIndex = overlaps is null ? verticalPosition : overlaps[verticalPosition];
                 LineFamily verticalFamily = verticalAxisFamilies[verticalIndex];
-                if (request.MaximumExaminedPairs is not null)
+                if (request.MaximumExaminedPairs is not null && envelopeIndex is null)
                 {
                     if (++envelopeComparisons > maximumEnvelopeComparisons)
                         throw DetectionFailure("Axis pair envelope comparison limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded,
@@ -592,6 +600,96 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         }
         return envelopes;
     }
+
+    // Build a deterministic interval tree over vertical-family X envelopes. All
+    // construction comparisons and visited query nodes consume the same B²
+    // cheap-work budget as the Cartesian path; exhaustion never publishes a best.
+    private static EnvelopeIndex BuildEnvelopeIndex(ContactEnvelope[] envelopes, long maximum, ref long work, CancellationToken token)
+    {
+        if (envelopes.LongLength > maximum)
+            throw DetectionFailure("Axis pair envelope comparison limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded, AxisGeometryBudgetKind.EnvelopeComparisons);
+        int[] order = new int[envelopes.Length];
+        for (int i = 0; i < order.Length; i++)
+        {
+            token.ThrowIfCancellationRequested();
+            int j = i;
+            while (j > 0)
+            {
+                SpendEnvelopeWork(maximum, ref work, token);
+                int previous = order[j - 1];
+                if (envelopes[previous].Left <= envelopes[i].Left) break;
+                order[j] = previous;
+                j--;
+            }
+            order[j] = i;
+        }
+        double[] maximumRight = new double[order.Length];
+        long localWork = work;
+        Populate(0, order.Length);
+        work = localWork;
+        return new EnvelopeIndex(envelopes, order, maximumRight);
+
+        double Populate(int start, int end)
+        {
+            token.ThrowIfCancellationRequested();
+            if (start == end) return double.NegativeInfinity;
+            SpendEnvelopeWork(maximum, ref localWork, token);
+            int middle = start + (end - start) / 2;
+            return maximumRight[middle] = Math.Max(envelopes[order[middle]].Right,
+                Math.Max(Populate(start, middle), Populate(middle + 1, end)));
+        }
+    }
+
+    private static List<int> FindOverlaps(EnvelopeIndex index, ContactEnvelope target,
+        long maximum, ref long work, CancellationToken token)
+    {
+        var results = new List<int>();
+        long localWork = work;
+        Search(0, index.Order.Length);
+        RestoreEnvelopeOrder(results, maximum, ref localWork, token);
+        work = localWork;
+        return results;
+
+        void Search(int start, int end)
+        {
+            if (start == end) return;
+            SpendEnvelopeWork(maximum, ref localWork, token);
+            int middle = start + (end - start) / 2;
+            if (index.MaximumRight[middle] < target.Left) return;
+            Search(start, middle);
+            int position = index.Order[middle];
+            ContactEnvelope candidate = index.Envelopes[position];
+            if (!candidate.IsDisjoint(target)) results.Add(position);
+            if (candidate.Left <= target.Right) Search(middle + 1, end);
+        }
+    }
+
+    private static void RestoreEnvelopeOrder(List<int> results, long maximum, ref long work, CancellationToken token)
+    {
+        // Restore the original family order while charging every comparison.
+        for (int i = 1; i < results.Count; i++)
+        {
+            token.ThrowIfCancellationRequested();
+            int value = results[i], j = i;
+            while (j > 0)
+            {
+                SpendEnvelopeWork(maximum, ref work, token);
+                if (results[j - 1] <= value) break;
+                results[j] = results[j - 1];
+                j--;
+            }
+            results[j] = value;
+        }
+    }
+
+    private static void SpendEnvelopeWork(long maximum, ref long work, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        if (++work > maximum)
+            throw DetectionFailure("Axis pair envelope comparison limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded, AxisGeometryBudgetKind.EnvelopeComparisons);
+    }
+
+    private sealed record EnvelopeIndex(ContactEnvelope[] Envelopes, int[] Order, double[] MaximumRight);
 
     private static List<LineFamily> BuildConnectedAxisFamilies(
         IReadOnlyList<LineFamily> families,

@@ -3,19 +3,20 @@
 
 # Development direction, 2026-11-11
 
-Latest source checkpoint, 2026-11-15: the
-[calibration review refinements](CALIBRATION-ENTERED-ORIGIN-20261115.md) retain
-the original printed ticks and can calculate anchors for an explicitly entered
-first-visible session without changing project semantics. Owned real-worker and
-save/reopen/export checks pass; the last automatic development result is still
-0/12 complete drafts. The [new geometry-only diagnosis](NATIVE-AXIS-REJECTION-DIAGNOSIS-20261115.md)
-identifies pair-budget exhaustion in all five native failures. Prioritize bounded
-pruning of irrelevant pair checks, preserving candidate completeness and the
-independent split. The [first bounded pruning repair](AXIS-PAIR-PRUNING-20261115.md)
-passes owned controls but leaves development geometry availability at 7/12;
-four native calls still hit a resource limit and one reaches explicit ambiguity.
-Continue exact pruning and separate budget diagnostics. The sole retained package remains
-0.4.52 until a meaningful integrated replacement is verified.
+Latest source checkpoint, 2026-11-15: [printed-X review](PRINTED-X-REVIEW-20261115.md)
+supports zero, negative and fractional printed origins through explicit review,
+preserving estimated-X export semantics. Its stale shell contract and missing
+language-refresh notifications are [fixed and full-CI verified](CALIBRATION-LOCALIZATION-20261115.md).
+The [spatial enumeration and label-row batch](SPATIAL-AXIS-LABEL-ROWS-20261115.md)
+recovers all six labels and a complete automatic draft on an owned jittered-row
+graph. The fixed development result remains 7/12 panels with geometry, two
+reviewable printed-X drafts and zero complete session drafts. Four native
+attempts still exhaust a resource budget and one rejects multiple candidates.
+Keep numeric/review safeguards and the independent split intact. The next
+owned geometry reproduction targets descending envelope order exhausting the
+insertion-sort budget before any query; verify bounded merge sorting before
+another geometry confirmation. Do not repeat unchanged OCR. The sole retained
+package remains 0.4.52 until a meaningful integrated replacement is verified.
 
 The maintainer requested a Rust-based, responsive Windows application and
 authorized changing the development plan immediately. This amendment replaces

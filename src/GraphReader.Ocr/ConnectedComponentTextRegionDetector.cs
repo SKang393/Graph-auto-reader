@@ -200,19 +200,26 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             }
             return false;
         }
-        ComponentBounds? RowTickSupport(ComponentBounds[] items, int tick, int top, int bottom)
+        ComponentBounds? RowTickSupport(ComponentBounds[] items, int tick, ComponentBounds first, ComponentBounds second)
         {
+            int top = Math.Max(first.Top, second.Top), bottom = Math.Min(first.Bottom, second.Bottom);
+            int unionTop = Math.Min(first.Top, second.Top), unionBottom = Math.Max(first.Bottom, second.Bottom);
             ComponentBounds? before = null, after = null;
             foreach (ComponentBounds component in items)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (component.Top > top || component.Bottom < bottom) continue;
+                // Baseline variation may shift full glyphs without changing their text row.
+                // Require the shared row, plus the existing row-overlap fraction over
+                // its union height, so short punctuation cannot establish a tick lane.
+                int overlap = Math.Min(component.Bottom, unionBottom) - Math.Max(component.Top, unionTop) + 1;
+                if (overlap / (double)(unionBottom - unionTop + 1) < _options.MinimumVerticalOverlapFraction) continue;
                 if (component.Left <= tick && component.Right >= tick) return component;
                 if (component.Right < tick && (before is null || component.Right > before.Value.Right)) before = component;
                 if (component.Left > tick && (after is null || component.Left < after.Value.Left)) after = component;
             }
             // A centered multi-glyph label can put its tick in white space.
-            // Only full-height components in that tick's lane may bracket it;
+            // Only row-supporting components in that tick's lane may bracket it;
             // reuse the existing component-width gap bound, not a wider OCR gate.
             return before is { } left && after is { } right &&
                 right.Left - left.Right - 1 <= Math.Max(left.Width, right.Width) ? left.Merge(right) : null;
@@ -229,7 +236,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                 var lane = evidence[Math.Min(index, evidence.Count - 1)];
                 int tick = index < evidence.Count ? lane.LeftTick : lane.RightTick;
                 ComponentBounds[] items = index < evidence.Count ? lane.Left : lane.Right;
-                if (RowTickSupport(items, tick, Math.Min(first.Top, second.Top), Math.Max(first.Bottom, second.Bottom)) is not { } support) continue;
+                if (RowTickSupport(items, tick, first, second) is not { } support) continue;
                 bool onLeft = support.Left <= left.Right && support.Right >= left.Left;
                 bool onRight = support.Left <= right.Right && support.Right >= right.Left;
                 if (onLeft && onRight) return false;
@@ -290,8 +297,8 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                             ((line.Right < cut.Position && candidate.Left >= cut.Position) ||
                              (candidate.Right < cut.Position && line.Left >= cut.Position)) &&
                             !RowOverlaps(cut.Crossing, rowTop, rowBottom) &&
-                            RowTickSupport(cut.Left, cut.LeftTick, Math.Min(line.Top, candidate.Top), Math.Max(line.Bottom, candidate.Bottom)) is not null &&
-                            RowTickSupport(cut.Right, cut.RightTick, Math.Min(line.Top, candidate.Top), Math.Max(line.Bottom, candidate.Bottom)) is not null) ||
+                            RowTickSupport(cut.Left, cut.LeftTick, line, candidate) is not null &&
+                            RowTickSupport(cut.Right, cut.RightTick, line, candidate) is not null) ||
                          SeparateSupportedLanes(line, candidate, rowTop, rowBottom));
                     if (!separated && overlapFraction >= _options.MinimumVerticalOverlapFraction && horizontalGap <= maximumGap)
                     {

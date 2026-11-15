@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 using System.Text.Json;
+using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GraphReader.Axis.Tests;
@@ -8,6 +9,52 @@ namespace GraphReader.Axis.Tests;
 [TestClass]
 public sealed class AxisPairEnvelopePruningTests
 {
+    private static readonly int[] ExpectedOrderedIndices = [0, 1, 2];
+
+    [TestMethod]
+    public void IndexedOrderRestorationChargesComparisonsAndHonorsCancellation()
+    {
+        MethodInfo sort = typeof(AxisGeometryDetector).GetMethod("RestoreEnvelopeOrder", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var values = new List<int> { 2, 1, 0 };
+        object[] arguments = [values, 3L, 0L, CancellationToken.None];
+        sort.Invoke(null, arguments);
+        CollectionAssert.AreEqual(ExpectedOrderedIndices, values);
+        Assert.AreEqual(3L, arguments[2]);
+
+        TargetInvocationException exhausted = Assert.ThrowsExactly<TargetInvocationException>(() =>
+            sort.Invoke(null, [new List<int> { 2, 1, 0 }, 2L, 0L, CancellationToken.None]));
+        Assert.IsInstanceOfType<AxisGeometryDetectionException>(exhausted.InnerException);
+        Assert.AreEqual(AxisGeometryBudgetKind.EnvelopeComparisons, ((AxisGeometryDetectionException)exhausted.InnerException!).BudgetKind);
+        TargetInvocationException cancelled = Assert.ThrowsExactly<TargetInvocationException>(() =>
+            sort.Invoke(null, [new List<int> { 2, 1, 0 }, 3L, 0L, new CancellationToken(canceled: true)]));
+        Assert.IsInstanceOfType<OperationCanceledException>(cancelled.InnerException);
+    }
+
+    [TestMethod]
+    [DataRow(false, 100d)]
+    [DataRow(true, 100d)]
+    [DataRow(false, 94d)]
+    [DataRow(true, 94d)]
+    public async Task LargeSeparatedClustersRetainUnlimitedCandidateSet(bool reverse, double verticalX)
+    {
+        var fixture = new AxisFixtureBuilder(4096, 4096).Line(100, 3900, 2000, 3900)
+            .Line(verticalX, 3900, verticalX, 3000);
+        for (int index = 0; index < 16; index++)
+        {
+            fixture.Line(2600, 40 + 20 * index, 2620, 40 + 20 * index, id: $"cluster-h-{index}");
+            fixture.Line(2700 + 10 * index, 2800, 2700 + 10 * index, 2820, id: $"cluster-v-{index}");
+        }
+        AxisGeometryRequest request = fixture.Build();
+        if (reverse) request = request with { LineCandidates = request.LineCandidates.Reverse().ToArray() };
+        var unlimited = new Observer();
+        var bounded = new Observer();
+        var detector = new AxisGeometryDetector();
+        AxisGeometryResult expected = await detector.DetectAsync(request with { CandidateObserver = unlimited });
+        Assert.HasCount(1, unlimited.Candidates!);
+        AxisGeometryResult actual = await detector.DetectAsync(request with { CandidateObserver = bounded, MaximumExaminedPairs = 16 });
+        AssertParity(expected, actual, unlimited, bounded);
+    }
+
     [TestMethod]
     [DataRow(false)]
     [DataRow(true)]

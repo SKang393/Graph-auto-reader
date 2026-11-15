@@ -65,6 +65,10 @@ internal static partial class RealDevCalibrationCheck
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token, printedXTrace: true);
 
+    internal static Task<object> RunSpatialTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token, spatialTrace: true);
+
     internal static Task<object> RunPostGroupingTraceAsync(string corpusRoot, string app, string assets, string rust,
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token);
@@ -86,13 +90,15 @@ internal static partial class RealDevCalibrationCheck
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token, directional: true);
 
     private static async Task<object> RunTraceAsync(string corpusRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false)
+        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false)
     {
         if ((pairPruning || intersection) && !geometryOnly || pairPruning && intersection || directional && (geometryOnly || !sourcePostGrouping) ||
-            printedXTrace && (!sourcePostGrouping || geometryOnly || pairPruning || intersection || directional)) throw new InvalidDataException();
+            printedXTrace && (!sourcePostGrouping || geometryOnly || pairPruning || intersection || directional || spatialTrace) ||
+            spatialTrace && (!sourcePostGrouping || geometryOnly || pairPruning || intersection || directional)) throw new InvalidDataException();
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(app) ||
             !Path.IsPathFullyQualified(assets) || !Path.IsPathFullyQualified(rust)) throw new InvalidDataException();
-        using Candidate candidateLease = printedXTrace ? Candidate.VerifyPrintedX(app, assets, rust, token) : directional ? Candidate.VerifyDirectional(app, assets, rust, token) :
+        using Candidate candidateLease = spatialTrace ? Candidate.VerifySpatial(app, assets, rust, token) :
+            printedXTrace ? Candidate.VerifyPrintedX(app, assets, rust, token) : directional ? Candidate.VerifyDirectional(app, assets, rust, token) :
             intersection ? Candidate.VerifyIntersection(app, assets, rust, token) :
             pairPruning ? Candidate.VerifyPairPruning(app, assets, rust, token) :
             geometryOnly ? Candidate.VerifyNativeRejection(app, assets, rust, token) : sourcePostGrouping
@@ -134,14 +140,15 @@ internal static partial class RealDevCalibrationCheck
                     {
                         TracePanelOutcome outcome = await TracePanelAsync(payload.Image, payload.Width, payload.Height,
                             new PdfRectD(0, 0, payload.Width, payload.Height), payload.Width, payload.Height, payload.ProjectHash,
-                            candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token, printedXTrace).ConfigureAwait(false);
+                            candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token,
+                            includePrintedXReviewDraft: printedXTrace || spatialTrace).ConfigureAwait(false);
                         CountTracePanelStatus(terminalStatusCounts, outcome);
                         if (outcome.PrintedXReviewDraftAvailable) printedXReviewDraftPanels++;
                         panelResults.Add(outcome.Payload);
                     }
                     catch (Exception error) when (error is not OperationCanceledException and not OutOfMemoryException)
                     {
-                        var outcome = PrintedXOutcome("PANEL_FAILED", new { status = "PANEL_FAILED", error_category = TraceExceptionCategory(error) }, printedXTrace);
+                        var outcome = PrintedXOutcome("PANEL_FAILED", new { status = "PANEL_FAILED", error_category = TraceExceptionCategory(error) }, printedXTrace || spatialTrace);
                         CountTracePanelStatus(terminalStatusCounts, outcome);
                         panelResults.Add(outcome.Payload);
                         status = "incomplete";
@@ -159,7 +166,8 @@ internal static partial class RealDevCalibrationCheck
                         {
                             var (bytes, width, height, crop) = ReadPreparedPanel(panel, payload.Width, payload.Height);
                             TracePanelOutcome outcome = await TracePanelAsync(bytes, width, height, crop, payload.Width, payload.Height,
-                                payload.ProjectHash, candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token, printedXTrace).ConfigureAwait(false);
+                                payload.ProjectHash, candidateFiles, axis, primary, secondary, ocr, sourcePostGrouping, geometryOnly, deadline.Token,
+                                includePrintedXReviewDraft: printedXTrace || spatialTrace).ConfigureAwait(false);
                             CountTracePanelStatus(terminalStatusCounts, outcome);
                             if (outcome.PrintedXReviewDraftAvailable) printedXReviewDraftPanels++;
                             panelResults.Add(outcome.Payload);
@@ -167,7 +175,7 @@ internal static partial class RealDevCalibrationCheck
                         }
                         catch (Exception error) when (error is not OperationCanceledException and not OutOfMemoryException)
                         {
-                            var outcome = PrintedXOutcome("PANEL_FAILED", new { status = "PANEL_FAILED", error_category = TraceExceptionCategory(error) }, printedXTrace);
+                            var outcome = PrintedXOutcome("PANEL_FAILED", new { status = "PANEL_FAILED", error_category = TraceExceptionCategory(error) }, printedXTrace || spatialTrace);
                             CountTracePanelStatus(terminalStatusCounts, outcome);
                             panelResults.Add(outcome.Payload);
                             status = "incomplete";
@@ -192,25 +200,25 @@ internal static partial class RealDevCalibrationCheck
                     runtime_files = intersection ? IntersectionRuntimeLibraries : pairPruning ? PairPruningRuntimeLibraries : NativeRejectionRuntimeLibraries },
                 sealed_payload_reads = 0, ocr_calls = 0, truth_scoring = false, image_writes = false, review_only = true,
                 project_deadline_seconds = 45, overall_deadline_seconds = 900, projects };
-        object result = new { schema = printedXTrace ? PrintedXTraceSchema : directional ? DirectionalTraceSchema : sourcePostGrouping ? PostGroupingTraceSchema : "graphreader.real-dev-452-association-trace.v1", scope = "development_only_sensitive_metadata",
+        object result = new { schema = spatialTrace ? SpatialTraceSchema : printedXTrace ? PrintedXTraceSchema : directional ? DirectionalTraceSchema : sourcePostGrouping ? PostGroupingTraceSchema : "graphreader.real-dev-452-association-trace.v1", scope = "development_only_sensitive_metadata",
             selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
             attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
             attempted_panels = panelAttempted, finished_panels = panelFinished, unfinished_execution_panels = panelAttempted - panelFinished,
             terminal_status_counts = terminalStatusCounts,
             unattempted_panels = returned + fallback - panelAttempted, metadata.AssignmentSha256, metadata.SelectedInventorySha256,
             source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
-            candidate = printedXTrace ? PrintedXTraceIdentity() : directional ? DirectionalTraceIdentity() : sourcePostGrouping ? PostGroupingTraceIdentity() : (object)App452ExeHash,
+            candidate = spatialTrace ? SpatialTraceIdentity() : printedXTrace ? PrintedXTraceIdentity() : directional ? DirectionalTraceIdentity() : sourcePostGrouping ? PostGroupingTraceIdentity() : (object)App452ExeHash,
             sealed_payload_reads = 0, truth_scoring = false, image_writes = false, review_only = true,
             project_deadline_seconds = 45, overall_deadline_seconds = 900, projects };
-        return printedXTrace ? AddPrintedXAggregate(result, printedXReviewDraftPanels) : result;
+        return printedXTrace || spatialTrace ? AddPrintedXAggregate(result, printedXReviewDraftPanels) : result;
     }
 
     private static async Task<TracePanelOutcome> TracePanelAsync(byte[] image, int width, int height, PdfRectD crop, int sourceWidth, int sourceHeight,
         string projectHash, IReadOnlyDictionary<string, string> candidateFiles, IAxisProposalService axis, TraceRustAxis primary, TraceAxis secondary,
-        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool printedXTrace = false)
+        CalibrationOcrWorkerClient? ocr, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool includePrintedXReviewDraft = false)
     {
         if (width is < 32 or > 4096 || height is < 32 or > 4096 || (long)width * height > 16_777_216)
-            return PrintedXOutcome("UNSUPPORTED_DIMENSIONS", new { status = "UNSUPPORTED_DIMENSIONS", width, height, crop }, printedXTrace);
+            return PrintedXOutcome("UNSUPPORTED_DIMENSIONS", new { status = "UNSUPPORTED_DIMENSIONS", width, height, crop }, includePrintedXReviewDraft);
         // New observers per request are unnecessary: the fallback result is read only if invoked for this result.
         primary.Width = width; primary.Height = height;
         int nativeCallsBefore = secondary.Calls;
@@ -225,7 +233,7 @@ internal static partial class RealDevCalibrationCheck
             native_review_reasons = fallbackCalled ? secondary.Last?.ReviewReasons : null,
             native_returned = fallbackCalled && secondary.Last?.Geometry is not null, result.Provider, result.ReviewReasons };
         if (result.Geometry is not { } geometry)
-            return PrintedXOutcome("NO_GEOMETRY", new { status = "NO_GEOMETRY", width, height, crop, stages, axis_milliseconds = axisMs }, printedXTrace);
+            return PrintedXOutcome("NO_GEOMETRY", new { status = "NO_GEOMETRY", width, height, crop, stages, axis_milliseconds = axisMs }, includePrintedXReviewDraft);
         if (geometryOnly)
             return new("GEOMETRY_RETURNED", new { status = "GEOMETRY_RETURNED", width, height, crop, stages,
                 axis_milliseconds = axisMs, geometry });
@@ -235,7 +243,7 @@ internal static partial class RealDevCalibrationCheck
         CalibrationOcrResponse response = await (ocr ?? throw new InvalidDataException()).SuggestAsync(request, image, token).ConfigureAwait(false);
         double ocrMs = timer.Elapsed.TotalMilliseconds;
         if (response.FailureCode is not null)
-            return PrintedXOutcome("OCR_FAILED", new { status = "OCR_FAILED", width, height, crop, stages, axis_milliseconds = axisMs, ocr_milliseconds = ocrMs, ocr_error = response.FailureCode }, printedXTrace);
+            return PrintedXOutcome("OCR_FAILED", new { status = "OCR_FAILED", width, height, crop, stages, axis_milliseconds = axisMs, ocr_milliseconds = ocrMs, ocr_error = response.FailureCode }, includePrintedXReviewDraft);
         CalibrationOcrRuntime runtime = response.Runtime ?? throw new InvalidDataException();
         if (runtime.Provider != "Cpu" || runtime.RequestedProvider != "Cpu" || runtime.ModelSha256 != Program.ModelHash ||
             runtime.ManifestSha256 != Program.ManifestHash || runtime.Files.Any(f => !candidateFiles.TryGetValue(f.Name, out string? expected) || f.Sha256 != expected))
@@ -253,10 +261,11 @@ internal static partial class RealDevCalibrationCheck
             rows, proposal.Reasons, proposal.IsComplete, proposal.UsesEstimatedPositions,
             x_review_draft_available = proposal.XReviewDraft is not null, y_review_draft_available = proposal.YReviewDraft is not null,
             paired_count = proposal.PairedTicks.Count };
-        return PrintedXOutcome("OCR_RETURNED", panelPayload, printedXTrace, proposal.PrintedXReviewDraft is not null);
+        return PrintedXOutcome("OCR_RETURNED", panelPayload, includePrintedXReviewDraft, proposal.PrintedXReviewDraft is not null);
     }
 
     private const string PrintedXTraceSchema = "graphreader.real-dev-printed-x-review-trace.v1";
+    private const string SpatialTraceSchema = "graphreader.real-dev-spatial-review-trace.v1";
 
     private static TracePanelOutcome PrintedXOutcome(string status, object payload, bool includePrintedX, bool available = false)
     {
@@ -387,6 +396,21 @@ internal static partial class RealDevCalibrationCheck
             new(id, [new(centerX - 3, centerY - 2), new(centerX + 3, centerY - 2),
                 new(centerX + 3, centerY + 2), new(centerX - 3, centerY + 2)],
                 text, .9, double.Parse(text, CultureInfo.InvariantCulture), text, true, role, axis, null);
+    }
+
+    internal static object SpatialTraceSelfTest()
+    {
+        JsonElement printedX = JsonSerializer.SerializeToElement(PrintedXTraceSelfTest(), Program.Json);
+        if (printedX.GetProperty("printed_x_review_draft_available").GetBoolean() is false ||
+            !printedX.GetProperty("separate_from_complete_calibration").GetBoolean() ||
+            !printedX.GetProperty("terminal_status_accounting").GetBoolean() ||
+            printedX.GetProperty("private_reads").GetInt32() != 0)
+            throw new InvalidDataException();
+        return new { schema = "graphreader.real-dev-spatial-trace-self-test.v1",
+            printed_x_review_draft_availability = true,
+            distinct_from_complete_or_applied_calibration = true,
+            terminal_failure_accounting_reused = true,
+            private_reads = 0 };
     }
 
     internal static object NativeRejectionTraceSelfTest()

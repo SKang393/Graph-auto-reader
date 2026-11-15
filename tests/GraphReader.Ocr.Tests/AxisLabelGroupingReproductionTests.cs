@@ -7,6 +7,32 @@ namespace GraphReader.Ocr.Tests;
 public sealed class AxisLabelGroupingReproductionTests
 {
     private static readonly double[] ExpectedLabelPositions = [30, 50, 70];
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task SameRowBaselineVariationPreservesMeasuredLabelLanes(bool minorTicks)
+    {
+        OcrImage image = Ink((30, 75, 3, 8), (50, 76, 3, 8), (70, 75, 3, 8));
+        byte[] original = image.Pixels.ToArray();
+        var detector = new ConnectedComponentTextRegionDetector();
+        var baseline = await detector.DetectAsync(image, CancellationToken.None);
+        Assert.HasCount(1, baseline);
+        Assert.AreEqual(new OcrRectangle(30, 75, 43, 9), baseline[0].Polygon.Bounds);
+
+        var actual = await detector.DetectAsync(image,
+            new OcrMeasuredTickGrouping(minorTicks ? [31, 41, 51, 61, 71] : [31, 51, 71], 65),
+            CancellationToken.None);
+
+        CollectionAssert.AreEqual(new[] { new OcrRectangle(30, 75, 3, 8), new OcrRectangle(70, 75, 3, 8),
+            new OcrRectangle(50, 76, 3, 8) }, actual.Select(region => region.Polygon.Bounds).ToArray());
+        Assert.IsTrue(actual.All(region => region.Evidence!.ComponentCount == 1));
+        CollectionAssert.AreEqual(original, image.Pixels.ToArray());
+        var withoutContext = await detector.DetectAsync(image, CancellationToken.None);
+        CollectionAssert.AreEqual(baseline.Select(region => region.Polygon.Bounds).ToArray(),
+            withoutContext.Select(region => region.Polygon.Bounds).ToArray());
+    }
+
     [TestMethod]
     public async Task NearbyAxisLabelsMergeIntoOneRegionBeforeTickAssociation()
     {

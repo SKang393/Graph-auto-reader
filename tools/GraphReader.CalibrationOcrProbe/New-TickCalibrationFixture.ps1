@@ -8,6 +8,7 @@ param(
     [switch]$LeftAxisContinuation,
     [switch]$NoTickMarks,
     [switch]$DenseXTicks,
+    [switch]$JitteredXLabels,
     [switch]$GridLines,
     [switch]$SmallPlotWithCaption,
     [switch]$ZeroOriginXLabels,
@@ -15,6 +16,9 @@ param(
     [ValidateRange(0, 1700)][int]$WhiteMarginPixels = 0
 )
 $ErrorActionPreference = 'Stop'
+if ($JitteredXLabels -and (-not $DenseXTicks -or $InwardXTicks -or $TransparentBackground -or $LeftAxisContinuation -or $NoTickMarks -or $GridLines -or $SmallPlotWithCaption -or $ZeroOriginXLabels -or $OffsetLabelsWithMinorTicks -or $WhiteMarginPixels -ne 0)) {
+    throw 'JitteredXLabels requires DenseXTicks and cannot be combined with other fixture options.'
+}
 if (-not [IO.Path]::IsPathRooted($OutputPath) -or (Test-Path -LiteralPath $OutputPath)) {
     throw 'An absolute, unused output path is required.'
 }
@@ -53,6 +57,7 @@ try {
     $xPositions = if ($SmallPlotWithCaption) { @(110, 150, 190) } elseif ($DenseXTicks) { @(140, 160, 180) } else { @(140, 340, 540) }
     $yPositions = if ($SmallPlotWithCaption) { @(100, 145, 190) } elseif ($LeftAxisContinuation) { @(80, 215, 350) } else { @(80, 230, 380) }
     $xLabelPositions = if ($OffsetLabelsWithMinorTicks) { @(147, 340, 540) } else { $xPositions }
+    $xLabelYPositions = @($xLabelY, ($xLabelY + [int][bool]$JitteredXLabels), $xLabelY)
     $yLabelPositions = if ($OffsetLabelsWithMinorTicks) { @(80, 237, 380) } else { $yPositions }
     if ($GridLines) {
         foreach ($x in $xPositions) { $graphics.DrawLine($pen, $x, 80, $x, 380) }
@@ -70,7 +75,7 @@ try {
         $tickEnd = if ($InwardXTicks) { $plotBottom - $tickLength } else { $plotBottom + $tickLength }
         if (-not $NoTickMarks) { $graphics.DrawLine($pen, $x, $plotBottom, $x, $tickEnd) }
         $graphics.DrawString($xLabels[$index], $font, [Drawing.Brushes]::Black,
-            [Drawing.PointF]::new($xLabelPositions[$index], $xLabelY), $format)
+            [Drawing.PointF]::new($xLabelPositions[$index], $xLabelYPositions[$index]), $format)
     }
     $yLabels = @('10', '5', '0')
     for ($index = 0; $index -lt $yPositions.Count; $index++) {
@@ -115,8 +120,10 @@ finally {
     small_plot_with_caption = [bool]$SmallPlotWithCaption
     zero_origin_x_labels = [bool]$ZeroOriginXLabels
     offset_labels_with_minor_ticks = [bool]$OffsetLabelsWithMinorTicks
+    jittered_x_labels = [bool]$JitteredXLabels
     plot_bounds = @((100 + $WhiteMarginPixels), ($plotTop + $WhiteMarginPixels), ($plotRight + $WhiteMarginPixels), ($plotBottom + $WhiteMarginPixels))
     x_label_positions = @($xLabelPositions | ForEach-Object { $_ + $WhiteMarginPixels })
+    x_label_y_positions = @($xLabelYPositions | ForEach-Object { $_ + $WhiteMarginPixels })
     y_label_positions = @($yLabelPositions | ForEach-Object { $_ + $WhiteMarginPixels })
     x_tick_positions = if ($NoTickMarks) { @() } elseif ($OffsetLabelsWithMinorTicks) { @(130, 140, 340, 540) } else { @($xPositions | ForEach-Object { $_ + $WhiteMarginPixels }) }
     y_tick_positions = if ($NoTickMarks) { @() } elseif ($OffsetLabelsWithMinorTicks) { @(80, 220, 230, 380) } else { @($yPositions | ForEach-Object { $_ + $WhiteMarginPixels }) }

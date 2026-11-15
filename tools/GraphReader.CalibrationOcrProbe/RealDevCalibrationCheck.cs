@@ -527,6 +527,10 @@ internal static partial class RealDevCalibrationCheck
             VerifyPinned(app, assets, rust, PrintedXAppExeHash, PrintedXAppDllHash, PrintedXRustHash,
                 PrintedXRuntimeLibraries, token, requirePrintedXReviewDraft: true);
 
+        internal static Candidate VerifySpatial(string app, string assets, string rust, CancellationToken token) =>
+            VerifyPinned(app, assets, rust, SpatialAppExeHash, SpatialAppDllHash, SpatialRustHash,
+                SpatialRuntimeLibraries, token, requirePrintedXReviewDraft: true);
+
         internal static Candidate VerifyPostGrouping(string app, string assets, string rust, CancellationToken token) =>
             VerifyPinned(app, assets, rust, PostGroupingAppExeHash, PostGroupingAppDllHash, PostGroupingRustHash, PostGroupingRuntimeLibraries, token);
 

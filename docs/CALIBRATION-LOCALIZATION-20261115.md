@@ -55,8 +55,13 @@ Raw TRX SHA-256 identities:
 - Valid reproduction `red-culture.trx`: `96be23a8d443137ba311a26172130d684557526fe2843ea264636a4544a46b9d`.
 - Passing suite `green.trx`: `d20219f4d68bf6c0c8a9e144fba61bbd4759de37bcece127e8eaf86f18838270`.
 
-Full Windows CI is required on the pushed fix before declaring the integrated
-head green. No package or version change is part of this source correction.
+Full Windows CI [43703610921](https://github.com/SKang393/Graph-auto-reader/actions/runs/43703610921)
+completed successfully on the pushed fix
+`d61e223c27a38ac4798043e2daf5a677104a8acc`, including tests, localization and
+packaging validation. Its app suite passed 1,121 tests with zero failures/skips.
+Release jobs were correctly skipped. This supersedes
+the failed `b33d732f` run; it does not validate later uncommitted changes.
+No package or version change is part of this source correction.
 These checks establish WPF binding behavior, not shown-window accessibility
 acceptance. Prior native review evidence remains in
 [the printed-X outcome](PRINTED-X-REVIEW-20261115.md).

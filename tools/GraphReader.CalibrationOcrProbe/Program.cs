@@ -54,6 +54,7 @@ internal static class Program
         bool realDevMirage = args.Length > 0 && args[0] == "--real-dev-mirage-paired-451-check";
         bool realDevTrace452 = args.Length > 0 && args[0] == "--real-dev-452-association-trace";
         bool realDevPrintedXTrace = args.Length > 0 && args[0] == "--real-dev-printed-x-trace";
+        bool realDevSpatialTrace = args.Length > 0 && args[0] == "--real-dev-spatial-trace";
         bool realDevPostGroupingTrace = args.Length > 0 && args[0] == "--real-dev-source-post-grouping-trace";
         bool realDevNativeRejection = args.Length > 0 && args[0] == "--real-dev-native-rejection-geometry-trace";
         bool realDevPairPruning = args.Length > 0 && args[0] == "--real-dev-pair-pruning-geometry-trace";
@@ -62,7 +63,7 @@ internal static class Program
         bool ownedNativeRejection = args.Length > 0 && args[0] == "--owned-native-rejection-check";
         bool ownedNativePruning = args.Length > 0 && args[0] == "--owned-native-pruning-check";
         bool ownedNativeIntersection = args.Length > 0 && args[0] == "--owned-native-intersection-check";
-        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
+        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -128,6 +129,11 @@ internal static class Program
             if (args is ["--real-dev-printed-x-trace-self-test"])
             {
                 Emit(RealDevCalibrationCheck.PrintedXTraceSelfTest());
+                return 0;
+            }
+            if (args is ["--real-dev-spatial-trace-self-test"])
+            {
+                Emit(RealDevCalibrationCheck.SpatialTraceSelfTest());
                 return 0;
             }
             if (args is ["--mirage-mapping-self-test"])
@@ -295,6 +301,11 @@ internal static class Program
                         Emit(await RealDevCalibrationCheck.RunPrintedXTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
                         return 0;
                     }
+                    if (realDevSpatialTrace)
+                    {
+                        Emit(await RealDevCalibrationCheck.RunSpatialTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
+                        return 0;
+                    }
                     if (realDevMirage)
                     {
                         await using MiragePairedWorker mirage = await MiragePairedWorker.StartAsync(deadline.Token);
@@ -367,6 +378,14 @@ internal static class Program
                     {
                         Emit(new { schema = "graphreader.real-dev-printed-x-review-trace.v1",
                             status = "blocked_preflight_or_runtime", error = "REAL_DEV_PRINTED_X_TRACE_FAILED",
+                            sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
+                            review_only = true, production_approved = false });
+                        return 1;
+                    }
+                    if (realDevSpatialTrace)
+                    {
+                        Emit(new { schema = "graphreader.real-dev-spatial-review-trace.v1",
+                            status = "blocked_preflight_or_runtime", error = "REAL_DEV_SPATIAL_TRACE_FAILED",
                             sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
                             review_only = true, production_approved = false });
                         return 1;
