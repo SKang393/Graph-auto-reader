@@ -65,7 +65,7 @@ internal static class OwnedGrayAxisCheck
         { return new(null, error.GetType().Name, timer.Elapsed.TotalMilliseconds); }
     }
 
-    private static (int Width, int Height, byte[] Pixels) Fixture(string name)
+    internal static (int Width, int Height, byte[] Pixels) Fixture(string name)
     {
         if (name == "two_panels")
         {

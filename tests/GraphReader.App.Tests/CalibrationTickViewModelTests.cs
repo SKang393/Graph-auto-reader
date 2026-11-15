@@ -17,6 +17,117 @@ namespace GraphReader.App.Tests;
 public sealed class CalibrationTickViewModelTests
 {
     [TestMethod]
+    public void EnteredFirstSessionUsesAllTickEvidenceThenSavesAndExportsConfirmedCalibration()
+    {
+        WithImage(path =>
+        {
+            CalibrationOcrProposal[] proposals = ZeroOriginProposals();
+            proposals[1] = Proposal("x-mid", "5", 5, "XTick", "X", 79, 112);
+            proposals[2] = Proposal("x-final", "10", 10, "XTick", "X", 138, 112);
+            var reader = new OcrStub(proposals);
+            using var workspace = CreateWorkspace(path, reader, MeasuredGeometry() with { XTickPositions = [20, 79, 138] });
+            using var vm = new MainWindowViewModel(workspace);
+            WorkspaceTabViewModel tab = vm.SelectedTab!;
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+            Assert.IsFalse(vm.FitForEnteredFirstSessionCommand.CanExecute(null));
+            vm.SuggestedFirstSession = "1";
+            Assert.IsTrue(vm.FitForEnteredFirstSessionCommand.CanExecute(null));
+            vm.FitForEnteredFirstSessionCommand.Execute(null);
+            Assert.AreEqual("1", vm.SuggestedFirstSession);
+            Assert.AreEqual("10", vm.SuggestedFinalSession);
+            Assert.HasCount(6, vm.CalibrationPairedTickRows);
+            Assert.IsTrue(vm.HasEstimatedCalibrationPositions);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.AreEqual(1, reader.CallCount);
+            vm.AxisSuggestionReviewed = true;
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.AreEqual(31.8d, tab.Calibration!.Session1Y0.X, 1e-9);
+            Assert.IsLessThan(79d, tab.Calibration.Session1Y0.X);
+            Assert.AreEqual(1d, tab.Calibration.FirstVisibleSession);
+            Assert.IsTrue(workspace.CurrentProject.Panels.Single().Calibration!.UserConfirmed);
+            string series = workspace.AddSeries(tab.TabId,
+                new("Owned", "●", GraphReader.Domain.MarkerShape.Circle,
+                    GraphReader.Domain.MarkerFill.Filled, GraphReader.Domain.SemanticRole.Intervention)).SeriesId;
+            var point = workspace.AddPoint(tab.TabId, series, 31.8, 60);
+            Assert.AreEqual(1d, point.GraphX, 1e-9);
+            Assert.AreEqual(5d, point.GraphY, 1e-9);
+            string saved = Path.Combine(Path.GetDirectoryName(path)!, "entered-session.garproj");
+            Assert.IsTrue(Pump(workspace.SaveProjectAsync(saved, CancellationToken.None)).IsSuccess);
+            using var reopened = new ManualPreviewWorkspaceService();
+            WorkspaceTabViewModel restored = Pump(reopened.OpenProjectAsync(saved, CancellationToken.None)).Single();
+            Assert.AreEqual(31.8d, restored.Calibration!.Session1Y0.X, 1e-9);
+            Assert.AreEqual(1d, restored.Points.Single().GraphX, 1e-9);
+            string output = Path.Combine(Path.GetDirectoryName(path)!, "entered-export");
+            Assert.IsTrue(Pump(reopened.ExportAsync(restored.TabId, output, CancellationToken.None)).Succeeded);
+            string csv = Directory.EnumerateFiles(output, "*.csv", SearchOption.AllDirectories)
+                .Single(file => !Path.GetFileName(file).Contains("audit", StringComparison.OrdinalIgnoreCase));
+            string[] fields = File.ReadAllLines(csv)[1].Split(',');
+            Assert.AreEqual(1d, double.Parse(fields[0], CultureInfo.InvariantCulture));
+            Assert.AreEqual(5d, double.Parse(fields[1], CultureInfo.InvariantCulture), 1e-9);
+        });
+    }
+
+    [TestMethod]
+    public void EnteredFirstSessionCannotExceedObservedRangeOrHideAnEarlierOutlier()
+    {
+        WithImage(path =>
+        {
+            using var workspace = CreateWorkspace(path, ZeroOriginProposals(), MeasuredGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            vm.SuggestedFirstSession = "11";
+            vm.FitForEnteredFirstSessionCommand.Execute(null);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            vm.CalibrationLabelRows.Single(row => row.Proposal.RegionId == "x-mid").CorrectedText = "8";
+            vm.SuggestedFirstSession = "1";
+            vm.FitForEnteredFirstSessionCommand.Execute(null);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+        });
+    }
+
+    [TestMethod]
+    public void EnteredFirstSessionDoesNotCreateAPositiveRangeWithoutObservedSupport()
+    {
+        WithImage(path =>
+        {
+            CalibrationOcrProposal[] proposals = ZeroOriginProposals();
+            proposals[0] = Proposal("x-first", "-10", -10, "XTick", "X", 20, 112);
+            proposals[1] = Proposal("x-mid", "-5", -5, "XTick", "X", 80, 112);
+            proposals[2] = Proposal("x-final", "0", 0, "XTick", "X", 140, 112);
+            using var workspace = CreateWorkspace(path, proposals, MeasuredGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            vm.SuggestedFirstSession = "1";
+            vm.FitForEnteredFirstSessionCommand.Execute(null);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+        });
+    }
+
+    [TestMethod]
+    public void EditingEvidenceAfterEnteredFitClearsReviewAndComputedValues()
+    {
+        WithImage(path =>
+        {
+            using var workspace = CreateWorkspace(path, ZeroOriginProposals(), MeasuredGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            vm.SuggestedFirstSession = "1";
+            vm.FitForEnteredFirstSessionCommand.Execute(null);
+            vm.AxisSuggestionReviewed = true;
+            vm.CalibrationLabelRows.Single(row => row.Proposal.RegionId == "x-mid").IsIncluded = false;
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsFalse(vm.HasCalibrationTickProposal);
+            Assert.IsTrue(vm.HasEstimatedCalibrationPositions);
+        });
+    }
+
+    [TestMethod]
     public void TickWorkflowFillsOnlyReviewableProposalAndDoesNotApplyCalibration()
     {
         WithImage(path =>
@@ -760,6 +871,16 @@ public sealed class CalibrationTickViewModelTests
         Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
         return workspace;
     }
+
+    private static CalibrationOcrProposal[] ZeroOriginProposals() =>
+    [
+        Proposal("x-first", "0", 0, "XTick", "X", 20, 112),
+        Proposal("x-mid", "5", 5, "XTick", "X", 80, 112),
+        Proposal("x-final", "10", 10, "XTick", "X", 140, 112),
+        Proposal("y-max", "10", 10, "YTick", "Y", 20, 2),
+        Proposal("y-mid", "5", 5, "YTick", "Y", 60, 2),
+        Proposal("y-zero", "0", 0, "YTick", "Y", 100, 2),
+    ];
 
     private static CalibrationOcrProposal[] ValidProposals() =>
     [

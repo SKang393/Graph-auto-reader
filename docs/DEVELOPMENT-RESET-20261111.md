@@ -3,6 +3,15 @@
 
 # Development direction, 2026-11-11
 
+Latest source checkpoint, 2026-11-15: the
+[calibration review refinements](CALIBRATION-ENTERED-ORIGIN-20261115.md) retain
+the original printed ticks and can calculate anchors for an explicitly entered
+first-visible session without changing project semantics. Owned real-worker and
+save/reopen/export checks pass; the last automatic development result is still
+0/12 complete drafts. Continue specific geometry/grouping diagnosis on owned
+controls and preserve the independent split. The sole retained package remains
+0.4.52 until a meaningful integrated replacement is verified.
+
 The maintainer requested a Rust-based, responsive Windows application and
 authorized changing the development plan immediately. This amendment replaces
 the earlier C#-only processing assumption. Keep WPF as the native desktop shell;

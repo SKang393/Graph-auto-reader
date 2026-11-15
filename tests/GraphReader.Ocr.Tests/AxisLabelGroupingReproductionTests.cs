@@ -21,6 +21,23 @@ public sealed class AxisLabelGroupingReproductionTests
     }
 
     [TestMethod]
+    public async Task UnlabelledMinorTicksDoNotMergeSeparateOwnedLabels()
+    {
+        OcrImage image = Ink((30, 75, 3, 8), (50, 75, 3, 8), (70, 75, 3, 8));
+        byte[] original = image.Pixels.ToArray();
+        var detector = new ConnectedComponentTextRegionDetector();
+        Assert.HasCount(1, await detector.DetectAsync(image, CancellationToken.None));
+
+        var actual = await detector.DetectAsync(image,
+            new OcrMeasuredTickGrouping([31, 41, 51, 61, 71], 65), CancellationToken.None);
+
+        Assert.HasCount(3, actual, "Unlabelled intermediate ticks are not additional text labels.");
+        CollectionAssert.AreEqual(ExpectedLabelPositions, actual.Select(region => region.Polygon.Bounds.X).ToArray());
+        Assert.IsTrue(actual.All(region => region.Evidence!.ComponentCount == 1));
+        CollectionAssert.AreEqual(original, image.Pixels.ToArray());
+    }
+
+    [TestMethod]
     public async Task MeasuredTickInsideInterDigitWhitespaceSeparatesOwnedGlyphPairs()
     {
         OcrImage image = Ink((27, 75, 3, 8), (33, 75, 3, 8),
@@ -96,17 +113,39 @@ public sealed class AxisLabelGroupingReproductionTests
     }
 
     [TestMethod]
-    public async Task MinorTicksDoNotSplitOneWideDecimalLabel()
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task MinorTicksDoNotSplitOneWideDecimalLabel(bool bothOuterTicksSupported)
     {
         OcrImage image = Ink((30, 75, 7, 20), (42, 75, 7, 20), (51, 92, 3, 3), (60, 75, 11, 20));
         var detector = new ConnectedComponentTextRegionDetector();
-        var context = new OcrMeasuredTickGrouping([31, 51, 71], 65);
+        var context = new OcrMeasuredTickGrouping(bothOuterTicksSupported ? [31, 41, 51, 61, 69] : [31, 51, 71], 65);
         var baseline = await detector.DetectAsync(image, CancellationToken.None);
         var actual = await detector.DetectAsync(image, context, CancellationToken.None);
         Assert.HasCount(1, baseline);
         Assert.HasCount(1, actual);
         Assert.AreEqual(baseline[0].Polygon.Bounds, actual[0].Polygon.Bounds);
         Assert.AreEqual(new OcrRectangle(30, 75, 41, 20), actual[0].Polygon.Bounds);
+    }
+
+    [TestMethod]
+    public async Task MinorTickContextCannotSplitNonidentityPixelsOrCrossingInk()
+    {
+        var detector = new ConnectedComponentTextRegionDetector();
+        var context = new OcrMeasuredTickGrouping([31, 41, 51, 61, 71], 65);
+        OcrImage nonidentity = Ink((30, 75, 3, 8), (50, 75, 3, 8), (70, 75, 3, 8)) with
+        {
+            OriginalToImage = new(2, 2, 0, 0)
+        };
+        var baseline = await detector.DetectAsync(nonidentity, CancellationToken.None);
+        var actual = await detector.DetectAsync(nonidentity, context, CancellationToken.None);
+        Assert.HasCount(1, actual);
+        Assert.AreEqual(baseline[0].Polygon.Bounds, actual[0].Polygon.Bounds);
+
+        OcrImage crossing = Ink((30, 75, 3, 8), (38, 75, 7, 8), (50, 75, 3, 8));
+        actual = await detector.DetectAsync(crossing, context, CancellationToken.None);
+        Assert.HasCount(1, actual);
+        Assert.AreEqual(new OcrRectangle(30, 75, 23, 8), actual[0].Polygon.Bounds);
     }
 
     private static OcrImage Ink(params (int X, int Y, int Width, int Height)[] components)

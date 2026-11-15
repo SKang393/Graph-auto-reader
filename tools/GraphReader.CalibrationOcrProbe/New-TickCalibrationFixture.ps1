@@ -10,6 +10,7 @@ param(
     [switch]$DenseXTicks,
     [switch]$GridLines,
     [switch]$SmallPlotWithCaption,
+    [switch]$ZeroOriginXLabels,
     [ValidateRange(0, 1700)][int]$WhiteMarginPixels = 0
 )
 $ErrorActionPreference = 'Stop'
@@ -21,6 +22,9 @@ if (-not (Test-Path -LiteralPath ([IO.Path]::GetDirectoryName($OutputPath)) -Pat
 }
 if ($SmallPlotWithCaption -and ($InwardXTicks -or $TransparentBackground -or $LeftAxisContinuation -or $NoTickMarks -or $DenseXTicks -or $GridLines -or $WhiteMarginPixels -ne 0)) {
     throw 'SmallPlotWithCaption cannot be combined with other fixture options.'
+}
+if ($ZeroOriginXLabels -and ($InwardXTicks -or $TransparentBackground -or $LeftAxisContinuation -or $NoTickMarks -or $DenseXTicks -or $GridLines -or $SmallPlotWithCaption -or $WhiteMarginPixels -ne 0)) {
+    throw 'ZeroOriginXLabels cannot be combined with other fixture options.'
 }
 Add-Type -AssemblyName System.Drawing
 $baseWidth = if ($SmallPlotWithCaption) { 512 } else { 640 }
@@ -50,7 +54,7 @@ try {
     }
     $graphics.DrawLine($pen, $axisStart, $plotBottom, $plotRight, $plotBottom)
     $graphics.DrawLine($pen, 100, $plotTop, 100, $plotBottom)
-    $xLabels = @('1', '2', '3')
+    $xLabels = if ($ZeroOriginXLabels) { @('0', '5', '10') } else { @('1', '2', '3') }
     for ($index = 0; $index -lt $xPositions.Count; $index++) {
         $x = $xPositions[$index]
         $tickEnd = if ($InwardXTicks) { $plotBottom - $tickLength } else { $plotBottom + $tickLength }
@@ -99,6 +103,7 @@ finally {
     tick_marks_drawn = -not $NoTickMarks
     grid_lines = [bool]$GridLines
     small_plot_with_caption = [bool]$SmallPlotWithCaption
+    zero_origin_x_labels = [bool]$ZeroOriginXLabels
     plot_bounds = @((100 + $WhiteMarginPixels), ($plotTop + $WhiteMarginPixels), ($plotRight + $WhiteMarginPixels), ($plotBottom + $WhiteMarginPixels))
     x_label_positions = @($xPositions | ForEach-Object { $_ + $WhiteMarginPixels })
     y_label_positions = @($yPositions | ForEach-Object { $_ + $WhiteMarginPixels })

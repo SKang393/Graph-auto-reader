@@ -108,9 +108,9 @@ positive anchor while retaining every fit pair preserves the current contract
 and export mapping. Do not infer a missing anchor or relax the range rule.
 
 No package or release was created. The sole 0.4.52 package and shared user Data
-remain intact. `artifacts/source-calibration-trace` is bounded sensitive local
-metadata retained only for the active defect-diagnosis consumer. Retire it after
-that consumer finishes and this aggregate source/outcome is pushed. No per-case
-predictions, private labels or images belong in Git.
-The reviewed closeout scope is four files / 56,403 bytes; subsequent owned
-reproductions need only the recorded failure modes and current source.
+remain intact. After the defect-diagnosis consumer finished and source/outcome
+`287f4641a592da4e6c13dafc501724d9d857dd77` reached `origin/main`, the bounded
+sensitive metadata in `artifacts/source-calibration-trace` was retired at
+`2026-11-15T07:04:46.7556943Z`: four files / 56,403 bytes. The directory was
+confirmed absent. No per-case predictions, private labels or images entered
+Git. Subsequent owned reproductions use the recorded failure modes and source.

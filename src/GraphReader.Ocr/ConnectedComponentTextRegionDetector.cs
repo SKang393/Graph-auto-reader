@@ -200,14 +200,14 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             }
             return false;
         }
-        bool RowSupportsTick(ComponentBounds[] items, int tick, int top, int bottom)
+        ComponentBounds? RowTickSupport(ComponentBounds[] items, int tick, int top, int bottom)
         {
             ComponentBounds? before = null, after = null;
             foreach (ComponentBounds component in items)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (component.Top > top || component.Bottom < bottom) continue;
-                if (component.Left <= tick && component.Right >= tick) return true;
+                if (component.Left <= tick && component.Right >= tick) return component;
                 if (component.Right < tick && (before is null || component.Right > before.Value.Right)) before = component;
                 if (component.Left > tick && (after is null || component.Left < after.Value.Left)) after = component;
             }
@@ -215,7 +215,47 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             // Only full-height components in that tick's lane may bracket it;
             // reuse the existing component-width gap bound, not a wider OCR gate.
             return before is { } left && after is { } right &&
-                right.Left - left.Right - 1 <= Math.Max(left.Width, right.Width);
+                right.Left - left.Right - 1 <= Math.Max(left.Width, right.Width) ? left.Merge(right) : null;
+        }
+        bool SeparateSupportedLanes(ComponentBounds first, ComponentBounds second, int rowTop, int rowBottom)
+        {
+            if (evidence.Count < 2) return false;
+            ComponentBounds left = first.Left < second.Left ? first : second;
+            ComponentBounds right = first.Left < second.Left ? second : first;
+            int? leftTick = null, rightTick = null;
+            for (int index = 0; index <= evidence.Count; index++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var lane = evidence[Math.Min(index, evidence.Count - 1)];
+                int tick = index < evidence.Count ? lane.LeftTick : lane.RightTick;
+                ComponentBounds[] items = index < evidence.Count ? lane.Left : lane.Right;
+                if (RowTickSupport(items, tick, Math.Min(first.Top, second.Top), Math.Max(first.Bottom, second.Bottom)) is not { } support) continue;
+                bool onLeft = support.Left <= left.Right && support.Right >= left.Left;
+                bool onRight = support.Left <= right.Right && support.Right >= right.Left;
+                if (onLeft && onRight) return false;
+                if (onLeft)
+                {
+                    if (leftTick is not null) return false;
+                    leftTick = tick;
+                }
+                if (onRight)
+                {
+                    if (rightTick is not null) return false;
+                    rightTick = tick;
+                }
+            }
+            // Unlabelled minor ticks do not establish text lanes. Both actual groups
+            // must own unique observed support, and intervening ink still vetoes a cut.
+            if (leftTick is not { } a || rightTick is not { } b || a >= b) return false;
+            double boundary = (a + (double)b) / 2;
+            if (left.Right >= boundary || right.Left < boundary) return false;
+            foreach (ComponentBounds component in components)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (component.Top <= rowBottom && component.Bottom >= rowTop &&
+                    component.Left < boundary && component.Right + 1 > boundary) return false;
+            }
+            return true;
         }
         var remaining = components
             .OrderBy(static component => component.Top)
@@ -246,12 +286,13 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                     int rowTop = Math.Max(line.Top, candidate.Top), rowBottom = Math.Min(line.Bottom, candidate.Bottom);
                     bool separated = grouping is not null && rowTop <= rowBottom && line.Top > grouping.PlotBottom && candidate.Top > grouping.PlotBottom &&
                         horizontalGap > Math.Max(line.Width, candidate.Width) &&
-                        evidence.Any(cut =>
+                        (evidence.Any(cut =>
                             ((line.Right < cut.Position && candidate.Left >= cut.Position) ||
                              (candidate.Right < cut.Position && line.Left >= cut.Position)) &&
                             !RowOverlaps(cut.Crossing, rowTop, rowBottom) &&
-                            RowSupportsTick(cut.Left, cut.LeftTick, Math.Min(line.Top, candidate.Top), Math.Max(line.Bottom, candidate.Bottom)) &&
-                            RowSupportsTick(cut.Right, cut.RightTick, Math.Min(line.Top, candidate.Top), Math.Max(line.Bottom, candidate.Bottom)));
+                            RowTickSupport(cut.Left, cut.LeftTick, Math.Min(line.Top, candidate.Top), Math.Max(line.Bottom, candidate.Bottom)) is not null &&
+                            RowTickSupport(cut.Right, cut.RightTick, Math.Min(line.Top, candidate.Top), Math.Max(line.Bottom, candidate.Bottom)) is not null) ||
+                         SeparateSupportedLanes(line, candidate, rowTop, rowBottom));
                     if (!separated && overlapFraction >= _options.MinimumVerticalOverlapFraction && horizontalGap <= maximumGap)
                     {
                         line = line.Merge(candidate);

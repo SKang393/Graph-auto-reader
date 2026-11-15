@@ -149,6 +149,21 @@ internal static class Program
                 Emit(await OwnedGrayAxisCheck.RunAsync(grayAfterApp, grayAfterRust, parentBudget, deadline.Token, expectAmbiguousRecovery: true));
                 return 0;
             }
+            if (args is ["--owned-native-candidate-check"])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await OwnedNativeCandidateCheck.RunAsync(parentBudget, deadline.Token));
+                return 0;
+            }
+            if (args is ["--owned-entered-session-worker-check", var enteredRequest, var enteredApp, var enteredAssets, var enteredRust])
+            {
+                byte[] input = ReadBounded(enteredRequest, 32_768);
+                ProbeRequest ownedRequest = JsonSerializer.Deserialize<ProbeRequest>(input, Json)
+                    ?? throw new InvalidDataException("Invalid owned request.");
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await EnteredSessionWorkerCheck.RunAsync(ownedRequest, Hash(input), enteredApp, enteredAssets, enteredRust, deadline.Token));
+                return 0;
+            }
             if (args is ["--owned-axis-backend-check", var ownedAxisWorker])
             {
                 using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);

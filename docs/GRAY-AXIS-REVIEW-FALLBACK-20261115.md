@@ -109,9 +109,10 @@ records the combined source changes without rerunning the baseline.
 
 ## Retention
 
-`artifacts/gray-axis-owned-check` is bounded temporary metadata needed by the
-active before/after integration consumer. Retire its results after this source
-and final outcome reach `origin/main`. Its reviewed closeout scope is seven
-files / 1,606,026 bytes. Preserve original inputs, active source
-compiler dependencies, shared user Data and the sole 0.4.52 package. No sealed
-payload or new packaged build is part of this owned check.
+After the integration consumer finished and source/outcome
+`287f4641a592da4e6c13dafc501724d9d857dd77` reached `origin/main`,
+`artifacts/gray-axis-owned-check` was retired at
+`2026-11-15T07:04:46.7556943Z`: seven files / 1,606,026 bytes. The directory was
+confirmed absent. Original inputs, active source compiler dependencies, shared
+user Data and the sole 0.4.52 package remained present. No sealed payload or new
+packaged build was part of this owned check.

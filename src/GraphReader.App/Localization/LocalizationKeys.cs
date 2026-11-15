@@ -104,6 +104,7 @@ public static class LocalizationKeys
     public const string ManualCalibrationTicksEstimatedRow = "Manual.CalibrationTicks.EstimatedRow";
     public const string ManualCalibrationTicksEstimatedComplete = "Manual.CalibrationTicks.EstimatedComplete";
     public const string ManualCalibrationTicksEstimatedWarning = "Manual.CalibrationTicks.EstimatedWarning";
+    public const string ManualCalibrationTicksFitEnteredSession = "Manual.CalibrationTicks.FitEnteredSession";
     public const string ManualCalibrationTicksAxisX = "Manual.CalibrationTicks.AxisX";
     public const string ManualCalibrationTicksAxisY = "Manual.CalibrationTicks.AxisY";
     public const string ManualMarkerExemplarTitle = "Manual.MarkerExemplar.Title";
@@ -528,6 +529,7 @@ public static class LocalizationKeys
         ManualCalibrationTicksEstimatedRow,
         ManualCalibrationTicksEstimatedComplete,
         ManualCalibrationTicksEstimatedWarning,
+        ManualCalibrationTicksFitEnteredSession,
         ManualCalibrationTicksAxisX,
         ManualCalibrationTicksAxisY,
         ManualCalibrationLabelsInclude,

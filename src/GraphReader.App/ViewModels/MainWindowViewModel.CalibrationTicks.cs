@@ -14,9 +14,12 @@ public sealed partial class MainWindowViewModel
     private string _calibrationTickProposalStatusText = string.Empty;
     private bool _hasEstimatedCalibrationPositions;
     private bool _refittingCalibrationLabels;
+    private ICommand? _fitForEnteredFirstSessionCommand;
 
     public ICommand SuggestCalibrationFromTicksCommand { get; private set; } = null!;
     public ICommand RefitSelectedCalibrationLabelsCommand { get; private set; } = null!;
+    public ICommand FitForEnteredFirstSessionCommand => _fitForEnteredFirstSessionCommand ??= new RelayCommand(
+        _ => FitForEnteredFirstSession(), _ => CanFitForEnteredFirstSession());
     public ObservableCollection<string> CalibrationPairedTickRows { get; } = [];
     public bool HasCalibrationTickProposal => _calibrationTickProposal is not null;
     public bool HasCalibrationTickProposalStatus => _calibrationTickProposalStatusText.Length > 0;
@@ -51,7 +54,21 @@ public sealed partial class MainWindowViewModel
         RefitSelectedCalibrationLabels();
     }
 
-    public void RefitSelectedCalibrationLabels()
+    public void RefitSelectedCalibrationLabels() => RefitCalibrationLabels(null);
+
+    private bool CanFitForEnteredFirstSession() => !IsBusy && !_refittingCalibrationLabels && CanRefitCalibrationLabelsCore() &&
+        int.TryParse(SuggestedFirstSession, NumberStyles.Integer, CultureInfo.InvariantCulture, out int first) && first > 0 &&
+        CalibrationLabelRows.Any(row => row.IsIncluded && row.FitEvidence.EffectiveProposal is
+            { Role: "XTick", NumericLiteral: true, NumericValue: <= 0 });
+
+    public void FitForEnteredFirstSession()
+    {
+        if (!CanFitForEnteredFirstSession() || !int.TryParse(SuggestedFirstSession, NumberStyles.Integer,
+                CultureInfo.InvariantCulture, out int first)) return;
+        RefitCalibrationLabels(first);
+    }
+
+    private void RefitCalibrationLabels(int? enteredFirstSession)
     {
         if (IsBusy || _refittingCalibrationLabels || !CanRefitCalibrationLabelsCore() ||
             _calibrationLabelSuggestion is not { } original || _axisSuggestion is not { } suggestion ||
@@ -71,8 +88,9 @@ public sealed partial class MainWindowViewModel
                 OnPropertyChanged(nameof(HasCalibrationTickProposalStatus));
                 return;
             }
-            CalibrationTickProposalResult proposal = CalibrationTickProposal.CreateReviewDraft(suggestion.Geometry,
-                original.Response, included);
+            CalibrationTickProposalResult proposal = enteredFirstSession is int first
+                ? CalibrationTickProposal.CreateReviewDraftForFirstSession(suggestion.Geometry, original.Response, included, first)
+                : CalibrationTickProposal.CreateReviewDraft(suggestion.Geometry, original.Response, included);
             if (generation != _calibrationLabelGeneration || !ReferenceEquals(_calibrationLabelSuggestion, original) ||
                 !ReferenceEquals(_axisSuggestion, suggestion) || !labels.IsCalibrationLabelSuggestionCurrent(original) ||
                 !CanRefitCalibrationLabelsCore())
@@ -97,7 +115,7 @@ public sealed partial class MainWindowViewModel
 
     private void PublishCalibrationTickProposal(CalibrationTickProposalResult proposal)
     {
-        SetEstimatedCalibrationPositions(_hasEstimatedCalibrationPositions || proposal.UsesEstimatedPositions);
+        SetEstimatedCalibrationPositions(_hasEstimatedCalibrationPositions || proposal.UsesEstimatedPositions || proposal.UsesUserEnteredSessionPosition);
         if (!proposal.IsComplete)
         {
             PopulatePartialCalibrationAxes(proposal);
@@ -127,7 +145,7 @@ public sealed partial class MainWindowViewModel
         AxisSuggestionReviewed = false;
         _calibrationTickProposal = proposal;
         PopulateCalibrationPairedTickRows(proposal);
-        _calibrationTickProposalStatusText = FormatLocalizedString(proposal.UsesEstimatedPositions
+        _calibrationTickProposalStatusText = FormatLocalizedString(proposal.UsesEstimatedPositions || proposal.UsesUserEnteredSessionPosition
                 ? LocalizationKeys.ManualCalibrationTicksEstimatedComplete : LocalizationKeys.ManualCalibrationTicksComplete,
             proposal.PairedTicks.Count);
         OnPropertyChanged(nameof(HasCalibrationTickProposal));

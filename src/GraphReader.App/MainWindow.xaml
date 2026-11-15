@@ -1192,6 +1192,12 @@
                          automation:AutomationProperties.AutomationId="Manual.AxisProposal.FinalSession"
                          automation:AutomationProperties.Name="{DynamicResource Manual.XMaximum}" />
               </Grid>
+              <Button Margin="0,6,0,0" Command="{Binding FitForEnteredFirstSessionCommand}"
+                      Content="{DynamicResource Manual.CalibrationTicks.FitEnteredSession}"
+                      Style="{DynamicResource App.Style.Button}"
+                      Visibility="{Binding HasCalibrationLabelSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}"
+                      automation:AutomationProperties.AutomationId="Manual.CalibrationTicks.FitEnteredSession"
+                      automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationTicks.FitEnteredSession}" />
               <CheckBox IsChecked="{Binding AxisSuggestionReviewed}" Margin="0,6"
                         automation:AutomationProperties.AutomationId="Manual.AxisProposal.Reviewed"
                         automation:AutomationProperties.Name="{DynamicResource Manual.AxisReviewed}">
