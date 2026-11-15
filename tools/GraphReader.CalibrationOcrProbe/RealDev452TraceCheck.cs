@@ -73,6 +73,10 @@ internal static partial class RealDevCalibrationCheck
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, sortedSpatialGeometryTrace: true);
 
+    internal static Task<object> RunForwardExtentGeometryTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, forwardExtentGeometryTrace: true);
+
     internal static Task<object> RunPostGroupingTraceAsync(string corpusRoot, string app, string assets, string rust,
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token);
@@ -94,15 +98,17 @@ internal static partial class RealDevCalibrationCheck
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: false, token, directional: true);
 
     private static async Task<object> RunTraceAsync(string corpusRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false)
+        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false)
     {
         if ((pairPruning || intersection) && !geometryOnly || pairPruning && intersection || directional && (geometryOnly || !sourcePostGrouping) ||
             printedXTrace && (!sourcePostGrouping || geometryOnly || pairPruning || intersection || directional || spatialTrace) ||
             spatialTrace && (!sourcePostGrouping || geometryOnly || pairPruning || intersection || directional) ||
-            sortedSpatialGeometryTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace)) throw new InvalidDataException();
+            sortedSpatialGeometryTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || forwardExtentGeometryTrace) ||
+            forwardExtentGeometryTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace)) throw new InvalidDataException();
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(app) ||
             !Path.IsPathFullyQualified(assets) || !Path.IsPathFullyQualified(rust)) throw new InvalidDataException();
-        using Candidate candidateLease = sortedSpatialGeometryTrace ? Candidate.VerifySortedSpatial(app, assets, rust, token) :
+        using Candidate candidateLease = forwardExtentGeometryTrace ? Candidate.VerifyForwardExtent(app, assets, rust, token) :
+            sortedSpatialGeometryTrace ? Candidate.VerifySortedSpatial(app, assets, rust, token) :
             spatialTrace ? Candidate.VerifySpatial(app, assets, rust, token) :
             printedXTrace ? Candidate.VerifyPrintedX(app, assets, rust, token) : directional ? Candidate.VerifyDirectional(app, assets, rust, token) :
             intersection ? Candidate.VerifyIntersection(app, assets, rust, token) :
@@ -195,13 +201,13 @@ internal static partial class RealDevCalibrationCheck
             projects.Add(new { index = i, status, error_category = errorCategory, preparation_milliseconds = preparationMs, effective_panels = effective, panels = panelResults });
         }
         if (geometryOnly)
-            return new { schema = sortedSpatialGeometryTrace ? SortedSpatialTraceSchema : intersection ? IntersectionTraceSchema : pairPruning ? PairPruningTraceSchema : NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
+            return new { schema = forwardExtentGeometryTrace ? ForwardExtentTraceSchema : sortedSpatialGeometryTrace ? SortedSpatialTraceSchema : intersection ? IntersectionTraceSchema : pairPruning ? PairPruningTraceSchema : NativeRejectionTraceSchema, scope = "development_only_sensitive_metadata",
                 selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
                 attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
                 attempted_panels = panelAttempted, finished_panels = panelFinished, unfinished_execution_panels = panelAttempted - panelFinished,
                 terminal_status_counts = terminalStatusCounts, unattempted_panels = returned + fallback - panelAttempted,
                 metadata.AssignmentSha256, metadata.SelectedInventorySha256, source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
-                candidate = sortedSpatialGeometryTrace ? SortedSpatialTraceIdentity() : (object)new { app_exe_sha256 = intersection ? IntersectionAppExeHash : NativeRejectionAppExeHash, app_dll_sha256 = intersection ? IntersectionAppDllHash : NativeRejectionAppDllHash,
+                candidate = forwardExtentGeometryTrace ? ForwardExtentTraceIdentity() : sortedSpatialGeometryTrace ? SortedSpatialTraceIdentity() : (object)new { app_exe_sha256 = intersection ? IntersectionAppExeHash : NativeRejectionAppExeHash, app_dll_sha256 = intersection ? IntersectionAppDllHash : NativeRejectionAppDllHash,
                     rust_sha256 = NativeRejectionRustHash,
                     runtime_files = intersection ? IntersectionRuntimeLibraries : pairPruning ? PairPruningRuntimeLibraries : NativeRejectionRuntimeLibraries },
                 sealed_payload_reads = 0, ocr_calls = 0, truth_scoring = false, image_writes = false, review_only = true,
@@ -435,6 +441,24 @@ internal static partial class RealDevCalibrationCheck
         return new { schema = "graphreader.real-dev-sorted-spatial-geometry-self-test.v1",
             selector_and_failure_accounting_reused = true, only_axis_runtime_pin_changed = true,
             ocr_calls = 0, printed_x_claim = false, private_reads = 0 };
+    }
+
+    internal static object ForwardExtentGeometryTraceSelfTest()
+    {
+        if (SortedSpatialRuntimeLibraries.Count != ForwardExtentRuntimeLibraries.Count ||
+            SortedSpatialRuntimeLibraries.Any(pair => !ForwardExtentRuntimeLibraries.TryGetValue(pair.Key, out string? actual) ||
+                actual != (pair.Key == "GraphReader.Axis.dll" ? ForwardExtentAxisHash : pair.Value)) ||
+            ForwardExtentRuntimeLibraries["OpenCvSharpExtern.dll"] != ForwardExtentOpenCvExternHash)
+            throw new InvalidDataException();
+        Dictionary<string, int> counts = NewTracePanelStatusCounts(geometryOnly: true);
+        foreach (string status in NativeRejectionPanelStatuses)
+            CountTracePanelStatus(counts, new TracePanelOutcome(status, new { status }));
+        if (counts.Values.Sum() != 4 || counts.Values.Any(static count => count != 1) ||
+            counts.ContainsKey("OCR_RETURNED") || ForwardExtentTraceSchema != "graphreader.real-dev-forward-extent-geometry-trace.v1")
+            throw new InvalidDataException();
+        return new { schema = "graphreader.real-dev-forward-extent-geometry-self-test.v1",
+            selector_and_failure_accounting_reused = true, only_axis_runtime_pin_changed = true,
+            ocr_calls = 0, apply_or_export = false, private_reads = 0 };
     }
 
     internal static object NativeRejectionTraceSelfTest()

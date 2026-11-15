@@ -46,6 +46,11 @@ enabled. Raw TRX identities, in table order:
 `aa303a8de99e9b46fa4b7ce87e6dbfa5d9da0565de17695a55c562336128977e`,
 `5860e0532a5a74ab07eedee9bf3f9748db236bc3aa078f4e01e7c80b3ef43086`.
 
+Full [Windows CI 43706342357](https://github.com/SKang393/Graph-auto-reader/actions/runs/43706342357)
+completed successfully on exact head
+`d279d384fff0c29ee0d897de255447535e3ff7f9`, including build, tests and packaging
+validation. Release candidate and tagged publication jobs were correctly skipped.
+
 ## Geometry-only development confirmation
 
 The new isolated probe route inherits the prior spatial runtime pins and

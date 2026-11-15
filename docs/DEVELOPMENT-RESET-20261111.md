@@ -16,8 +16,11 @@ Keep numeric/review safeguards and the independent split intact. The
 [bounded merge-sort repair](AXIS-BOUNDED-SORT-20261115.md) fixes the owned
 descending-order failure and clears development envelope-budget exhaustion;
 coverage remains 7/12 with four exact-pair failures and one ambiguity rejection.
-Next verify zero-forward-extent pruning on owned controls before exact contact
-work. Do not repeat unchanged OCR. Native [foreground profiling cancellation](NATIVE-PROFILING-INTERRUPTION-20261115.md)
+The [zero-forward-extent repair](AXIS-FORWARD-EXTENT-20261115.md) preserves all
+seven geometries and allows one more native search to finish: three exact-pair
+failures and two ambiguity rejections remain. Next expose only completed native
+candidate sets through explicit overlay selection and the existing numeric
+review; keep normal Suggest strict. Do not repeat unchanged OCR. Native [foreground profiling cancellation](NATIVE-PROFILING-INTERRUPTION-20261115.md)
 is now verified. The sole retained package remains 0.4.52 until a meaningful
 integrated replacement is verified.
 

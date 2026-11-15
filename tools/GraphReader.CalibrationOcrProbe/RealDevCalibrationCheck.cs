@@ -535,6 +535,10 @@ internal static partial class RealDevCalibrationCheck
             VerifyPinned(app, assets, rust, SpatialAppExeHash, SpatialAppDllHash, SpatialRustHash,
                 SortedSpatialRuntimeLibraries, token);
 
+        internal static Candidate VerifyForwardExtent(string app, string assets, string rust, CancellationToken token) =>
+            VerifyPinned(app, assets, rust, SpatialAppExeHash, SpatialAppDllHash, SpatialRustHash,
+                ForwardExtentRuntimeLibraries, token);
+
         internal static Candidate VerifyPostGrouping(string app, string assets, string rust, CancellationToken token) =>
             VerifyPinned(app, assets, rust, PostGroupingAppExeHash, PostGroupingAppDllHash, PostGroupingRustHash, PostGroupingRuntimeLibraries, token);
 

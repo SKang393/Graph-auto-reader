@@ -12,6 +12,46 @@ public sealed class AxisPairEnvelopePruningTests
     private static readonly int[] ExpectedOrderedIndices = [0, 1, 2];
 
     [TestMethod]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    public async Task ZeroForwardExtentCannotExhaustContactBudget(bool horizontal, bool reverse)
+    {
+        var fixture = horizontal
+            ? new AxisFixtureBuilder(4096, 4096).CleanAxes(100, 3000, 900, 3800).Line(500, 20, 500, 3000, id: "zero-extent-vertical")
+            : new AxisFixtureBuilder(4096, 4096).CleanAxes(3100, 3000, 3900, 3800).Line(20, 500, 3000, 500, id: "zero-extent-horizontal");
+        for (int index = 0; index < 129; index++)
+        {
+            if (horizontal) fixture.Line(200, 40 + 20 * index, 500, 40 + 20 * index, id: $"zero-h-{index}");
+            else fixture.Line(40 + 20 * index, 500, 40 + 20 * index, 900, id: $"zero-v-{index}");
+        }
+        AxisGeometryRequest request = fixture.Build();
+        if (reverse) request = request with { LineCandidates = request.LineCandidates.Reverse().ToArray() };
+        var oracle = new Observer();
+        var bounded = new Observer();
+        var detector = new AxisGeometryDetector();
+        AxisGeometryResult expected = await detector.DetectAsync(request with { CandidateObserver = oracle });
+        Assert.HasCount(1, oracle.Candidates!);
+        AxisGeometryResult actual = await detector.DetectAsync(request with { CandidateObserver = bounded, MaximumExaminedPairs = 128 });
+        AssertParity(expected, actual, oracle, bounded);
+    }
+
+    [TestMethod]
+    public async Task TinyPositiveForwardExtentRemainsAdmitted()
+    {
+        AxisGeometryRequest request = new AxisFixtureBuilder().Line(100, 300, 500.001, 300)
+            .Line(500, 300, 500, 50).Build();
+        var oracle = new Observer();
+        var bounded = new Observer();
+        var detector = new AxisGeometryDetector();
+        AxisGeometryResult expected = await detector.DetectAsync(request with { CandidateObserver = oracle });
+        Assert.HasCount(1, oracle.Candidates!);
+        AxisGeometryResult actual = await detector.DetectAsync(request with { CandidateObserver = bounded, MaximumExaminedPairs = 128 });
+        AssertParity(expected, actual, oracle, bounded);
+    }
+
+    [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public async Task ShippedBudgetHandlesDescendingSparseFamilies(bool reverse)

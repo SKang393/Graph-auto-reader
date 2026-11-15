@@ -166,6 +166,14 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
                     // elsewhere cannot supply observed contact at that point.
                     if (!horizontalEnvelopes[horizontalIndex].Contains(intersection) ||
                         !verticalEnvelopes[verticalIndex].Contains(intersection)) continue;
+                    // ScoreAxisPair can only reduce these forward projections when
+                    // clipping to the frame, so nonpositive extents can never be admitted.
+                    Vector2 xDirection = horizontalFamily.Direction.X >= 0d
+                        ? horizontalFamily.Direction : horizontalFamily.Direction.Negate();
+                    Vector2 upDirection = verticalFamily.Direction.Y <= 0d
+                        ? verticalFamily.Direction : verticalFamily.Direction.Negate();
+                    if (!(Endpoints(horizontalFamily.Line).Max(point => Project(point, intersection, xDirection)) > 0d) ||
+                        !(Endpoints(verticalFamily.Line).Max(point => Project(point, intersection, upDirection)) > 0d)) continue;
                     if (++examinedPairs > maximum)
                         throw DetectionFailure("Axis pair examination limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded,
                             AxisGeometryBudgetKind.ExactPairs);
