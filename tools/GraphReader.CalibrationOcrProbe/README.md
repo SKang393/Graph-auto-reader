@@ -315,3 +315,20 @@ half-core jobs; no images, models or private inputs are copied or written. The
 usual 170/175-second probe deadline applies. Capture only stdout/stderr under
 `artifacts/corner-tick-worker-451-check`, retaining them until the pushed outcome
 and package consumer finish. Historical 449/450 commands and pins are unchanged.
+
+## Explicit 0.4.51 prepared-panel confirmation
+
+`--real-dev-prepared-calibration-451-check <corpus-root> <absolute-451-App-exe> <451-asset-root> <absolute-451-Rust-worker> --explicit-opt-in`
+selects only the exact retained 0.4.51 pins in
+`RealDevPrepared451CalibrationCheck.cs`. The shared verifier holds the EXE,
+Rust, 21 managed/native runtime files, model, manifest and license/notice streams,
+and verifies loaded managed bytes before the frozen real-dev selector reads any
+payload. Historical 449/450 commands, pins and default behavior remain unchanged.
+
+This reuses the existing all-120-project prepared-panel diagnostic, every panel,
+genuine-no-panel full-image fallback, CPU workers, aggregate-only output and
+45-second source / 900-second overall limits. It performs no truth-based panel
+selection, residual scoring, scientific Apply, training, sealed read or image
+write. Do not execute before the lead authorizes the fixed confirmation. Reuse
+`artifacts/corner-tick-worker-451-check/tool` for the probe-only build and stage
+only verified runtime libraries; keep the completed corner report intact.
