@@ -65,6 +65,12 @@ internal static class Program
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--owned-corner-tick-451-check", var cornerApp, var cornerAssets])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await CornerTickWorkerCheck.RunAsync(cornerApp, cornerAssets, deadline.Token));
+                return 0;
+            }
             if (args is ["--owned-prepared-calibration-450-check", var prepared450App, var prepared450Assets, var prepared450Rust])
             {
                 using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);

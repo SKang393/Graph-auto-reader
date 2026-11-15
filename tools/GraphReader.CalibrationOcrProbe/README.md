@@ -293,3 +293,25 @@ calibration Apply, sealed access, training or private case output. The existing
 45-second source and 900-second overall deadlines and independent half-core
 parent/child budgets remain. This is fixed implementation coverage evidence,
 not model selection, accuracy acceptance or production approval.
+
+## Owned 0.4.51 bottom-corner worker control
+
+`--owned-corner-tick-451-check <absolute-packaged-App-exe> <absolute-packaged-assets>`
+runs two sequential CPU reads in one actual App worker. Two in-memory Gray8
+panels contain identical six glyphs at identical positions, with plot widths
+480 and 1000. The observed zero polygon must be wholly left of the Y axis,
+straddle the baseline and have its center below it, in the exact width-sensitive
+corner lane. The report checks the actual worker's pre-recognition SuggestedAxis
+and final Role, six numeric rows and six measured calibration pairs. Failure to
+render, recognize or detect that geometry is reported as incomplete, not repaired
+by changing font/model/thresholds. Geometry/ticks are explicit owned fixture
+inputs, so this isolates OCR classification and pairing rather than Rust detection.
+
+The mode requires version 0.4.51 and byte-identical local/packaged App and OCR
+assemblies, verifies model/manifest pins and returned runtime files against the
+selected package, and records actual EXE/DLL hashes. The integrator must verify
+the downloaded package identity before execution. Parent and worker use separate
+half-core jobs; no images, models or private inputs are copied or written. The
+usual 170/175-second probe deadline applies. Capture only stdout/stderr under
+`artifacts/corner-tick-worker-451-check`, retaining them until the pushed outcome
+and package consumer finish. Historical 449/450 commands and pins are unchanged.
