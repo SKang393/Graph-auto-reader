@@ -13,16 +13,46 @@ using OpenCvSharp;
 
 namespace GraphReader.App.Integration.NativeAxis;
 
+internal sealed record NativeAxisCandidateReviewObservation(
+    string Stage, bool EnumerationCompleted, bool Cancelled,
+    int RawSnapshotCount, int CheckedCount, int EligibleCount, int RotatedCount,
+    string? FailureDetail, string? HardGeometryRejection, AxisGeometryWorkSnapshot? Work);
+
 internal static class NativeAxisCandidateReview
 {
     internal const int MaximumResponseBytes = 64 * 1024;
     internal const int MaximumCandidates = 128;
 
-    private sealed class Observer : IAxisGeometryCandidateObserver
+    private sealed class Observer(Action<NativeAxisCandidateReviewObservation>? callback)
+        : IAxisGeometryCandidateObserver, IAxisGeometryWorkObserver
     {
-        internal IReadOnlyList<AxisGeometryCandidateSnapshot>? Snapshots { get; private set; }
+        internal System.Collections.ObjectModel.ReadOnlyCollection<AxisGeometryCandidateSnapshot>? Snapshots { get; private set; }
+        internal bool Enabled => callback is not null;
+        internal string Stage { get; set; } = "enumeration";
+        internal bool Cancelled { get; set; }
+        internal int CheckedCount { get; set; }
+        internal int EligibleCount { get; set; }
+        internal int RotatedCount { get; set; }
+        internal string? FailureDetail { get; set; }
+        internal string? HardGeometryRejection { get; set; }
+        private AxisGeometryWorkSnapshot? _work;
         public void OnCandidatesRanked(IReadOnlyList<AxisGeometryCandidateSnapshot> candidates) =>
             Snapshots = Array.AsReadOnly(candidates.ToArray());
+        public void OnWorkObserved(AxisGeometryWorkSnapshot snapshot) => _work = snapshot;
+        internal void Notify()
+        {
+            if (callback is null) return;
+            try
+            {
+                callback(new(Stage, _work?.EnumerationCompleted ?? (Snapshots is not null), Cancelled,
+                    Snapshots?.Count ?? 0, CheckedCount, EligibleCount, RotatedCount,
+                    FailureDetail, HardGeometryRejection, _work));
+            }
+            catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException and not AccessViolationException)
+            {
+                // Optional diagnostics preserve the result or original failure.
+            }
+        }
     }
 
     internal static async Task<int> RunAsync(WorkflowRuntimeEnvironment environment, Stream input, Stream output)
@@ -56,46 +86,105 @@ internal static class NativeAxisCandidateReview
         return 0;
     }
 
-    internal static async Task<AxisCandidateReviewResult> ProcessAsync(byte[] encoded, CancellationToken token)
+    internal static Task<AxisCandidateReviewResult> ProcessAsync(byte[] encoded, CancellationToken token) =>
+        ProcessAsync(encoded, null, token);
+
+    internal static async Task<AxisCandidateReviewResult> ProcessAsync(byte[] encoded,
+        Action<NativeAxisCandidateReviewObservation>? observation, CancellationToken token)
     {
-        using var stream = new MemoryStream(encoded, writable: false);
-        BitmapFrame frame = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnDemand).Frames[0];
-        int width = frame.PixelWidth, height = frame.PixelHeight;
-        if (width is < 32 or > 4096 || height is < 32 or > 4096 || (long)width * height > 16_777_216)
-            return Failure("INVALID_INPUT");
-        var gray = new FormatConvertedBitmap(WhiteBackgroundRaster.Normalize(frame, token), PixelFormats.Gray8, null, 0);
-        byte[] pixels = new byte[checked(width * height)];
-        gray.CopyPixels(pixels, width, 0);
-        var lines = await new OpenCvLineCandidateProvider().DetectLinesAsync(new(width, height, width, pixels), token).ConfigureAwait(false);
-        return await ProcessLinesAsync(lines, width, height, token).ConfigureAwait(false);
+        var observer = new Observer(observation) { Stage = "decode" };
+        try
+        {
+            using var stream = new MemoryStream(encoded, writable: false);
+            BitmapFrame frame = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnDemand).Frames[0];
+            int width = frame.PixelWidth, height = frame.PixelHeight;
+            if (width is < 32 or > 4096 || height is < 32 or > 4096 || (long)width * height > 16_777_216)
+            {
+                observer.FailureDetail = "INVALID_INPUT";
+                return Failure("INVALID_INPUT");
+            }
+            var gray = new FormatConvertedBitmap(WhiteBackgroundRaster.Normalize(frame, token), PixelFormats.Gray8, null, 0);
+            byte[] pixels = new byte[checked(width * height)];
+            gray.CopyPixels(pixels, width, 0);
+            observer.Stage = "line_detection";
+            var lines = await new OpenCvLineCandidateProvider().DetectLinesAsync(new(width, height, width, pixels), token).ConfigureAwait(false);
+            return await ProcessLinesCoreAsync(lines, width, height, observer, token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) { observer.Cancelled = true; observer.FailureDetail = "cancelled"; throw; }
+        catch (Exception) { observer.FailureDetail ??= "native_" + observer.Stage + "_failed"; throw; }
+        finally { observer.Notify(); }
     }
 
+    internal static Task<AxisCandidateReviewResult> ProcessLinesAsync(
+        IReadOnlyList<GeometryLineCandidate> lines, int width, int height, CancellationToken token) =>
+        ProcessLinesAsync(lines, width, height, null, token);
+
     internal static async Task<AxisCandidateReviewResult> ProcessLinesAsync(
-        IReadOnlyList<GeometryLineCandidate> lines, int width, int height, CancellationToken token)
+        IReadOnlyList<GeometryLineCandidate> lines, int width, int height,
+        Action<NativeAxisCandidateReviewObservation>? observation, CancellationToken token)
     {
-        var observer = new Observer();
+        var observer = new Observer(observation);
+        try { return await ProcessLinesCoreAsync(lines, width, height, observer, token).ConfigureAwait(false); }
+        catch (OperationCanceledException) { observer.Cancelled = true; observer.FailureDetail = "cancelled"; throw; }
+        catch (Exception) { observer.FailureDetail ??= "native_" + observer.Stage + "_failed"; throw; }
+        finally { observer.Notify(); }
+    }
+
+    private static async Task<AxisCandidateReviewResult> ProcessLinesCoreAsync(
+        IReadOnlyList<GeometryLineCandidate> lines, int width, int height, Observer observer, CancellationToken token)
+    {
+        observer.Stage = "enumeration";
         try
         {
             _ = await new AxisGeometryDetector().DetectAsync(new AxisGeometryRequest(width, height, lines)
-                { CandidateObserver = observer, MaximumExaminedPairs = MaximumCandidates }, token).ConfigureAwait(false);
+                { CandidateObserver = observer, WorkObserver = observer.Enabled ? observer : null,
+                    MaximumExaminedPairs = MaximumCandidates }, token).ConfigureAwait(false);
         }
-        catch (AxisGeometryDetectionException) { return Failure("OPENCV_AXIS_AMBIGUOUS"); }
-        if (observer.Snapshots is not { Count: > 0 and <= MaximumCandidates } snapshots) return Failure("OPENCV_AXIS_AMBIGUOUS");
+        catch (AxisGeometryDetectionException error)
+        {
+            observer.FailureDetail = NativeAxisWorker.FailureDetail(error);
+            return Failure("OPENCV_AXIS_AMBIGUOUS");
+        }
+        observer.Stage = "snapshot_validation";
+        if (observer.Snapshots is not { Count: > 0 and <= MaximumCandidates } snapshots)
+        {
+            observer.FailureDetail = observer.Snapshots is { Count: > MaximumCandidates }
+                ? "native_snapshot_limit_exceeded" : "native_no_ranked_candidates";
+            return Failure("OPENCV_AXIS_AMBIGUOUS");
+        }
+        observer.Stage = "geometry_eligibility";
         var candidates = new List<AxisReviewCandidate>(snapshots.Count);
         for (int i = 0; i < snapshots.Count; i++)
         {
             token.ThrowIfCancellationRequested();
             AxisGeometryCandidateSnapshot snapshot = snapshots[i];
             PixelPoint[] corners = [snapshot.Intersection, snapshot.BottomRight, snapshot.TopRight, snapshot.TopLeft];
+            if (observer.Enabled) observer.CheckedCount++;
             // Enumeration is complete. Unsupported rotation excludes only this review
             // option; malformed geometry still invalidates the complete response.
             string? rejection = NativeAxisWorker.GeometryRejection(corners, 1, width, height);
-            if (rejection == "native_rotated_geometry") continue;
-            if (rejection is not null) return Failure("OPENCV_AXIS_AMBIGUOUS");
-            if (!TryGeometry(corners, width, height, out RustAxisGeometry? geometry)) return Failure("OPENCV_AXIS_AMBIGUOUS");
+            if (rejection == "native_rotated_geometry")
+            {
+                if (observer.Enabled) observer.RotatedCount++;
+                continue;
+            }
+            if (rejection is not null || !TryGeometry(corners, width, height, out RustAxisGeometry? geometry))
+            {
+                observer.HardGeometryRejection = corners.Any(c => !double.IsFinite(c.X) || !double.IsFinite(c.Y))
+                    ? "native_nonfinite_geometry" : rejection ?? "native_invalid_rounded_geometry";
+                observer.FailureDetail = observer.HardGeometryRejection;
+                return Failure("OPENCV_AXIS_AMBIGUOUS");
+            }
             candidates.Add(new AxisReviewCandidate(candidates.Count, geometry!));
+            if (observer.Enabled) observer.EligibleCount++;
         }
-        return candidates.Count == 0 ? Failure("OPENCV_AXIS_AMBIGUOUS") : new(candidates.AsReadOnly(), null);
+        if (candidates.Count == 0)
+        {
+            observer.FailureDetail = "native_no_eligible_candidates";
+            return Failure("OPENCV_AXIS_AMBIGUOUS");
+        }
+        observer.Stage = "complete";
+        return new(candidates.AsReadOnly(), null);
     }
 
     internal static bool TryGeometry(PixelPoint[] corners, int width, int height, out RustAxisGeometry? geometry)

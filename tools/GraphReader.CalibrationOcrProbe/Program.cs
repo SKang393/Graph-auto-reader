@@ -59,6 +59,7 @@ internal static class Program
         bool realDevForwardExtentGeometryTrace = args.Length > 0 && args[0] == "--real-dev-forward-extent-geometry-trace";
         bool realDevNativeWorkTrace = args.Length > 0 && args[0] == "--real-dev-native-work-geometry-trace";
         bool realDevReviewRoutingTrace = args.Length > 0 && args[0] == "--real-dev-review-routing-geometry-trace";
+        bool realDevNativeReviewObservation = args.Length > 0 && args[0] == "--real-dev-native-review-observation-trace";
         bool realDevNativeEligibilityTrace = args.Length > 0 && args[0] == "--real-dev-native-eligibility-geometry-trace";
         bool realDevPostGroupingTrace = args.Length > 0 && args[0] == "--real-dev-source-post-grouping-trace";
         bool realDevNativeRejection = args.Length > 0 && args[0] == "--real-dev-native-rejection-geometry-trace";
@@ -68,7 +69,7 @@ internal static class Program
         bool ownedNativeRejection = args.Length > 0 && args[0] == "--owned-native-rejection-check";
         bool ownedNativePruning = args.Length > 0 && args[0] == "--owned-native-pruning-check";
         bool ownedNativeIntersection = args.Length > 0 && args[0] == "--owned-native-intersection-check";
-        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
+        bool realDevPrivate = realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
@@ -83,6 +84,11 @@ internal static class Program
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--real-dev-native-review-observation-self-test"])
+            {
+                Emit(await RealDevCalibrationCheck.NativeReviewObservationSelfTestAsync(deadline.Token));
+                return 0;
+            }
             if (args is ["--real-dev-native-eligibility-geometry-self-test"])
             {
                 Emit(await RealDevCalibrationCheck.NativeEligibilityTraceSelfTestAsync(deadline.Token));
@@ -341,6 +347,11 @@ internal static class Program
                         Emit(await RealDevCalibrationCheck.RunSortedSpatialGeometryTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
                         return 0;
                     }
+                    if (realDevNativeReviewObservation)
+                    {
+                        Emit(await RealDevCalibrationCheck.RunNativeReviewObservationTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
+                        return 0;
+                    }
                     if (realDevNativeEligibilityTrace)
                     {
                         Emit(await RealDevCalibrationCheck.RunNativeEligibilityTraceAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
@@ -451,6 +462,14 @@ internal static class Program
                             status = "blocked_preflight_or_runtime", error = "REAL_DEV_SORTED_SPATIAL_GEOMETRY_TRACE_FAILED",
                             sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
                             ocr_calls = 0, review_only = true, production_approved = false });
+                        return 1;
+                    }
+                    if (realDevNativeReviewObservation)
+                    {
+                        Emit(new { schema = "graphreader.real-dev-native-review-observation-trace.v1",
+                            status = "blocked_preflight_or_runtime", error = "REAL_DEV_NATIVE_REVIEW_OBSERVATION_TRACE_FAILED",
+                            sample_denominator = 12, frozen_dev_denominator = 120, sealed_payload_reads = 0,
+                            ocr_calls = 0, candidate_selected = false, review_only = true, production_approved = false });
                         return 1;
                     }
                     if (realDevNativeEligibilityTrace)

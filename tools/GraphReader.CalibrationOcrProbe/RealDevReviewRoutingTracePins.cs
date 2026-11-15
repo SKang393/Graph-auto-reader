@@ -69,8 +69,10 @@ internal static partial class RealDevCalibrationCheck
         private readonly ReviewRoutingObservedService primary;
         private readonly ReviewRoutingObservedService fallback;
         private readonly RustFirstAxisProposalService composite;
+        private readonly NativeReviewObservationService? observation;
 
         internal ReviewRoutingTraceServices(string rust, string app) : this(new RustAxisProposalService(rust), new OpenCvAxisProposalService(app)) { }
+        internal ReviewRoutingTraceServices(string rust, NativeReviewObservationService native) : this(new RustAxisProposalService(rust), native) { observation = native; }
         internal ReviewRoutingTraceServices(IAxisProposalService rust, IAxisProposalService native)
         {
             primary = new(rust); fallback = new(native);
@@ -90,6 +92,14 @@ internal static partial class RealDevCalibrationCheck
                 result.ErrorCode is null && !OpenCvAxisProposalService.ValidCandidates(result, width, height))
                 throw new InvalidDataException();
             string status = result.ErrorCode is null ? "REVIEW_CHOICES_AVAILABLE" : "REVIEW_UNAVAILABLE";
+            if (observation is not null)
+                return new(status, new { status, candidate_count = result.Candidates.Count, result.Provider,
+                    error_code = SafeReviewError(result.ErrorCode), rust_attempted = primaryCalled,
+                    rust_error = SafeReviewError(primary.Last?.ErrorCode), rust_candidate_count = primary.Last?.Candidates.Count,
+                    native_attempted = fallbackCalled, native_error = fallbackCalled ? SafeReviewError(fallback.Last?.ErrorCode) : null,
+                    native_candidate_count = fallbackCalled ? fallback.Last?.Candidates.Count : null,
+                    native_observation = fallbackCalled ? observation.Last : null,
+                    milliseconds = timer.Elapsed.TotalMilliseconds, candidate_selected = false });
             return new(status, new { status, candidate_count = result.Candidates.Count, result.Provider,
                 error_code = SafeReviewError(result.ErrorCode),
                 rust_attempted = primaryCalled, rust_error = SafeReviewError(primary.Last?.ErrorCode),

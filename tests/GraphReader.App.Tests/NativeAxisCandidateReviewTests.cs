@@ -104,12 +104,36 @@ public sealed class NativeAxisCandidateReviewTests
         AxisCandidateReviewResult within = await NativeAxisCandidateReview.ProcessLinesAsync(lines.Take(129).ToArray(), 1800, 800, CancellationToken.None);
         Assert.IsNull(within.ErrorCode);
         Assert.HasCount(128, within.Candidates);
-        AxisCandidateReviewResult exceeded = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 1800, 800, CancellationToken.None);
+        NativeAxisCandidateReviewObservation? budget = null;
+        AxisCandidateReviewResult exceeded = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 1800, 800,
+            value => budget = value, CancellationToken.None);
         Assert.AreEqual("OPENCV_AXIS_AMBIGUOUS", exceeded.ErrorCode);
         Assert.IsEmpty(exceeded.Candidates);
+        Assert.IsNotNull(budget);
+        Assert.AreEqual("enumeration", budget.Stage);
+        Assert.AreEqual("native_pair_budget_exceeded", budget.FailureDetail);
+        Assert.IsFalse(budget.EnumerationCompleted);
+        Assert.AreEqual(0, budget.RawSnapshotCount);
+        Assert.AreEqual(0, budget.CheckedCount);
+        Assert.IsNotNull(budget.Work);
+        Assert.AreEqual(AxisGeometryBudgetKind.ExactPairs, budget.Work.BudgetKind);
+        Assert.AreEqual(129L, budget.Work.ExactPairRequests);
+        Assert.AreEqual(128L, budget.Work.ExactPairAttempts);
+        Assert.AreEqual(128L, budget.Work.ScoredPairs);
+        Assert.AreEqual(128L, budget.Work.AdmittedPairs);
         using var cancelled = new CancellationTokenSource();
+        NativeAxisCandidateReviewObservation? cancellation = null;
+        int cancellationNotifications = 0;
         await Assert.ThrowsExactlyAsync<OperationCanceledException>(() => NativeAxisCandidateReview.ProcessLinesAsync(
-            new CancellingLines(lines, cancelled), 1800, 800, cancelled.Token));
+            new CancellingLines(lines, cancelled), 1800, 800,
+            value => { cancellation = value; cancellationNotifications++; }, cancelled.Token));
+        Assert.AreEqual(1, cancellationNotifications);
+        Assert.IsNotNull(cancellation);
+        Assert.IsTrue(cancellation.Cancelled);
+        Assert.IsFalse(cancellation.EnumerationCompleted);
+        Assert.AreEqual("cancelled", cancellation.FailureDetail);
+        Assert.IsNotNull(cancellation.Work);
+        Assert.IsTrue(cancellation.Work.Cancelled);
     }
 
     [TestMethod]
@@ -124,9 +148,16 @@ public sealed class NativeAxisCandidateReviewTests
         AxisGeometryDetectionException failure = await Assert.ThrowsExactlyAsync<AxisGeometryDetectionException>(async () =>
             await new AxisGeometryDetector().DetectAsync(new AxisGeometryRequest(4096, 4096, lines) { MaximumExaminedPairs = 128 }));
         Assert.AreEqual(AxisGeometryBudgetKind.EnvelopeComparisons, failure.BudgetKind);
-        AxisCandidateReviewResult result = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 4096, 4096, CancellationToken.None);
+        NativeAxisCandidateReviewObservation? observation = null;
+        AxisCandidateReviewResult result = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 4096, 4096,
+            value => observation = value, CancellationToken.None);
         Assert.AreEqual("OPENCV_AXIS_AMBIGUOUS", result.ErrorCode);
         Assert.IsEmpty(result.Candidates);
+        Assert.IsNotNull(observation);
+        Assert.IsFalse(observation.EnumerationCompleted);
+        Assert.AreEqual("native_envelope_budget_exceeded", observation.FailureDetail);
+        Assert.IsNotNull(observation.Work);
+        Assert.AreEqual(AxisGeometryBudgetKind.EnvelopeComparisons, observation.Work.BudgetKind);
     }
 
     [TestMethod]
@@ -156,6 +187,15 @@ public sealed class NativeAxisCandidateReviewTests
         using var stream = new MemoryStream(); encoder.Save(stream);
         byte[] encoded = stream.ToArray();
         AxisCandidateReviewResult candidates = Pump(NativeAxisCandidateReview.ProcessAsync(encoded, CancellationToken.None));
+        NativeAxisCandidateReviewObservation? observation = null;
+        AxisCandidateReviewResult observed = Pump(NativeAxisCandidateReview.ProcessAsync(encoded,
+            value => observation = value, CancellationToken.None));
+        Assert.AreEqual(JsonSerializer.Serialize(candidates), JsonSerializer.Serialize(observed));
+        Assert.IsNotNull(observation);
+        Assert.AreEqual("complete", observation.Stage);
+        Assert.IsTrue(observation.EnumerationCompleted);
+        Assert.AreEqual(2, observation.RawSnapshotCount);
+        Assert.AreEqual(2, observation.EligibleCount);
         Assert.IsNull(candidates.ErrorCode);
         Assert.HasCount(2, candidates.Candidates);
         CollectionAssert.AreEquivalent(DividerLefts, candidates.Candidates.Select(candidate => candidate.Geometry.Left).ToArray());
@@ -228,6 +268,23 @@ public sealed class NativeAxisCandidateReviewTests
         CollectionAssert.AreEqual(eligible, result.Candidates.Select(candidate => candidate.Geometry).ToArray());
         CollectionAssert.AreEqual(Enumerable.Range(0, eligible.Length).ToArray(), result.Candidates.Select(candidate => candidate.Index).ToArray());
         Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(result, 800, 400));
+        NativeAxisCandidateReviewObservation? observation = null;
+        int notifications = 0;
+        AxisCandidateReviewResult observed = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400,
+            value => { observation = value; notifications++; }, CancellationToken.None);
+        Assert.AreEqual(JsonSerializer.Serialize(result), JsonSerializer.Serialize(observed));
+        Assert.AreEqual(1, notifications);
+        Assert.IsNotNull(observation);
+        Assert.AreEqual("complete", observation.Stage);
+        Assert.IsTrue(observation.EnumerationCompleted);
+        Assert.IsFalse(observation.Cancelled);
+        Assert.AreEqual(observer.Snapshots.Count, observation.RawSnapshotCount);
+        Assert.AreEqual(observation.RawSnapshotCount, observation.CheckedCount);
+        Assert.AreEqual(eligible.Length, observation.EligibleCount);
+        Assert.AreEqual(1, observation.RotatedCount);
+        Assert.IsNull(observation.FailureDetail);
+        Assert.IsNull(observation.HardGeometryRejection);
+        Assert.IsNotNull(observation.Work);
     }
 
     [TestMethod]
@@ -246,9 +303,89 @@ public sealed class NativeAxisCandidateReviewTests
         AxisGeometryCandidateSnapshot snapshot = observer.Snapshots[0];
         Assert.AreEqual("native_rotated_geometry", NativeAxisWorker.GeometryRejection(
             [snapshot.Intersection, snapshot.BottomRight, snapshot.TopRight, snapshot.TopLeft], 1, 800, 400));
-        AxisCandidateReviewResult result = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400, CancellationToken.None);
+        NativeAxisCandidateReviewObservation? observation = null;
+        AxisCandidateReviewResult result = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400,
+            value => observation = value, CancellationToken.None);
         Assert.AreEqual("OPENCV_AXIS_AMBIGUOUS", result.ErrorCode);
         Assert.IsEmpty(result.Candidates);
+        Assert.IsNotNull(observation);
+        Assert.IsTrue(observation.EnumerationCompleted);
+        Assert.AreEqual("geometry_eligibility", observation.Stage);
+        Assert.AreEqual("native_no_eligible_candidates", observation.FailureDetail);
+        Assert.AreEqual(1, observation.RawSnapshotCount);
+        Assert.AreEqual(1, observation.CheckedCount);
+        Assert.AreEqual(1, observation.RotatedCount);
+        Assert.AreEqual(0, observation.EligibleCount);
+        Assert.IsNull(observation.HardGeometryRejection);
+    }
+
+    [TestMethod]
+    public async Task HardGeometryRejectionReportsExactFirstFailure()
+    {
+        GeometryLineCandidate[] lines =
+        [
+            new("tiny-x", new(new(100.5001, 200), new(101.4999, 200.03)), LineCandidateSource.RecordedFixture),
+            new("y", new(new(100.5001, 200), new(100.5001, 50)), LineCandidateSource.RecordedFixture),
+        ];
+        NativeAxisCandidateReviewObservation? observation = null;
+        AxisCandidateReviewResult original = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 400, 400, CancellationToken.None);
+        AxisCandidateReviewResult observed = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 400, 400,
+            value => observation = value, CancellationToken.None);
+        Assert.AreEqual(JsonSerializer.Serialize(original), JsonSerializer.Serialize(observed));
+        Assert.AreEqual("OPENCV_AXIS_AMBIGUOUS", observed.ErrorCode);
+        Assert.IsEmpty(observed.Candidates);
+        Assert.IsNotNull(observation);
+        Assert.IsTrue(observation.EnumerationCompleted);
+        Assert.AreEqual("geometry_eligibility", observation.Stage);
+        Assert.AreEqual(1, observation.RawSnapshotCount);
+        Assert.AreEqual(1, observation.CheckedCount);
+        Assert.AreEqual(0, observation.EligibleCount);
+        Assert.AreEqual(0, observation.RotatedCount);
+        Assert.AreEqual("native_invalid_rounded_geometry", observation.HardGeometryRejection);
+        Assert.AreEqual(observation.HardGeometryRejection, observation.FailureDetail);
+    }
+
+    [TestMethod]
+    public async Task EmptyEvidenceAndUnexpectedErrorsRemainDistinct()
+    {
+        NativeAxisCandidateReviewObservation? empty = null;
+        AxisCandidateReviewResult result = await NativeAxisCandidateReview.ProcessLinesAsync([], 800, 400,
+            value => empty = value, CancellationToken.None);
+        Assert.AreEqual("OPENCV_AXIS_AMBIGUOUS", result.ErrorCode);
+        Assert.IsNotNull(empty);
+        Assert.AreEqual("enumeration", empty.Stage);
+        Assert.AreEqual("native_no_line_evidence", empty.FailureDetail);
+        Assert.IsFalse(empty.EnumerationCompleted);
+        Assert.AreEqual(0, empty.RawSnapshotCount);
+        NativeAxisCandidateReviewObservation? invalid = null;
+        await Assert.ThrowsExactlyAsync<ArgumentOutOfRangeException>(() => NativeAxisCandidateReview.ProcessLinesAsync([], 0, 400,
+            value => invalid = value, CancellationToken.None));
+        Assert.IsNotNull(invalid);
+        Assert.AreEqual("native_enumeration_failed", invalid.FailureDetail);
+        Assert.IsFalse(invalid.Cancelled);
+        Assert.IsFalse(invalid.EnumerationCompleted);
+    }
+
+    [TestMethod]
+    public async Task ThrowingDiagnosticObserverCannotChangeResultOrCancellation()
+    {
+        GeometryLineCandidate[] lines =
+        [
+            new("x", new(new(100, 300), new(350, 300)), LineCandidateSource.RecordedFixture),
+            new("y", new(new(100, 300), new(100, 50)), LineCandidateSource.RecordedFixture),
+        ];
+        AxisCandidateReviewResult original = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400, CancellationToken.None);
+        AxisCandidateReviewResult observed = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400,
+            _ => throw new InvalidOperationException("Owned diagnostic failure"), CancellationToken.None);
+        Assert.AreEqual(JsonSerializer.Serialize(original), JsonSerializer.Serialize(observed));
+        AxisCandidateReviewResult failure = await NativeAxisCandidateReview.ProcessLinesAsync([], 800, 400, CancellationToken.None);
+        AxisCandidateReviewResult observedFailure = await NativeAxisCandidateReview.ProcessLinesAsync([], 800, 400,
+            _ => throw new OperationCanceledException("Owned diagnostic failure"), CancellationToken.None);
+        Assert.AreEqual(JsonSerializer.Serialize(failure), JsonSerializer.Serialize(observedFailure));
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        await Assert.ThrowsExactlyAsync<OperationCanceledException>(() => NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400,
+            _ => throw new InvalidOperationException("Owned diagnostic failure"), cancelled.Token));
     }
 
     private sealed class SnapshotObserver : IAxisGeometryCandidateObserver

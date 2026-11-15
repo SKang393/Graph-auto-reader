@@ -108,9 +108,16 @@ truth scoring, image writes, Apply, exports and sealed payload reads were zero.
 | Owned self-test | `5220cfbb5e57a618ed029a3e503e45d794efa278a0528714d0355e11e275551b` |
 | Fixed-twelve report, 8,375 bytes | `a6f50804fdf5d82a407d24d45df2ffa174193f78912743cf50bd87e45572875e` |
 
-Exact-head CI remains pending at this working-tree checkpoint. No package or
-production approval is claimed here. All source remains Apache-2.0 with no
-added dependency or model.
+Full Windows CI [43720654959](https://github.com/SKang393/Graph-auto-reader/actions/runs/43720654959)
+passed on exact source `9adee655d526d62f936e208063eaaa2e4296291c`, completing
+at `2026-11-15T13:55:10Z`. All 13 .NET suites passed: 2,960 passed, 30 skipped,
+zero failed, including all 1,156 App tests. Rust passed 63 tests. Version policy
+(62), build-ledger (6), portable retention (12), localization, bounded OCR and
+the remaining evidence/packaging checks passed. Public release jobs were skipped.
+This includes the mode-localized shell contract and both language-refresh
+regressions; the earlier failed `b33d732f` run does not describe this source.
+No package or production approval follows from CI alone. All source remains
+Apache-2.0 with no added dependency or model.
 
 ## Retention
 
