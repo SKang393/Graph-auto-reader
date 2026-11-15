@@ -120,10 +120,15 @@ changed. All 16 shared Data files remained byte-identical; the current build has
 
 The completed retention inventory is 478 files / 283,847,583 bytes for 0.4.53,
 seven files / 87,428,642 bytes for `hosted-preview-454`, and 16 files / 69,081
-bytes for `routing-native454-check`. Retire these three exact directories after
-this activation record is pushed and final consumer/keeper checks pass. The
-inner ZIP and extracted current runtime remain as one build identity. Preserve
-originals, shared user Data, the existing owned fixture and all independent data.
+bytes for `routing-native454-check`. Activation/inventory commit
+`d03df16f1b6b2a8db9f21588c5fa4a1c4c211e06` reached origin/main before all three
+exact directories were retired at `2026-11-15T16:29:41.6534013Z`: 501 files,
+371,345,306 bytes. Pushed-record, current/historical package SHA-256, exact path,
+reparse, inventory and live-consumer guards passed. The build directory now
+contains only 0.4.54. Its inner ZIP and extracted runtime remain one build
+identity. Originals, shared Data, the existing owned fixture and independent
+data were preserved. The primary checkout's two unrelated modified files also
+retained their original hashes.
 
 This batch passes internal-preview checks. Production approval, clean-Windows
 acceptance, the installer/portable production pair and full real-graph automatic

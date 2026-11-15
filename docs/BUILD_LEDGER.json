@@ -8844,8 +8844,14 @@
     "retainedBytes": 283862408,
     "launcherWrapperRequired": true,
     "supersededLocalBuild": "0.4.53-20261115T140221861Z-9adee655",
-    "supersededRetirementPending": true,
-    "localStagingRetired": false
+    "supersededRetirementPending": false,
+    "localStagingRetired": true,
+    "supersededLocalBuildRetired": "0.4.53-20261115T140221861Z-9adee655",
+    "supersededLocalBuildFilesRetired": 478,
+    "supersededLocalBuildBytesRetired": 283847583,
+    "retirementUtc": "2026-11-15T16:29:41.6534013Z",
+    "stagingAndQaFilesRetired": 23,
+    "stagingAndQaBytesRetired": 87497723
   }
 }
 ]
