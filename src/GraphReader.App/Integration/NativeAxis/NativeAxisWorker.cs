@@ -65,8 +65,16 @@ internal static class NativeAxisWorker
         gray.CopyPixels(pixels, width, 0);
         var lines = await new OpenCvLineCandidateProvider().DetectLinesAsync(new(width, height, width, pixels), token).ConfigureAwait(false);
         var observer = new Observer();
-        AxisGeometryResult geometry = await new AxisGeometryDetector().DetectAsync(
-            new AxisGeometryRequest(width, height, lines) { CandidateObserver = observer, MaximumExaminedPairs = 128 }, token).ConfigureAwait(false);
+        AxisGeometryResult geometry;
+        try
+        {
+            geometry = await new AxisGeometryDetector().DetectAsync(
+                new AxisGeometryRequest(width, height, lines) { CandidateObserver = observer, MaximumExaminedPairs = 128 }, token).ConfigureAwait(false);
+        }
+        catch (AxisGeometryDetectionException)
+        {
+            return Failure("OPENCV_AXIS_AMBIGUOUS");
+        }
         var p = geometry.PlotPolygon;
         PixelPoint[] corners = [p.BottomLeft, p.BottomRight, p.TopRight, p.TopLeft];
         if (observer.Count != 1 || corners.Any(c => !double.IsFinite(c.X) || !double.IsFinite(c.Y) || c.X < 0 || c.Y < 0 || c.X >= width || c.Y >= height) ||

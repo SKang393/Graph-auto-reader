@@ -192,6 +192,17 @@ public static class CalibrationTickProposal
         int xLabelErrors = xReasons.Count, yLabelErrors = yReasons.Count;
         CheckAxis(x, true, xReasons);
         CheckAxis(y, false, yReasons);
+        // A failed axis must not hide an independently validated axis's range
+        // failure. Insufficient or conflicting pairs cannot establish endpoints.
+        if (xReasons.Count == 0 && !ValidXRange(x[0].Value, x[^1].Value))
+            xReasons.Add(CalibrationTickProposalReasons.InvalidRange);
+        if (yReasons.Count == 0)
+        {
+            if (y[^1].Value != 0 || y.Min(pair => pair.Value) != 0)
+                yReasons.Add(CalibrationTickProposalReasons.ObservedZeroRequired);
+            if (y[0].Value <= 0 || y[0].Value != y.Max(pair => pair.Value))
+                yReasons.Add(CalibrationTickProposalReasons.InvalidRange);
+        }
         reasons.AddRange(xReasons.Skip(xLabelErrors));
         reasons.AddRange(yReasons.Skip(yLabelErrors));
         // Every row on an axis must pass, not just a fit's preferred subset.
@@ -208,11 +219,6 @@ public static class CalibrationTickProposal
         if (reasons.Count > 0) return Failure(paired, reasons, xDraft, yDraft);
 
         double first = x[0].Value, final = x[^1].Value, maximum = y[0].Value;
-        if (y[^1].Value != 0 || y.Min(pair => pair.Value) != 0)
-            reasons.Add(CalibrationTickProposalReasons.ObservedZeroRequired);
-        if (!ValidXRange(first, final) || maximum <= 0 ||
-            maximum != y.Max(pair => pair.Value)) reasons.Add(CalibrationTickProposalReasons.InvalidRange);
-        if (reasons.Count > 0) return Failure(paired, reasons, xDraft, yDraft);
         return new CalibrationTickProposalResult(new(new(x[0].PixelPosition, y[^1].PixelPosition), new(x[0].PixelPosition, y[0].PixelPosition),
                 new(x[^1].PixelPosition, y[^1].PixelPosition)), (int)first, final, maximum,
             Array.AsReadOnly(paired.ToArray()), Array.Empty<string>()) { XReviewDraft = xDraft, YReviewDraft = yDraft };

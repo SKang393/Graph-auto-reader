@@ -467,6 +467,18 @@ model accuracy thresholds or run expensive training to compensate for a UI,
 coordinate, preprocessing or scheduling defect. The 95% reviewable-error bars
 and zero silently exported unvalidated calibrations remain the policy.
 
+The [bounded 2026-11-15 development trace](AUTOMATIC-CALIBRATION-DIAGNOSIS-20261115.md)
+now identifies concrete geometry and label-association limitations using a
+fixed first 12 of the authorized 120 development projects. It ran once in
+23.922 seconds with full panel accounting and no sealed reads. A supplied-tick
+owned control reproduced and fixed merging of labels whose ticks fall between
+digits. Independent calibration failure reasons and expected native geometry
+misses are also corrected. The integrated App suite passed 1060 tests and the
+focused OCR checks passed 33. The one gray-axis histogram candidate failed
+owned negative controls and was removed; Rust production behavior is unchanged.
+Keep 0.4.52 as the sole package while source-backed grouping/geometry repairs
+advance. Do not repeat the private comparison to select thresholds or readers.
+
 ## Cactus assessment
 
 Cactus v4.1.0 is a runtime and model family, not an ONNX replacement. Its Mirage

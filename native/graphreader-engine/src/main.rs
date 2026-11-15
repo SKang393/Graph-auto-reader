@@ -1233,6 +1233,29 @@ mod tests {
         }
     }
     #[test]
+    fn owned_gray_axes_with_black_marker_remain_unsupported() {
+        for ink in [0, 192] {
+            let mut pixels = vec![255; 128 * 128];
+            for x in 20..=115 { pixels[100 * 128 + x] = ink; }
+            for y in 10..=100 { pixels[y * 128 + 20] = ink; }
+            for x in [30, 70, 110] { for y in 101..=104 { pixels[y * 128 + x] = ink; } }
+            for y in [20, 50, 80] { for x in 16..20 { pixels[y * 128 + x] = ink; } }
+            for y in 58..=62 { for x in 58..=62 { pixels[y * 128 + x] = 0; } }
+            TRACE.with(|cell| cell.set(Some(Trace::default())));
+            let result = propose(128, 128, 1, &pixels);
+            let diagnostic = TRACE.with(|cell| cell.replace(None)).unwrap();
+            if ink == 192 {
+                assert_eq!(result, Err("AMBIGUOUS_AXIS"));
+                assert_eq!(diagnostic.reason, "THICK_ROW_BAND");
+                continue;
+            }
+            let p = result.unwrap_or_else(|error| panic!("owned ink={ink}: {error}; {}", diagnostic.line()));
+            assert_eq!((p.left, p.bottom, p.right, p.top), (20, 100, 115, 10));
+            assert_eq!(p.x_ticks, vec![30, 70, 110]);
+            assert_eq!(p.y_ticks, vec![20, 50, 80]);
+        }
+    }
+    #[test]
     fn antialiased_axis_bands_preserve_observed_outward_ticks() {
         let (width, height) = (640, 480);
         for (first, second) in [(0, 255), (63, 191), (127, 127), (191, 63)] {

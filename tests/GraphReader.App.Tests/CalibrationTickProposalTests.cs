@@ -303,6 +303,53 @@ public sealed class CalibrationTickProposalTests
     }
 
     [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public void OtherAxisFailureDoesNotHideObservedZeroOrInvalidXRange(bool reviewDraft, bool missingYZero)
+    {
+        CalibrationOcrProposal[] labels = missingYZero
+            ? Labels().Select(row => row.SuggestedAxis == "Y" ? Value(row, row.NumericValue!.Value + 2) : row).ToArray()
+            : Labels(first: 0);
+        int badRow = missingYZero ? 0 : 3;
+        labels[badRow] = labels[badRow] with { NumericLiteral = false };
+
+        CalibrationTickProposalResult result = reviewDraft
+            ? CalibrationTickProposal.CreateReviewDraft(Geometry(), Response(labels))
+            : CalibrationTickProposal.Create(Geometry(), Response(labels));
+
+        Assert.IsFalse(result.IsComplete);
+        Assert.IsNull(result.Anchors);
+        Assert.IsNull(result.XReviewDraft);
+        Assert.IsNull(result.YReviewDraft);
+        CollectionAssert.Contains(result.Reasons.ToArray(), CalibrationTickProposalReasons.InvalidNumericLabel);
+        CollectionAssert.Contains(result.Reasons.ToArray(), missingYZero
+            ? CalibrationTickProposalReasons.ObservedZeroRequired : CalibrationTickProposalReasons.InvalidRange);
+        Assert.HasCount(3, result.PairedTicks.Where(pair => pair.Axis == (missingYZero ? "Y" : "X")).ToArray());
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void InsufficientAxisDoesNotClaimAnEndpointRangeFailure(bool reviewDraft)
+    {
+        CalibrationOcrProposal[] labels = Labels(first: 0).Where(row => row.RegionId != "y-zero").ToArray();
+
+        CalibrationTickProposalResult result = reviewDraft
+            ? CalibrationTickProposal.CreateReviewDraft(Geometry(), Response(labels))
+            : CalibrationTickProposal.Create(Geometry(), Response(labels));
+
+        Assert.IsFalse(result.IsComplete);
+        Assert.IsNull(result.Anchors);
+        Assert.IsNull(result.XReviewDraft);
+        Assert.IsNull(result.YReviewDraft);
+        CollectionAssert.Contains(result.Reasons.ToArray(), CalibrationTickProposalReasons.InsufficientPairs);
+        CollectionAssert.Contains(result.Reasons.ToArray(), CalibrationTickProposalReasons.InvalidRange);
+        CollectionAssert.DoesNotContain(result.Reasons.ToArray(), CalibrationTickProposalReasons.ObservedZeroRequired);
+    }
+
+    [TestMethod]
     [DataRow("invalid-numeric")]
     [DataRow("duplicate-position")]
     [DataRow("nonlinear")]

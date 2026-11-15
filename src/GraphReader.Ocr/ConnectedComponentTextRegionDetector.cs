@@ -167,20 +167,25 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             ticks.Zip(ticks.Skip(1)).All(pair => pair.First < pair.Second)
             ? ticks.Zip(ticks.Skip(1), (a, b) => (Left: a, Right: b, Position: (a + (double)b) / 2)).ToArray() : [];
         // Cache the relevant sets once per cut; lower caption rows must not veto a label row.
-        var evidence = new List<(double Position, ComponentBounds[] Crossing, ComponentBounds[] Left, ComponentBounds[] Right)>();
-        foreach (var cut in cuts)
+        var evidence = new List<(double Position, int LeftTick, int RightTick, ComponentBounds[] Crossing, ComponentBounds[] Left, ComponentBounds[] Right)>();
+        for (int cutIndex = 0; cutIndex < cuts.Length; cutIndex++)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var cut = cuts[cutIndex];
+            double leftBoundary = cutIndex > 0 ? cuts[cutIndex - 1].Position : 0;
+            double rightBoundary = cutIndex + 1 < cuts.Length ? cuts[cutIndex + 1].Position : image.Width;
             var crossing = new List<ComponentBounds>(); var left = new List<ComponentBounds>(); var right = new List<ComponentBounds>();
             foreach (ComponentBounds component in components)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (component.Top <= grouping!.PlotBottom) continue;
                 if (component.Left < cut.Position && component.Right + 1 > cut.Position) crossing.Add(component);
-                if (component.Left <= cut.Left && component.Right >= cut.Left) left.Add(component);
-                if (component.Left <= cut.Right && component.Right >= cut.Right) right.Add(component);
+                if ((component.Left <= cut.Left && component.Right >= cut.Left) ||
+                    (component.Left >= leftBoundary && component.Right + 1 <= cut.Position)) left.Add(component);
+                if ((component.Left <= cut.Right && component.Right >= cut.Right) ||
+                    (component.Left >= cut.Position && component.Right + 1 <= rightBoundary)) right.Add(component);
             }
-            evidence.Add((cut.Position, crossing.ToArray(), left.ToArray(), right.ToArray()));
+            evidence.Add((cut.Position, cut.Left, cut.Right, crossing.ToArray(), left.ToArray(), right.ToArray()));
         }
         bool RowOverlaps(ComponentBounds[] items, int top, int bottom)
         {
@@ -191,14 +196,22 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             }
             return false;
         }
-        bool RowCovers(ComponentBounds[] items, int top, int bottom)
+        bool RowSupportsTick(ComponentBounds[] items, int tick, int top, int bottom)
         {
+            ComponentBounds? before = null, after = null;
             foreach (ComponentBounds component in items)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (component.Top <= top && component.Bottom >= bottom) return true;
+                if (component.Top > top || component.Bottom < bottom) continue;
+                if (component.Left <= tick && component.Right >= tick) return true;
+                if (component.Right < tick && (before is null || component.Right > before.Value.Right)) before = component;
+                if (component.Left > tick && (after is null || component.Left < after.Value.Left)) after = component;
             }
-            return false;
+            // A centered multi-glyph label can put its tick in white space.
+            // Only full-height components in that tick's lane may bracket it;
+            // reuse the existing component-width gap bound, not a wider OCR gate.
+            return before is { } left && after is { } right &&
+                right.Left - left.Right - 1 <= Math.Max(left.Width, right.Width);
         }
         var remaining = components
             .OrderBy(static component => component.Top)
@@ -233,8 +246,8 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                             ((line.Right < cut.Position && candidate.Left >= cut.Position) ||
                              (candidate.Right < cut.Position && line.Left >= cut.Position)) &&
                             !RowOverlaps(cut.Crossing, rowTop, rowBottom) &&
-                            RowCovers(cut.Left, Math.Min(line.Top, candidate.Top), Math.Max(line.Bottom, candidate.Bottom)) &&
-                            RowCovers(cut.Right, Math.Min(line.Top, candidate.Top), Math.Max(line.Bottom, candidate.Bottom)));
+                            RowSupportsTick(cut.Left, cut.LeftTick, Math.Min(line.Top, candidate.Top), Math.Max(line.Bottom, candidate.Bottom)) &&
+                            RowSupportsTick(cut.Right, cut.RightTick, Math.Min(line.Top, candidate.Top), Math.Max(line.Bottom, candidate.Bottom)));
                     if (!separated && overlapFraction >= _options.MinimumVerticalOverlapFraction && horizontalGap <= maximumGap)
                     {
                         line = line.Merge(candidate);

@@ -21,6 +21,42 @@ public sealed class AxisLabelGroupingReproductionTests
     }
 
     [TestMethod]
+    public async Task MeasuredTickInsideInterDigitWhitespaceSeparatesOwnedGlyphPairs()
+    {
+        OcrImage image = Ink((27, 75, 3, 8), (33, 75, 3, 8),
+            (47, 75, 3, 8), (53, 75, 3, 8), (67, 75, 3, 8), (73, 75, 3, 8));
+        byte[] original = image.Pixels.ToArray();
+        var detector = new ConnectedComponentTextRegionDetector();
+        Assert.HasCount(1, await detector.DetectAsync(image, CancellationToken.None));
+
+        var actual = await detector.DetectAsync(image,
+            new OcrMeasuredTickGrouping([31, 51, 71], 65), CancellationToken.None);
+
+        Assert.HasCount(3, actual, "Observed ticks may align with white gaps between glyphs, not dark component columns.");
+        CollectionAssert.AreEqual(new[] { new OcrRectangle(27, 75, 9, 8), new OcrRectangle(47, 75, 9, 8),
+            new OcrRectangle(67, 75, 9, 8) }, actual.Select(region => region.Polygon.Bounds).ToArray());
+        Assert.IsTrue(actual.All(region => region.Evidence!.ComponentCount == 2));
+        CollectionAssert.AreEqual(original, image.Pixels.ToArray());
+    }
+
+    [TestMethod]
+    public async Task ShortDotCannotEstablishNeighboringTickLaneSupport()
+    {
+        OcrImage image = Ink((27, 75, 3, 8), (33, 75, 3, 8), (47, 75, 3, 8), (53, 81, 3, 2));
+        var detector = new ConnectedComponentTextRegionDetector();
+        var baseline = await detector.DetectAsync(image, CancellationToken.None);
+
+        var actual = await detector.DetectAsync(image,
+            new OcrMeasuredTickGrouping([31, 51, 71], 65), CancellationToken.None);
+
+        Assert.HasCount(1, actual);
+        Assert.AreEqual(baseline[0].Polygon.Bounds, actual[0].Polygon.Bounds);
+        var ungrouped = await new ConnectedComponentTextRegionDetector(new() { GroupComponentsIntoLines = false })
+            .DetectAsync(image, new OcrMeasuredTickGrouping([31, 51, 71], 65), CancellationToken.None);
+        Assert.HasCount(4, ungrouped, "Measured grouping must not override explicit ungrouped detection.");
+    }
+
+    [TestMethod]
     public async Task AdjacentDigitsAndDecimalRemainOneRegion()
     {
         OcrImage image = Ink((30, 75, 3, 8), (36, 75, 3, 8), (42, 81, 2, 2));
