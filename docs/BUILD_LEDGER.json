@@ -8545,7 +8545,26 @@
       "independentAccuracy": false
     },
     "visualWorkflowChecked": false,
-    "visualWorkflowScope": "Fresh-process restoration and corrected native controls remain pending; earlier 449 observations are recorded separately.",
+    "visualWorkflowScope": "Native 451 GPU/CPU preference restoration, project reopening, corrected-label review/Apply/Undo, two-marker bulk acceptance/Undo/Redo, crop creation and CSV/audit export observed. Blank device label after profiling and stale marker status after Undo remain packaged defects; source corrections await native QA. See NATIVE-PREVIEW-451-CHECK-20261115.md.",
+    "nativeReviewSubsetChecked": true,
+    "nativeReviewReport": "NATIVE-PREVIEW-451-CHECK-20261115.md",
+    "nativeReviewedProjectSha256": "d31ce808196fec991047bd79b6c24c83b3245feffdabd338eabcb9e7a6cf8e53",
+    "nativeReviewedExportedReopenedPoints": 3,
+    "nativeCropSavedReopened": true,
+    "fixedPreparedRealDevDiagnostic": {
+      "report": "PREPARED-CALIBRATION-451-DIAGNOSTIC-20261114.md",
+      "projects": 120,
+      "effectivePanels": 127,
+      "geometryAndOcrPanels": 50,
+      "numericReadings": 367,
+      "completeMeasuredCalibrations": 0,
+      "completeEstimatedCalibrations": 0,
+      "processMilliseconds": 189415.5584,
+      "aggregateSha256": "c78f77995c5457be641f3a9f0aa522c84275712c5c8d4524dffc9c1b9caf34cc",
+      "independentAccuracy": false,
+      "sealedReads": 0,
+      "optimizerSteps": 0
+    },
     "cleanWindowsVmChecked": false,
     "productionApproved": false
   }

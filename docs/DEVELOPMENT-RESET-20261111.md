@@ -437,6 +437,20 @@ to v12 so cached old role decisions are invalidated. This is a source-proven
 processing correction, not a claimed explanation or improvement of private
 results. It joins the integrated 0.4.51 review fixes before packaging.
 
+The delivered 451 package passed the actual-worker corner control and
+[native review subset](NATIVE-PREVIEW-451-CHECK-20261115.md), including saved
+CPU/GPU choice, corrected text, batch markers and crop/save/reopen/export.
+The [fixed private confirmation](PREPARED-CALIBRATION-451-DIAGNOSTIC-20261114.md)
+completed all 120 projects and 127 effective panels in 189.416 seconds, again
+with 50 geometry/OCR panels, 367 numeric rows and zero complete calibrations.
+This does not establish a private failure cause or an accuracy improvement.
+Prioritize owned reproductions of detector/crop orientation, geometry and label
+pairing defects before another processing change. Do not rerun private images
+to choose heuristics. The two observed display/history defects have a small
+[source fix](DEVICE-PICKER-REFRESH-20261115.md) with nine focused tests passed;
+bundle native verification with the next meaningful integrated checkpoint.
+Automatic calibration remains incomplete and the acceptance bars are unchanged.
+
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new
 model accuracy thresholds or run expensive training to compensate for a UI,

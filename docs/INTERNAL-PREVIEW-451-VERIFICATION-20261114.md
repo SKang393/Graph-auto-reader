@@ -62,14 +62,26 @@ accuracy or latency-distribution benchmark.
 The verified package is staged at
 `artifacts/dev-portable/builds/0.4.51-20261114T235320548Z-e5491791`
 under the primary checkout. Stage preflight and execution found zero consumers
-and preserved shared Data. The ledger now identifies 451 for retention; latest
-pointer activation and separate 449 retirement await this record's push.
+and preserved shared Data. After the ledger reached `origin/main` in
+`c2efa5b14d8f7f5f2b27f204360df458cd0def93`, separate activation and retirement
+preflights passed. The atomic pointer switch completed and the superseded 449
+directory was removed: 478 files / 283,703,875 path bytes. All 15 shared-data
+files remained unchanged through replacement. Exactly one build directory,
+0.4.51, remained. The normal project launcher then opened its native window using
+the shared data root; the settings UI identified version 0.4.51.
 The guarded helper SHA-256 is
 `03aab1be01ac5805185bca0dcc894788dc7689d0d13de5cae96bc754097ab727`.
 
-Native 451 correction controls and fresh-process restoration remain pending.
+The [native 451 check](NATIVE-PREVIEW-451-CHECK-20261115.md) observed fresh-process
+GPU/CPU preference and project restoration, corrected-label review/Apply/Undo,
+two-marker bulk acceptance/Undo/Redo, crop creation and CSV/audit export. It
+also found a blank device picker after profiling and stale inline marker status
+after Undo; source fixes pass nine focused tests but await updated native QA.
 This internal ZIP is not a public release, installer verification, clean-machine
 acceptance or production model approval. The latest real-data diagnostic still
-has zero complete calibrations; no private rerun was performed for this record.
+has zero complete calibrations. The separate
+[fixed 451 confirmation](PREPARED-CALIBRATION-451-DIAGNOSTIC-20261114.md) completed
+all 120 projects and 127 effective panels with 50 geometry/OCR panels, 367 numeric
+rows and zero complete proposals. This remains failed automatic readiness.
 Retire staging leftovers after their active consumers finish, preserving the
 owned images still referenced by the saved native QA project.

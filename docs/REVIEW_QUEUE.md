@@ -191,26 +191,17 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 ## REV-011 - resume native device preference verification
 
 - **Status:** access resolved; remaining native checks in progress
-- **Blocks:** native acceptance of saved OCR device choice, fresh-process
-  restoration, calibration proposals and marker example review; headless
-  development and validation continue
+- **Blocks:** remaining native control checks and verification of the latest
+  device-picker/history fixes; headless development and validation continue
 - **Effort:** about 5 minutes when the desktop is available
-- **Action:** no maintainer action is currently needed. The corrected
-  [latest preview launcher](../packaging/Run-Latest-DevPortable.cmd) opened and
-  native testing resumed. Continue the remaining checks after the replacement
-  package is activated, including selecting
-  a GPU, reading labels, changing back to CPU and reopening with the saved
-  preference in the next integrated source build. Also verify Automatic,
-  Check devices, Cancel and interruption by foreground work
-  and the new Suggest calibration action through confirmation and Apply.
-  Check separate row selection and inclusion checkboxes, cached refitting,
-  retained raw labels, and review invalidation after changing the included rows.
-  Verify a placed marker example, visible matches, individual Add/Remove and
-  undo using the next integrated preview, including the reviewed Add remaining
-  matches action as one Undo operation. Include the new Crop panel preview,
-  explicit creation, retained source tab and save/reopen workflow. In 0.4.48,
-  check Mark axes for label reading, three anchor clicks, Cancel/Dismiss,
-  retained OCR labels, explicit Apply and Undo
+- **Action:** no maintainer action is currently needed. Continue native checks
+  for foreground interruption of device checks, separate OCR row selection and
+  inclusion/refit review invalidation, proposal Remove, and the explicit
+  three-click axis draft with Cancel/Dismiss. In the next meaningful integrated
+  preview, verify that Automatic retains its visible label after profiling and
+  marker-assistance status clears after Undo/Redo. Do not repeat completed
+  save/reopen, corrected-text refit, bulk marker or crop checks without a relevant
+  implementation change
 - **Why:** the user stopped Computer Use with physical Escape. Initial native
   CPU/default and adapter-list display was observed; saved-choice verification
   was not completed. The actual worker lifecycle and headless persistence tests
@@ -231,8 +222,13 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   maintainer confirmed that the corrected launcher opens the app. Native GPU
   selection and label reading, reviewed calibration Apply/Undo, individual
   marker acceptance/Undo/Redo, save and export have now been observed. No further
-  access approval is currently needed. Fresh-process restoration, corrected
-  label UI, bulk acceptance, device-check interruption and crop checks remain.
+  access approval is currently needed. The subsequent
+  [native 451 check](NATIVE-PREVIEW-451-CHECK-20261115.md) verified fresh-process
+  GPU/CPU preference and project restoration, corrected-label refit and review
+  invalidation, marker bulk acceptance as one Undo/Redo operation, crop preview,
+  explicit creation, save/reopen and CSV/audit export. It exposed two remaining
+  display/status defects; their source corrections pass nine focused tests and
+  await native verification in an updated integrated preview.
   See the [native workflow result](NATIVE-PREVIEW-449-CHECK-20261114.md) and the
   [native attempt](NATIVE-PREVIEW-448-CHECK-20261114.md).
   Owned headless package checks passed, but do not replace these visual checks
@@ -244,8 +240,8 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   [connection-context outcome](MARKER-CONNECTION-CONTROLS-20261114.md),
   [crop workflow outcome](PANEL-CROP-WORKFLOW-20261114.md),
   [current implementation plan](DEVELOPMENT-RESET-20261111.md)
-- **Unblocks when:** native save, subsequent read, device-change restart and
-  fresh-process restoration are observed without claiming unperformed checks
+- **Unblocks when:** the listed remaining controls and updated-source fixes are
+  observed, without treating the completed subset as full visual acceptance
 
 ## REV-012 - identify the existing Windows test laptop
 
