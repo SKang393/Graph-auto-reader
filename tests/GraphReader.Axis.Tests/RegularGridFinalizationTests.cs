@@ -10,6 +10,7 @@ public sealed class RegularGridFinalizationTests
 {
     private static readonly double[] Regular = [200, 300, 400, 500, 600];
     private static readonly double[] Irregular = [200, 250, 300, 470, 600];
+    private static readonly double[] DisjointClusters = [200, 250, 300, 500, 550, 600];
     private static readonly double[] Boundary = [200, 288, 400]; // Gaps88/112 give CV0.12.
     private static readonly MethodInfo Spacing = typeof(AxisGeometryDetector).GetMethod("IsRegularGridSpacing",
         BindingFlags.NonPublic | BindingFlags.Static)!;
@@ -19,6 +20,8 @@ public sealed class RegularGridFinalizationTests
     [DataRow("regular", true)]
     [DataRow("irregular", false)]
     [DataRow("irregular", true)]
+    [DataRow("disjoint_clusters", false)]
+    [DataRow("disjoint_clusters", true)]
     [DataRow("boundary_below", false)]
     [DataRow("boundary_below", true)]
     [DataRow("boundary_exact", false)]
@@ -27,7 +30,9 @@ public sealed class RegularGridFinalizationTests
     [DataRow("boundary_above", true)]
     public async Task MatchesOldWindowUnionAndDownstreamGeometry(string name, bool reverse)
     {
-        double[] positions = name switch { "regular" => Regular, "irregular" => Irregular, _ => Boundary };
+        double[] positions = name switch {
+            "regular" => Regular, "irregular" => Irregular, "disjoint_clusters" => DisjointClusters, _ => Boundary,
+        };
         double coefficient = name switch {
             "boundary_below" => Math.BitDecrement(.12), "boundary_above" => Math.BitIncrement(.12), _ => .12,
         };
@@ -36,6 +41,14 @@ public sealed class RegularGridFinalizationTests
         foreach (double position in reverse ? positions.Reverse() : positions) fixture.VerticalGrid(position);
         AxisGeometryResult result = await new AxisGeometryDetector().DetectAsync(fixture.Build(options));
         HashSet<double> expected = OldWindowUnion(positions, options);
+        if (name == "disjoint_clusters")
+        {
+            double[] gaps = positions.Zip(positions.Skip(1), (left, right) => right - left).ToArray();
+            double mean = gaps.Average();
+            double variance = gaps.Sum(gap => (gap - mean) * (gap - mean)) / gaps.Length;
+            Assert.IsTrue(Math.Sqrt(variance) / mean > coefficient, "The full-run shortcut must not qualify this control.");
+            Assert.AreEqual(positions.Length, expected.Count, "Separate accepted intervals must cover all six families.");
+        }
 
         AssertPositions(expected.Order(), result.AmbiguousGridOrDividers.Select(item => item.Line.Start.X));
         AssertPositions(positions.Where(position => !expected.Contains(position)).Order(),
@@ -72,6 +85,31 @@ public sealed class RegularGridFinalizationTests
         TargetInvocationException error = Assert.ThrowsExactly<TargetInvocationException>(() =>
             Spacing.Invoke(null, [gaps, .12, cancellation.Token]));
         Assert.IsInstanceOfType<OperationCanceledException>(error.InnerException);
+    }
+
+    [TestMethod]
+    public async Task CancelledDisjointClusterRequestPublishesNoGeometryOrCandidatePrefix()
+    {
+        var fixture = new AxisFixtureBuilder().CleanAxes();
+        foreach (double position in DisjointClusters) fixture.VerticalGrid(position);
+        var observer = new CancellationObserver();
+        AxisGeometryRequest request = fixture.Build() with { CandidateObserver = observer, WorkObserver = observer };
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () =>
+            await new AxisGeometryDetector().DetectAsync(request, cancellation.Token));
+        Assert.AreEqual(0, observer.CandidatePublications);
+        Assert.IsNotNull(observer.Work);
+        Assert.IsTrue(observer.Work.Cancelled);
+        Assert.IsFalse(observer.Work.EnumerationCompleted);
+    }
+
+    private sealed class CancellationObserver : IAxisGeometryCandidateObserver, IAxisGeometryWorkObserver
+    {
+        internal int CandidatePublications { get; private set; }
+        internal AxisGeometryWorkSnapshot? Work { get; private set; }
+        public void OnCandidatesRanked(IReadOnlyList<AxisGeometryCandidateSnapshot> candidates) => CandidatePublications++;
+        public void OnWorkObserved(AxisGeometryWorkSnapshot snapshot) => Work = snapshot;
     }
 
     // Literal pre-change window algorithm on these owned axis-aligned positions.

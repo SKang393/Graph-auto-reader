@@ -1254,6 +1254,13 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
                         cancellationToken.ThrowIfCancellationRequested();
                         result.Add(family);
                     }
+                    if (result.Count == fullSolid.Length)
+                    {
+                        // Every eligible family already has an accepted interval.
+                        // Later windows cannot alter membership or insertion order.
+                        cancellationToken.ThrowIfCancellationRequested();
+                        return result;
+                    }
                 }
             }
         }
