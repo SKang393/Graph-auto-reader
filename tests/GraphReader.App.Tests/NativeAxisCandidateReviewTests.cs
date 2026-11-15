@@ -282,6 +282,8 @@ public sealed class NativeAxisCandidateReviewTests
         Assert.AreEqual(observation.RawSnapshotCount, observation.CheckedCount);
         Assert.AreEqual(eligible.Length, observation.EligibleCount);
         Assert.AreEqual(1, observation.RotatedCount);
+        Assert.AreEqual(0, observation.RoundedExclusionCount);
+        Assert.AreEqual(0, observation.DuplicateExclusionCount);
         Assert.IsNull(observation.FailureDetail);
         Assert.IsNull(observation.HardGeometryRejection);
         Assert.IsNotNull(observation.Work);
@@ -315,12 +317,133 @@ public sealed class NativeAxisCandidateReviewTests
         Assert.AreEqual(1, observation.RawSnapshotCount);
         Assert.AreEqual(1, observation.CheckedCount);
         Assert.AreEqual(1, observation.RotatedCount);
+        Assert.AreEqual(0, observation.RoundedExclusionCount);
         Assert.AreEqual(0, observation.EligibleCount);
         Assert.IsNull(observation.HardGeometryRejection);
     }
 
     [TestMethod]
-    public async Task HardGeometryRejectionReportsExactFirstFailure()
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task RoundedExclusionRetainsAllSupportedCandidatesRegardlessOfRank(bool roundedFirst, bool reverse)
+    {
+        int cleanLeft = roundedFirst ? 400 : 100;
+        int cleanBottom = roundedFirst ? 200 : 300;
+        double tinyLeft = roundedFirst ? 100.5001 : 500.5001;
+        int tinyBottom = roundedFirst ? 350 : 200;
+        GeometryLineCandidate[] lines =
+        [
+            new("clean-x", new(new(cleanLeft, cleanBottom), new(cleanLeft + 250, cleanBottom)), LineCandidateSource.RecordedFixture),
+            new("clean-y", new(new(cleanLeft, cleanBottom), new(cleanLeft, 50)), LineCandidateSource.RecordedFixture),
+            new("clean-divider", new(new(cleanLeft + 100, cleanBottom), new(cleanLeft + 100, 50)), LineCandidateSource.RecordedFixture),
+            new("tiny-x", new(new(tinyLeft, tinyBottom), new(tinyLeft + .9998, tinyBottom + .03)), LineCandidateSource.RecordedFixture),
+            new("tiny-y", new(new(tinyLeft, tinyBottom), new(tinyLeft, 50)), LineCandidateSource.RecordedFixture),
+        ];
+        if (reverse) Array.Reverse(lines);
+        var observer = new SnapshotObserver();
+        _ = await new AxisGeometryDetector().DetectAsync(new AxisGeometryRequest(800, 400, lines)
+            { CandidateObserver = observer, MaximumExaminedPairs = 128 });
+        Assert.IsNotNull(observer.Snapshots);
+        Assert.HasCount(3, observer.Snapshots);
+        int roundedRank = roundedFirst ? 0 : 2;
+        AxisGeometryCandidateSnapshot rounded = observer.Snapshots[roundedRank];
+        PixelPoint[] roundedCorners = [rounded.Intersection, rounded.BottomRight, rounded.TopRight, rounded.TopLeft];
+        Assert.IsNull(NativeAxisWorker.GeometryRejection(roundedCorners, 1, 800, 400));
+        Assert.IsFalse(NativeAxisCandidateReview.TryGeometry(roundedCorners, 800, 400, out _));
+        RustAxisGeometry[] eligible = observer.Snapshots.Select(snapshot =>
+            NativeAxisCandidateReview.TryGeometry(
+                [snapshot.Intersection, snapshot.BottomRight, snapshot.TopRight, snapshot.TopLeft],
+                800, 400, out RustAxisGeometry? geometry) ? geometry : null)
+            .OfType<RustAxisGeometry>().ToArray();
+        Assert.HasCount(2, eligible);
+
+        AxisCandidateReviewResult result = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400, CancellationToken.None);
+        Assert.IsNull(result.ErrorCode);
+        CollectionAssert.AreEqual(eligible, result.Candidates.Select(candidate => candidate.Geometry).ToArray());
+        Assert.AreEqual(0, result.Candidates[0].Index);
+        Assert.AreEqual(1, result.Candidates[1].Index);
+        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(result, 800, 400));
+        NativeAxisCandidateReviewObservation? observation = null;
+        int notifications = 0;
+        AxisCandidateReviewResult observed = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400,
+            value => { observation = value; notifications++; }, CancellationToken.None);
+        Assert.AreEqual(JsonSerializer.Serialize(result), JsonSerializer.Serialize(observed));
+        Assert.AreEqual(1, notifications);
+        Assert.IsNotNull(observation);
+        Assert.AreEqual("complete", observation.Stage);
+        Assert.IsTrue(observation.EnumerationCompleted);
+        Assert.AreEqual(3, observation.RawSnapshotCount);
+        Assert.AreEqual(3, observation.CheckedCount);
+        Assert.AreEqual(2, observation.EligibleCount);
+        Assert.AreEqual(0, observation.RotatedCount);
+        Assert.AreEqual(1, observation.RoundedExclusionCount);
+        Assert.AreEqual(0, observation.DuplicateExclusionCount);
+        Assert.IsNull(observation.HardGeometryRejection);
+        Assert.IsNull(observation.FailureDetail);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task CompleteSubpixelHypothesesReturnFirstRankedDistinctIntegerBoxes(bool reverse)
+    {
+        GeometryLineCandidate[] lines =
+        [
+            new("baseline", new(new(100, 300), new(700, 300)), LineCandidateSource.RecordedFixture),
+            new("upper-support", new(new(100, 296.1), new(101, 296.1)), LineCandidateSource.RecordedFixture),
+            new("lower-support", new(new(100, 303.9), new(101, 303.9)), LineCandidateSource.RecordedFixture),
+            new("left-axis", new(new(100, 300), new(100, 50)), LineCandidateSource.RecordedFixture),
+            new("divider", new(new(400, 300), new(400, 50)), LineCandidateSource.RecordedFixture),
+        ];
+        if (reverse) Array.Reverse(lines);
+        var observer = new SnapshotObserver();
+        _ = await new AxisGeometryDetector().DetectAsync(new AxisGeometryRequest(800, 400, lines)
+            { CandidateObserver = observer, MaximumExaminedPairs = 128 });
+        Assert.IsNotNull(observer.Snapshots);
+        Assert.HasCount(6, observer.Snapshots);
+        RustAxisGeometry[] geometries = observer.Snapshots.Select(snapshot =>
+        {
+            Assert.IsTrue(NativeAxisCandidateReview.TryGeometry(
+                [snapshot.Intersection, snapshot.BottomRight, snapshot.TopRight, snapshot.TopLeft],
+                800, 400, out RustAxisGeometry? geometry));
+            Assert.IsNotNull(geometry);
+            return geometry;
+        }).ToArray();
+        RustAxisGeometry[] expected = geometries.GroupBy(geometry =>
+            (geometry.Left, geometry.Bottom, geometry.Right, geometry.Top)).Select(group => group.First()).ToArray();
+        Assert.HasCount(2, expected);
+        CollectionAssert.AreEquivalent(DividerLefts, expected.Select(geometry => geometry.Left).ToArray());
+        Assert.IsTrue(expected.All(geometry => geometry.Bottom == 300 && geometry.Right == 700 && geometry.Top == 50));
+        var unfiltered = new AxisCandidateReviewResult(geometries.Select((geometry, index) => new AxisReviewCandidate(index, geometry)).ToArray(), null);
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(unfiltered, 800, 400));
+
+        AxisCandidateReviewResult result = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400, CancellationToken.None);
+        Assert.IsNull(result.ErrorCode);
+        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(result, 800, 400));
+        CollectionAssert.AreEqual(expected, result.Candidates.Select(candidate => candidate.Geometry).ToArray());
+        Assert.AreEqual(0, result.Candidates[0].Index);
+        Assert.AreEqual(1, result.Candidates[1].Index);
+        NativeAxisCandidateReviewObservation? observation = null;
+        AxisCandidateReviewResult observed = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400,
+            value => observation = value, CancellationToken.None);
+        Assert.AreEqual(JsonSerializer.Serialize(result), JsonSerializer.Serialize(observed));
+        Assert.IsNotNull(observation);
+        Assert.AreEqual("complete", observation.Stage);
+        Assert.IsTrue(observation.EnumerationCompleted);
+        Assert.AreEqual(6, observation.RawSnapshotCount);
+        Assert.AreEqual(6, observation.CheckedCount);
+        Assert.AreEqual(2, observation.EligibleCount);
+        Assert.AreEqual(0, observation.RotatedCount);
+        Assert.AreEqual(0, observation.RoundedExclusionCount);
+        Assert.AreEqual(4, observation.DuplicateExclusionCount);
+        Assert.IsNull(observation.HardGeometryRejection);
+        Assert.IsNull(observation.FailureDetail);
+    }
+
+    [TestMethod]
+    public async Task CompleteAllRoundedSnapshotReturnsNoCandidates()
     {
         GeometryLineCandidate[] lines =
         [
@@ -341,8 +464,9 @@ public sealed class NativeAxisCandidateReviewTests
         Assert.AreEqual(1, observation.CheckedCount);
         Assert.AreEqual(0, observation.EligibleCount);
         Assert.AreEqual(0, observation.RotatedCount);
-        Assert.AreEqual("native_invalid_rounded_geometry", observation.HardGeometryRejection);
-        Assert.AreEqual(observation.HardGeometryRejection, observation.FailureDetail);
+        Assert.AreEqual(1, observation.RoundedExclusionCount);
+        Assert.IsNull(observation.HardGeometryRejection);
+        Assert.AreEqual("native_no_eligible_candidates", observation.FailureDetail);
     }
 
     [TestMethod]

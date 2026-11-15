@@ -46,7 +46,7 @@ internal static partial class RealDevCalibrationCheck
         native_execution = "in_process", native_timing_comparable_to_child = false,
         candidate_selected = false, ocr_calls = 0 };
 
-    private sealed class NativeReviewObservationService : IAxisProposalService, IAxisCandidateReviewService
+    private sealed class NativeReviewObservationService(bool includeRounded = false) : IAxisProposalService, IAxisCandidateReviewService
     {
         private readonly List<NativeAxisCandidateReviewObservation?> observations = [];
         internal object? Last { get; private set; }
@@ -65,6 +65,9 @@ internal static partial class RealDevCalibrationCheck
                 .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal),
             hard_rejections = observations.GroupBy(value => SafeNativeDetail(value?.HardGeometryRejection) ?? "none")
                 .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal) };
+        internal object RoundedSummary => new { observation = Summary,
+            rounded_exclusions = observations.Sum(value => value?.RoundedExclusionCount ?? 0),
+            duplicate_exclusions = observations.Sum(value => value?.DuplicateExclusionCount ?? 0) };
         public Task<RustAxisProposalResult> SuggestAsync(byte[] image, CancellationToken token) => throw new InvalidOperationException();
         public async Task<AxisCandidateReviewResult> ReviewCandidatesAsync(byte[] image, CancellationToken token)
         {
@@ -89,11 +92,16 @@ internal static partial class RealDevCalibrationCheck
             }
             finally
             {
-                Last = Snapshot(snapshot);
+                Last = includeRounded ? RoundedSnapshot(snapshot) : Snapshot(snapshot);
                 observations.Add(snapshot);
             }
         }
     }
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static object RoundedSnapshot(NativeAxisCandidateReviewObservation? value) => new {
+        observation = Snapshot(value), rounded_exclusion_count = value?.RoundedExclusionCount,
+        duplicate_exclusion_count = value?.DuplicateExclusionCount };
 
     private static object Snapshot(NativeAxisCandidateReviewObservation? value) => new {
         observed = value is not null,

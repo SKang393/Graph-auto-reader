@@ -119,8 +119,12 @@ from this diagnostic. The pending 0.4.53 package remains pinned to `9adee655`.
 | Focused TRX | `391ca98f184cc243e620473dc103eb35ab8e0124176b7cd35794654698af79fd` |
 | Fixed-twelve report, 14,857 bytes | `43bf79c2a5143d7be36ee0864143e35660a9857aaec189eeb6159c2a250b9aec` |
 
-Diagnostic accounting and owned parity passed. Full CI/integration is pending
-at this outcome checkpoint; no production or real accuracy approval is claimed.
+Diagnostic accounting and owned parity passed. Full Windows CI
+[43722508727](https://github.com/SKang393/Graph-auto-reader/actions/runs/43722508727)
+passed exact source `057ef8c6bb877db359459cd632916c99d211e532` at
+`2026-11-15T14:18:37Z`: 2,963 .NET tests passed, 30 skipped, zero failed;
+all 1,159 App tests and 63 Rust tests passed. Packaging/evidence checks passed
+and release jobs were skipped. No production or real accuracy approval is claimed.
 Code remains Apache-2.0, with no dependency/model/license change.
 
 `artifacts/native-candidate-observation-check` contains five disposable test

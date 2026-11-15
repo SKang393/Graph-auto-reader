@@ -130,9 +130,14 @@ internal static partial class RealDevCalibrationCheck
         CpuBudgetJob budget, CancellationToken token) =>
         RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, nativeReviewObservationTrace: true);
 
+    internal static Task<object> RunRoundedReviewObservationTraceAsync(string corpusRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) =>
+        RunTraceAsync(corpusRoot, app, assets, rust, budget, sourcePostGrouping: true, geometryOnly: true, token, roundedReviewObservationTrace: true);
+
     private static async Task<object> RunTraceAsync(string corpusRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false, bool nativeWorkTrace = false, bool reviewRoutingTrace = false, bool nativeEligibilityTrace = false, bool nativeReviewObservationTrace = false)
+        CpuBudgetJob budget, bool sourcePostGrouping, bool geometryOnly, CancellationToken token, bool pairPruning = false, bool intersection = false, bool directional = false, bool printedXTrace = false, bool spatialTrace = false, bool sortedSpatialGeometryTrace = false, bool forwardExtentGeometryTrace = false, bool nativeWorkTrace = false, bool reviewRoutingTrace = false, bool nativeEligibilityTrace = false, bool nativeReviewObservationTrace = false, bool roundedReviewObservationTrace = false)
     {
+        if (roundedReviewObservationTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace || forwardExtentGeometryTrace || nativeWorkTrace || reviewRoutingTrace || nativeEligibilityTrace || nativeReviewObservationTrace)) throw new InvalidDataException();
         if (nativeReviewObservationTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace || forwardExtentGeometryTrace || nativeWorkTrace || reviewRoutingTrace || nativeEligibilityTrace)) throw new InvalidDataException();
         if (nativeEligibilityTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace || forwardExtentGeometryTrace || nativeWorkTrace || reviewRoutingTrace)) throw new InvalidDataException();
         if (reviewRoutingTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace || forwardExtentGeometryTrace || nativeWorkTrace)) throw new InvalidDataException();
@@ -144,7 +149,8 @@ internal static partial class RealDevCalibrationCheck
             forwardExtentGeometryTrace && (!sourcePostGrouping || !geometryOnly || pairPruning || intersection || directional || printedXTrace || spatialTrace || sortedSpatialGeometryTrace)) throw new InvalidDataException();
         if (!budget.SilentBreakawayVerified || !Path.IsPathFullyQualified(corpusRoot) || !Path.IsPathFullyQualified(app) ||
             !Path.IsPathFullyQualified(assets) || !Path.IsPathFullyQualified(rust)) throw new InvalidDataException();
-        using Candidate candidateLease = nativeReviewObservationTrace ? Candidate.VerifyNativeReviewObservation(app, assets, rust, token) :
+        using Candidate candidateLease = roundedReviewObservationTrace ? Candidate.VerifyRoundedReviewObservation(app, assets, rust, token) :
+            nativeReviewObservationTrace ? Candidate.VerifyNativeReviewObservation(app, assets, rust, token) :
             nativeEligibilityTrace ? Candidate.VerifyNativeEligibility(app, assets, rust, token) :
             reviewRoutingTrace ? Candidate.VerifyReviewRouting(app, assets, rust, token) :
             nativeWorkTrace ? Candidate.VerifyNativeWork(app, assets, rust, token) :
@@ -174,12 +180,12 @@ internal static partial class RealDevCalibrationCheck
         var nativeWork = nativeWorkTrace ? new NativeWorkTraceAxis() : null;
         var secondary = new TraceAxis(nativeWork is null ? new OpenCvAxisProposalService(app) : nativeWork);
         IAxisProposalService axis = new RustFirstAxisProposalService(primary, secondary);
-        NativeReviewObservationService? reviewObservation = nativeReviewObservationTrace ? new() : null;
+        NativeReviewObservationService? reviewObservation = roundedReviewObservationTrace ? new(includeRounded: true) : nativeReviewObservationTrace ? new() : null;
         ReviewRoutingTraceServices? reviewRouting = reviewObservation is not null ? new(rust, reviewObservation) : reviewRoutingTrace || nativeEligibilityTrace ? new(rust, app) : null;
         await using CalibrationOcrWorkerClient? ocr = geometryOnly ? null : new(app, assets, () => CalibrationOcrDeviceSelection.Cpu);
         using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         int attempted = 0, returned = 0, fallback = 0, panelAttempted = 0, panelFinished = 0, printedXReviewDraftPanels = 0;
-        Dictionary<string, int> terminalStatusCounts = NewTracePanelStatusCounts(geometryOnly, reviewRoutingTrace || nativeEligibilityTrace || nativeReviewObservationTrace);
+        Dictionary<string, int> terminalStatusCounts = NewTracePanelStatusCounts(geometryOnly, reviewRoutingTrace || nativeEligibilityTrace || nativeReviewObservationTrace || roundedReviewObservationTrace);
         for (int i = 0; i < TraceSampleCount && !token.IsCancellationRequested; i++)
         {
             attempted++; var panelResults = new List<object>(); string status = "completed"; string? errorCategory = null; int effective = 0;
@@ -249,6 +255,16 @@ internal static partial class RealDevCalibrationCheck
             catch (Exception error) when (error is not OutOfMemoryException) { status = "project_failed"; errorCategory = TraceExceptionCategory(error); }
             projects.Add(new { index = i, status, error_category = errorCategory, preparation_milliseconds = preparationMs, effective_panels = effective, panels = panelResults });
         }
+        if (geometryOnly && roundedReviewObservationTrace)
+            return new { schema = RoundedReviewObservationSchema, scope = "development_only_sensitive_metadata",
+                selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,
+                attempted, unattempted = TraceSampleCount - attempted, returned_panels = returned, fallback_panels = fallback,
+                attempted_panels = panelAttempted, finished_panels = panelFinished, unfinished_execution_panels = panelAttempted - panelFinished,
+                terminal_status_counts = terminalStatusCounts, unattempted_panels = returned + fallback - panelAttempted,
+                metadata.AssignmentSha256, metadata.SelectedInventorySha256, source_digest = Convert.ToHexStringLower(digest.GetHashAndReset()),
+                candidate = RoundedReviewObservationIdentity(),
+                sealed_payload_reads = 0, ocr_calls = 0, truth_scoring = false, image_writes = false, review_only = true,
+                project_deadline_seconds = 45, overall_deadline_seconds = 900, native_observation_summary = reviewObservation?.RoundedSummary, projects };
         if (geometryOnly && nativeReviewObservationTrace)
             return new { schema = NativeReviewObservationSchema, scope = "development_only_sensitive_metadata",
                 selection = "first_12_sorted_anonymized_case_id", frozen_dev_denominator = Denominator, sample_denominator = TraceSampleCount,

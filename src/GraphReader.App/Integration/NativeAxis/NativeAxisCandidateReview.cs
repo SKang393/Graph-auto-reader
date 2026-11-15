@@ -15,7 +15,7 @@ namespace GraphReader.App.Integration.NativeAxis;
 
 internal sealed record NativeAxisCandidateReviewObservation(
     string Stage, bool EnumerationCompleted, bool Cancelled,
-    int RawSnapshotCount, int CheckedCount, int EligibleCount, int RotatedCount,
+    int RawSnapshotCount, int CheckedCount, int EligibleCount, int RotatedCount, int RoundedExclusionCount, int DuplicateExclusionCount,
     string? FailureDetail, string? HardGeometryRejection, AxisGeometryWorkSnapshot? Work);
 
 internal static class NativeAxisCandidateReview
@@ -33,6 +33,8 @@ internal static class NativeAxisCandidateReview
         internal int CheckedCount { get; set; }
         internal int EligibleCount { get; set; }
         internal int RotatedCount { get; set; }
+        internal int RoundedExclusionCount { get; set; }
+        internal int DuplicateExclusionCount { get; set; }
         internal string? FailureDetail { get; set; }
         internal string? HardGeometryRejection { get; set; }
         private AxisGeometryWorkSnapshot? _work;
@@ -45,7 +47,7 @@ internal static class NativeAxisCandidateReview
             try
             {
                 callback(new(Stage, _work?.EnumerationCompleted ?? (Snapshots is not null), Cancelled,
-                    Snapshots?.Count ?? 0, CheckedCount, EligibleCount, RotatedCount,
+                    Snapshots?.Count ?? 0, CheckedCount, EligibleCount, RotatedCount, RoundedExclusionCount, DuplicateExclusionCount,
                     FailureDetail, HardGeometryRejection, _work));
             }
             catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException and not AccessViolationException)
@@ -154,26 +156,37 @@ internal static class NativeAxisCandidateReview
         }
         observer.Stage = "geometry_eligibility";
         var candidates = new List<AxisReviewCandidate>(snapshots.Count);
+        var distinct = new HashSet<(int Left, int Bottom, int Right, int Top)>();
         for (int i = 0; i < snapshots.Count; i++)
         {
             token.ThrowIfCancellationRequested();
             AxisGeometryCandidateSnapshot snapshot = snapshots[i];
             PixelPoint[] corners = [snapshot.Intersection, snapshot.BottomRight, snapshot.TopRight, snapshot.TopLeft];
             if (observer.Enabled) observer.CheckedCount++;
-            // Enumeration is complete. Unsupported rotation excludes only this review
-            // option; malformed geometry still invalidates the complete response.
+            // Enumeration is complete. Unsupported rotation or integer representation
+            // excludes only this option; malformed geometry still invalidates the response.
             string? rejection = NativeAxisWorker.GeometryRejection(corners, 1, width, height);
             if (rejection == "native_rotated_geometry")
             {
                 if (observer.Enabled) observer.RotatedCount++;
                 continue;
             }
-            if (rejection is not null || !TryGeometry(corners, width, height, out RustAxisGeometry? geometry))
+            if (rejection is not null)
             {
                 observer.HardGeometryRejection = corners.Any(c => !double.IsFinite(c.X) || !double.IsFinite(c.Y))
-                    ? "native_nonfinite_geometry" : rejection ?? "native_invalid_rounded_geometry";
+                    ? "native_nonfinite_geometry" : rejection;
                 observer.FailureDetail = observer.HardGeometryRejection;
                 return Failure("OPENCV_AXIS_AMBIGUOUS");
+            }
+            if (!TryGeometry(corners, width, height, out RustAxisGeometry? geometry))
+            {
+                if (observer.Enabled) observer.RoundedExclusionCount++;
+                continue;
+            }
+            if (!distinct.Add((geometry!.Left, geometry.Bottom, geometry.Right, geometry.Top)))
+            {
+                if (observer.Enabled) observer.DuplicateExclusionCount++;
+                continue;
             }
             candidates.Add(new AxisReviewCandidate(candidates.Count, geometry!));
             if (observer.Enabled) observer.EligibleCount++;
