@@ -85,8 +85,18 @@ with a cooperative owned provider, not measured live OCR cancellation latency
 or native UI acceptance. A provider that ignores cancellation can still delay
 completion; existing guards prevent its stale result from being published.
 
-Local validation passes. Integration/full Windows CI remain pending. After
-the source/outcome push and CI consumers finish, retire the bounded
+Source `23910496a6ad158bde89a0c17900fcba059df14d` is integrated and pushed.
+[Full Windows CI 43876309348](https://github.com/SKang393/Graph-auto-reader/actions/runs/43876309348)
+passed on that exact head from **2026-11-16T13:29:52Z** to **13:41:18Z**:
+**3,276 .NET passes**, 30 explicit skips, zero failures, including all
+**1,348 App tests** without skips. All 89 Rust tests, 44 scope assertions,
+68 packaging checks, 62 version checks, six ledger checks, 12 portable checks
+and nine localization checks passed. Scope was `full_changed_path`; release
+jobs skipped. Scoped source integration passes.
+
+The subsequent single owned content-span integration control temporarily
+consumes the current source App and App.Tests x64 Release outputs. After that
+consumer finishes and its outcome is pushed, retire the bounded
 `artifacts/calibration-label-cancel-check` results and closed App/App.Tests
 Release compiler outputs together with the preceding stale-status outputs.
 Preserve Debug runtimes, user Data, current models/package, original inputs,

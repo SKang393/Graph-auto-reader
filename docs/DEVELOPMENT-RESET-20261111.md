@@ -28,8 +28,17 @@ downstream audit found no supported defect. The [label-read cancellation repair]
 now cancels an abandoned read after tab selection changes while preserving
 same-tab and unrelated operations. The owned reproduction fails before the
 change; ten focused checks and all 1,348 App tests pass afterward, with no
-skips. The current Rust worker was enabled for the full suite. Source integration
-and full Windows CI for this responsiveness correction remain pending.
+skips. The current Rust worker was enabled for the full suite. Source
+`23910496` is integrated and pushed; full CI passed 3,276 .NET tests (30 explicit
+skips), 89 Rust tests and all packaging checks, with no failures.
+The [fixed owned content-span integration control](OWNED-CONTENT-SPAN-CALIBRATION-20261116.md)
+completed once in 3.7404 seconds: actual preparation, `CONNECTED_RUNS` recovery,
+six correct literal labels and six measured pairs produced a complete review
+draft without estimated positions. All seven stages completed; no Apply,
+export, private input or sealed read occurred. This closes the new Rust
+fixture's integration gap, not real-accuracy or production acceptance. Existing
+broad owned matrices were not repeated. The helper's source/outcome integration
+and full CI remain pending; the prior product source remains verified.
 
 The [content-span routing repair](RUST-CONTENT-SPAN-RECOVERY-20261116.md)
 fixes an owned counterexample where disconnected decoy ink prevented the existing

@@ -3,6 +3,21 @@
 
 # Calibration OCR probe
 
+`--owned-content-span-calibration-check <absolute-App-exe> <absolute-assets> <absolute-Rust-worker> <absolute-output-directory> <absolute-runtime-manifest> <manifest-sha256>`
+runs the single fixed owned disconnected-decoy graph through workspace
+preparation, one traced automatic Rust proposal, literal OCR and review-only
+fitting. The checksum-bound manifest schema is
+`graphreader.owned-content-span-runtime.v1`; it names `app_exe_sha256`,
+`rust_sha256` and the exact 20 `libraries` from `OwnedAffineRuntimeNames`.
+Verify App/probe library parity and reviewed assets before execution. Output
+must be an existing directory under this worktree's ignored `artifacts` tree;
+the PNG is create-new. A changed fixture premise, prepared route or geometry
+stops before OCR as unexercised. The parent allows half a logical core and
+uses 55/60-second cancellation/watchdog limits. This is one owned integration
+control, with no supplied geometry, private input, Apply or production claim.
+Its [fixed recipe and completed outcome](../../docs/OWNED-CONTENT-SPAN-CALIBRATION-20261116.md)
+record the one execution; do not rerun it unchanged merely for another receipt.
+
 `--owned-axis-backend-check <absolute-Rust-worker>` compares existing Rust and
 OpenCV axis proposals on six in-memory owned controls. Pair counts and review
 warnings do not establish uniqueness or accuracy; no proposal is applied.
