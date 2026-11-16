@@ -112,12 +112,16 @@ public sealed class NativeAxisRasterGeometryTests
         Assert.IsNull(candidates.ErrorCode);
         Assert.IsGreaterThan(0, candidates.Candidates.Count);
         var firstCandidate = candidates.Candidates[0].Geometry;
+        Assert.IsNotNull(firstCandidate);
         Assert.AreEqual((normal.Geometry.Left, normal.Geometry.Bottom, normal.Geometry.Right, normal.Geometry.Top),
             (firstCandidate.Left, firstCandidate.Bottom, firstCandidate.Right, firstCandidate.Top));
         Assert.AreEqual(540, normal.Geometry.Right);
         CollectionAssert.AreEqual(Enumerable.Range(0, candidates.Candidates.Count).ToArray(), candidates.Candidates.Select(c => c.Index).ToArray());
         Assert.AreEqual(candidates.Candidates.Count, candidates.Candidates.Select(c =>
-            (c.Geometry.Left, c.Geometry.Bottom, c.Geometry.Right, c.Geometry.Top)).Distinct().Count());
+        {
+            Assert.IsNotNull(c.Geometry);
+            return (c.Geometry.Left, c.Geometry.Bottom, c.Geometry.Right, c.Geometry.Top);
+        }).Distinct().Count());
     });
 
     private static T Pump<T>(Task<T> task)

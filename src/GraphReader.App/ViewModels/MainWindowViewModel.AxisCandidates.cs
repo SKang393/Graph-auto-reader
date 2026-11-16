@@ -42,10 +42,15 @@ public sealed partial class MainWindowViewModel
                 EnsureManualOverlay(tab);
                 if (tab.OverlayContent is ManualReviewOverlay overlay)
                 {
-                    var geometry = value?.Candidate.Geometry;
-                    overlay.SetAxisProposal(geometry is null ? [] :
-                        [new Point(geometry.Left, geometry.Bottom), new Point(geometry.Left, geometry.Top),
-                            new Point(geometry.Right, geometry.Bottom)]);
+                    Point[] anchors = value?.Candidate switch
+                    {
+                        { Geometry: { } geometry, AffineGeometry: null } =>
+                            [new(geometry.Left, geometry.Bottom), new(geometry.Left, geometry.Top), new(geometry.Right, geometry.Bottom)],
+                        { Geometry: null, AffineGeometry: { } affine } =>
+                            [new(affine.Origin.X, affine.Origin.Y), new(affine.YEnd.X, affine.YEnd.Y), new(affine.XEnd.X, affine.XEnd.Y)],
+                        _ => [],
+                    };
+                    overlay.SetAxisProposal(anchors);
                 }
             }
             RelayCommand.RaiseCanExecuteChanged();
@@ -105,9 +110,16 @@ public sealed partial class MainWindowViewModel
         SetAxisSuggestion(suggestion);
     }
 
-    private string AxisCandidateLabel(AxisReviewCandidate candidate) =>
-        FormatLocalizedString(LocalizationKeys.ManualAxisCandidateLabel, candidate.Index + 1,
-            candidate.Geometry.Left, candidate.Geometry.Top, candidate.Geometry.Right, candidate.Geometry.Bottom);
+    private string AxisCandidateLabel(AxisReviewCandidate candidate) => candidate switch
+    {
+        { Geometry: { } geometry, AffineGeometry: null } =>
+            FormatLocalizedString(LocalizationKeys.ManualAxisCandidateLabel, candidate.Index + 1,
+                geometry.Left, geometry.Top, geometry.Right, geometry.Bottom),
+        { Geometry: null, AffineGeometry: { } affine } =>
+            FormatLocalizedString(LocalizationKeys.ManualAxisCandidateAffineLabel, candidate.Index + 1,
+                affine.Origin.X, affine.Origin.Y, affine.XEnd.X, affine.XEnd.Y, affine.YEnd.X, affine.YEnd.Y),
+        _ => string.Empty,
+    };
 
     private void NotifyAxisCandidateLabelsChanged()
     {

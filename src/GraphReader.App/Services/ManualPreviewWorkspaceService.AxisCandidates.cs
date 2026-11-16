@@ -30,6 +30,10 @@ public partial class ManualPreviewWorkspaceService : IAxisCandidateReviewWorkspa
         Array.AsReadOnly(new[] { "rust_user_selected_candidate" });
     private static readonly IReadOnlyList<string> SelectedIncompleteAxisCandidateReasons =
         Array.AsReadOnly(new[] { "native_user_selected_candidate", "native_incomplete_candidate_search" });
+    private static readonly IReadOnlyList<string> SelectedAffineAxisCandidateReasons =
+        Array.AsReadOnly(new[] { "native_affine_geometry", "native_user_selected_candidate" });
+    private static readonly IReadOnlyList<string> SelectedIncompleteAffineAxisCandidateReasons =
+        Array.AsReadOnly(new[] { "native_affine_geometry", "native_user_selected_candidate", "native_incomplete_candidate_search" });
 
     public bool CanReviewAxisCandidates =>
         RuntimeEnvironment == WorkflowRuntimeEnvironment.ManualPreview &&
@@ -51,11 +55,15 @@ public partial class ManualPreviewWorkspaceService : IAxisCandidateReviewWorkspa
         // The review list belongs to this image snapshot, not the worker's mutable response.
         var candidates = Array.AsReadOnly(result.Candidates.Select(candidate => candidate with
         {
-            Geometry = candidate.Geometry with
+            Geometry = candidate.Geometry is { } geometry ? geometry with
             {
-                XTickPositions = Array.AsReadOnly(candidate.Geometry.XTickPositions.ToArray()),
-                YTickPositions = Array.AsReadOnly(candidate.Geometry.YTickPositions.ToArray()),
-            },
+                XTickPositions = Array.AsReadOnly(geometry.XTickPositions.ToArray()),
+                YTickPositions = Array.AsReadOnly(geometry.YTickPositions.ToArray()),
+            } : null,
+            AffineGeometry = candidate.AffineGeometry is { } affine ? affine with
+            {
+                Origin = affine.Origin with { }, XEnd = affine.XEnd with { }, YEnd = affine.YEnd with { },
+            } : null,
         }).ToArray());
         var review = new WorkspaceAxisCandidateReview(tabId, binding, candidates)
         {
@@ -83,9 +91,12 @@ public partial class ManualPreviewWorkspaceService : IAxisCandidateReviewWorkspa
         AxisReviewCandidate candidate = review.Candidates[index];
         return new WorkspaceAxisSuggestion(review.TabId, review.Binding, candidate.Geometry)
         {
+            AffineGeometry = candidate.AffineGeometry,
             OriginalImageIdentity = review.OriginalImageIdentity,
             Provider = review.Provider,
-            ReviewReasons = review.Provider == "rust-review" ? SelectedRustAxisCandidateReasons : review.EnumerationCompleted ? SelectedAxisCandidateReasons : SelectedIncompleteAxisCandidateReasons,
+            ReviewReasons = candidate.AffineGeometry is not null
+                ? review.EnumerationCompleted ? SelectedAffineAxisCandidateReasons : SelectedIncompleteAffineAxisCandidateReasons
+                : review.Provider == "rust-review" ? SelectedRustAxisCandidateReasons : review.EnumerationCompleted ? SelectedAxisCandidateReasons : SelectedIncompleteAxisCandidateReasons,
         };
     }
 }

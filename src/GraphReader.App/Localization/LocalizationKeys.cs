@@ -99,6 +99,7 @@ public static class LocalizationKeys
     public const string ManualAxisCandidatesFind = "Manual.AxisCandidates.Find";
     public const string ManualAxisCandidatesInstructions = "Manual.AxisCandidates.Instructions";
     public const string ManualAxisCandidateLabel = "Manual.AxisCandidates.Label";
+    public const string ManualAxisCandidateAffineLabel = "Manual.AxisCandidates.AffineLabel";
     public const string ManualAxisCandidateUse = "Manual.AxisCandidates.Use";
     public const string ManualAxisCandidatesUnavailable = "Manual.AxisCandidates.Unavailable";
     public const string ManualAxisCandidatesIncompleteWarning = "Manual.AxisCandidates.IncompleteWarning";
@@ -552,6 +553,7 @@ public static class LocalizationKeys
         ManualAxisGeometryReviewWarning,
         ManualAxisGeometryAmbiguousWarning,
         ManualAxisCandidatesIncompleteWarning,
+        ManualAxisCandidateAffineLabel,
         ManualAxisPositions,
         ManualAxisUnavailable,
         ManualAxisReviewed,

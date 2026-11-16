@@ -38,17 +38,22 @@ public sealed class NativeAxisCapacityTests
     }
 
     [TestMethod]
-    public async Task ExplicitChooserKeeps128LimitAndRefusesSame129WithoutTruncation()
+    public async Task ExplicitChooserMarks128PrefixIncompleteWhenGlobalWinnerIsUnvisited()
     {
         NativeAxisCandidateReviewObservation? observed = null;
         AxisCandidateReviewResult actual = await NativeAxisCandidateReview.ProcessLinesAsync(Lines(129), 4096, 4096,
             value => observed = value, CancellationToken.None);
-        Assert.AreEqual("OPENCV_AXIS_AMBIGUOUS", actual.ErrorCode);
-        Assert.IsEmpty(actual.Candidates);
+        Assert.IsNull(actual.ErrorCode);
+        Assert.IsFalse(actual.EnumerationCompleted);
+        Assert.HasCount(128, actual.Candidates);
+        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(actual, 4096, 4096));
+        Assert.IsFalse(actual.Candidates.Any(candidate => candidate.Geometry is { Left: 100 }),
+            "The unvisited global winner is absent, so the review prefix must never claim completeness.");
         Assert.IsNotNull(observed);
         Assert.AreEqual("native_pair_budget_exceeded", observed.FailureDetail);
         Assert.IsFalse(observed.EnumerationCompleted);
         Assert.AreEqual(0, observed.RawSnapshotCount);
+        Assert.AreEqual(128, observed.IncompleteSnapshotCount);
         Assert.IsNotNull(observed.Work);
         Assert.AreEqual(128L, observed.Work.ExactPairAttempts);
         Assert.AreEqual(129L, observed.Work.ExactPairRequests);

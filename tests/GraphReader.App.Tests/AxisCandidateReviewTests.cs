@@ -103,7 +103,8 @@ public sealed class AxisCandidateReviewTests
         {
             vm.SelectedAxisCandidate = candidate;
             Assert.IsTrue(vm.UseAxisCandidateCommand.CanExecute(null));
-            RustAxisGeometry geometry = workspace.LastReview!.Candidates[candidate.Index].Geometry;
+            RustAxisGeometry? geometry = workspace.LastReview!.Candidates[candidate.Index].Geometry;
+            Assert.IsNotNull(geometry);
             CollectionAssert.AreEqual(new[] { new Point(geometry.Left, geometry.Bottom), new Point(geometry.Left, geometry.Top),
                 new Point(geometry.Right, geometry.Bottom) }, Preview(tab));
             Assert.AreSame(calibration, tab.Calibration);

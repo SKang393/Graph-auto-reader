@@ -19,6 +19,7 @@ internal sealed record NativeAxisCandidateReviewObservation(
     string? FailureDetail, string? HardGeometryRejection, AxisGeometryWorkSnapshot? Work)
 {
     public int IncompleteSnapshotCount { get; init; }
+    public int RetainedAffineCount { get; init; }
 }
 
 internal static class NativeAxisCandidateReview
@@ -37,6 +38,7 @@ internal static class NativeAxisCandidateReview
         internal int CheckedCount { get; set; }
         internal int EligibleCount { get; set; }
         internal int RotatedCount { get; set; }
+        internal int RetainedAffineCount { get; set; }
         internal int RoundedExclusionCount { get; set; }
         internal int DuplicateExclusionCount { get; set; }
         internal string? FailureDetail { get; set; }
@@ -54,7 +56,7 @@ internal static class NativeAxisCandidateReview
                 callback(new(Stage, _work?.EnumerationCompleted ?? (Snapshots is not null), Cancelled,
                     Snapshots?.Count ?? 0, CheckedCount, EligibleCount, RotatedCount, RoundedExclusionCount, DuplicateExclusionCount,
                     FailureDetail, HardGeometryRejection, _work)
-                    { IncompleteSnapshotCount = Interrupted?.Candidates.Count ?? 0 });
+                    { IncompleteSnapshotCount = Interrupted?.Candidates.Count ?? 0, RetainedAffineCount = RetainedAffineCount });
             }
             catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException and not AccessViolationException)
             {
@@ -172,18 +174,36 @@ internal static class NativeAxisCandidateReview
         observer.Stage = "geometry_eligibility";
         var candidates = new List<AxisReviewCandidate>(polygons.Length);
         var distinct = new HashSet<(int Left, int Bottom, int Right, int Top)>();
+        var distinctAffine = new HashSet<RustAffineAxisGeometry>();
         for (int i = 0; i < polygons.Length; i++)
         {
             token.ThrowIfCancellationRequested();
             PlotPolygon polygon = polygons[i];
             PixelPoint[] corners = [polygon.BottomLeft, polygon.BottomRight, polygon.TopRight, polygon.TopLeft];
             if (observer.Enabled) observer.CheckedCount++;
-            // Unsupported rotation or integer representation
-            // excludes only this option; malformed geometry still invalidates the response.
+            // Preserve valid tilted frames; malformed geometry invalidates the response.
+            // Unsupported integer representation excludes only that rectangle.
             string? rejection = NativeAxisWorker.GeometryRejection(corners, 1, width, height);
             if (rejection == "native_rotated_geometry")
             {
                 if (observer.Enabled) observer.RotatedCount++;
+                var affine = new RustAffineAxisGeometry(new(corners[0].X, corners[0].Y),
+                    new(corners[1].X, corners[1].Y), new(corners[3].X, corners[3].Y), 0);
+                if (!OpenCvAxisProposalService.ValidAffineGeometry(affine, width, height) ||
+                    corners[2].X != corners[1].X + corners[3].X - corners[0].X ||
+                    corners[2].Y != corners[1].Y + corners[3].Y - corners[0].Y)
+                {
+                    observer.HardGeometryRejection = "native_invalid_affine_geometry";
+                    observer.FailureDetail = observer.HardGeometryRejection;
+                    return Failure("OPENCV_AXIS_AMBIGUOUS");
+                }
+                if (!distinctAffine.Add(affine))
+                {
+                    if (observer.Enabled) observer.DuplicateExclusionCount++;
+                    continue;
+                }
+                candidates.Add(new AxisReviewCandidate(candidates.Count, null) { AffineGeometry = affine });
+                if (observer.Enabled) { observer.EligibleCount++; observer.RetainedAffineCount++; }
                 continue;
             }
             if (rejection is not null)

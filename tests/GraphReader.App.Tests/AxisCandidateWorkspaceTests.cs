@@ -12,12 +12,13 @@ using GraphReader.Domain;
 namespace GraphReader.App.Tests;
 
 [TestClass]
-public sealed class AxisCandidateWorkspaceTests
+public sealed partial class AxisCandidateWorkspaceTests
 {
     private static readonly string[] FailClosedRustErrors = ["CPU_BUDGET_UNAVAILABLE", "INVALID_RESPONSE", "WORKER_TIMEOUT"];
     private static readonly int[] RustXTicks = [10, 50, 100];
     private static readonly int[] RustYTicks = [10, 50, 100];
     private static readonly string[] IncompleteReviewReasons = ["native_user_selected_candidate", "native_incomplete_candidate_search"];
+    private static readonly RustAffineAxisGeometry CandidateAffineFrame = new(new(30, 100), new(130, 104), new(35, 20), 0);
 
     [TestMethod]
     public void RustChoiceRequiresReviewAndForwardsMeasuredTicksOnlyOnExplicitRead() => WithImage(path =>
@@ -62,8 +63,10 @@ public sealed class AxisCandidateWorkspaceTests
         WorkspaceAxisCandidateReview review = Pump(workspace.ReviewAxisCandidatesAsync(tab.TabId, CancellationToken.None))!;
         Assert.AreEqual("rust-review", review.Provider);
         x[1] = 60; y[1] = 60;
-        Assert.AreEqual(50, review.Candidates[0].Geometry.XTickPositions[1]);
-        Assert.AreEqual(50, review.Candidates[0].Geometry.YTickPositions[1]);
+        RustAxisGeometry? copiedGeometry = review.Candidates[0].Geometry;
+        Assert.IsNotNull(copiedGeometry);
+        Assert.AreEqual(50, copiedGeometry.XTickPositions[1]);
+        Assert.AreEqual(50, copiedGeometry.YTickPositions[1]);
         Assert.IsFalse(workspace.IsAxisCandidateReviewCurrent(review with { Provider = "opencv-review" }));
         Assert.IsFalse(workspace.IsAxisCandidateReviewCurrent(review with { Candidates = [candidate] }));
         WorkspaceAxisSuggestion selected = workspace.SelectAxisCandidate(review, 0)!;
@@ -95,8 +98,10 @@ public sealed class AxisCandidateWorkspaceTests
         Assert.IsTrue(workspace.IsAxisCandidateReviewCurrent(review));
         CollectionAssert.AreEqual(File.ReadAllBytes(path), provider.ReviewInput!);
         Assert.HasCount(2, review.Candidates, "The workspace must retain the full returned candidate list.");
-        Assert.AreEqual(0, review.Candidates[0].Geometry.XTickPositions.Count);
-        Assert.AreEqual(0, review.Candidates[0].Geometry.YTickPositions.Count);
+        RustAxisGeometry? copiedGeometry = review.Candidates[0].Geometry;
+        Assert.IsNotNull(copiedGeometry);
+        Assert.AreEqual(0, copiedGeometry.XTickPositions.Count);
+        Assert.AreEqual(0, copiedGeometry.YTickPositions.Count);
         Assert.ThrowsExactly<NotSupportedException>(() =>
             ((IList<AxisReviewCandidate>)review.Candidates)[0] = new(0, new(2, 100, 80, 5, 0)));
 
@@ -159,6 +164,51 @@ public sealed class AxisCandidateWorkspaceTests
         WorkspaceAxisSuggestion selected = workspace.SelectAxisCandidate(review, 1)!;
         CollectionAssert.AreEqual(IncompleteReviewReasons, selected.ReviewReasons.ToArray());
         Assert.IsNull(workspace.SelectAxisCandidate(review, -1));
+    });
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void MixedAffineChoicesAreExactDefensiveAndBoundToSourceAndCompletion(bool incomplete) => WithImage(path =>
+    {
+        AxisReviewCandidate[] raw = [new(0, new(10, 100, 100, 10, 0)), new(1, null) { AffineGeometry = CandidateAffineFrame }];
+        var provider = new CandidateProvider(raw) { Incomplete = incomplete };
+        using var workspace = new ManualPreviewWorkspaceService(axisProposalService: provider);
+        var tab = Pump(workspace.ImportImagesAsync([path], CancellationToken.None)).Single();
+        var original = workspace.CurrentProject;
+        WorkspaceAxisCandidateReview? review = Pump(workspace.ReviewAxisCandidatesAsync(tab.TabId, CancellationToken.None));
+        Assert.IsNotNull(review);
+        Assert.HasCount(2, review.Candidates);
+        Assert.AreEqual(!incomplete, review.EnumerationCompleted);
+        Assert.IsNotNull(review.Candidates[0].Geometry);
+        Assert.IsNull(review.Candidates[0].AffineGeometry);
+        Assert.IsNull(review.Candidates[1].Geometry);
+        Assert.AreEqual(CandidateAffineFrame, review.Candidates[1].AffineGeometry);
+        Assert.AreNotSame(CandidateAffineFrame, review.Candidates[1].AffineGeometry);
+        RustAffineAxisGeometry? copiedFrame = review.Candidates[1].AffineGeometry;
+        Assert.IsNotNull(copiedFrame);
+        Assert.AreNotSame(CandidateAffineFrame.Origin, copiedFrame.Origin);
+        raw[1] = raw[1] with { AffineGeometry = CandidateAffineFrame with { XEnd = new(140, 105) } };
+        Assert.AreEqual(CandidateAffineFrame, review.Candidates[1].AffineGeometry);
+        Assert.IsFalse(workspace.IsAxisCandidateReviewCurrent(review with { Candidates = raw }));
+        Assert.IsFalse(workspace.IsAxisCandidateReviewCurrent(review with { EnumerationCompleted = incomplete }));
+        Assert.IsFalse(workspace.IsAxisCandidateReviewCurrent(review with { Provider = "rust-review" }));
+        Assert.IsFalse(workspace.IsAxisCandidateReviewCurrent(review with { Binding = "different-source" }));
+        WorkspaceAxisSuggestion? selected = workspace.SelectAxisCandidate(review, 1);
+        Assert.IsNotNull(selected);
+        Assert.IsNull(selected.Geometry);
+        Assert.AreSame(review.Candidates[1].AffineGeometry, selected.AffineGeometry);
+        Assert.AreEqual("opencv-review", selected.Provider);
+        Assert.IsFalse(selected.IsUserDefined);
+        CollectionAssert.Contains(selected.ReviewReasons.ToArray(), "native_affine_geometry");
+        CollectionAssert.Contains(selected.ReviewReasons.ToArray(), "native_user_selected_candidate");
+        Assert.AreEqual(incomplete, selected.ReviewReasons.Contains("native_incomplete_candidate_search"));
+        Assert.IsTrue(workspace.IsAxisSuggestionCurrent(selected));
+        Assert.AreSame(original, workspace.CurrentProject);
+        Assert.IsNull(tab.Calibration);
+        workspace.Calibrate(tab.TabId, Calibration());
+        Assert.IsFalse(workspace.IsAxisCandidateReviewCurrent(review));
+        Assert.IsNull(workspace.SelectAxisCandidate(review, 1));
     });
 
     [TestMethod]

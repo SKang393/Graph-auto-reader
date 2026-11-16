@@ -103,7 +103,12 @@ The next [incomplete-search review change](INCOMPLETE-AXIS-REVIEW-20261116.md)
 retains already-admitted rectangular choices after a C# work-limit refusal,
 with explicit incomplete warnings and source-bound manual selection. Automatic
 detection remains strict. The full Axis suite (249) and focused WPF review guards
-(138) pass; full CI is pending and the current package remains 0.4.57.
+(138) passed. Full CI exposed a stale capacity-test expectation, which is now
+corrected without changing the work bound. The next
+[tilted-choice integration](TILTED-AXIS-CHOICES-20261116.md) preserves fitted
+original anchors in the chooser and reuses affine label review/Apply/Undo.
+Its full App suite passed 1,338 tests with no failures/skips, including the
+capacity correction. Superseding full CI is pending; the package remains 0.4.57.
 The
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
 is implemented in source.

@@ -99,6 +99,27 @@ desktop input was used. Full CI and integration remain pending. This source-only
 batch does not change the current 0.4.57 package, production approval, or missing
 native visual acceptance. The rectangular chooser still excludes tilted choices.
 
+## Full CI finding
+
+Source `f3ea558749454cce232493285d24a94b0a68cc9b` was pushed and integrated.
+[Windows CI 43823060052](https://github.com/SKang393/Graph-auto-reader/actions/runs/43823060052)
+failed one App capacity contract outside the local focused filter:
+`NativeAxisCapacityTests.ExplicitChooserKeeps128LimitAndRefusesSame129WithoutTruncation`,
+line 46, expected `OPENCV_AXIS_AMBIGUOUS` but received an explicit incomplete
+choice list. There were **3,234 .NET passes**, **30 skips**, **one failure**;
+the main compiler and **80 Rust tests** passed. Later packaging steps did not run.
+This head is **not green**.
+
+The contract correction checks 128 choices, `EnumerationCompleted=false`, zero
+ranked snapshots and exactly 128 attempts/129 requests. It also proves that the
+deliberately unvisited global winner is absent from the prefix. The adjacent
+complete automatic-search controls continue to require the actual global winner
+after full enumeration. The correction will be validated with the in-progress
+tilted-choice batch and then full CI; no failure is reclassified as a pass.
+The [integrated tilted-choice App run](TILTED-AXIS-CHOICES-20261116.md) subsequently
+passed **1,338 tests**, including that corrected contract, with zero failures or
+skips. A superseding full CI pass is still required.
+
 No dependencies or licenses changed. Project-authored source is Apache-2.0.
 After the outcome is pushed and CI/review consumers finish, retire this batch's
 logs, TRX and disposable test compiler outputs, retaining source, the current

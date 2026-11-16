@@ -30,9 +30,9 @@ public sealed class NativeAxisCandidateReviewTests
         Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { ErrorCode = "OPENCV_AXIS_AMBIGUOUS" }, 100, 100));
         Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { Candidates = [] }, 100, 100));
         Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { Candidates = [candidate with { Index = 1 }] }, 100, 100));
-        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { Candidates = [candidate with { Geometry = candidate.Geometry with { Right = 100 } }] }, 100, 100));
-        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { Candidates = [candidate with { Geometry = candidate.Geometry with { Confidence = .5 } }] }, 100, 100));
-        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { EnumerationCompleted = false, Candidates = [candidate with { Geometry = candidate.Geometry with { Confidence = double.NaN } }] }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { Candidates = [candidate with { Geometry = candidate.Geometry! with { Right = 100 } }] }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { Candidates = [candidate with { Geometry = candidate.Geometry! with { Confidence = .5 } }] }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { EnumerationCompleted = false, Candidates = [candidate with { Geometry = candidate.Geometry! with { Confidence = double.NaN } }] }, 100, 100));
         Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { Candidates = Enumerable.Repeat(candidate, 129).ToArray() }, 100, 100));
         Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(new([], "OPENCV_AXIS_AMBIGUOUS"), 100, 100));
         Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(valid with { EnumerationCompleted = false }, 100, 100));
@@ -63,6 +63,8 @@ public sealed class NativeAxisCandidateReviewTests
     [DataRow("{\"Candidates\":[],\"Candidates\":[],\"ErrorCode\":\"OPENCV_AXIS_AMBIGUOUS\"}")]
     [DataRow("{\"Candidates\":[],\"ErrorCode\":null,\"EnumerationCompleted\":\"false\"}")]
     [DataRow("{\"Candidates\":[],\"ErrorCode\":null,\"EnumerationCompleted\":true,\"EnumerationCompleted\":false}")]
+    [DataRow("{\"Candidates\":[{\"Index\":0,\"Geometry\":null}],\"ErrorCode\":null}")]
+    [DataRow("{\"Candidates\":[{\"Index\":0,\"Geometry\":null,\"AffineGeometry\":{\"Origin\":{\"X\":1,\"Y\":2,\"Z\":3},\"XEnd\":{\"X\":4,\"Y\":2},\"YEnd\":{\"X\":1,\"Y\":0},\"Confidence\":0}}],\"ErrorCode\":null}")]
     public async Task CandidateProtocolRejectsUnknownOrDuplicateProperties(string json)
     {
         byte[] bytes = Encoding.UTF8.GetBytes(json);
@@ -87,6 +89,7 @@ public sealed class NativeAxisCandidateReviewTests
         {
             AxisReviewCandidate candidate = result.Candidates[i];
             Assert.AreEqual(i, candidate.Index);
+            Assert.IsNotNull(candidate.Geometry);
             Assert.AreEqual(i, candidate.Geometry.Left);
             Assert.AreEqual(90, candidate.Geometry.Bottom);
             Assert.AreEqual(500, candidate.Geometry.Right);
@@ -114,6 +117,31 @@ public sealed class NativeAxisCandidateReviewTests
         BinaryPrimitives.WriteInt32LittleEndian(prefix, legacy.Length);
         using var legacyStream = new MemoryStream(); legacyStream.Write(prefix); legacyStream.Write(legacy); legacyStream.Position = 0;
         Assert.IsTrue((await OpenCvAxisProposalService.ReadCandidateResponseAsync(legacyStream, CancellationToken.None))!.EnumerationCompleted);
+    }
+
+    [TestMethod]
+    public async Task IncompleteAffineChoiceRoundTripsAndInvalidOneOfIsRejected()
+    {
+        var frame = new RustAffineAxisGeometry(new(10, 90), new(90, 87), new(13, 10), 0);
+        var candidate = new AxisReviewCandidate(0, null) { AffineGeometry = frame };
+        var result = new AxisCandidateReviewResult([candidate], null) { EnumerationCompleted = false };
+        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(result, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(result with { Provider = "rust-review" }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(result with { Candidates = [candidate with { Geometry = new(10, 90, 90, 10, 0) }] }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(result with { Candidates = [new(0, null)] }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(result with { Candidates = [candidate with { AffineGeometry = frame with { Confidence = double.NaN } }] }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(result with { Candidates = [candidate with { AffineGeometry = frame with { XEnd = new(double.PositiveInfinity, 87) } }] }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(result with { Candidates = [candidate with { AffineGeometry = frame with { YEnd = new(13, 100) } }] }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(result with { Candidates = [candidate with { AffineGeometry = frame with { YEnd = new(13, 95) } }] }, 100, 100));
+        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(result);
+        byte[] prefix = new byte[4]; BinaryPrimitives.WriteInt32LittleEndian(prefix, bytes.Length);
+        using var stream = new MemoryStream(); stream.Write(prefix); stream.Write(bytes); stream.Position = 0;
+        AxisCandidateReviewResult? actual = await OpenCvAxisProposalService.ReadCandidateResponseAsync(stream, CancellationToken.None);
+        Assert.IsNotNull(actual);
+        Assert.IsFalse(actual.EnumerationCompleted);
+        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(actual, 100, 100));
+        Assert.AreEqual(frame, actual.Candidates[0].AffineGeometry);
+        Assert.IsNull(actual.Candidates[0].Geometry);
     }
 
     [TestMethod]
@@ -188,6 +216,30 @@ public sealed class NativeAxisCandidateReviewTests
     }
 
     [TestMethod]
+    public async Task InterruptedTiltedCandidatesRemainExplicitlyIncomplete()
+    {
+        var lines = new List<GeometryLineCandidate>
+        {
+            new("baseline", new(new(100, 700), new(1700, 700)), LineCandidateSource.RecordedFixture),
+        };
+        for (int index = 0; index < 129; index++)
+        {
+            double x = 100 + 10 * index;
+            lines.Add(new($"tilted-{index}", new(new(x, 700), new(x - 10, 100)), LineCandidateSource.RecordedFixture));
+        }
+        NativeAxisCandidateReviewObservation? observation = null;
+        AxisCandidateReviewResult result = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 1800, 800,
+            value => observation = value, CancellationToken.None);
+        Assert.IsNull(result.ErrorCode);
+        Assert.IsFalse(result.EnumerationCompleted);
+        Assert.IsGreaterThan(0, result.Candidates.Count);
+        Assert.IsTrue(result.Candidates.All(candidate => candidate.Geometry is null && candidate.AffineGeometry is not null));
+        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(result, 1800, 800));
+        Assert.IsNotNull(observation);
+        Assert.AreEqual(result.Candidates.Count, observation.RetainedAffineCount);
+    }
+
+    [TestMethod]
     public async Task CandidateWorkerRejectsProductionBeforeReadingAndClientHonorsCancellation()
     {
         using var input = new MemoryStream([1, 2, 3]);
@@ -225,18 +277,18 @@ public sealed class NativeAxisCandidateReviewTests
         Assert.AreEqual(2, observation.EligibleCount);
         Assert.IsNull(candidates.ErrorCode);
         Assert.HasCount(2, candidates.Candidates);
-        CollectionAssert.AreEquivalent(DividerLefts, candidates.Candidates.Select(candidate => candidate.Geometry.Left).ToArray());
-        Assert.IsTrue(candidates.Candidates.All(candidate => candidate.Geometry.Confidence == 0 &&
+        CollectionAssert.AreEquivalent(DividerLefts, candidates.Candidates.Select(candidate => candidate.Geometry!.Left).ToArray());
+        Assert.IsTrue(candidates.Candidates.All(candidate => candidate.Geometry is not null && candidate.Geometry.Confidence == 0 &&
             candidate.Geometry.XTickPositions.Count == 0 && candidate.Geometry.YTickPositions.Count == 0));
         RustAxisProposalResult normal = Pump(NativeAxisWorker.ProcessAsync(encoded, CancellationToken.None));
         Assert.IsNull(normal.ErrorCode);
         Assert.IsNotNull(normal.Geometry);
         Assert.AreEqual("opencv-review", normal.Provider);
         CollectionAssert.Contains(normal.ReviewReasons.ToArray(), "native_multiple_ranked_candidates");
-        Assert.AreEqual(candidates.Candidates[0].Geometry.Left, normal.Geometry.Left);
-        Assert.AreEqual(candidates.Candidates[0].Geometry.Right, normal.Geometry.Right);
-        Assert.AreEqual(candidates.Candidates[0].Geometry.Top, normal.Geometry.Top);
-        Assert.AreEqual(candidates.Candidates[0].Geometry.Bottom, normal.Geometry.Bottom);
+        Assert.AreEqual(candidates.Candidates[0].Geometry!.Left, normal.Geometry.Left);
+        Assert.AreEqual(candidates.Candidates[0].Geometry!.Right, normal.Geometry.Right);
+        Assert.AreEqual(candidates.Candidates[0].Geometry!.Top, normal.Geometry.Top);
+        Assert.AreEqual(candidates.Candidates[0].Geometry!.Bottom, normal.Geometry.Bottom);
         Assert.IsEmpty(normal.Geometry.XTickPositions);
         Assert.IsEmpty(normal.Geometry.YTickPositions);
     });
@@ -255,7 +307,7 @@ public sealed class NativeAxisCandidateReviewTests
         AxisCandidateReviewResult result = Pump(NativeAxisCandidateReview.ProcessAsync(stream.ToArray(), CancellationToken.None));
         Assert.IsNull(result.ErrorCode);
         Assert.HasCount(2, result.Candidates);
-        CollectionAssert.AreEquivalent(PanelLefts, result.Candidates.Select(candidate => candidate.Geometry.Left).ToArray());
+        CollectionAssert.AreEquivalent(PanelLefts, result.Candidates.Select(candidate => candidate.Geometry!.Left).ToArray());
     });
 
     [TestMethod]
@@ -300,8 +352,9 @@ public sealed class NativeAxisCandidateReviewTests
 
         AxisCandidateReviewResult result = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400, CancellationToken.None);
         Assert.IsNull(result.ErrorCode);
-        CollectionAssert.AreEqual(eligible, result.Candidates.Select(candidate => candidate.Geometry).ToArray());
-        CollectionAssert.AreEqual(Enumerable.Range(0, eligible.Length).ToArray(), result.Candidates.Select(candidate => candidate.Index).ToArray());
+        CollectionAssert.AreEqual(eligible, result.Candidates.Where(candidate => candidate.Geometry is not null).Select(candidate => candidate.Geometry).ToArray());
+        Assert.HasCount(1, result.Candidates.Where(candidate => candidate.AffineGeometry is not null).ToArray());
+        CollectionAssert.AreEqual(Enumerable.Range(0, eligible.Length + 1).ToArray(), result.Candidates.Select(candidate => candidate.Index).ToArray());
         Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(result, 800, 400));
         NativeAxisCandidateReviewObservation? observation = null;
         int notifications = 0;
@@ -315,8 +368,9 @@ public sealed class NativeAxisCandidateReviewTests
         Assert.IsFalse(observation.Cancelled);
         Assert.AreEqual(observer.Snapshots.Count, observation.RawSnapshotCount);
         Assert.AreEqual(observation.RawSnapshotCount, observation.CheckedCount);
-        Assert.AreEqual(eligible.Length, observation.EligibleCount);
+        Assert.AreEqual(eligible.Length + 1, observation.EligibleCount);
         Assert.AreEqual(1, observation.RotatedCount);
+        Assert.AreEqual(1, observation.RetainedAffineCount);
         Assert.AreEqual(0, observation.RoundedExclusionCount);
         Assert.AreEqual(0, observation.DuplicateExclusionCount);
         Assert.IsNull(observation.FailureDetail);
@@ -325,7 +379,7 @@ public sealed class NativeAxisCandidateReviewTests
     }
 
     [TestMethod]
-    public async Task CompleteAllRotatedSnapshotReturnsNoCandidates()
+    public async Task CompleteTiltedSnapshotReturnsExactAffineChoice()
     {
         GeometryLineCandidate[] lines =
         [
@@ -343,17 +397,26 @@ public sealed class NativeAxisCandidateReviewTests
         NativeAxisCandidateReviewObservation? observation = null;
         AxisCandidateReviewResult result = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 800, 400,
             value => observation = value, CancellationToken.None);
-        Assert.AreEqual("OPENCV_AXIS_AMBIGUOUS", result.ErrorCode);
-        Assert.IsEmpty(result.Candidates);
+        Assert.IsNull(result.ErrorCode);
+        Assert.HasCount(1, result.Candidates);
+        Assert.IsNull(result.Candidates[0].Geometry);
+        RustAffineAxisGeometry? affine = result.Candidates[0].AffineGeometry;
+        Assert.IsNotNull(affine);
+        Assert.AreEqual(new RustAxisPoint(snapshot.Intersection.X, snapshot.Intersection.Y), affine.Origin);
+        Assert.AreEqual(new RustAxisPoint(snapshot.BottomRight.X, snapshot.BottomRight.Y), affine.XEnd);
+        Assert.AreEqual(new RustAxisPoint(snapshot.TopLeft.X, snapshot.TopLeft.Y), affine.YEnd);
+        Assert.AreEqual(0d, affine.Confidence);
+        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(result, 800, 400));
         Assert.IsNotNull(observation);
         Assert.IsTrue(observation.EnumerationCompleted);
-        Assert.AreEqual("geometry_eligibility", observation.Stage);
-        Assert.AreEqual("native_no_eligible_candidates", observation.FailureDetail);
+        Assert.AreEqual("complete", observation.Stage);
+        Assert.IsNull(observation.FailureDetail);
         Assert.AreEqual(1, observation.RawSnapshotCount);
         Assert.AreEqual(1, observation.CheckedCount);
         Assert.AreEqual(1, observation.RotatedCount);
+        Assert.AreEqual(1, observation.RetainedAffineCount);
         Assert.AreEqual(0, observation.RoundedExclusionCount);
-        Assert.AreEqual(0, observation.EligibleCount);
+        Assert.AreEqual(1, observation.EligibleCount);
         Assert.IsNull(observation.HardGeometryRejection);
     }
 

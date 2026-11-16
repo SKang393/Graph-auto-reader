@@ -16,6 +16,9 @@ public sealed class OpenCvAxisProposalService : IAxisProposalService, IAxisCandi
     private static readonly string[] CandidateResultFields = ["Candidates", "ErrorCode"];
     private static readonly string[] CandidateResultFieldsWithCompletion = ["Candidates", "ErrorCode", "EnumerationCompleted"];
     private static readonly string[] CandidateFields = ["Index", "Geometry"];
+    private static readonly string[] AffineCandidateFields = ["Index", "Geometry", "AffineGeometry"];
+    private static readonly string[] AffineGeometryFields = ["Origin", "XEnd", "YEnd", "Confidence"];
+    private static readonly string[] AffinePointFields = ["X", "Y"];
     private static readonly string[] CandidateGeometryFields = ["Left", "Bottom", "Right", "Top", "Confidence", "FirstTickX", "LastTickX", "XTickPositions", "YTickPositions"];
     private readonly string workerPath;
     public OpenCvAxisProposalService(string workerPath)
@@ -96,8 +99,15 @@ public sealed class OpenCvAxisProposalService : IAxisProposalService, IAxisCandi
             root.GetProperty("Candidates").ValueKind != JsonValueKind.Array) throw new InvalidDataException();
         foreach (JsonElement candidate in root.GetProperty("Candidates").EnumerateArray())
         {
-            if (!HasExactProperties(candidate, CandidateFields) ||
-                !HasExactProperties(candidate.GetProperty("Geometry"), CandidateGeometryFields))
+            bool rectangle = HasExactProperties(candidate, CandidateFields) &&
+                HasExactProperties(candidate.GetProperty("Geometry"), CandidateGeometryFields);
+            bool affine = HasExactProperties(candidate, AffineCandidateFields) &&
+                candidate.GetProperty("Geometry").ValueKind == JsonValueKind.Null &&
+                HasExactProperties(candidate.GetProperty("AffineGeometry"), AffineGeometryFields) &&
+                HasExactProperties(candidate.GetProperty("AffineGeometry").GetProperty("Origin"), AffinePointFields) &&
+                HasExactProperties(candidate.GetProperty("AffineGeometry").GetProperty("XEnd"), AffinePointFields) &&
+                HasExactProperties(candidate.GetProperty("AffineGeometry").GetProperty("YEnd"), AffinePointFields);
+            if (!rectangle && !affine)
                 throw new InvalidDataException();
         }
         return JsonSerializer.Deserialize<AxisCandidateReviewResult>(bytes);
@@ -119,10 +129,18 @@ public sealed class OpenCvAxisProposalService : IAxisProposalService, IAxisCandi
             return result.Candidates.Count == 0 && result.ErrorCode is "OPENCV_AXIS_UNAVAILABLE" or "OPENCV_AXIS_AMBIGUOUS" or "INVALID_INPUT";
         if (result.Candidates.Count == 0) return false;
         var distinct = new HashSet<(int Left, int Bottom, int Right, int Top)>();
+        var distinctAffine = new HashSet<RustAffineAxisGeometry>();
         for (int i = 0; i < result.Candidates.Count; i++)
         {
             AxisReviewCandidate? candidate = result.Candidates[i];
-            if (candidate?.Geometry is not { } geometry || candidate.Index != i || geometry.Confidence != 0 ||
+            if (candidate is null || candidate.Index != i) return false;
+            if (candidate.AffineGeometry is { } affine)
+            {
+                if (candidate.Geometry is not null || result.Provider != "opencv-review" || affine.Confidence != 0 ||
+                    !ValidAffineGeometry(affine, width, height) || !distinctAffine.Add(affine)) return false;
+                continue;
+            }
+            if (candidate.Geometry is not { } geometry || geometry.Confidence != 0 ||
                 !distinct.Add((geometry.Left, geometry.Bottom, geometry.Right, geometry.Top)) ||
                 geometry.Left < 0 || geometry.Top < 0 || geometry.Right >= width || geometry.Bottom >= height ||
                 geometry.Left >= geometry.Right || geometry.Top >= geometry.Bottom) return false;
