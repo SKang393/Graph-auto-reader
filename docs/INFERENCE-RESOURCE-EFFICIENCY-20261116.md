@@ -120,7 +120,15 @@ The hashing comparison was not repeated after this independent pool repair.
 
 ## Integration and retention
 
-Source integration and full Windows CI are pending for the combined batch.
+Source/outcome commit `e99a9aecd9dc25f3afbb4bb39b2ff87e9f85db12` is integrated
+into `origin/main`. The combined checkpoint `4db78d87bcd24eac4e92dc96e7201f0ab2f615f2`
+passed [full Windows CI](https://github.com/SKang393/Graph-auto-reader/actions/runs/43806598211):
+**3,220 .NET tests passed**, **30 skipped**, zero failures, plus **80 Rust**,
+**68 packaging** and **9 localization** checks. Inference passed **112**, skipped
+**two**, with all six new pool controls executed. The skips were the opt-in
+production classifier store test and DirectML initialization when that provider
+was absent. The local hardware run had only the store skip. This CI result does
+not approve any model or complete end-to-end digitization.
 No model, dependency, persisted schema, provider policy, package, release or
 license changes are needed. Source carries Apache-2.0 notices. The sole delivered
 package remains 0.4.56, and native QA remains blocked by the stale desktop stop.

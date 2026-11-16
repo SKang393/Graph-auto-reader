@@ -86,7 +86,17 @@ App TRX SHA-256:
 The compact six-command/attempt receipt is
 `80d6c86da070bc02d8c5591c2f6c6ed3d8188737de291c5ff0f6bdb07b4cf990`.
 The local compiler outputs predate the mechanical 0.4.57 version preparation;
-the prepared source still requires exact-head full Windows CI before packaging.
+the prepared source was then checked by exact-head full Windows CI.
+
+[Windows CI 43806598211](https://github.com/SKang393/Graph-auto-reader/actions/runs/43806598211)
+passed on `4db78d87bcd24eac4e92dc96e7201f0ab2f615f2`, including the inference
+resource commit `e99a9aecd9dc25f3afbb4bb39b2ff87e9f85db12`. The main job took
+**507.387 s** and passed **3,220 .NET tests**, **80 Rust tests**, **68 packaging
+checks** and **9 localization controls**, with **30 expected .NET skips**, zero
+failures and zero build warnings/errors. All **1,325 App tests** ran. Release
+jobs were skipped; the audit correctly remained `ReleaseReady=false` and
+`CandidateReady=false`, with no approved production-model tasks or emitted
+release artifacts. This is source validation, not production approval.
 
 ## Delivery and retention
 

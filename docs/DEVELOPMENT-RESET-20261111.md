@@ -78,8 +78,14 @@ remain; production automatic acceptance and rectangular measurement stay strict.
 The unchanged-source regression failed both owned one-axis cases as expected;
 the repaired full App suite passed 1,325/1,325 with no failures or skips and all
 eleven protected hashes unchanged. These accumulated usability and resource
-changes justify the single prepared 0.4.57 preview after exact-head CI,
-without another unchanged private comparison. The
+changes justify the single prepared 0.4.57 preview, without another unchanged
+private comparison. Exact-head Windows CI on `4db78d87` passed 3,220 .NET tests,
+80 Rust tests and 68 packaging checks, with 30 expected skips and zero failures.
+The single [hosted 0.4.57 build](INTERNAL-PREVIEW-457-VERIFICATION-20261116.md)
+is uploaded and hash-verified. Desktop and existing Flex5 headless checks pass,
+as do both owned PNG controls against its packaged Rust worker. Activation is
+pending the pushed delivery ledger; 0.4.56 remains the current pointer until
+that guarded switch. The
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
 is implemented in source.
 Its local solution tests and actual one-call worker check now pass, preserving
