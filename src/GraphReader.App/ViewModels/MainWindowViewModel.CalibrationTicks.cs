@@ -72,8 +72,8 @@ public sealed partial class MainWindowViewModel
 
         await ReadCalibrationLabelsAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
-        if (!ReferenceEquals(SelectedTab, expectedTab) || !ReferenceEquals(_axisSuggestion, suggestion) ||
-            _calibrationLabelSuggestion is not { } labelsResult || !labels.IsCalibrationLabelSuggestionCurrent(labelsResult))
+        if (!ReferenceEquals(SelectedTab, expectedTab) || !ReferenceEquals(_axisSuggestion, suggestion)) return;
+        if (_calibrationLabelSuggestion is not { } labelsResult || !labels.IsCalibrationLabelSuggestionCurrent(labelsResult))
         {
             _calibrationTickProposalStatusText = GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsUnavailable);
             OnPropertyChanged(nameof(CalibrationTickProposalStatusText));

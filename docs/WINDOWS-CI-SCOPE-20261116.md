@@ -98,4 +98,12 @@ renames, nearby code/project files, case/backup variants and traversal paths.
 Independent read-only review found no material issue. This changes CI scheduling
 only; source changes still require full product validation and documentation
 reuse still cannot package a release. No runtime, dependency or model changes
-are part of this correction. Hosted validation of the correction is pending.
+are part of this correction.
+
+Correction commit `25cb4d8f5e762c75f32bf925c4a1d296a4a0a90d` was pushed with the
+following Axis change, head `14c4a57a`. [Full CI 43869408586](https://github.com/SKang393/Graph-auto-reader/actions/runs/43869408586)
+correctly chose `full_changed_path` and passed all **44 classifier assertions**,
+3,270 .NET tests, 89 Rust tests and 68 packaging checks, with 30 explicit .NET
+skips and zero failures. The run completed **2026-11-16T12:55:41Z**; release jobs
+skipped. The next eligible documentation push can demonstrate actual reuse of
+this verified predecessor; no skipped product-test result is claimed here.

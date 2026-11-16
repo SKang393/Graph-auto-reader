@@ -11,6 +11,37 @@ namespace GraphReader.App.Tests;
 public sealed partial class CalibrationTickViewModelTests
 {
     [TestMethod]
+    public void StaleLabelReadDoesNotSetCalibrationStatusOnAnotherTab()
+    {
+        WithImage(path =>
+        {
+            string secondPath = Path.Combine(Path.GetDirectoryName(path)!, "second-owned.png");
+            File.Copy(path, secondPath);
+            var reader = new OcrStub(ValidProposals()) { Pending = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+            using var workspace = new ManualPreviewWorkspaceService(axisProposalService: new AxisStub(MeasuredGeometry()),
+                calibrationOcrSuggestionService: reader);
+            Pump(workspace.ImportImagesAsync([path, secondPath], CancellationToken.None));
+            using var vm = new GraphReader.App.ViewModels.MainWindowViewModel(workspace);
+            var originalTab = vm.SelectedTab!;
+            var otherTab = vm.Tabs.Single(tab => !ReferenceEquals(tab, originalTab));
+            var project = workspace.CurrentProject;
+            Task operation = vm.SuggestCalibrationFromTicksAsync(CancellationToken.None);
+            Assert.IsNotNull(reader.LastRequest);
+            Assert.IsFalse(operation.IsCompleted);
+            vm.SelectedTab = otherTab;
+            string statusBefore = vm.CalibrationTickProposalStatusText;
+            reader.Pending!.SetResult(Response(reader.LastRequest!, ValidProposals()));
+            Pump(operation);
+            Assert.AreSame(otherTab, vm.SelectedTab);
+            Assert.AreEqual(statusBefore, vm.CalibrationTickProposalStatusText);
+            Assert.AreSame(project, workspace.CurrentProject);
+            Assert.IsNull(originalTab.Calibration);
+            Assert.IsNull(otherTab.Calibration);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+        });
+    }
+
+    [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public void StaleFailureDoesNotOverwriteAnotherTabOrStartOcr(bool combined)

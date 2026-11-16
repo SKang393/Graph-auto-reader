@@ -9,7 +9,16 @@ work limits. Four owned before/after payloads match exactly; all 272 Axis tests
 pass. Duplicate-rich allocation falls by about 26%, while distinct-case
 allocation is unchanged and its single timing observations increased. This is
 a bounded allocation improvement, not a private accuracy or general speed claim.
-Source integration/full CI are pending, with no new package or private rerun.
+Source `14c4a57a` is integrated and pushed; full CI passed 3,270 .NET tests
+(30 explicit skips), 89 Rust tests and 44 CI-scope checks. No new package or
+private rerun was performed. Native decoding/extraction repeats between a failed
+automatic attempt and explicit axis choices, but their different 256/128 pair
+budgets prevent transparent prefix reuse. A new IPC cache has no measured net
+benefit and is not being added. The [stale label-read correction](CALIBRATION-STALE-STATUS-20261116.md)
+now prevents an old completion from overwriting status after a tab switch.
+Its owned regression failed before the fix and passes afterward; the full
+local App suite passed 1,341 tests with two explicit worker-dependent skips.
+Source integration/full Windows CI for that correction remain pending.
 
 The [content-span routing repair](RUST-CONTENT-SPAN-RECOVERY-20261116.md)
 fixes an owned counterexample where disconnected decoy ink prevented the existing

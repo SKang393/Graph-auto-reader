@@ -113,7 +113,14 @@ baseline stayed unchanged. No dependency or model was added.
 
 ## Integration and retention
 
-Owned validation passes; source integration and full Windows CI are pending.
+Source/outcome `14c4a57a3c33bd3f8ef8570b728f95d3a364c1cd` is integrated and
+pushed to `origin/main`. [Full Windows CI 43869408586](https://github.com/SKang393/Graph-auto-reader/actions/runs/43869408586)
+passed from **2026-11-16T12:45:09Z** to **12:55:41Z**: **3,270 .NET passes**,
+30 explicit skips, zero failures; Axis contributed **272/272**. All **89 Rust
+tests**, **44 CI-scope assertions**, 68 packaging checks, 62 version checks,
+six ledger checks, 12 portable checks and nine localization self-tests passed.
+The run used full product validation; release jobs skipped. Owned correctness
+and scoped source integration pass.
 The sole delivered package remains 0.4.58. This source optimization adds no
 native UI, clean-machine, model or automatic-calibration acceptance claim.
 After the concise outcome/source is pushed and CI/review consumers finish,
@@ -121,3 +128,9 @@ retire `artifacts/axis-final-fit-check` and the completed Axis.Tests compiler
 outputs. The run scope plus test output remained below its 100-MB temporary
 budget. Preserve the current package/models, source App/Data, owned native-QA
 inputs, original corpus, protected runtime checkpoint and other tasks' work.
+
+The subsequent App status regression check uses a normal Release build. The
+old ordinary Rust baseline's closed consumers no longer require its generated
+target; that build may update it to current source. Its earlier profile/test
+identity above remains historical evidence, while the source App Debug runtime
+and sole packaged build keep their separate preserved identities.
