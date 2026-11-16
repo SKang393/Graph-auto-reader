@@ -9033,7 +9033,10 @@
     "supersededLocalBuildFilesRetired": 478,
     "supersededLocalBuildBytesRetired": 283926718,
     "supersededRetirementVerifiedUtc": "2026-11-16T01:14:43.1630113Z",
-    "localStagingRetired": false
+    "localStagingRetired": true,
+    "completedStagingFilesRetired": 19,
+    "completedStagingBytesRetired": 87479858,
+    "completedStagingRetirementVerifiedUtc": "2026-11-16T01:23:46.8436013Z"
   }
 }
 ]

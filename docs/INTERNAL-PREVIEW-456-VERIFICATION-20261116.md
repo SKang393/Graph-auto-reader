@@ -127,3 +127,12 @@ verification files, helper and two owned smoke settings, with no active
 consumer. Recheck counts, contained paths, reparse/consumer state and the
 current keeper/shared Data before removal. The uploaded artifact, retained ZIP
 and concise record preserve reproducibility; native QA uses the primary keeper.
+
+Completion record `d5ef9bfe7efd53743c3f26aa13e0fb8c2b048551` was pushed and
+integrated before that cleanup. Both staging directories were absent at
+`2026-11-16T01:23:46.8436013Z`: **19 files / 87,479,858 bytes retired**.
+Fresh inventory, reparse and process-consumer checks passed. All **26 protected
+hashes** remained equal, including the sole keeper ZIP/runtime/model, latest
+pointer, active diagnostic selector/runtime manifest and unrelated primary
+edits. All **16 shared Data files** remained unchanged. Staging/report/helper
+hashes above are historical; the current package and its remote artifact remain.
