@@ -45,6 +45,7 @@ function Test-WindowsCiPermittedPath {
         return $false
     }
     if ($Path -ceq 'docs/BUILD_LEDGER.json') { return $true }
+    if ($Path -ceq 'tools/GraphReader.CalibrationOcrProbe/README.md') { return $true }
     return $Path -cmatch '^docs/(?:[^/]+/)*[^/]+\.md$'
 }
 

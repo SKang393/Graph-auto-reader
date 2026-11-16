@@ -13,7 +13,9 @@ It creates no package and introduces no dependency.
 
 Eligibility requires a push to `refs/heads/main`, matching checked-out HEAD,
 a valid nonzero `event.before`, and a nonempty NUL-delimited Git diff containing
-only additions/modifications of `docs/**/*.md` or `docs/BUILD_LEDGER.json`.
+only additions/modifications of `docs/**/*.md`, `docs/BUILD_LEDGER.json`, or
+the exact developer-tool documentation path
+`tools/GraphReader.CalibrationOcrProbe/README.md`.
 The GitHub API must confirm a completed successful push run of this exact
 `windows-ci.yml` workflow at `event.before`, on main in the same repository.
 This prevents a documentation push from hiding a cancelled source-validation
@@ -68,3 +70,32 @@ The full run's log spans `08:56:04.8922661` to `09:08:57.8161862 UTC`
 `09:21:32.0173908 UTC` (**8m50s**). These are two observed hosted runs, not
 a controlled performance benchmark. The remaining packaging work is deliberate.
 Full product and native acceptance remain separate.
+
+## Exact probe documentation exception
+
+The outcome-only commit `a8fabe1362b406a0dcb81579acd4e61d476e6a5d` changed four
+`docs/*.md` files and the probe README's retirement wording. Its predecessor
+`1c4091cd` had already passed full Windows CI, but this README was outside the
+allowlist, causing `full_changed_path` and another product build. Searches in
+source, tests, packaging, workflows and tools found no runtime, build or
+packaging consumer of this exact developer-usage document.
+
+That pre-correction [run 43867346914](https://github.com/SKang393/Graph-auto-reader/actions/runs/43867346914)
+finished successfully from **2026-11-16T12:31:28Z** to **12:43:06Z**. It ran
+full product validation: **3,258 .NET passes**, 30 explicit skips, 89 Rust passes,
+68 packaging checks and the old 34 classifier assertions, zero failures.
+Release jobs skipped. This verifies the outcome checkpoint, not the subsequent
+classifier correction, and demonstrates the redundant product work directly.
+
+The classifier now permits only that exact case-sensitive README path. It does
+not permit a `tools/**` pattern, other README files, code or project files.
+Existing exact-parent trust, event, diff, status and fail-closed checks remain
+unchanged. The focused command
+`pwsh -NoProfile -File packaging/tests/Test-WindowsCiScope.Tests.ps1` passed
+**44 assertions in 1.5854 s**, exit 0, at **2026-11-16T12:37:40.0539794Z**.
+Added cases cover mixed documentation, missing trusted parent, deletions,
+renames, nearby code/project files, case/backup variants and traversal paths.
+Independent read-only review found no material issue. This changes CI scheduling
+only; source changes still require full product validation and documentation
+reuse still cannot package a release. No runtime, dependency or model changes
+are part of this correction. Hosted validation of the correction is pending.

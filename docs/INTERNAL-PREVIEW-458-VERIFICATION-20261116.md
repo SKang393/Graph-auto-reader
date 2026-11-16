@@ -175,9 +175,13 @@ clean-machine acceptance or complete automatic calibration.
 | Complete framed response, 289 bytes | `7e3d3f890b9d3d88d8e349d2afc85a337f6c294f483b68c39dac7507a7093efd` |
 | Local stdout receipt, 704 bytes | `090d08490e49dc77baea2191737e1b72de66ad863c132bde90cb38b03bec919a` |
 
-After this outcome is pushed, retire only the new remote task scope (**482
-files / 284,056,234 bytes**) and local `artifacts/flex5-458-check` receipts.
-The remote inventory found no reparse points or scoped executable consumers.
-Revalidate exact paths, identities and consumers before removal. Preserve the
-desktop keeper, original owned input, host state and shared Data. No package,
+Outcome `a8fabe1362b406a0dcb81579acd4e61d476e6a5d` reached `origin/main` before
+guarded retirement. At **2026-11-16T12:32:39.1008648Z**, the new remote task scope
+was removed: **482 files / 284,056,234 bytes**. At **12:32:48.3108592Z**, local
+`artifacts/flex5-458-check` was removed: **four files / 12,188 bytes**. Both are
+confirmed absent; these raw paths are historical records, not available inputs.
+Exact paths, reparse ancestors/content, input/result hashes, inventory, Data
+absence and live consumers were rechecked before deletion. The desktop keeper,
+original owned PNG and all sixteen shared Data hashes still match. Host state,
+other work and the ongoing isolated Axis profile were untouched. No package,
 public release, approval change, paid credit or independent reset was created.

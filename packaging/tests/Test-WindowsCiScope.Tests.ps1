@@ -70,6 +70,29 @@ $nestedDocs = Get-Decision -Records ([object[]]@([pscustomobject]@{ Status = 'M'
 Assert-True (-not $nestedDocs.FullProductValidation) 'Nested Markdown outcome should be eligible.'
 $passed++
 
+$probeReadmeRecords = [object[]]@([pscustomobject]@{ Status = 'M'; Path = 'tools/GraphReader.CalibrationOcrProbe/README.md' })
+$probeDocs = Get-Decision -Records ([object[]]($docRecords + $probeReadmeRecords))
+Assert-True (-not $probeDocs.FullProductValidation) 'Probe usage documentation with other outcomes should reuse a verified parent.'
+Assert-Equal $probeDocs.Reason 'docs_only_verified_parent' 'Probe documentation reuse reason.'
+Assert-Equal $probeDocs.ParentCiRunId '45123' 'Probe documentation must retain the exact trusted parent.'
+$passed++
+Assert-Full (Get-Decision -Records $probeReadmeRecords -Runs ([object[]]@())) 'probe README without verified parent'
+Assert-Full (Get-Decision -Records ([object[]]@([pscustomobject]@{ Status = 'D'; Path = 'tools/GraphReader.CalibrationOcrProbe/README.md' }))) 'probe README deletion'
+Assert-Full (Get-Decision -Records ([object[]]@([pscustomobject]@{ Status = 'R100'; Path = 'tools/GraphReader.CalibrationOcrProbe/README.md' }))) 'probe README rename'
+$passed += 3
+foreach ($path in @(
+    'tools/GraphReader.CalibrationOcrProbe/Program.cs',
+    'tools/GraphReader.CalibrationOcrProbe/GraphReader.CalibrationOcrProbe.csproj',
+    'tools/GraphReader.CalibrationOcrProbe/README.md.bak',
+    'tools/GraphReader.CalibrationOcrProbe/README.MD',
+    'tools/GraphReader.Other/README.md',
+    'tools/GraphReader.CalibrationOcrProbe/../README.md'
+)) {
+    $mixed = [object[]]($probeReadmeRecords + @([pscustomobject]@{ Status = 'M'; Path = $path }))
+    Assert-Full (Get-Decision -Records $mixed) "probe README mixed with $path"
+    $passed++
+}
+
 foreach ($case in @(
     @{ Name = 'pull request'; Event = 'pull_request'; Ref = 'refs/pull/8/merge' },
     @{ Name = 'tag'; Event = 'push'; Ref = 'refs/tags/v0.4.58' },
