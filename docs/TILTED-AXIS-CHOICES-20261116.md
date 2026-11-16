@@ -85,8 +85,18 @@ choices actually returned.
 The suite also includes the corrected capacity contract that failed the
 [preceding full CI](INCOMPLETE-AXIS-REVIEW-20261116.md#full-ci-finding). It confirms
 the incomplete prefix does not contain the deliberately unvisited global winner,
-while complete automatic searches still select it. Full CI for this integrated
-correction is pending. No package or model approval is claimed.
+while complete automatic searches still select it.
+
+[Windows CI 43825388409](https://github.com/SKang393/Graph-auto-reader/actions/runs/43825388409)
+passed on integrated source `96f89b0418e605183ce1040ec57c8093cba6cc6f`.
+The job ran from `07:39:50` to `07:48:02 UTC` on November 16. All thirteen .NET
+suites completed with **3,243 passes, zero failures and 30 explicit skips**;
+the main build reported zero warnings/errors. **80 Rust tests**, **62 version
+checks**, **6 ledger checks**, **12 portable-retention tests**, and **68 release
+artifact validation checks** passed, along with localization, bounded host,
+evidence, upload and activation checks. Public-release jobs were correctly
+skipped. This supersedes the preceding failed CI, without changing that failed
+run's record. No package, native visual acceptance or model approval is claimed.
 
 No dependency/license changes; project source remains Apache-2.0. Retire logs,
 TRX and disposable compiler output after the coherent outcome is pushed and

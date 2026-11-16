@@ -32,6 +32,9 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        bool axisChoiceAvailability = args.Length > 0 && args[0] == "--real-dev-axis-choice-availability-check";
+        bool axisChoiceExecutionStarted = false;
+        bool axisChoiceSelfTest = args.Length > 0 && args[0] == "--real-dev-axis-choice-availability-self-test";
         bool ownedAffinePartialProperties = args.Length > 0 && args[0] == "--owned-affine-partial-properties-check";
         bool ownedAffinePartialIndexed = args.Length > 0 && args[0] == "--owned-affine-partial-review-indexed-check";
         bool ownedAffinePartialReview = args.Length > 0 && args[0] == "--owned-affine-partial-review-check";
@@ -94,21 +97,28 @@ internal static class Program
         bool ownedNativeRejection = args.Length > 0 && args[0] == "--owned-native-rejection-check";
         bool ownedNativePruning = args.Length > 0 && args[0] == "--owned-native-pruning-check";
         bool ownedNativeIntersection = args.Length > 0 && args[0] == "--owned-native-intersection-check";
-        bool realDevPrivate = realDevAffineSourceSupport || realDevAffineSpanProperties || realDevAffineTickRefusal || realDevAffineCalibration || realDevNativeAffineTrace || realDevIntervalClusterTrace || realDevIntervalLabelTrace || realDevCachedXRowProperties || realDevNativeRasterEndpointTrace || realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevRankedReviewTrace || realDevExactBoxTickTrace || realDevCachedAxisProperties || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
+        bool realDevPrivate = axisChoiceAvailability || realDevAffineSourceSupport || realDevAffineSpanProperties || realDevAffineTickRefusal || realDevAffineCalibration || realDevNativeAffineTrace || realDevIntervalClusterTrace || realDevIntervalLabelTrace || realDevCachedXRowProperties || realDevNativeRasterEndpointTrace || realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevRankedReviewTrace || realDevExactBoxTickTrace || realDevCachedAxisProperties || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
-        int seconds = ownedAffinePartialProperties ? 30 : ownedAffinePartialReview || ownedAffinePartialIndexed ? 55 : ownedInferenceKey ? 30 : ownedAffineClippedSourceSupport ? 30 : realDevAffineSourceSupport ? 30 : ownedAffineStrokeMask ? 30 : ownedAffineStrokeSampling ? 30 : realDevAffineSpanProperties ? 30 : realDevAffineTickRefusal ? 120 : ownedManualAffineCalibration ? 120 : ownedAffineTickObservation ? 300 : ownedAffineCalibration ? 600 : ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeIntersection ? 150 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck || ownedAffineMarker ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        int seconds = axisChoiceAvailability ? 240 : axisChoiceSelfTest ? 15 : ownedAffinePartialProperties ? 30 : ownedAffinePartialReview || ownedAffinePartialIndexed ? 55 : ownedInferenceKey ? 30 : ownedAffineClippedSourceSupport ? 30 : realDevAffineSourceSupport ? 30 : ownedAffineStrokeMask ? 30 : ownedAffineStrokeSampling ? 30 : realDevAffineSpanProperties ? 30 : realDevAffineTickRefusal ? 120 : ownedManualAffineCalibration ? 120 : ownedAffineTickObservation ? 300 : ownedAffineCalibration ? 600 : ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeIntersection ? 150 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck || ownedAffineMarker ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(ownedAffinePartialProperties ? 35 : ownedAffinePartialReview || ownedAffinePartialIndexed ? 60 : ownedInferenceKey ? 35 : ownedAffineClippedSourceSupport ? 35 : realDevAffineSourceSupport ? 35 : ownedAffineStrokeMask ? 35 : ownedAffineStrokeSampling ? 35 : realDevAffineSpanProperties ? 35 : realDevAffineTickRefusal ? 125 : ownedManualAffineCalibration ? 125 : ownedAffineTickObservation ? 305 : ownedAffineCalibration ? 605 : ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeIntersection ? 155 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck || ownedAffineMarker ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(axisChoiceAvailability ? 245 : axisChoiceSelfTest ? 20 : ownedAffinePartialProperties ? 35 : ownedAffinePartialReview || ownedAffinePartialIndexed ? 60 : ownedInferenceKey ? 35 : ownedAffineClippedSourceSupport ? 35 : realDevAffineSourceSupport ? 35 : ownedAffineStrokeMask ? 35 : ownedAffineStrokeSampling ? 35 : realDevAffineSpanProperties ? 35 : realDevAffineTickRefusal ? 125 : ownedManualAffineCalibration ? 125 : ownedAffineTickObservation ? 305 : ownedAffineCalibration ? 605 : ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeIntersection ? 155 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck || ownedAffineMarker ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--real-dev-axis-choice-availability-self-test"])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                Emit(await RealDevCalibrationCheck.AxisChoiceAvailabilitySelfTestAsync(deadline.Token));
+                return 0;
+            }
+            if (axisChoiceSelfTest) throw new InvalidDataException("Invalid axis-choice self-test arguments.");
             if (args is ["--real-dev-rounded-review-observation-self-test"])
             {
                 Emit(await RealDevCalibrationCheck.RoundedReviewObservationSelfTestAsync(deadline.Token));
@@ -489,10 +499,18 @@ internal static class Program
                 // Every failure in this private mode is sanitized here, before the owned-mode handler.
                 try
                 {
-                    int requiredArguments = realDevAffineSourceSupport ? 10 : realDevAffineSpanProperties ? 9 : realDevAffineTickRefusal ? 8 : realDevAffineCalibration || realDevAxisDecision || realDevCachedAxisProperties || realDevCachedXRowProperties ? 7 : 6;
+                    int requiredArguments = axisChoiceAvailability ? 5 : realDevAffineSourceSupport ? 10 : realDevAffineSpanProperties ? 9 : realDevAffineTickRefusal ? 8 : realDevAffineCalibration || realDevAxisDecision || realDevCachedAxisProperties || realDevCachedXRowProperties ? 7 : 6;
                     if (args.Length != requiredArguments || args[^1] != "--explicit-opt-in")
                         throw new InvalidDataException();
+                    if (axisChoiceAvailability) RealDevCalibrationCheck.RequireAxisChoiceArguments(args);
                     using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                    if (axisChoiceAvailability)
+                    {
+                        axisChoiceExecutionStarted = true;
+                        var outcome = await RealDevCalibrationCheck.RunAxisChoiceAvailabilityAsync(args[1], args[2], args[3], parentBudget, deadline.Token);
+                        Emit(outcome.Report);
+                        return outcome.Completed ? 0 : 1;
+                    }
                     if (realDevAffineSourceSupport)
                     {
                         var outcome = await RealDevCalibrationCheck.RunAffineSourceSupportAsync(args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], parentBudget, deadline.Token);
@@ -656,6 +674,11 @@ internal static class Program
                 }
                 catch (Exception)
                 {
+                    if (axisChoiceAvailability)
+                    {
+                        Emit(RealDevCalibrationCheck.AxisChoiceAvailabilityBlocked(axisChoiceExecutionStarted));
+                        return 1;
+                    }
                     if (realDevDirectional)
                     {
                         Emit(new { schema = "graphreader.real-dev-directional-association-trace.v1",
@@ -1028,6 +1051,11 @@ internal static class Program
         }
         catch (Exception error)
         {
+            if (axisChoiceAvailability)
+            {
+                Emit(RealDevCalibrationCheck.AxisChoiceAvailabilityBlocked(axisChoiceExecutionStarted));
+                return 1;
+            }
             if (realDevPrivate)
             {
                 Emit(new { error = "REAL_DEV_CALIBRATION_CHECK_FAILED", review_only = true });

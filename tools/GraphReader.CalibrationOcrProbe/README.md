@@ -547,3 +547,21 @@ unattempted cases are reported. The existing CPU cap and 30/35-second limits
 apply. No model file, provider discovery, inference session, image or private
 input is accessed. A paired comparison must retain the original report and use
 the same runner and tensors; it does not measure OCR or application latency.
+
+`--real-dev-axis-choice-availability-check <absolute-corpus-root> <absolute-source-App.exe> <absolute-keeper-Rust.exe> --explicit-opt-in`
+is a separate image-only check of explicit axis choices. It binds the tested
+`96f89b04` source runtime, the packaged 457 Rust worker and the retained first
+twelve projects of the fixed 120-development/51-excluded assignment before
+processing. Every prepared panel, or a full-image fallback only on the existing
+no-panel result, contributes to complete/incomplete/unavailable and failure
+accounting. Only `ReviewCandidatesAsync` runs: no normal geometry suggestion,
+OCR, tick measurement, numeric fitting, truth comparison or candidate selection.
+The parent has a half-core CPU cap, with 45 seconds per project and 240/245
+seconds overall. The output contains aggregate counts and identities, never
+coordinates, text, images or private source paths. Availability is not accuracy.
+
+`--real-dev-axis-choice-availability-self-test` exercises pin/split refusals,
+the explicit opt-in guard, in-memory image-only extraction and fake review
+outcome accounting. It reads no private payload, invokes no native worker or
+model, and is included in Windows CI. Record and review an actual development
+attempt before considering any rerun; this command is not a benchmark loop.

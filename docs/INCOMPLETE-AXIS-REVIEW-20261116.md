@@ -118,7 +118,11 @@ after full enumeration. The correction will be validated with the in-progress
 tilted-choice batch and then full CI; no failure is reclassified as a pass.
 The [integrated tilted-choice App run](TILTED-AXIS-CHOICES-20261116.md) subsequently
 passed **1,338 tests**, including that corrected contract, with zero failures or
-skips. A superseding full CI pass is still required.
+skips. Its superseding full Windows CI, run **43825388409** on
+`96f89b0418e605183ce1040ec57c8093cba6cc6f`, then passed **3,243 .NET tests**,
+with zero failures and 30 explicit skips, plus **80 Rust tests** and the full
+packaging validation job. See the linked tilted-choice record for the exact
+job and timing. The original failed run remains a failure.
 
 No dependencies or licenses changed. Project-authored source is Apache-2.0.
 After the outcome is pushed and CI/review consumers finish, retire this batch's

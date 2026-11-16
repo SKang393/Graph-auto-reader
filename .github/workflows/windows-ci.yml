@@ -145,6 +145,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Affine span property replay and perpendicular clipping self-tests failed.' }
           dotnet tools/GraphReader.CalibrationOcrProbe/bin/Release/net10.0-windows/win-x64/GraphReader.CalibrationOcrProbe.dll --real-dev-affine-source-support-self-test
           if ($LASTEXITCODE -ne 0) { throw 'Affine original support mapping and bounded connectivity self-tests failed.' }
+          dotnet tools/GraphReader.CalibrationOcrProbe/bin/Release/net10.0-windows/win-x64/GraphReader.CalibrationOcrProbe.dll --real-dev-axis-choice-availability-self-test
+          if ($LASTEXITCODE -ne 0) { throw 'Axis choice availability selection and accounting self-tests failed.' }
 
       - name: Test in-memory OCR metric accounting
         shell: pwsh

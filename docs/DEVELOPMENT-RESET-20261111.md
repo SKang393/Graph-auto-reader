@@ -108,7 +108,16 @@ corrected without changing the work bound. The next
 [tilted-choice integration](TILTED-AXIS-CHOICES-20261116.md) preserves fitted
 original anchors in the chooser and reuses affine label review/Apply/Undo.
 Its full App suite passed 1,338 tests with no failures/skips, including the
-capacity correction. Superseding full CI is pending; the package remains 0.4.57.
+capacity correction. Superseding full Windows CI on `96f89b04` passed 3,243
+.NET tests, 80 Rust tests and 68 packaging checks, with 30 expected skips and
+zero failures; the package remains 0.4.57. The single
+[image-only availability check](AXIS-CHOICE-AVAILABILITY-20261116.md) completed
+the retained twelve development examples in 16.515 seconds: six complete and
+six visibly incomplete searches returned choices, with no terminal failures.
+All source/metadata digests matched. The 465 rectangular and 390 affine
+alternatives are not correctness measurements; no normal Suggest, downstream
+tick/OCR/fit, truth read or candidate selection ran. Do not repeat this unchanged
+check for packaging or UI work.
 The
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
 is implemented in source.
