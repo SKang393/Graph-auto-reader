@@ -3,7 +3,7 @@
 
 namespace GraphReader.Integration.Tests.Validation.Core.Metrics;
 
-public sealed record CsvPoint(string RowId, double XValue, double YValue, string PhaseCode);
+public sealed record CsvPoint(string RowId, double XValue, double YValue, string PhaseCode, string? SeriesId = null);
 
 public sealed record CsvMetricInput(
     MetricCaseIdentity Identity,
@@ -53,6 +53,8 @@ public static class CsvMetricsCalculator
         ValidateRows(input.Expected, nameof(input.Expected));
         ValidateRows(input.Actual, nameof(input.Actual));
 
+        ValidateCorrespondence(input);
+
         var xAligned = OneToOneMatcher.MatchByCost(
             input.Expected.Count,
             input.Actual.Count,
@@ -60,7 +62,8 @@ public static class CsvMetricsCalculator
             {
                 var difference = Math.Abs(
                     input.Expected[expectedIndex].XValue - input.Actual[actualIndex].XValue);
-                return difference <= input.XTolerance ? difference : null;
+                return SameSeries(input.Expected[expectedIndex], input.Actual[actualIndex]) &&
+                    difference <= input.XTolerance ? difference : null;
             });
         var pointMatches = OneToOneMatcher.MatchByCost(
             input.Expected.Count,
@@ -71,7 +74,8 @@ public static class CsvMetricsCalculator
                     input.Expected[expectedIndex].XValue - input.Actual[actualIndex].XValue);
                 var yDifference = Math.Abs(
                     input.Expected[expectedIndex].YValue - input.Actual[actualIndex].YValue);
-                if (xDifference > input.XTolerance || yDifference > input.YTolerance)
+                if (!SameSeries(input.Expected[expectedIndex], input.Actual[actualIndex]) ||
+                    xDifference > input.XTolerance || yDifference > input.YTolerance)
                 {
                     return null;
                 }
@@ -174,6 +178,45 @@ public static class CsvMetricsCalculator
         return failures;
     }
 
+    private static bool SameSeries(CsvPoint expected, CsvPoint actual) =>
+        string.Equals(expected.SeriesId, actual.SeriesId, StringComparison.Ordinal);
+
+    private static void ValidateCorrespondence(CsvMetricInput input)
+    {
+        // Y values and phase labels are outcomes being measured, not alignment keys.
+        // Reject ambiguous X matches instead of letting input order choose the score.
+        var rows = input.Expected.Concat(input.Actual);
+        if (rows.Any(row => row.SeriesId is not null) && rows.Any(row => row.SeriesId is null))
+        {
+            throw new ArgumentException("CSV series identity must be supplied for every row or omitted for every row.", nameof(input));
+        }
+
+        var actualDegrees = new int[input.Actual.Count];
+        foreach (var expected in input.Expected)
+        {
+            var expectedDegree = 0;
+            for (var i = 0; i < input.Actual.Count; i++)
+            {
+                if (SameSeries(expected, input.Actual[i]) &&
+                    Math.Abs(expected.XValue - input.Actual[i].XValue) <= input.XTolerance)
+                {
+                    expectedDegree++;
+                    actualDegrees[i]++;
+                }
+            }
+
+            if (expectedDegree > 1)
+            {
+                throw new ArgumentException("Ambiguous CSV X correspondence. Supply stable series IDs or a narrower X tolerance; Y and phase scores cannot resolve alignment.", nameof(input));
+            }
+        }
+
+        if (actualDegrees.Any(degree => degree > 1))
+        {
+            throw new ArgumentException("Ambiguous CSV X correspondence. Supply stable series IDs or a narrower X tolerance; Y and phase scores cannot resolve alignment.", nameof(input));
+        }
+    }
+
     private static void ValidateRows(IReadOnlyList<CsvPoint> rows, string parameterName)
     {
         var identifiers = new HashSet<string>(StringComparer.Ordinal);
@@ -183,6 +226,11 @@ public static class CsvMetricsCalculator
             if (string.IsNullOrWhiteSpace(row.RowId) || string.IsNullOrWhiteSpace(row.PhaseCode))
             {
                 throw new ArgumentException("CSV row IDs and phase codes must be non-empty.", parameterName);
+            }
+
+            if (row.SeriesId is not null && string.IsNullOrWhiteSpace(row.SeriesId))
+            {
+                throw new ArgumentException("CSV series IDs must be non-empty when supplied.", parameterName);
             }
 
             if (!identifiers.Add(row.RowId))
