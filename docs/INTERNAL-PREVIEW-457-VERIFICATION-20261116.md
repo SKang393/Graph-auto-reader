@@ -113,3 +113,65 @@ After its concise outcome is pushed and consumers finish, retire local staging
 `%LOCALAPPDATA%/GraphAutoReaderValidation/preview457/calibration-review-20261116`.
 The sole local keeper and uploaded artifact preserve the package. Keep original
 images, owned native-QA inputs, protected runtime checkpoint and current models.
+
+Delivery commit `4126addb1069c1f94142c4901cb8f0b3d1ea6629` was verified on
+origin/main and fast-forwarded into the primary checkout before activation.
+The reusable helper's read-only preflight passed in **21.6282088 s**. Activation
+then succeeded once in **7.9119115 s**, at `2026-11-16T05:31:26.6280886Z`, with
+all **477 payload files** and **16 shared Data files** checked and the old keeper
+preserved. New pointer SHA-256:
+`85930a01639b9af3909e59a3f179d4190cde35ce01c7150e3021968abf79c0a1`.
+
+The actual primary `packaging/Run-Latest-DevPortable.cmd -Wait -PortableSmoke`
+selected 0.4.57 and passed: **exit 0 / 3,236.2427 ms**, 279 informational stdout
+bytes, empty stderr, all sixteen shared Data files unchanged. The retained
+identity contains **478 files / 284,026,401 bytes**, including its ZIP under
+`packages/`, with no internal Data directory. No native window was exercised.
+
+After this activation record is pushed, retire the exact old 0.4.56 directory
+(**478 files / 284,011,831 bytes**) after a fresh full archive/tree match and
+process/path/keeper/Data checks. Local completed 457 staging contains **20 files /
+87,486,365 bytes**; the completed Flex5-check script adds **one file / 5,161 bytes**.
+Neither contains an active consumer. The temporary activation receipts and
+retirement manifest remain until their result has been recorded and pushed.
+
+The same closeout covers the completed owned/source-validation outputs below.
+Their source and concise outcomes are already pushed; the packaged-worker
+consumer has finished. Fresh exact file hashes, no tracked paths, canonical
+containment, no reparse points and no executable/command-line consumers must
+still pass immediately before removal.
+
+| Closed local scope | Files | Bytes |
+| --- | ---: | ---: |
+| `artifacts/affine-source-bridge-check` | 13 | 55,143 |
+| `artifacts/inference-key-hash-check` | 20 | 290,388 |
+| `artifacts/tensor-pool-bound-check` | 9 | 179,175 |
+| `artifacts/affine-review-partial-check` | 32 | 1,983,483 |
+| `tests/GraphReader.App.Tests/bin` | 205 | 53,246,287 |
+| `tests/GraphReader.App.Tests/obj` | 23 | 4,460,353 |
+| `tests/GraphReader.Inference.Tests/bin` | 166 | 43,190,631 |
+| `tests/GraphReader.Inference.Tests/obj` | 23 | 694,560 |
+| Total | 491 | 104,100,020 |
+
+Their temporary manifest SHA-256 is
+`6bea6c3e1877c98a35b208e26d93a0da33db4ca5809d5238800de2c9ea144b0f`.
+The probe compiler output is excluded from this scope. Source App Data, original
+data, owned native-QA images, current runtime/model files, the protected
+`artifacts/axis-correction-affine-check/runtime-pins.json` and unrelated primary
+edits are preserved. Artifact hashes in the individual outcome documents remain
+historical reproduction records after the indicated raw outputs are retired.
+
+The combined local retirement preflight binds **990 files / 475,603,377 bytes**,
+with manifest SHA-256
+`6999ac3de35ecc57fdc76e6b00f6ef1c30e41e5946219c86d6f5851a0a41b1b6`.
+Its first read-only invocation used the worktree for a tracked-file query on the
+primary build path and refused that out-of-repository path before mutation.
+Using each target's actual repository corrected that guard; the subsequent
+inventory passed with eleven immutable file guards and sixteen shared Data files.
+The protected runtime checkpoint is outside every deletion target.
+
+The separate, task-created Flex5 scope contains **480 files / 284,026,407 bytes**:
+the verified 477-file payload, its ZIP and two three-byte smoke settings. Its
+retirement requires fresh matching payload/ZIP hashes, exact setting hashes,
+contained paths without reparse points and no consumers. Preserve the unrelated
+older VM, media, user data and all other validation roots.

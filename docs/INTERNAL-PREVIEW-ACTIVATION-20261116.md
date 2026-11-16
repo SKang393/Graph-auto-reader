@@ -55,3 +55,14 @@ No dependency, license, model, application contract or package version changes
 are required. Both source files carry Apache-2.0 notices. Temporary fixture
 repositories are removed after the controls complete; originals and active
 packages are outside their scope.
+
+Commits `3970a0e6` (helper) and `4126addb1069c1f94142c4901cb8f0b3d1ea6629`
+(delivery record) are pushed to main. The latter passed
+[full Windows CI 43810577712](https://github.com/SKang393/Graph-auto-reader/actions/runs/43810577712),
+job `133111123518`, including the new activation transaction controls, all
+**3,220 .NET tests**, **80 Rust tests** and **68 packaging verification controls**,
+with **30 expected .NET skips** and zero failures. The primary build had zero
+warnings/errors; separate packaging fixture builds emitted 68 nullable-context
+warning annotations. The invalid-scope control's Git refusal was expected.
+Actual 0.4.57 inspection, activation and launcher verification subsequently
+succeeded as recorded in its [delivery outcome](INTERNAL-PREVIEW-457-VERIFICATION-20261116.md).

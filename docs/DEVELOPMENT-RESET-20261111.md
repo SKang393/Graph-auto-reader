@@ -4,7 +4,7 @@
 # Development direction, 2026-11-11
 
 Current state, 2026-11-16 UTC: the sole delivered package is
-[**0.4.56**](INTERNAL-PREVIEW-456-VERIFICATION-20261116.md). The
+[**0.4.57**](INTERNAL-PREVIEW-457-VERIFICATION-20261116.md). The
 [tilted-axis source checkpoint](NATIVE-AFFINE-AXIS-REVIEW-20261115.md)
 `4fcf0b69e7a39e032fb862327b55d5aad9cdd3d1` has successful full Windows CI.
 The fixed development geometry diagnostic returns eight rectangles, one affine
@@ -82,10 +82,11 @@ changes justify the single prepared 0.4.57 preview, without another unchanged
 private comparison. Exact-head Windows CI on `4db78d87` passed 3,220 .NET tests,
 80 Rust tests and 68 packaging checks, with 30 expected skips and zero failures.
 The single [hosted 0.4.57 build](INTERNAL-PREVIEW-457-VERIFICATION-20261116.md)
-is uploaded and hash-verified. Desktop and existing Flex5 headless checks pass,
-as do both owned PNG controls against its packaged Rust worker. Activation is
-pending the pushed delivery ledger; 0.4.56 remains the current pointer until
-that guarded switch. The
+is uploaded, hash-verified and activated after the delivery ledger was pushed.
+Desktop and existing Flex5 headless checks pass, as do both owned PNG controls
+against its packaged Rust worker and the actual latest-build launcher. All
+sixteen shared Data files are unchanged. Old-build/output retirement follows
+the pushed activation record. The
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
 is implemented in source.
 Its local solution tests and actual one-call worker check now pass, preserving

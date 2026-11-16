@@ -9108,7 +9108,7 @@
     "nativeReviewReport": null,
     "visualWorkflowChecked": false,
     "visualWorkflowScope": "Tilted-frame, corrected-axis, calibration review and marker interactions remain unverified because Computer Use still reports a physical Escape stop despite renewed authorization and no new Escape.",
-    "latestActivationPending": true,
+    "latestActivationPending": false,
     "existingWindowsLaptopChecked": true,
     "existingWindowsLaptopScope": "Existing Flex5 host; all 477 payload hashes, exact source/version/Rust identity and hidden isolated-data startup checks. No native UI, clean VM, installer or OCR/model inference.",
     "existingWindowsLaptopPortableSmokeExitCode": 0,
@@ -9118,6 +9118,14 @@
     "existingWindowsLaptopVerifiedUtc": "2026-11-16T05:20:30.8101522Z",
     "cleanWindowsVmChecked": false,
     "productionApproved": false,
+    "latestActivatedUtc": "2026-11-16T05:31:26.6280886Z",
+    "latestPointerSha256": "85930a01639b9af3909e59a3f179d4190cde35ce01c7150e3021968abf79c0a1",
+    "latestLauncherSmokeExitCode": 0,
+    "latestLauncherSmokeMilliseconds": 3236.2427,
+    "activationSharedDataFilesPreserved": 16,
+    "retainedFiles": 478,
+    "retainedBytes": 284026401,
+    "launcherWrapperRequired": true,
     "supersededLocalBuild": "0.4.56-20261116T005249234Z-472b715f",
     "supersededRetirementPending": true
   }
