@@ -64,10 +64,22 @@ The subsequent two-control owned audit also closed without a production bridge:
 positive-weight endpoint contributors fell outside the unchanged clipping in
 both controls, so source connectivity was deliberately not searched. This is an
 eligibility refusal, not proof of disconnection. No window widening, threshold
-change or additional private comparison follows. Repeated-read performance is
-being checked independently; existing worker/model-session reuse is already
-implemented and must not be rebuilt as a supposed new optimization.
-No new package is required. The
+change or additional private comparison follows. Repeated-read performance has
+a [bounded source repair](INFERENCE-RESOURCE-EFFICIENCY-20261116.md):
+chunked hashing preserves exact keys, and each model session bounds idle tensor
+retention to eight entries and 16 MiB of actual pooled capacity. The fixed
+owned hashing comparison observed 2.48 to 0.60 ms for one tensor and 38.98 to
+1.60 ms for a batch of sixteen; these are not end-to-end OCR timings. Existing
+worker/model-session reuse was already implemented. A separate
+[review-path extension](AFFINE-REVIEW-PARTIAL-TICKS-20261116.md) preserves the
+independently measured side of an automatically suggested affine frame during
+explicit label review. Native provenance, missing-value and fresh-review gates
+remain; production automatic acceptance and rectangular measurement stay strict.
+The unchanged-source regression failed both owned one-axis cases as expected;
+the repaired full App suite passed 1,325/1,325 with no failures or skips and all
+eleven protected hashes unchanged. These accumulated usability and resource
+changes justify the single prepared 0.4.57 preview after exact-head CI,
+without another unchanged private comparison. The
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
 is implemented in source.
 Its local solution tests and actual one-call worker check now pass, preserving

@@ -306,10 +306,11 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
         AxisTickMeasurementResult? measurementReceipt = null;
         if (attempted)
         {
-            bool manualPartial = suggestion.IsUserDefined && suggestion.Provider == "manual";
-            AxisTickMeasurementResult measurement = manualPartial
-                ? await _axisTickMeasurementService!.MeasureManualPartialAsync(prepared.Image, geometry, token)
-                : await _axisTickMeasurementService!.MeasureAsync(prepared.Image, geometry, token);
+            // The compatible manual-partial API denotes label-review semantics.
+            // Keeping independently observed ticks does not approve this frame;
+            // automatic provenance and the existing review/Apply gates remain.
+            AxisTickMeasurementResult measurement = await _axisTickMeasurementService!
+                .MeasureManualPartialAsync(prepared.Image, geometry, token);
             measurementReceipt = measurement;
             token.ThrowIfCancellationRequested();
             if (!CanReadCalibrationLabels || !IsAxisSuggestionCurrent(suggestion)) return null;

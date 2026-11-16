@@ -388,6 +388,7 @@ public sealed partial class RectifiedCalibrationTests
         internal int Calls { get; private set; }
         internal int ManualPartialCalls { get; private set; }
         internal string? PartialSide { get; set; }
+        internal bool StrictRefusePartial { get; set; }
         internal string? EvidenceFault { get; set; }
         internal byte[]? Image { get; private set; }
         internal int[] X { get; private set; } = [];
@@ -408,7 +409,8 @@ public sealed partial class RectifiedCalibrationTests
                 new(box.Left + (EvidenceFault == "box" ? 1 : 0), box.Bottom, box.Right, box.Top,
                     manualPartial && (PartialSide is "Y" or "none") ? [] : X,
                     manualPartial && (PartialSide is "X" or "none") ? [] : Y), null);
-            if (EvidenceFault == "none") result = result with { Evidence = null, ErrorCode = "AXIS_BOX_NOT_OBSERVED" };
+            if (EvidenceFault == "none" || !manualPartial && StrictRefusePartial && (PartialSide is "X" or "Y"))
+                result = result with { Evidence = null, ErrorCode = "AXIS_BOX_NOT_OBSERVED" };
             Result = result;
             return Pending?.Task ?? Task.FromResult(result);
         }

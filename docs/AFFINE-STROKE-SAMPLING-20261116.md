@@ -229,3 +229,13 @@ After this source/outcome push and CI review, retire the two-control output tree
 its now-consumed baseline and inactive probe compiler outputs. The protected
 `runtime-pins.json` checkpoint, current source compiler inputs, originals and sole
 package remain outside cleanup. No dependency, model, schema or license changed.
+
+Exact-head Windows CI
+[43802859659](https://github.com/SKang393/Graph-auto-reader/actions/runs/43802859659)
+passed on `19fec01e48ebce2102c33621c954bb6947490ccc` in **10 min 49 s**:
+**3,203 .NET tests passed**, **30 expected skips**, zero failures; **80 Rust**,
+**68 packaging** and **9 localization** checks passed. The source-support
+self-test passed all five controls with zero private reads and worker calls.
+Both release jobs were skipped. The probe compiler output is temporarily active
+for the separate fixed tensor-key comparison, so it is excluded from retirement
+until that consumer closes.
