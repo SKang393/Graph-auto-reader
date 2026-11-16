@@ -2,7 +2,6 @@
   "schema_version": 1,
   "policy_id": "graphreader-evidence-policy",
   "policy_revision": "2026-08-19",
-  "authoritative_source": "AGENTS.md Section 7",
   "splits": {
     "train": {
       "training_permitted": true,
@@ -52,7 +51,9 @@
       "graph_optimization": "ORT_ENABLE_ALL"
     },
     "sealed": {
-      "allowed_providers": ["CPUExecutionProvider"],
+      "allowed_providers": [
+        "CPUExecutionProvider"
+      ],
       "cpu_fallback_required": true,
       "graph_optimization": "ORT_DISABLE_ALL"
     }
@@ -81,11 +82,6 @@
     "sealed_requires_dev_margin": true,
     "stop_after_three_same_gate_failures_within_fraction": 0.01
   },
-  "promotion": {
-    "sealed_gate_pass_opens_promotion": true,
-    "manifest_store_and_packaging_are_same_session": true,
-    "maintainer_approval_required_only_for_final_production_switch": true
-  },
   "revision_protocol_contract": {
     "reference_field": "evidence_policy",
     "allowed_declarations": [
@@ -96,5 +92,6 @@
       "acceptance_bar",
       "budget"
     ]
-  }
+  },
+  "document_revision": "2026-11-16"
 }
