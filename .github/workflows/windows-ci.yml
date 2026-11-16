@@ -133,6 +133,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Calibration OCR host build failed.' }
           dotnet tools/GraphReader.CalibrationOcrProbe/bin/Release/net10.0-windows/win-x64/GraphReader.CalibrationOcrProbe.dll --self-test
           if ($LASTEXITCODE -ne 0) { throw 'Calibration OCR host self-tests failed.' }
+          dotnet tools/GraphReader.CalibrationOcrProbe/bin/Release/net10.0-windows/win-x64/GraphReader.CalibrationOcrProbe.dll --real-dev-affine-tick-refusal-self-test
+          if ($LASTEXITCODE -ne 0) { throw 'Affine tick refusal selection and wire self-tests failed.' }
 
       - name: Test in-memory OCR metric accounting
         shell: pwsh

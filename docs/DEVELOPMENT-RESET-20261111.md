@@ -28,8 +28,14 @@ The three remaining geometry budget refusals have no demonstrated safe pruning
 fix: the current search already prunes impossible envelopes and contacts while
 retaining complete ranking. Do not repeat unchanged private comparisons or drop
 possible winners to manufacture coverage. The bounded owned tick diagnostic did
-not reproduce the affine refusal. Continue with
-[marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md).
+not reproduce the affine refusal. The subsequent
+[single typed refusal diagnosis](AXIS-BOX-REFUSAL-DIAGNOSTIC-20261116.md)
+identifies an unobserved X-axis span: the origin passes and bridge work does not
+exhaust its cap. Y/tick scanning is unattempted. Its compact local selector is
+retained for a one-frame gap/connectivity property audit without another
+twelve-project geometry or OCR pass. The
+[marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
+is implemented in source.
 Its local solution tests and actual one-call worker check now pass, preserving
 original-pixel matching and exact plot containment. Its source/outcome commit
 `5920ebc2ddbf23dad73951c8e6e534cce9eeda30` is pushed with successful exact-head Windows CI;

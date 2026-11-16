@@ -453,3 +453,18 @@ limits are unchanged. Each row retains interval-position provenance and adds
 returns a valid number. No row is silently excluded and no draft is applied.
 Run `--real-dev-interval-cluster-trace-self-test` before the authorized changed-stage
 confirmation. This does not authorize historical baseline reruns or sealed reads.
+
+`--real-dev-affine-tick-refusal <corpus-root> <absolute-App-exe> <asset-root> <baseline-Rust-worker> <diagnostic-Rust-worker> <new-selector-json> --explicit-opt-in`
+is a separate pinned diagnosis of supplied-box tick refusal. It executes and
+counts the fixed first twelve development projects' unchanged geometry prefix,
+requires its complete source digest and exactly one accepted affine frame,
+then rectifies and invokes the explicit Rust tick diagnostic once. It performs
+no OCR, fitting, truth scoring, Apply, export or image writes. The created-new
+selector is private local metadata and remains an active diagnosis input until
+its consumer finishes; never commit it. The aggregate stdout distinguishes
+unattempted stages and observed refusals. Run
+`--real-dev-affine-tick-refusal-self-test` before the authorized invocation.
+The limits are 120 seconds overall, 45 seconds per project and five seconds for
+the diagnostic worker, with the existing capped parent/worker policy. This mode
+does not authorize unchanged historical comparisons, threshold selection or
+sealed reads. See [the outcome](../../docs/AXIS-BOX-REFUSAL-DIAGNOSTIC-20261116.md).

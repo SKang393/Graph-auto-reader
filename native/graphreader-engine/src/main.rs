@@ -638,12 +638,44 @@ fn review_response(proposals: &[Proposal]) -> Result<String, &'static str> {
 // A caller-supplied box is never shifted or expanded to another candidate.
 // Only pixels within its spans establish axes and band thickness; the small
 // region outside the box is sampled solely for outward tick strokes.
+#[cfg(test)]
 fn measure_box_ticks(width: usize, height: usize, channels: usize, pixels: &[u8],
     left: usize, bottom: usize, right: usize, top: usize) -> Result<(Vec<u32>, Vec<u32>), &'static str>
+{
+    measure_box_ticks_with_diagnostic(width, height, channels, pixels, left, bottom, right, top, None)
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct TickMeasureDiagnostic {
+    stage: &'static str,
+    seed_gray_sum: Option<u32>,
+    channels: Option<usize>,
+    bridge_work: Option<usize>,
+}
+impl Default for TickMeasureDiagnostic {
+    fn default() -> Self { Self { stage: "UNATTEMPTED", seed_gray_sum: None, channels: None, bridge_work: None } }
+}
+impl TickMeasureDiagnostic {
+    fn line(&self) -> String {
+        let seed = self.seed_gray_sum.map_or_else(|| "-".to_string(), |v| v.to_string());
+        let channels = self.channels.map_or_else(|| "-".to_string(), |v| v.to_string());
+        let work = self.bridge_work.map_or_else(|| "-".to_string(), |v| v.to_string());
+        format!("TICKDIAG1 {} seed_gray_sum={seed} channels={channels} bridge_work={work}", self.stage)
+    }
+}
+
+fn measure_box_ticks_with_diagnostic(width: usize, height: usize, channels: usize, pixels: &[u8],
+    left: usize, bottom: usize, right: usize, top: usize,
+    mut diagnostic: Option<&mut TickMeasureDiagnostic>) -> Result<(Vec<u32>, Vec<u32>), &'static str>
 {
     if !(32..=4096).contains(&width) || !(32..=4096).contains(&height) || !matches!(channels, 1 | 3)
         || width.checked_mul(height).filter(|&n| n <= MAX_PIXELS).and_then(|n| n.checked_mul(channels)) != Some(pixels.len())
         || left >= right || top >= bottom || right >= width || bottom >= height { return Err("INVALID_INPUT"); }
+    let input_channels = channels;
+    let seed_gray_sum = diagnostic.as_ref().map(|_| {
+        let seed_start = (bottom * width + left) * channels;
+        pixels[seed_start..seed_start + channels].iter().map(|&value| u32::from(value)).sum()
+    });
     // Match the existing native line provider's strong-ink criterion only for
     // this explicitly supplied box. Keep global proposal/review pixels intact.
     const MAXIMUM_INK_GRAY: u32 = 200;
@@ -656,13 +688,45 @@ fn measure_box_ticks(width: usize, height: usize, channels: usize, pixels: &[u8]
     BRIDGE_WORK.with(|work| work.set(0));
     BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
     let dark = |x: usize, y: usize| is_dark(pixels, (y * width + x) * channels, channels);
-    if !dark(left, bottom) { return Err("AXIS_BOX_NOT_OBSERVED"); }
+    if let Some(trace) = diagnostic.as_deref_mut() {
+        trace.seed_gray_sum = seed_gray_sum;
+        trace.channels = Some(input_channels);
+        trace.stage = "ORIGIN_CHECK";
+    }
+    if !dark(left, bottom) {
+        if let Some(trace) = diagnostic.as_deref_mut() { trace.stage = "ORIGIN_NOT_INK"; }
+        return Err("AXIS_BOX_NOT_OBSERVED");
+    }
+    if let Some(trace) = diagnostic.as_deref_mut() { trace.stage = "ORIGIN_OBSERVED"; }
     let clip = Some((left, top, right, bottom));
-    let x_bridges = observed_axis_span_clipped(pixels, width, height, channels, bottom, left, right, true, clip)
-        .ok_or("AXIS_BOX_NOT_OBSERVED")?;
-    let y_bridges = observed_axis_span_clipped(pixels, width, height, channels, left, top, bottom, false, clip)
-        .ok_or("AXIS_BOX_NOT_OBSERVED")?;
-    if BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) { return Err("AXIS_BOX_NOT_OBSERVED"); }
+    let x_bridges = match observed_axis_span_clipped(pixels, width, height, channels, bottom, left, right, true, clip) {
+        Some(bridges) => bridges,
+        None => {
+            if let Some(trace) = diagnostic.as_deref_mut() {
+                trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
+                trace.stage = if BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) { "X_BRIDGE_BUDGET" } else { "X_SPAN_UNOBSERVED" };
+            }
+            return Err("AXIS_BOX_NOT_OBSERVED");
+        }
+    };
+    if let Some(trace) = diagnostic.as_deref_mut() {
+        trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
+        trace.stage = "X_SPAN_OBSERVED";
+    }
+    let y_bridges = match observed_axis_span_clipped(pixels, width, height, channels, left, top, bottom, false, clip) {
+        Some(bridges) => bridges,
+        None => {
+            if let Some(trace) = diagnostic.as_deref_mut() {
+                trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
+                trace.stage = if BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) { "Y_BRIDGE_BUDGET" } else { "Y_SPAN_UNOBSERVED" };
+            }
+            return Err("AXIS_BOX_NOT_OBSERVED");
+        }
+    };
+    if let Some(trace) = diagnostic.as_deref_mut() {
+        trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
+        trace.stage = "SPANS_OBSERVED";
+    }
 
     let mut rows = vec![0usize; height];
     let mut cols = vec![0usize; width];
@@ -686,10 +750,24 @@ fn measure_box_ticks(width: usize, height: usize, channels: usize, pixels: &[u8]
         TickScan::Absent => y_tick_positions(pixels, width, channels, left, top, bottom, axis_top, &cols, true, y_limit, &y_bridges, y_bounds).positions(),
         scan => scan.positions(),
     };
+    if let Some(trace) = diagnostic.as_deref_mut() {
+        trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
+        trace.stage = "TICKS_MEASURED";
+    }
     Ok((x, y))
 }
 
-fn process_measure_ticks(mut input: impl Read) -> Result<String, &'static str> {
+fn process_measure_ticks(input: impl Read) -> Result<String, &'static str> {
+    process_measure_ticks_inner(input, None)
+}
+
+fn process_measure_ticks_diagnostic(input: impl Read) -> (Result<String, &'static str>, TickMeasureDiagnostic) {
+    let mut diagnostic = TickMeasureDiagnostic::default();
+    let result = process_measure_ticks_inner(input, Some(&mut diagnostic));
+    (result, diagnostic)
+}
+
+fn process_measure_ticks_inner(mut input: impl Read, diagnostic: Option<&mut TickMeasureDiagnostic>) -> Result<String, &'static str> {
     let mut header = [0u8; 36];
     input.read_exact(&mut header).map_err(|_| "INVALID_PROTOCOL")?;
     if &header[..4] != b"GRT1" { return Err("INVALID_PROTOCOL"); }
@@ -702,7 +780,7 @@ fn process_measure_ticks(mut input: impl Read) -> Result<String, &'static str> {
     input.read_exact(&mut pixels).map_err(|_| "INVALID_PROTOCOL")?;
     let mut trailing = [0];
     if input.read(&mut trailing).map_err(|_| "INVALID_PROTOCOL")? != 0 { return Err("INVALID_PROTOCOL"); }
-    let (x, y) = measure_box_ticks(w, h, c, &pixels, left, bottom, right, top)?;
+    let (x, y) = measure_box_ticks_with_diagnostic(w, h, c, &pixels, left, bottom, right, top, diagnostic)?;
     let list = |values: &[u32]| if values.is_empty() { "-".to_string() } else { values.iter().map(u32::to_string).collect::<Vec<_>>().join(",") };
     Ok(format!("TICKS1 {left} {bottom} {right} {top} {} {}\n", list(&x), list(&y)))
 }
@@ -818,9 +896,23 @@ fn main() {
         Err(reason) => { println!("ERR {reason}"); std::process::exit(1); }
     };
     if measure {
-        match set_budget().and_then(|_| process_measure_ticks(io::stdin().lock())) {
-            Ok(response) => print!("{response}"),
-            Err(reason) => { println!("ERR {reason}"); std::process::exit(1); }
+        if measure_diagnostics_requested(&args) {
+            let (result, diagnostic) = match set_budget() {
+                Ok(_) => process_measure_ticks_diagnostic(io::stdin().lock()),
+                Err(reason) => (Err(reason), TickMeasureDiagnostic::default()),
+            };
+            let failed = result.is_err();
+            match result {
+                Ok(response) => print!("{response}"),
+                Err(reason) => println!("ERR {reason}"),
+            }
+            println!("{}", diagnostic.line());
+            if failed { std::process::exit(1); }
+        } else {
+            match set_budget().and_then(|_| process_measure_ticks(io::stdin().lock())) {
+                Ok(response) => print!("{response}"),
+                Err(reason) => { println!("ERR {reason}"); std::process::exit(1); }
+            }
         }
         return;
     }
@@ -860,10 +952,21 @@ fn main() {
 
 fn measure_mode_requested(args: &[std::ffi::OsString]) -> Result<bool, &'static str> {
     if args.iter().any(|arg| arg == "--measure-ticks") {
-        if args.len() != 1 { return Err("INVALID_PROTOCOL"); }
-        return Ok(true);
+        if args.len() == 1 { return Ok(true); }
+        if args.len() == 2 && args[1] == "--measure-ticks-diagnostics" { return Ok(true); }
+        return Err("INVALID_PROTOCOL");
+    }
+    if args.iter().any(|arg| arg == "--measure-ticks-diagnostics") {
+        return Err("INVALID_PROTOCOL");
     }
     Ok(false)
+}
+
+fn measure_diagnostics_requested(args: &[std::ffi::OsString]) -> bool {
+    if args.len() == 2 && args[0] == "--measure-ticks" && args[1] == "--measure-ticks-diagnostics" {
+        return true;
+    }
+    false
 }
 
 #[cfg(test)]
@@ -1008,6 +1111,77 @@ mod tests {
         assert_eq!(measure_mode_requested(&["--measure-ticks".into()]), Ok(true));
         assert_eq!(measure_mode_requested(&["--measure-ticks".into(), "--diagnostics".into()]), Err("INVALID_PROTOCOL"));
         assert_eq!(measure_mode_requested(&["--measure-ticks".into(), "--review-candidates".into()]), Err("INVALID_PROTOCOL"));
+        assert_eq!(measure_mode_requested(&["--measure-ticks".into(), "--measure-ticks-diagnostics".into()]), Ok(true));
+        assert!(measure_diagnostics_requested(&["--measure-ticks".into(), "--measure-ticks-diagnostics".into()]));
+        assert_eq!(measure_mode_requested(&["--measure-ticks-diagnostics".into()]), Err("INVALID_PROTOCOL"));
+        assert_eq!(measure_mode_requested(&["--measure-ticks".into(), "--measure-ticks-diagnostics".into(), "--diagnostics".into()]), Err("INVALID_PROTOCOL"));
+    }
+
+    fn supplied_box_frame(pixels: &[u8], width: u32, height: u32, channels: u32,
+        left: u32, bottom: u32, right: u32, top: u32) -> Vec<u8> {
+        let mut frame = Vec::from(*b"GRT1");
+        for value in [width, height, channels, pixels.len() as u32, left, bottom, right, top] {
+            frame.extend_from_slice(&value.to_le_bytes());
+        }
+        frame.extend_from_slice(pixels);
+        frame
+    }
+
+    fn simple_supplied_box_pixels() -> Vec<u8> {
+        let mut image = vec![255; 128 * 128];
+        for x in 20..=115 { image[100 * 128 + x] = 0; }
+        for y in 10..=100 { image[y * 128 + 20] = 0; }
+        for x in [40, 70, 100] { for y in 101..105 { image[y * 128 + x] = 0; } }
+        for y in [20, 50, 80] { for x in 16..20 { image[y * 128 + x] = 0; } }
+        image
+    }
+
+    #[test]
+    fn explicit_diagnostic_mode_preserves_valid_measurement_and_reports_stage() {
+        let pixels = simple_supplied_box_pixels();
+        let frame = supplied_box_frame(&pixels, 128, 128, 1, 20, 100, 115, 10);
+        let normal = process_measure_ticks(&frame[..]).unwrap();
+        let (diagnosed, trace) = process_measure_ticks_diagnostic(&frame[..]);
+        assert_eq!(diagnosed.unwrap(), normal);
+        assert_eq!(normal, "TICKS1 20 100 115 10 40,70,100 20,50,80\n");
+        assert_eq!(trace.stage, "TICKS_MEASURED");
+        assert_eq!(trace.seed_gray_sum, Some(0));
+        assert_eq!(trace.channels, Some(1));
+        assert!(trace.bridge_work.is_some());
+        assert!(trace.line().len() < 128);
+    }
+
+    #[test]
+    fn supplied_box_diagnostic_distinguishes_seed_and_axis_span_failures() {
+        let mut blank_origin = simple_supplied_box_pixels();
+        blank_origin[100 * 128 + 20] = 255;
+        let frame = supplied_box_frame(&blank_origin, 128, 128, 1, 20, 100, 115, 10);
+        let (result, trace) = process_measure_ticks_diagnostic(&frame[..]);
+        assert_eq!(result, Err("AXIS_BOX_NOT_OBSERVED"));
+        assert_eq!(trace.stage, "ORIGIN_NOT_INK");
+        assert_eq!(trace.seed_gray_sum, Some(255));
+
+        let mut disconnected_x = simple_supplied_box_pixels();
+        for x in 40..=80 { disconnected_x[100 * 128 + x] = 255; }
+        let frame = supplied_box_frame(&disconnected_x, 128, 128, 1, 20, 100, 115, 10);
+        let (result, trace) = process_measure_ticks_diagnostic(&frame[..]);
+        assert_eq!(result, Err("AXIS_BOX_NOT_OBSERVED"));
+        assert_eq!(trace.stage, "X_SPAN_UNOBSERVED");
+
+        let mut disconnected_y = simple_supplied_box_pixels();
+        for y in 40..=80 { disconnected_y[y * 128 + 20] = 255; }
+        let frame = supplied_box_frame(&disconnected_y, 128, 128, 1, 20, 100, 115, 10);
+        let (result, trace) = process_measure_ticks_diagnostic(&frame[..]);
+        assert_eq!(result, Err("AXIS_BOX_NOT_OBSERVED"));
+        assert_eq!(trace.stage, "Y_SPAN_UNOBSERVED");
+    }
+
+    #[test]
+    fn malformed_diagnostic_request_is_unattempted() {
+        let (result, trace) = process_measure_ticks_diagnostic(&b"bad"[..]);
+        assert_eq!(result, Err("INVALID_PROTOCOL"));
+        assert_eq!(trace, TickMeasureDiagnostic::default());
+        assert!(trace.line().contains("UNATTEMPTED"));
     }
     #[test]
     fn diagnostic_trace_preserves_result_and_has_bounded_fields() {
