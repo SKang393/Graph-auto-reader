@@ -72,6 +72,24 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
 
     public WorkflowRunResult? LastAutomaticRun { get; private set; }
 
+    public override bool CloseTab(string tabId)
+    {
+        if (!base.CloseTab(tabId)) return false;
+        LastAutomaticRun = null;
+        return true;
+    }
+
+    public override void SynchronizeRestoredTab(string tabId,
+        IReadOnlyDictionary<string, ReviewStatus>? reviewStatuses = null,
+        IReadOnlyDictionary<string, string>? pointMarkerIds = null,
+        WorkspacePointCorrectionState? correctionState = null)
+    {
+        base.SynchronizeRestoredTab(tabId, reviewStatuses, pointMarkerIds, correctionState);
+        // A prior run's correction journal describes the pre-undo state.
+        // Persisted panel evidence remains available; replay is rebuilt from current state.
+        LastAutomaticRun = null;
+    }
+
     public override async Task<IReadOnlyList<WorkspaceTabViewModel>> OpenProjectAsync(
         string path,
         CancellationToken cancellationToken)

@@ -3276,6 +3276,71 @@ public sealed class ProductionWorkflowStagesTests
     }
 
     [TestMethod]
+    public async Task ClosingAnalyzedTabInvalidatesPriorRunCheckpoint()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = await WriteSourceAsync(directory.Path);
+        var store = new ProductionWorkflowPanelStore();
+        WorkflowRunResult? result = null;
+        using var workspace = new ProductionWorkspaceService(
+            automaticStages: ApprovedAutomaticStages(),
+            automaticWorkflow: (_, _) => Task.FromResult(result!), panelStore: store);
+        WorkspaceTabViewModel tab = (await workspace.ImportImagesAsync([imagePath], CancellationToken.None)).Single();
+        SeedManualReviewState(workspace, tab);
+        WorkflowReviewPanel panel = await CreateExactReviewPanelAsync(workspace, tab, imagePath, store, retainProjection: true);
+        result = new WorkflowRunResult(Guid.NewGuid(), new WorkflowReviewState(workspace.CurrentProject.ProjectId.Value, [panel]), []);
+        await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+        Assert.IsNotNull(workspace.LastAutomaticRun);
+        Assert.IsFalse(workspace.CloseTab("missing-tab"));
+        Assert.IsNotNull(workspace.LastAutomaticRun);
+        Assert.IsTrue(workspace.CloseTab(tab.TabId));
+        Assert.IsNull(workspace.LastAutomaticRun);
+        Assert.IsEmpty(workspace.CurrentProject.Sources);
+        Assert.IsEmpty(workspace.CurrentProject.Panels);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task DeleteUndoDoesNotDeleteRestoredDetectionOnRerunOrReopen(bool redo)
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = await WriteSourceAsync(directory.Path);
+        string projectPath = Path.Combine(directory.Path, "undo-delete.garproj");
+        var store = new ProductionWorkflowPanelStore();
+        WorkflowRunResult? result = null;
+        var workspace = new ProductionWorkspaceService(
+            automaticStages: ApprovedAutomaticStages(),
+            automaticWorkflow: (_, _) => Task.FromResult(result!), panelStore: store);
+        WorkspaceTabViewModel tab = (await workspace.ImportImagesAsync([imagePath], CancellationToken.None)).Single();
+        SeedManualReviewState(workspace, tab);
+        WorkflowReviewPanel panel = await CreateExactReviewPanelAsync(workspace, tab, imagePath, store, retainProjection: true);
+        result = new WorkflowRunResult(Guid.NewGuid(), new WorkflowReviewState(workspace.CurrentProject.ProjectId.Value, [panel]), []);
+        await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+        GraphReader.App.Models.GraphPoint point = tab.Points.First();
+        WorkspacePointCorrectionState before = workspace.CapturePointCorrectionState(tab.TabId);
+        PanelRecord original = workspace.CurrentProject.Panels.Single();
+        var statuses = original.Points.ToDictionary(p => p.PointId.Value.ToString("D"), p => p.ReviewStatus);
+        var markers = original.Points.Where(p => p.MarkerId.HasValue).ToDictionary(p => p.PointId.Value.ToString("D"), p => p.MarkerId!.Value.Value.ToString("D"));
+        workspace.DeletePoint(tab.TabId, point.PointId);
+        WorkspacePointCorrectionState after = workspace.CapturePointCorrectionState(tab.TabId);
+        tab.Points.Add(point);
+        workspace.SynchronizeRestoredTab(tab.TabId, statuses, markers, before);
+        Assert.IsNull(workspace.LastAutomaticRun, "Undo must invalidate the pre-undo correction journal.");
+        if (redo)
+        {
+            tab.Points.Remove(point);
+            workspace.SynchronizeRestoredTab(tab.TabId, correctionState: after);
+        }
+        await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+        Assert.AreEqual(!redo, tab.Points.Any(p => p.PointId == point.PointId), "Undo/redo must control in-memory deletion replay.");
+        Assert.IsTrue((await workspace.SaveProjectAsync(projectPath, CancellationToken.None)).IsSuccess);
+        WorkspaceTabViewModel reopened = (await workspace.OpenProjectAsync(projectPath, CancellationToken.None)).Single();
+        await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+        Assert.AreEqual(!redo, reopened.Points.Any(p => p.PointId == point.PointId), "Undo/redo must control persisted deletion replay.");
+    }
+
+    [TestMethod]
     public async Task ApprovedAutomaticRerunPreservesDeleteMoveAddAndReassignAfterReopen()
     {
         using var directory = new TemporaryDirectory();

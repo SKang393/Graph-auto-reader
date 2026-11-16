@@ -2808,6 +2808,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         CaptureSeriesRelations(tab),
         CapturePointReviewStatuses(tab),
         CapturePointMarkerIds(tab),
+        (_workspaceService as IWorkspaceEditStateSink)?.CapturePointCorrectionState(tab.TabId),
         tab.IsDirty);
 
     private Dictionary<string, string> CapturePointMarkerIds(WorkspaceTabViewModel tab)
@@ -2916,7 +2917,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         if (_workspaceService is IWorkspaceEditStateSink stateSink)
         {
-            stateSink.SynchronizeRestoredTab(tab.TabId, snapshot.ReviewStatuses, snapshot.PointMarkerIds);
+            stateSink.SynchronizeRestoredTab(tab.TabId, snapshot.ReviewStatuses, snapshot.PointMarkerIds, snapshot.CorrectionState);
         }
         if (_manualWorkspaceService is not null)
         {
@@ -3435,6 +3436,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         IReadOnlyList<SeriesRelationSnapshot> SeriesRelations,
         IReadOnlyDictionary<string, ReviewStatus> ReviewStatuses,
         IReadOnlyDictionary<string, string> PointMarkerIds,
+        WorkspacePointCorrectionState? CorrectionState,
         bool IsDirty);
 
     private sealed record SeriesRelationSnapshot(

@@ -158,10 +158,17 @@ public interface IManualWorkspaceService : IRuntimeWorkspaceService
         CancellationToken cancellationToken);
 }
 
+public sealed record WorkspaceDeletedPointCorrection(string CorrectionId, string PointId, string? DetectionKey);
+
+public sealed record WorkspacePointCorrectionState(
+    IReadOnlyDictionary<string, string?> DetectionKeys,
+    IReadOnlyList<WorkspaceDeletedPointCorrection> DeletedPoints);
+
 public interface IWorkspaceEditStateSink
 {
+    WorkspacePointCorrectionState CapturePointCorrectionState(string tabId);
     void SynchronizeRestoredTab(string tabId, IReadOnlyDictionary<string, ReviewStatus>? reviewStatuses = null,
-        IReadOnlyDictionary<string, string>? pointMarkerIds = null);
+        IReadOnlyDictionary<string, string>? pointMarkerIds = null, WorkspacePointCorrectionState? correctionState = null);
 }
 
 /// <summary>

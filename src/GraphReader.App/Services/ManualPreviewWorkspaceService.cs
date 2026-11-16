@@ -45,6 +45,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
     private const string ProductionAddAuditKind = "production_point_added";
     private const string ProductionMoveAuditKind = "production_point_moved";
     private const string ProductionDeleteAuditKind = "production_point_deleted";
+    private const string ProductionCorrectionStateAuditKind = "production_point_correction_state_restored";
     private const string ProductionReassignAuditKind = "production_point_reassigned";
     private const string ProductionPhaseAuditKind = "production_phase_corrected";
     private const string RasterCropTransformSchema = "graphreader.raster_source_crop.v1";
@@ -240,10 +241,26 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         return true;
     }
 
-    public void SynchronizeRestoredTab(string tabId, IReadOnlyDictionary<string, ReviewStatus>? reviewStatuses = null,
-        IReadOnlyDictionary<string, string>? pointMarkerIds = null)
+    public WorkspacePointCorrectionState CapturePointCorrectionState(string tabId)
     {
         WorkspaceTabViewModel tab = RequireTab(tabId);
+        return new WorkspacePointCorrectionState(
+            new Dictionary<string, string?>(GetProductionDetectionKeys(tab.TabId), StringComparer.OrdinalIgnoreCase),
+            GetDeletedPointTombstones(tab.TabId).Values.Select(item =>
+                new WorkspaceDeletedPointCorrection(item.CorrectionId, item.PointId, item.DetectionKey)).ToArray());
+    }
+
+    public virtual void SynchronizeRestoredTab(string tabId, IReadOnlyDictionary<string, ReviewStatus>? reviewStatuses = null,
+        IReadOnlyDictionary<string, string>? pointMarkerIds = null, WorkspacePointCorrectionState? correctionState = null)
+    {
+        WorkspaceTabViewModel tab = RequireTab(tabId);
+        if (correctionState is not null)
+        {
+            ReplaceContents(GetProductionDetectionKeys(tab.TabId), correctionState.DetectionKeys);
+            ReplaceContents(GetDeletedPointTombstones(tab.TabId), correctionState.DeletedPoints.ToDictionary(
+                item => item.PointId, item => new DeletedPointTombstone(item.CorrectionId, item.PointId, item.DetectionKey),
+                StringComparer.OrdinalIgnoreCase));
+        }
         _phaseOverrides[tab.TabId] = CreatePhaseOverrides(tab);
         HashSet<string> activePointIds = _tabs.SelectMany(static item => item.Points)
             .Select(static point => point.PointId)
@@ -276,7 +293,12 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             DomainEventKind.PointEdited,
             Guid.Parse(tab.PanelId!),
             entityId: null,
-            "Session edit history restored a tab state");
+            "Session edit history restored a tab state",
+            correctionState is null ? null : JsonSerializer.SerializeToElement(new
+            {
+                kind = ProductionCorrectionStateAuditKind,
+                state = correctionState,
+            }));
         if (reviewStatuses is not null || pointMarkerIds is not null)
         {
             CurrentProject = CurrentProject with
@@ -746,7 +768,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         }
     }
 
-    public bool CloseTab(string tabId)
+    public virtual bool CloseTab(string tabId)
     {
         WorkspaceTabViewModel? tab = _tabs.SingleOrDefault(
             item => string.Equals(item.TabId, tabId, StringComparison.Ordinal));
@@ -771,6 +793,19 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             _pointXStates.Remove(point.PointId);
             _pointModificationHistories.Remove(point.PointId);
         }
+
+        PanelRecord[] remainingPanels = _tabs.Select(ToPanelRecord).ToArray();
+        HashSet<SourceId> remainingSourceIds = remainingPanels
+            .Select(static panel => panel.SourceId)
+            .ToHashSet();
+        CurrentProject = CurrentProject with
+        {
+            ModifiedUtc = DateTimeOffset.UtcNow,
+            Sources = CurrentProject.Sources
+                .Where(source => remainingSourceIds.Contains(source.SourceId))
+                .ToArray(),
+            Panels = remainingPanels,
+        };
 
         return true;
     }
@@ -2688,7 +2723,9 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                         replayPixel.X,
                         replayPixel.Y));
                     break;
-                case ProductionDeleteAuditKind when TryReadString(details, "target_point_id", out string? deletedPointId):
+                case ProductionDeleteAuditKind when TryReadString(details, "target_point_id", out string? deletedPointId) &&
+                    GetDeletedPointTombstones(tab.TabId).TryGetValue(deletedPointId!, out DeletedPointTombstone? activeDeletion) &&
+                    string.Equals(activeDeletion.CorrectionId, correctionId, StringComparison.Ordinal):
                     corrections.Add(new DeleteWorkflowPointCorrection(
                         correctionId!,
                         exactReviewPanel.PanelId,
@@ -3274,6 +3311,19 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                     string? detectionKey = TryReadNullableString(identity, "detection_key");
                     detectionKeysByTab[tab.TabId][pointId!] = detectionKey;
                 }
+            }
+            else if (string.Equals(kind, ProductionCorrectionStateAuditKind, StringComparison.Ordinal) &&
+                auditEvent.PanelId is { } restoredPanelId && details.TryGetProperty("state", out JsonElement stateElement))
+            {
+                WorkspaceTabViewModel? tab = tabs.SingleOrDefault(candidate => string.Equals(
+                    candidate.PanelId, restoredPanelId.Value.ToString("D"), StringComparison.OrdinalIgnoreCase));
+                if (tab is null) continue;
+                WorkspacePointCorrectionState state = stateElement.Deserialize<WorkspacePointCorrectionState>()
+                    ?? throw new InvalidOperationException("Missing restored point correction state.");
+                ReplaceContents(detectionKeysByTab[tab.TabId], state.DetectionKeys);
+                ReplaceContents(tombstonesByTab[tab.TabId], state.DeletedPoints.ToDictionary(
+                    item => item.PointId, item => new DeletedPointTombstone(item.CorrectionId, item.PointId, item.DetectionKey),
+                    StringComparer.OrdinalIgnoreCase));
             }
             else if (string.Equals(kind, ProductionDeleteAuditKind, StringComparison.Ordinal) &&
                 auditEvent.PanelId is { } deletedPanelId &&
