@@ -65,8 +65,10 @@ Report SHA-256:
 `8f8737b501d2199208daab6fd9149a672d560dd3ed7dba038ac5678544973938`;
 run receipt:
 `a4c7771356ad6160a1fa50d3d9960bde0e45731cc59bf2a911afa3701f20573b`.
-The three output files total **11,314 bytes**, retained only until this concise
-record is pushed and the integration consumer finishes. No runtime source,
+The three output files totaled **11,314 bytes** and were retired after this
+record reached origin/main and the integration consumer finished. See the
+[checked cleanup scope](AFFINE-MARKER-ASSISTANCE-20261115.md#completed-prior-output-cleanup).
+The hashes above are historical. No runtime source,
 model, dependency, license or frozen schema changed in this diagnostic.
 
 Status: bounded diagnostic complete with negative cause-finding evidence.

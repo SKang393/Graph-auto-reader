@@ -19,7 +19,7 @@ using GraphReader.Domain;
 namespace GraphReader.App.Tests;
 
 [TestClass]
-public sealed class RectifiedCalibrationTests
+public sealed partial class RectifiedCalibrationTests
 {
     [TestMethod]
     [DataRow(-2d, false)]

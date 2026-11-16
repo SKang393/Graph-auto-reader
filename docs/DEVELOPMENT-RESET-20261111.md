@@ -30,9 +30,17 @@ possible winners to manufacture coverage. The bounded owned tick diagnostic did
 not reproduce the affine refusal. Continue with
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md).
 Its local solution tests and actual one-call worker check now pass, preserving
-original-pixel matching and exact plot containment. New-head integration/CI and
-native review remain pending. Package only a
-meaningful integrated checkpoint. The
+original-pixel matching and exact plot containment. Its source/outcome commit
+`5920ebc2ddbf23dad73951c8e6e534cce9eeda30` is pushed with successful exact-head Windows CI;
+native review remains pending. The bounded correction
+[preserves manually marked tilted axes during label reading](MANUAL-AFFINE-AXIS-DRAFT-20261115.md),
+and now passes its focused tests plus one actual supplied-geometry control:
+six literal labels, six measured pairs and an unchanged source/workspace in
+4.05 seconds. Its full run exposed one old strict cancellation-type test
+assertion; the repaired Imaging suite passed and other twelve suites were green.
+Exact-head CI and native review remain required. Prepare one integrated preview
+for the accumulated automatic-frame, rectified-reading, affine-marker and manual
+fallback changes. The
 [printed-X accessibility/language contract](CALIBRATION-LOCALIZATION-20261115.md)
 and [foreground profiling cancellation](NATIVE-PROFILING-INTERRUPTION-20261115.md)
 already have their scoped verification and need no duplicate repair.

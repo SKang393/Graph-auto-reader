@@ -70,6 +70,7 @@ public sealed partial class MainWindowViewModel
         AxisSuggestionReviewed = false;
         UpdateAxisSuggestionOverlay();
         OnPropertyChanged(nameof(HasAxisSuggestion));
+        OnPropertyChanged(nameof(HasAffineAxisSuggestion));
         OnPropertyChanged(nameof(IsManualAxisDraft));
         OnPropertyChanged(nameof(AxisSuggestionSummary));
         OnPropertyChanged(nameof(CalibrationLabelStatusText));

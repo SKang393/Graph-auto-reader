@@ -111,6 +111,23 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
         double determinant = (points[1].X - points[0].X) * (points[2].Y - points[0].Y) -
             (points[1].Y - points[0].Y) * (points[2].X - points[0].X);
         if (determinant == 0) return null;
+        bool legacyAligned = ManualCalibrationMapper.HasLegacyAlignment(points[0], points[1], points[2]);
+        if (!legacyAligned)
+        {
+            var affine = new RustAffineAxisGeometry(
+                new(points[0].X, points[0].Y), new(points[2].X, points[2].Y),
+                new(points[1].X, points[1].Y), 0);
+            if (!OpenCvAxisProposalService.ValidAffineGeometry(affine, tab.PixelWidth, tab.PixelHeight)) return null;
+            var affineDraft = new WorkspaceAxisSuggestion(tabId, AxisSuggestionBinding(tab), null)
+            {
+                AffineGeometry = affine,
+                OriginalImageIdentity = image,
+                IsUserDefined = true,
+                Provider = "manual",
+                ReviewReasons = Array.AsReadOnly(new[] { ManualCalibrationMapper.AffineReason }),
+            };
+            return IsAxisSuggestionCurrent(affineDraft) ? affineDraft : null;
+        }
         // This is a user-selected OCR search rectangle, not measured axes or numeric evidence.
         // Keep the VM's exact fractional anchors; round only the enclosing pixel search bounds.
         var geometry = new RustAxisGeometry((int)Math.Floor(Math.Min(points[0].X, points[1].X)),
@@ -189,11 +206,16 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
         return tab is not null && _originalPanelBytesByTab.TryGetValue(tab.TabId, out var image) &&
             ReferenceEquals(image, suggestion.OriginalImageIdentity) && suggestion.Binding == AxisSuggestionBinding(tab) &&
             (suggestion.AffineGeometry is { } frame
-                ? suggestion.Geometry is null && !suggestion.IsUserDefined && suggestion.Provider == "opencv-review" &&
-                    suggestion.ReviewReasons is { Count: <= 32 } reasons &&
-                    reasons.All(reason => !string.IsNullOrWhiteSpace(reason) && reason.Length <= 128) &&
-                    suggestion.ReviewReasons.Contains("native_affine_geometry", StringComparer.Ordinal) &&
-                    OpenCvAxisProposalService.ValidAffineGeometry(frame, tab.PixelWidth, tab.PixelHeight)
+                ? suggestion.Geometry is null &&
+                    (suggestion.IsUserDefined && suggestion.Provider == "manual"
+                        ? suggestion.ReviewReasons is { Count: 1 } manualReasons &&
+                            manualReasons[0] == ManualCalibrationMapper.AffineReason &&
+                            OpenCvAxisProposalService.ValidAffineGeometry(frame, tab.PixelWidth, tab.PixelHeight)
+                        : !suggestion.IsUserDefined && suggestion.Provider == "opencv-review" &&
+                            suggestion.ReviewReasons is { Count: <= 32 } reasons &&
+                            reasons.All(reason => !string.IsNullOrWhiteSpace(reason) && reason.Length <= 128) &&
+                            suggestion.ReviewReasons.Contains("native_affine_geometry", StringComparer.Ordinal) &&
+                            OpenCvAxisProposalService.ValidAffineGeometry(frame, tab.PixelWidth, tab.PixelHeight))
                 : suggestion.Geometry is not null);
     }
 

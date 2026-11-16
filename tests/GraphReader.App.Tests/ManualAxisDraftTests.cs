@@ -18,6 +18,31 @@ namespace GraphReader.App.Tests;
 public sealed class ManualAxisDraftTests
 {
     [TestMethod]
+    [DataRow(-2d)]
+    [DataRow(2d)]
+    public void ManualDraftAtLegacyTwoPixelDriftKeepsExistingRectangularSearchBounds(double drift) => WithImage(path =>
+    {
+        using var workspace = CreateWorkspace(path, ValidProposals());
+        var tab = workspace.CreateWorkspace().Single();
+        var draft = workspace.CreateManualAxisDraft(tab.TabId,
+            [new(20.25, 100.25), new(20.25 + drift, 20.25), new(140.25, 100.25 + drift)]);
+        Assert.IsNotNull(draft);
+        Assert.IsNull(draft.AffineGeometry);
+        Assert.IsNotNull(draft.Geometry);
+        Assert.AreEqual((int)Math.Floor(Math.Min(20.25, 20.25 + drift)), draft.Geometry.Left);
+        Assert.AreEqual((int)Math.Ceiling(Math.Max(100.25, 100.25 + drift)), draft.Geometry.Bottom);
+        Assert.AreEqual(141, draft.Geometry.Right);
+        Assert.AreEqual(20, draft.Geometry.Top);
+        Assert.AreEqual(0d, draft.Geometry.Confidence);
+        Assert.IsEmpty(draft.Geometry.XTickPositions);
+        Assert.IsEmpty(draft.Geometry.YTickPositions);
+        Assert.IsTrue(draft.IsUserDefined);
+        Assert.AreEqual("manual", draft.Provider);
+        Assert.IsTrue(workspace.IsAxisSuggestionCurrent(draft));
+        Assert.IsNull(tab.Calibration);
+    });
+
+    [TestMethod]
     public void ReopenedOnePointProjectKeepsManualDraftAfterFirstInBoundsClick()
     {
         WithImage(path =>

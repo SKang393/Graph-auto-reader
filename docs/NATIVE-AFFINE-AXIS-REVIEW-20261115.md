@@ -216,8 +216,10 @@ from source and commands above; cited temporary records are now historical
 identities, not locally available files. Resolved path containment, reparse
 exclusion and unchanged inventories were checked before removal. The current
 comparison reports, diagnostic Rust worker and existing autosave retained their
-hashes. The current 14,962-byte geometry trace and
-80,485-byte interval-cluster report remain active comparison inputs for the
-next affine OCR/coordinate-bridge stage; retire them after that comparison and
-its outcome integration finish. Runtime dependencies, original data, existing
+hashes. The prior 14,962-byte geometry trace and
+80,485-byte interval-cluster report were retained as comparison inputs for the
+next affine OCR/coordinate-bridge stage. That consumer finished and its record
+was pushed; both trace directories were subsequently retired in the
+[checked cleanup](AFFINE-MARKER-ASSISTANCE-20261115.md#completed-prior-output-cleanup).
+Runtime dependencies, original data, existing
 autosave/settings and the sole verified package are outside cleanup scope.

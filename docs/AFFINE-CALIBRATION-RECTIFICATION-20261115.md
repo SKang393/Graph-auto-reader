@@ -199,6 +199,16 @@ repeat it unchanged. Any diagnosis of the exact-box refusal must first use
 owned controls for stroke width, subpixel position and affine resampling;
 thresholds, candidate ranking and resource caps remain fixed.
 
+A subsequent bounded source audit found no coordinate-box mismatch: the working
+frame uses the rectifier's exact integer box and GRT1 verifies that same box.
+The Rust refusal currently combines a non-dark origin, an unobserved connected
+horizontal or vertical span, and bridge-budget exhaustion. The retained aggregate
+receipt does not distinguish those predicates. The
+[eleven owned controls](AFFINE-TICK-OBSERVATION-CONTROLS-20261115.md) did not
+reproduce that refusal, so neither resampling nor a particular predicate is
+established as its cause. No threshold change or further unchanged private run
+followed from this audit.
+
 The final probe-only build passed with zero warnings/errors in **6.78 s**.
 The owned selection/tamper/missing-pin/stage-accounting self-test exited zero
 with no private reads, and all twenty runtime files matched the frozen manifest.
@@ -221,6 +231,12 @@ No dependency, model, license, schema or production-approval switch changed.
 New source retains Apache-2.0 notices. Current validation outputs remain only
 for integration and the named native-review consumer. Record this outcome on
 origin/main before retiring completed logs and private trace copies.
+
+The completed validation logs, owned receipts and private trace copies were
+subsequently retired after their record was pushed and consumers finished.
+See the [checked cleanup scope](AFFINE-MARKER-ASSISTANCE-20261115.md#completed-prior-output-cleanup).
+Their cited hashes are historical. Only the four small owned input images remain
+for native review; originals and runtime dependencies were preserved.
 
 ## Integration and CI
 

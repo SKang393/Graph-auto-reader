@@ -134,7 +134,9 @@ public sealed class AffineRasterRectifierTests
         await Task.Delay(TimeSpan.FromMilliseconds(20));
         cancellation.Cancel();
 
-        await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () => await work);
+        OperationCanceledException error = await Assert.ThrowsAsync<OperationCanceledException>(async () => await work);
+        Assert.AreEqual(cancellation.Token, error.CancellationToken);
+        Assert.AreEqual(-1, pixels.AsSpan().IndexOfAnyExcept((byte)0), "Cancelled rectification must not modify its source pixels.");
     }
 
     private sealed class SignalingMemoryManager(byte[] pixels, ManualResetEventSlim started) : MemoryManager<byte>

@@ -146,17 +146,27 @@ files retained their recorded hashes after the source validation work.
 No dependency, model, license or frozen schema changed. New source uses the
 project Apache-2.0 notices. Global full-Auto-Detect and phase restrictions remain.
 
-Status: local source validation and the actual worker check pass. Integration
-and new-head CI remain pending. Native QA is authorized but the tool still
-returns its Escape-stop state; REV-011 records that execution blocker.
+Source/outcome commit `5920ebc2ddbf23dad73951c8e6e534cce9eeda30` is integrated
+and pushed to origin/main. Its exact-head
+[Windows CI run 43775835498](https://github.com/SKang393/Graph-auto-reader/actions/runs/43775835498)
+completed successfully, **2026-11-15 23:37:40 to 23:47:38 UTC**. The main job
+passed **3,166 .NET tests**, with **30 expected skips** and zero failures across
+thirteen projects, plus **72 Rust tests** and **68 packaging verification tests**.
+Localization, OCR-host, evidence, handoff, upload and packaging audits passed.
+The two release jobs were skipped; no package or public release was produced.
 
-## Pending completion cleanup
+Status: source integration, local validation, the actual worker check and full
+Windows CI pass. Native QA is authorized but the tool still returns its
+Escape-stop state; REV-011 records that execution blocker.
 
-After this integrated outcome is pushed, retire these completed diagnostic
-outputs under the active worktree's `artifacts` directory. Their source and
-concise outcomes are already recorded above or in linked calibration documents;
-the old comparison consumer has finished. Recheck counts, path containment and
-active consumers before removal.
+## Completed prior-output cleanup
+
+After source/outcome commit `5920ebc2ddbf23dad73951c8e6e534cce9eeda30` reached
+origin/main, these completed diagnostic outputs were retired under the active
+worktree's `artifacts` directory. Their source and concise outcomes are recorded
+above or in linked calibration documents; the old comparison consumer finished.
+Resolved path containment, reparse exclusion, unchanged inventories and the
+pushed record were verified before removal.
 
 | Scope | Files | Bytes |
 | --- | ---: | ---: |
@@ -166,8 +176,12 @@ active consumers before removal.
 | `native-affine-dev-trace` | 3 | 14,962 |
 | `interval-cluster-dev-trace` | 7 | 81,224 |
 | `affine-calibration-owned-check` result/run/stderr only | 3 | 40,475 |
-| Total planned retirement | 50 | 5,205,049 |
+| Total retired | 50 | 5,205,049 |
 
-Keep the four owned input PNGs, **24,926 bytes**, for the waiting native review.
-Keep existing Data/settings, originals, current runtime dependencies and the
-sole 0.4.55 package. This inventory is a plan, not a claim of completed deletion.
+Absence was verified at **2026-11-15 23:40:22.5191401 UTC**. Eight protected
+files retained their hashes: the current App EXE, current runtime manifest,
+marker-worker report, existing autosave and four owned PNGs. The four images,
+**24,926 bytes**, remain inputs for waiting native review. Existing Data/settings,
+originals, current runtime dependencies and the sole 0.4.55 package remain.
+Temporary artifact hashes above are now historical identities except the
+current marker-test/worker outputs, which still serve integration/CI review.
