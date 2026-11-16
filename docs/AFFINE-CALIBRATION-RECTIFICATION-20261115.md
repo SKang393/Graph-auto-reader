@@ -1,73 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright 2026 Sungwoo Kang -->
 
-# Read tilted-axis evidence through a reversible derived raster
-
-Baseline: `4fcf0b69e7a39e032fb862327b55d5aad9cdd3d1`, with full
-[Windows CI](https://github.com/SKang393/Graph-auto-reader/actions/runs/43767186610)
-verified successful.
-The delivered package remains 0.4.55. No additional package is planned for an
-isolated intermediate change.
-
-## Failure and isolated change
-
-The [fixed development geometry diagnostic](NATIVE-AFFINE-AXIS-REVIEW-20261115.md)
-returned eight rectangles, one affine frame and three pair-budget refusals.
-The affine frame now supports explicit review, but the current OCR/tick path
-rejects it because it requires an axis-aligned scalar frame. No OCR was run for
-that diagnostic. This is an identified representation limitation, not evidence
-that a different OCR model or recognition threshold is needed.
-
-Implement a bounded in-memory rectifier using the existing reversible matrix
-math. Its three supplied pixel anchors define the rectified axes. Preserve
-the full input extent so outside-axis label margins remain available. Run the
-existing tick measurement, literal OCR and sequence checks in that explicitly
-derived coordinate space. Keep their raw receipts intact, bind them to the
-original image and exact transform, and map displayed polygons, tick locations
-and fitted calibration anchors back to original pixels before review/application.
-Never interpret a derived scalar coordinate as an original pixel coordinate.
-
-The original image, frozen project/vision schemas, OCR model, confidence bars,
-geometry ranking, pair cap, worker resource budgets and native release identity
-remain unchanged. Rectification is bounded to the current 4096-dimension and
-16,777,216-pixel limits and fails explicitly if its output would exceed them.
-It does not silently shrink text. CPU work stays off the UI thread and checks
-cancellation. The raster loop uses a cooperative 50-percent activity target
-with cancellable waits between small work slices. This is not a process CPU
-hard cap; decode and encode remain separately bounded operations, and existing
-tick/OCR children retain their job limits. Derived rasters are transient. Four
-small owned PNG inputs may use the existing file-import API, shared by both
-test paths and retired after their completed outcome is pushed.
-
-## Acceptance and evidence boundary
-
-Owned controls cover positive/negative tilt, shear, identity, border margins,
-coordinate round trips, cancellation and malformed/oversized input. Original
-bytes must stay unchanged; transforms and mapped anchors must remain valid.
-Existing literal, monotonicity, spacing, observed-zero, stale-response and
-explicit-review checks stay in force. A refusal is visible and accounted for;
-no unvalidated calibration may silently reach export.
-
-Separate supplied-geometry/stub-OCR controls from actual raster geometry,
-tick measurement and existing-model OCR. Use the former for coordinate and
-binding defects and the latter for bounded integration evidence. Record raw
-attempt failures, counts, runtime and limitations. No model/threshold selection
-or production-approval claim follows from this source change.
-
-The 120-development/51-reserved partition and fixed comparison inputs stay
-unchanged. Sealed budget/use is zero. No private inference is authorized until
-the owned controls and exact runtime preflight pass. Any subsequent development
-confirmation must exercise the changed stage only, reuse cached unchanged
-evidence, retain every failure, and avoid private truth scoring or tuning.
-
-## Ownership and validation
-
-Imaging worker owns the new pure raster rectifier and its owned tests. App
-worker owns the coordinate bridge and workspace/VM behavior. The lead owns
-shared UI/localization, integration, CI, outcome documentation and cleanup.
-No parallel writers share a file. Build once after the integrated source slice,
-then run focused coordinate/calibration checks and the required solution tests.
-Native review and a bounded owned OCR check follow only on frozen outputs.
+# Affine calibration rectification results
 
 ## Current implementation and validation
 
@@ -151,13 +85,7 @@ inference. The four owned input PNGs total **24,926 bytes** and remain active
 inputs for the pending native review check. Test logs and worker outputs remain
 only until the integrated record is pushed and their current consumers finish.
 
-Native review is waiting: the first window-list call for this slice reported a
-physical Escape stop, before any launch or input. The maintainer subsequently
-authorized "Resume everything i was on a meeting". The fresh window-list retry
-still returned the tool's physical-Escape stop, without usable state or app input.
-[REV-011](REVIEW_QUEUE.md#rev-011---finish-native-preview-verification) records
-tool recovery, not a missing approval. No native behavior of this new bridge is
-claimed. Code, CI and headless diagnostics continue independently.
+Native interaction verification remains incomplete.
 
 ## Changed-stage development confirmation
 

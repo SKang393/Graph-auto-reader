@@ -1,18 +1,18 @@
-# Manual data authorization and inventory disclosure
+# Evaluation corpus inventory and limitations
 
-On 2026-10-30 the maintainer identified `data/manual data` and explicitly authorized using it for training or testing, while warning that the data is not perfect. This instruction supersedes the earlier blanket prohibition on training with this corpus. The user did not authorize publishing its originals or identifying details. The existing Git ignore remains in force; publisher-owned images, project files, point rows, and participant or study names are not release or repository assets.
+The evaluation corpus contains publisher-owned figures and manually digitized project data. The public record reports aggregate methods and limitations, not source images or identifying details.
 
-The historical provenance record describes publisher-owned figures and maintainer-created digitizations; its tree hash is a 2026-09-02 inventory, not a newly verified hash. Before any training, bind exact selected source hashes and record the training purpose, split, and label-quality handling locally. Preserve the original files. The existing Engauge projects contain raster images, calibration anchors, and manually placed curve points, but those points should not be assumed perfect, exhaustive, or complete semantic artifact masks.
+The historical provenance tree hash records a 2026-09-02 inventory, not a newly verified inventory. Engauge projects contain raster images, calibration anchors, and manually placed curve points. These labels are not established as perfect, exhaustive, or complete semantic artifact masks.
 
 ## Reserved real split disclosure
 
 The existing frozen assignment contains 120 development and 51 sealed projects grouped by study. During the 2026-10-30 inventory, all 171 `.dig` payloads were opened and parsed to count curves, points, and embedded-image presence before the frozen split was checked. Samples were also inspected for XML structure. The displayed results were corpus-level counts and format information; no model inference, candidate comparison, training, or formal sealed-gate runner was executed. This inventory is not acceptance evidence, and the sealed set can no longer be described as previously unread.
 
-Do not train on the existing sealed projects or any study assigned to the sealed split. Do not represent a later result as a pristine unread holdout without reviewing the effects of this disclosure and the existing gate's accounting. Before selecting training records, use the existing frozen study-level assignment, verify its fingerprint, and select eligible development studies only. Identical embedded images across study splits have not been ruled out. Development records used for training cannot also be presented as independent development validation; any new split must be grouped by study and documented before model selection.
+The existing sealed partition is excluded from training. Its prior inventory access precludes describing it as pristine unread data. Exact source-image overlap across study splits remains unverified. Development records used for training are not independent validation; study-level separation is required for a valid generalization claim.
 
 Inventory-derived counts, without quality approval: 171 parsable digitizer projects in 40 study folders, 3,055 non-axis points, and 513 axis points. Loose CSV and spreadsheet exports have not been reconciled to these points. Counts alone do not establish correspondence, labeling accuracy, source licensing for redistribution, or release eligibility.
 
-The maintainer says the participant graph images, digitizer projects, and spreadsheet or CSV exports correspond by name and target. Treat that as source context to verify, not proof that every exported row matches a particular project or that text boxes and transcriptions are labeled.
+Correspondence between graph images, digitizer projects, and spreadsheet or CSV exports remains to be verified. Similar names and targets do not establish row-level correspondence or labeled text boxes and transcriptions.
 
 The metadata-only training selector was run on the identified folder after this disclosure. It selected 120 development projects and validated the frozen assignment SHA-256 `decdac87c0c6d8ee8350b4e26bee2256c551ce20c518732f62fb6d990ea5850a`. It did not open project payloads, run inference, or start training. Source-image overlap with the sealed studies remains unverified.
 

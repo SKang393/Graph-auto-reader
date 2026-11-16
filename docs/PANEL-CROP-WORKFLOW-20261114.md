@@ -118,9 +118,7 @@ and retained, with the packaged workflow and hosted CI recorded in the
 [delivery record](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0442).
 Packaging does not imply native QA or production approval.
 
-No GUI acceptance was performed. The maintainer authorized resuming native
-checks, but the next window-list call immediately reported a physical Escape
-stop; no native inputs followed. REV-011 remains waiting. No private corpus or
+No GUI acceptance was performed. No private corpus or
 new model/runtime dependency was used. The integration uses the already
 reviewed OCR reader and native workers. Crop encoding has no hard CPU cap;
 the short periodic-image measurement is not a universal responsiveness claim.

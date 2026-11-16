@@ -72,7 +72,7 @@ Header repair `6006cfa` passed Windows CI run `35486072909`. This source-only ch
 opens no model revision, approval, package, tag, or release. The retained portable
 is still build 433, version 0.4.33. CI follows this push while development continues.
 Windows CI run `35486779845` subsequently passed for this repair at `d9e6c2e`.
-No subagents or further continuation permission are needed.
+
 
 ## Acceptance status
 

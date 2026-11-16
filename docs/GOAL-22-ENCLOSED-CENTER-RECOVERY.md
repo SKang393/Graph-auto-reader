@@ -83,4 +83,4 @@ here approves a model or completes any missing Goal 22 outcome.
 Code is Apache-2.0 and uses existing reviewed dependencies and weights. No
 private/sealed read, optimizer step, new import, package or release occurred.
 Build 433 remains 0.4.33. Source checkpoint e6c56b0 passed CI 35638527641 before
-this repair. No subagent was used under the maintainer instruction.
+this repair.

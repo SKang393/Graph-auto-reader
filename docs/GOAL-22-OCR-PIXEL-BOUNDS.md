@@ -106,9 +106,7 @@ production approval, packaged application, public release, or version change.
 The retained portable stays at build 433, version 0.4.33. The finished product
 target remains 2.0.0.
 
-The maintainer's latest instruction supersedes the earlier pause rule:
-continue useful work while checks run, notify on completion, and avoid repeated
-status polling. Notifications are not permission gates. No subagents were used.
+
 
 ## Acceptance status
 

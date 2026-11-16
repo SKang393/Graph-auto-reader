@@ -5,8 +5,7 @@
 
 ## Fixed development scope
 
-This batch follows the maintainer's instruction to continue automatic-calibration
-improvements on authorized development examples. It diagnoses the geometry and
+This diagnostic examines the geometry and
 association failures already recorded in the [prepared 451 diagnostic](PREPARED-CALIBRATION-451-DIAGNOSTIC-20261114.md)
 and [fixed Mirage comparison](MIRAGE-PAIRED-PIPELINE-20261115.md). It does not repeat
 that comparison or select a reader, threshold, model, or candidate on private answers.

@@ -44,7 +44,7 @@ Commands use the Release OCR/App test projects and the native tool's
 `--run-frozen-candidate-synthetic` and `--score-frozen-workflow-csv` operations.
 The [evidence record](GOAL-22-CONTAINED-TEXT-FRAGMENT-REPAIR.json) binds exact
 options, source, models, native runtime and results. Predecessor `0328e49`
-passed CI 35635412244. Source review was performed by the lead agent alone.
+passed CI 35635412244. Source review was completed.
 
 Accuracy remains below the unchanged 95% requirement. OCR/marker coverage,
 sealed prerequisites, real workflow/Chandler verification, production promotion

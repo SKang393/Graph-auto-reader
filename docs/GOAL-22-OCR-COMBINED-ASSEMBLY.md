@@ -91,8 +91,7 @@ This is a source-only repair, with no model revision, production activation,
 package, tag, release, or version change. The retained portable remains build
 433, version 0.4.33. Windows CI run `35485080685` passed for source checkpoint
 `2b1c12e`.
-Work continues while checks run; no further continuation permission is needed.
-No subagents are used.
+
 
 ## Acceptance status
 

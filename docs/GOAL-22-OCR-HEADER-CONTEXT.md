@@ -82,9 +82,7 @@ unapproved and disabled by default. No production or real-data claim follows.
 The combined repair at `2b1c12e` passed Windows CI run `35485080685`. This is a
 source-only repair: no new model revision, package, tag, release, or version
 change. The retained portable remains build 433, version 0.4.33. Full Windows CI
-run `35486072909` passed for source checkpoint `6006cfa`. Independent development
-continues. No subagents
-are used and no continuation approval is needed.
+run `35486072909` passed for source checkpoint `6006cfa`.
 
 ## Acceptance status
 
