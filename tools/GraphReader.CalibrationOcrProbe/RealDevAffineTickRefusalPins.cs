@@ -8,6 +8,8 @@ internal static partial class RealDevCalibrationCheck
 {
     internal const string AffineTickRefusalSchema = "graphreader.real-dev-affine-tick-refusal.v1";
     internal const string AffineSpanPropertiesSchema = "graphreader.real-dev-affine-span-properties.v1";
+    internal const string AffineSourceSupportSchema = "graphreader.real-dev-affine-source-support.v1";
+    private const string AffineSourcePropertyHash = "fda891cc12335ba5ca7fe6b42a2f7a7f91f67d11832b907b42e83bcb4e63e31c";
     private const string AffineSpanSelectorHash = "689e013d039971febc72a31b50442b314bcdb7729217e061c387aca0dbea8781";
     private const string AffineSpanReportHash = "ab503d592c58c1e1ab1ac315dfe5511bfa4b4b89ae9bea04be39a851f2cea717";
     private const string AffineTickRefusalExeHash = "d79bac03aef6e3cb61d110e6506220aabdbfb445d8eda1a9e67361bb9f26b898";

@@ -487,6 +487,25 @@ cancellation and metadata tampering. The parent keeps the existing CPU cap,
 30-second cancellation and 35-second watchdog. This is a diagnostic tool only;
 the current application and packaged worker remain unchanged.
 
+`--real-dev-affine-source-support <selector-json> <refusal-report-json> <property-report-json> <corpus-root> <absolute-App-exe> <asset-root> <baseline-Rust-worker> <diagnostic-Rust-worker> --explicit-opt-in`
+binds those three retained files and the same frozen runtime. It reads only the
+selected source, verifies the prepared panel, rectifies once and requires the
+saved first gap, replay work and clipping flags to match. It does not repeat
+geometry, OCR, the first-twelve digest or the derived perpendicular search.
+It enumerates every original dark pixel with positive bilinear weight at the
+gap endpoints. A single multi-source search tests any connection between these
+supports, admitting only original pixel centers that map into the previously
+tested perpendicular-relaxed window, with unchanged along-axis bounds.
+Missing or excluded support prevents a definite conclusion; boundary contact
+keeps a failed search uncertain. Scalar counts and flags do not establish
+global disconnection, calibration accuracy or acceptance. No pixel, coordinate,
+path, truth or scientific value is serialized. The limits remain 30/35 seconds
+and the existing CPU cap, with no worker, OCR, fit, sealed read, image write,
+Apply or export. The owned-only `--real-dev-affine-source-support-self-test`
+checks five controls, including fractional affine mapping, omitted support and
+an outside-window detour, plus cancellation, immutability and pinned-file
+tampering. CI runs only that self-test.
+
 `--owned-affine-stroke-sampling-check` observes thirteen fixed in-memory gray
 stroke controls through the current affine rectifier. Source connectivity,
 identity parity, input preservation, frame/planted-point offsets and destination

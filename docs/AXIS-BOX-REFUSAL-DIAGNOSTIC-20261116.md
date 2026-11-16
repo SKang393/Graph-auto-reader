@@ -258,6 +258,87 @@ data, source files, runtime pins and the sole 0.4.56 package were outside scope.
 
 Manifest SHA-256: `b86c32b81cb4a0ae674e1f9c1fb56e7a3c0a3c1840b9fe9b05b82f8bbedf3966`;
 deletion journal: `e3162075d87f58fbbb034b39539bb17654850ce2216fb9257ad9d20f8edc5851`.
-These two compact local receipts remain only until this integration record is
-pushed, then can be removed. Earlier raw-build, wire, runner and span receipt
-hashes in this document now identify retired historical outputs.
+After this integration record reached `401afb240c59148a08b7180485c32896a5ca9f16`
+on origin/main, both compact local receipts (**18,907 bytes**) were hash-rechecked
+and retired at **2026-11-16T02:56:56.7441911Z**. Earlier raw-build, wire, runner,
+span receipt and retirement-manifest/journal hashes now identify retired
+historical outputs. The named active diagnosis inputs remain preserved.
+
+## Original source support, one bounded follow-up
+
+The unchanged rectified window was disconnected, but that did not establish
+whether its endpoint ink came from a connected original component. The new
+diagnostic fixes that question to the retained selector, refusal and property
+report. It reads one locked development source, verifies the prepared panel,
+rectifies with the frozen Imaging runtime and requires the same first gap,
+427 replay steps and clipping flags. It does not repeat the twelve-project
+prefix, geometry, OCR or the derived perpendicular-window search.
+
+At both gap endpoints it enumerates all original dark pixels with positive
+bilinear weight, using the unchanged `<200` predicate. White interpolation
+partners are normal and do not make the result uncertain. Missing ink support
+or a contributor outside the fixed window prevents a definite answer. One
+multi-source, eight-neighbor search admits only original pixel centers whose
+forward transform lies inside the prior perpendicular-relaxed window, preserving
+its along-axis bounds. No outside-window ink is read or searched. A failed
+search touching a window or raster boundary stays uncertain. The report contains
+only scalar counts and flags, not coordinates, path dumps, pixel values, truth
+rows or scientific values. Independent source review found no material blocker.
+
+One probe-only build with `BuildProjectReferences=false` passed, zero warnings
+or errors, **9.9558977 s**. A preservation precheck then used a nonexistent
+`net10.0` path instead of the actual `net10.0-windows` Imaging output. This was
+one void setup attempt before staging, controls or source payload reads. The
+path was corrected without another build. All twenty frozen App libraries were
+restaged and verified in the probe; the separate pacing candidate stayed intact.
+
+`--real-dev-affine-source-support-self-test` passed all **five owned controls**
+in **0.4719742 s**, covering fractional shear/white partners, connected and
+disconnected ink, missing support, excluded contributors and an outside-window
+detour, plus cancellation, immutability and pinned-report tampering. A missing-
+arguments invocation returned the expected sanitized exit 1 in **0.2680961 s**.
+CI invokes only the owned self-test. The private route is:
+
+```text
+--real-dev-affine-source-support <selector> <refusal-report> <property-report> <corpus> <App-exe> <OCR-assets> <baseline-worker> <diagnostic-worker> --explicit-opt-in
+```
+
+Exactly one authorized invocation ran **2026-11-16T03:25:10.6983537Z** to
+**03:25:12.1671444Z**: exit 0, empty stderr, **1.4648295 s** wrapper /
+**0.9093667 s** measured method. All **five stages completed**, zero failed or
+unattempted. Source, panel and exact gap replay bindings matched.
+
+Both endpoints had **two dark contributors and two white partners**, with none
+outside the window or source raster. The complete original search visited
+**63** ink pixels and performed **433** projection checks, reaching both right
+contributors. It reported `SOURCE_SUPPORT_CONNECTED_IN_WINDOW`. Reachable ink
+was adjacent to the left/right window boundary, but the connecting path stayed
+inside; top/bottom/raster boundaries were not touched. The previously measured
+derived window remains disconnected. This establishes a local raster-support
+difference. It does **not** prove that the source path is the semantic axis,
+establish calibration correctness, or justify changing acceptance thresholds.
+
+Stage times were source **62.3265 ms**, preparation **319.2335 ms**, frozen
+rectification **522.3546 ms**, gap replay **2.5135 ms**, original support
+**2.5800 ms**. Original/derived Gray8 sizes were **325,467 / 328,770 bytes**;
+cumulative allocation was **26,226,448 bytes**, not peak memory. The existing
+**0.4992 logical-core** allowance and **30/35-second** cancellation/watchdog
+limits remained active. All four source Data files retained their lengths and
+hashes before and after. No worker, OCR, fit, truth, reserved/sealed read, image
+write, Apply or export occurred. No private variants or retries followed.
+
+| Identity | SHA-256 |
+| --- | --- |
+| Probe assembly | `318a66cbcd9ddcdb2864f2ad41307db2b4d1fb29874a7d4f07593eba6f1761f8` |
+| Owned self-test | `1ecc826b61807d42f64e88f7dca33a72dd9d9a22d453ee4de4552a79a6d2e8fc` |
+| Scalar source-support report | `c9749971251e479d34106d72973b6b694bb6696d1df1b5eaadeb25c5354820a9` |
+| Run receipt | `8d6441a1151aa3fa5ad7f1c8ee16c013bc466608217d9fa7369918b8551ba76e` |
+| Closeout | `fe823bdc5dcb467b68de127e1763f4957384d5222303bcfb4ac9384fd3834ab0` |
+
+The diagnostic execution passes its bounded checks; production calibration
+acceptance is unchanged and exact-source CI is pending. The frozen-runtime
+investigation is closed. After this source/outcome push and CI review, its local
+selector, reports, raw logs, receipts and isolated diagnostic worker can be
+retired; no further private run is authorized by this result. The source App
+Data files, current compiler inputs, original corpus and sole 0.4.56 package
+remain protected. No dependency, model, frozen schema or license changed.

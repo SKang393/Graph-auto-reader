@@ -70,6 +70,7 @@ internal static class Program
         bool realDevAffineCalibration = args.Length > 0 && args[0] == "--real-dev-affine-calibration-trace";
         bool realDevAffineTickRefusal = args.Length > 0 && args[0] == "--real-dev-affine-tick-refusal";
         bool realDevAffineSpanProperties = args.Length > 0 && args[0] == "--real-dev-affine-span-properties";
+        bool realDevAffineSourceSupport = args.Length > 0 && args[0] == "--real-dev-affine-source-support";
         bool realDevIntervalClusterTrace = args.Length > 0 && args[0] == "--real-dev-interval-cluster-trace";
         bool realDevRankedReviewTrace = args.Length > 0 && args[0] == "--real-dev-ranked-review-trace";
         bool realDevSpatialTrace = args.Length > 0 && args[0] == "--real-dev-spatial-trace";
@@ -88,17 +89,17 @@ internal static class Program
         bool ownedNativeRejection = args.Length > 0 && args[0] == "--owned-native-rejection-check";
         bool ownedNativePruning = args.Length > 0 && args[0] == "--owned-native-pruning-check";
         bool ownedNativeIntersection = args.Length > 0 && args[0] == "--owned-native-intersection-check";
-        bool realDevPrivate = realDevAffineSpanProperties || realDevAffineTickRefusal || realDevAffineCalibration || realDevNativeAffineTrace || realDevIntervalClusterTrace || realDevIntervalLabelTrace || realDevCachedXRowProperties || realDevNativeRasterEndpointTrace || realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevRankedReviewTrace || realDevExactBoxTickTrace || realDevCachedAxisProperties || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
+        bool realDevPrivate = realDevAffineSourceSupport || realDevAffineSpanProperties || realDevAffineTickRefusal || realDevAffineCalibration || realDevNativeAffineTrace || realDevIntervalClusterTrace || realDevIntervalLabelTrace || realDevCachedXRowProperties || realDevNativeRasterEndpointTrace || realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevRankedReviewTrace || realDevExactBoxTickTrace || realDevCachedAxisProperties || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
-        int seconds = ownedAffineStrokeMask ? 30 : ownedAffineStrokeSampling ? 30 : realDevAffineSpanProperties ? 30 : realDevAffineTickRefusal ? 120 : ownedManualAffineCalibration ? 120 : ownedAffineTickObservation ? 300 : ownedAffineCalibration ? 600 : ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeIntersection ? 150 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck || ownedAffineMarker ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        int seconds = realDevAffineSourceSupport ? 30 : ownedAffineStrokeMask ? 30 : ownedAffineStrokeSampling ? 30 : realDevAffineSpanProperties ? 30 : realDevAffineTickRefusal ? 120 : ownedManualAffineCalibration ? 120 : ownedAffineTickObservation ? 300 : ownedAffineCalibration ? 600 : ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeIntersection ? 150 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck || ownedAffineMarker ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(ownedAffineStrokeMask ? 35 : ownedAffineStrokeSampling ? 35 : realDevAffineSpanProperties ? 35 : realDevAffineTickRefusal ? 125 : ownedManualAffineCalibration ? 125 : ownedAffineTickObservation ? 305 : ownedAffineCalibration ? 605 : ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeIntersection ? 155 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck || ownedAffineMarker ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(realDevAffineSourceSupport ? 35 : ownedAffineStrokeMask ? 35 : ownedAffineStrokeSampling ? 35 : realDevAffineSpanProperties ? 35 : realDevAffineTickRefusal ? 125 : ownedManualAffineCalibration ? 125 : ownedAffineTickObservation ? 305 : ownedAffineCalibration ? 605 : ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeIntersection ? 155 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck || ownedAffineMarker ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
@@ -234,6 +235,11 @@ internal static class Program
             if (args is ["--real-dev-affine-span-properties-self-test"])
             {
                 Emit(RealDevCalibrationCheck.AffineSpanPropertiesSelfTest());
+                return 0;
+            }
+            if (args is ["--real-dev-affine-source-support-self-test"])
+            {
+                Emit(RealDevCalibrationCheck.AffineSourceSupportSelfTest());
                 return 0;
             }
             if (args is ["--owned-affine-stroke-sampling-check"])
@@ -438,10 +444,16 @@ internal static class Program
                 // Every failure in this private mode is sanitized here, before the owned-mode handler.
                 try
                 {
-                    int requiredArguments = realDevAffineSpanProperties ? 9 : realDevAffineTickRefusal ? 8 : realDevAffineCalibration || realDevAxisDecision || realDevCachedAxisProperties || realDevCachedXRowProperties ? 7 : 6;
+                    int requiredArguments = realDevAffineSourceSupport ? 10 : realDevAffineSpanProperties ? 9 : realDevAffineTickRefusal ? 8 : realDevAffineCalibration || realDevAxisDecision || realDevCachedAxisProperties || realDevCachedXRowProperties ? 7 : 6;
                     if (args.Length != requiredArguments || args[^1] != "--explicit-opt-in")
                         throw new InvalidDataException();
                     using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                    if (realDevAffineSourceSupport)
+                    {
+                        var outcome = await RealDevCalibrationCheck.RunAffineSourceSupportAsync(args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], parentBudget, deadline.Token);
+                        Emit(outcome.Report);
+                        return outcome.Completed ? 0 : 1;
+                    }
                     if (realDevAffineSpanProperties)
                     {
                         var outcome = await RealDevCalibrationCheck.RunAffineSpanPropertiesAsync(args[1], args[2], args[3], args[4], args[5], args[6], args[7], parentBudget, deadline.Token);
@@ -728,6 +740,12 @@ internal static class Program
                         Emit(new { schema = RealDevCalibrationCheck.AffineSpanPropertiesSchema, status = "blocked_preflight_or_runtime",
                             axis_worker_calls = 0, ocr_calls = 0,
                             reserved_or_sealed_payload_reads = 0, review_only = true, production_approved = false });
+                        return 1;
+                    }
+                    if (realDevAffineSourceSupport)
+                    {
+                        Emit(new { schema = RealDevCalibrationCheck.AffineSourceSupportSchema, status = "blocked_preflight_or_runtime",
+                            axis_worker_calls = 0, ocr_calls = 0, reserved_or_sealed_payload_reads = 0, review_only = true, production_approved = false });
                         return 1;
                     }
                     if (realDevIntervalClusterTrace)

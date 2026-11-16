@@ -43,7 +43,19 @@ without production sampling changes or private retuning. The independent
 [pacing repair](AFFINE-RECTIFIER-PACING-20261116.md) passes 35 Imaging tests and
 preserves every non-timing field in the thirteen-case owned comparison. That
 single comparison reduced rectification from 1.52 to 0.49 seconds under the same
-CPU allowance; full CI is pending and no new package is required. The
+CPU allowance. Exact-head full Windows CI on `401afb24` passed 3,184 .NET tests,
+30 expected skips, 75 Rust tests and 68 packaging checks, with no failures.
+The final one-frame original-support audit found connected original ink between
+the gap's contributors inside the same mapped window where the derived search
+was disconnected. All five stages completed in 1.46 seconds, with no worker,
+OCR, truth or sealed calls. This is a raster-support difference, not proof of
+axis identity or calibration acceptance. That private investigation is closed;
+further implementation uses owned controls. A separate source review identified
+a bounded usability defect: a failure on either axis discards observed ticks
+from the other axis, even for manually marked affine geometry. The next source
+batch retains independently validated ticks only for that explicit manual
+review path, preserving strict automatic behavior and review/Apply gates.
+No new package is required. The
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
 is implemented in source.
 Its local solution tests and actual one-call worker check now pass, preserving

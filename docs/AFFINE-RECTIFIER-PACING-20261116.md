@@ -80,15 +80,34 @@ back to verify every result. No probe rerun followed that display issue.
 
 ## Integration and limits
 
-Source and focused validation pass; exact-head full Windows CI is pending.
+Source and focused validation pass. Exact-head full Windows CI
+[43794805502](https://github.com/SKang393/Graph-auto-reader/actions/runs/43794805502)
+on `401afb240c59148a08b7180485c32896a5ca9f16` passed in **10 min 50 s**:
+**3,184 .NET tests**, **30 expected skips**, **75 Rust tests**, **68 packaging
+checks** and **9 localization checks**, zero failures. Imaging passed all 35
+tests, App all 1,310, and the existing seven-control affine-span self-test passed
+without private reads or worker calls. Both release jobs were skipped.
 The sole delivered package remains **0.4.56**. This is a source change, not a new
 packaged build or native UI acceptance. No private or sealed input, OCR/model,
 training, worker call, image-file output, Apply or export occurred in the pacing
 comparison. No dependency, license or frozen contract changed; source retains
 Apache-2.0 notices.
 
-The test `bin`/`obj`, candidate Imaging compiler output, TRX, owned reports and
-temporary parity runner remain only through full-CI/integration review. Their
-concise results are recorded here; retire completed disposable outputs after
-this record is pushed and active consumers finish. Preserve source App/probe
-runtime inputs, original data and the single delivered package.
+After the source/outcome push and full-CI review, Imaging test `bin`/`obj`, the
+TRX, owned reports and temporary parity runner were retired at
+**2026-11-16T03:23:50.0178030Z**: **191 files / 8,386,909 bytes** across exactly
+three directories. The manifest bound every file's size/hash; absolute paths,
+reparse ancestry/descendants, untracked status and process references were
+checked before removal. The process inspection is point-in-time evidence, not
+a universal open-handle guarantee. Ten protected files retained their hashes
+before and after, including all four source Data files. The actively rebuilding
+probe was excluded from its old snapshot and never included in deletion scope.
+
+Manifest SHA-256:
+`448db19ccb44acc324643931d1539463df9fbd2fdf9e9b0a60db8d8d3adbbd4d`;
+journal SHA-256:
+`6e7fe7712c8a1b2189ee753a83acabe4ed5db94a5f67aa81f26b2c344d62d0bf`.
+The candidate Imaging compiler output remains an active build input. All source
+App/probe runtimes, original data, selected-frame diagnosis inputs and the single
+delivered package remain preserved. The table's TRX/report hashes now identify
+retired historical outputs, whose concise result is retained in this document.
