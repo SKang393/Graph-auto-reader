@@ -5,9 +5,6 @@
 
 Source base: `6c450ab8b3ca9b1965444c107f146121d31f73c8`.
 This is an unpackaged source batch. The sole retained package remains 0.4.52.
-The maintainer revoked the former 4% cutoff: checkpoint at 0% weekly remaining
-for the dot-coordinated reset, without independently consuming a reset or paid
-credits.
 
 ## Problem and scope
 

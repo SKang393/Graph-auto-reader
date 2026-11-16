@@ -100,12 +100,7 @@ training.
 
 ## Real and private evaluation safety
 
-The public scoreboard cannot select private evaluation. Goal 22's explicitly
-authorized real corpus is the Git-ignored `data/manual data/` tree documented in
-`AGENTS.md` Section 8.1. Only the dedicated local acceptance harness may read it,
-and it must keep images, truth rows, study names, participant names, and per-case
-predictions out of Git and release artifacts. Real development diagnosis may be
-case-level; real sealed evaluation remains aggregate-only.
+Real-data evaluation is separate from the public scoreboard. The local acceptance harness uses study-level partitions. Real development diagnosis may be case-level; sealed evaluation remains aggregate-only. Public reports contain aggregate results rather than study or participant source material.
 
 The general-purpose private adapter for any other dataset remains unavailable by
 default and returns availability only when all of these conditions hold:
