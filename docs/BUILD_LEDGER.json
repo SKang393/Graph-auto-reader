@@ -9127,7 +9127,19 @@
     "retainedBytes": 284026401,
     "launcherWrapperRequired": true,
     "supersededLocalBuild": "0.4.56-20261116T005249234Z-472b715f",
-    "supersededRetirementPending": true
+    "supersededRetirementPending": false,
+    "supersededLocalBuildRetired": "0.4.56-20261116T005249234Z-472b715f",
+    "supersededLocalBuildFilesRetired": 478,
+    "supersededLocalBuildBytesRetired": 284011831,
+    "supersededRetirementVerifiedUtc": "2026-11-16T05:44:58.3896579Z",
+    "localStagingRetired": true,
+    "completedStagingFilesRetired": 21,
+    "completedStagingBytesRetired": 87491526,
+    "completedStagingRetirementVerifiedUtc": "2026-11-16T05:44:58.3896579Z",
+    "existingWindowsLaptopValidationScopeRetired": true,
+    "existingWindowsLaptopValidationFilesRetired": 480,
+    "existingWindowsLaptopValidationBytesRetired": 284026407,
+    "existingWindowsLaptopValidationRetiredUtc": "2026-11-16T05:46:32.7041179Z"
   }
 }
 ]

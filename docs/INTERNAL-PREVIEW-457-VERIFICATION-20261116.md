@@ -175,3 +175,30 @@ the verified 477-file payload, its ZIP and two three-byte smoke settings. Its
 retirement requires fresh matching payload/ZIP hashes, exact setting hashes,
 contained paths without reparse points and no consumers. Preserve the unrelated
 older VM, media, user data and all other validation roots.
+
+Activation/retirement scope commit `5261adfd807e1388ae46eafc156ed60b50d7bb4d`
+was pushed and integrated before removal. The first requested retirement
+performed another read-only inventory because dot-sourcing a helper replaced
+the ad-hoc wrapper's generic `Action` parameter. Its output identified `Inspect`,
+and no deletion occurred. Using distinct retirement parameter names repaired
+the wrapper; all bytes were checked again under manifest
+`2822b5e1cab33228ca27e6aff1c3ba0b2c629fa338e14083388398ac85a9417a`.
+The inventory content and total scope were unchanged; its timestamp differed.
+
+At `2026-11-16T05:44:58.3896579Z`, the **990 local files / 475,603,377 bytes**
+were retired and every target directory was absent. All eleven protected files
+and sixteen shared Data files remained equal. The new archive and all 477
+payload files matched again, and **only 0.4.57** remained in `builds/`.
+
+The Flex5 scope was independently rechecked against its checksum-bound ZIP,
+all 477 payload files and the exact two task-created settings. Canonical ancestry,
+reparse and process-consumer checks passed. At `2026-11-16T05:46:32.7041179Z`,
+its **480 files / 284,026,407 bytes** were retired and the scope was absent;
+SSH wall time was **6.2010622 s**. No other remote directory was changed.
+Combined completed-output retirement reclaimed **759,629,784 bytes**.
+
+The small `artifacts/preview457-activation` manifests, wrappers and receipts
+are now completion-only output. Retire them after this result is pushed and no
+recording consumer remains. The source helper/tests, current package and uploaded
+artifact are retained; historical raw-output hashes above are no longer local
+file promises.

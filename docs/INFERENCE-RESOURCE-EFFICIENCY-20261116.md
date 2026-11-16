@@ -129,11 +129,13 @@ passed [full Windows CI](https://github.com/SKang393/Graph-auto-reader/actions/r
 production classifier store test and DirectML initialization when that provider
 was absent. The local hardware run had only the store skip. This CI result does
 not approve any model or complete end-to-end digitization.
-No model, dependency, persisted schema, provider policy, package, release or
-license changes are needed. Source carries Apache-2.0 notices. The sole delivered
-package remains 0.4.56, and native QA remains blocked by the stale desktop stop.
-After the coherent source/outcome push and CI review, retire completed outputs
-under `artifacts/inference-key-hash-check` and `artifacts/tensor-pool-bound-check`
-and inactive test/compiler outputs. Preserve current runtime models, source Data,
-originals, owned QA inputs, the protected runtime checkpoint and sole package.
+No model, dependency, persisted schema, provider policy or license changed.
+Source carries Apache-2.0 notices. These changes are included in the verified
+[0.4.57 preview](INTERNAL-PREVIEW-457-VERIFICATION-20261116.md); native QA remains
+blocked by the stale desktop stop. After the coherent source/outcome push and
+CI review, completed `artifacts/inference-key-hash-check`,
+`artifacts/tensor-pool-bound-check` and Inference test compiler outputs were
+retired in the documented 457 closeout. Current runtime models, source Data,
+originals, owned QA inputs, the protected runtime checkpoint and sole package
+were preserved. Raw-output hashes above are historical reproduction records.
 No paid credits or reset redemption were used.

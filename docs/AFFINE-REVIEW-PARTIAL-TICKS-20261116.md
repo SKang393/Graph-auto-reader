@@ -101,14 +101,15 @@ release artifacts. This is source validation, not production approval.
 ## Delivery and retention
 
 This source change is grouped with the [inference resource improvements](INFERENCE-RESOURCE-EFFICIENCY-20261116.md)
-for one integration and CI batch. Version 0.4.57 is prepared once for that
-meaningful preview. The delivered package remains 0.4.56 until a
-replacement is built, uploaded, verified and activated. Native desktop QA is
+for one integration and CI batch. The resulting
+[0.4.57 preview](INTERNAL-PREVIEW-457-VERIFICATION-20261116.md) is built, uploaded,
+verified and activated. Native desktop QA is
 still blocked by the helper's stale Escape stop despite renewed authorization.
 Headless tests do not replace that acceptance.
 
-After source/outcome integration, full CI and active consumers finish, retire
-`artifacts/affine-review-partial-check` and inactive test outputs. Preserve original
-data, the four source Data files, owned native-QA images, protected runtime
-checkpoint and sole packaged build. No dependencies or licenses change; source
+After source/outcome integration, full CI and packaged-worker checks completed,
+`artifacts/affine-review-partial-check` and inactive App test outputs were retired
+in the 457 closeout. Original data, the four source Data files, owned native-QA
+images, protected runtime checkpoint and sole packaged build were preserved.
+Raw-output hashes above are historical reproduction records. No dependencies or licenses change; source
 retains Apache-2.0 notices. No paid credits or reset redemption are used.
