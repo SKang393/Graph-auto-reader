@@ -97,7 +97,14 @@ assemblies and native dependency after the frozen investigation had closed.
 
 ## Integration and retention
 
-Local source validation passes; exact-head CI remains pending. The delivered package stays
+Local source validation and exact-head Windows CI
+[43801070596](https://github.com/SKang393/Graph-auto-reader/actions/runs/43801070596)
+on `2dbd81d7412221b3050f9af850ac3c9e49b596bb` passed. CI took **12 min 35 s**
+and passed **3,203 .NET tests**, **80 Rust tests**, **68 packaging checks** and
+**9 localization checks**, with **30 expected .NET skips** and zero failures.
+App passed all 1,322 tests and Axis all 239, including the local fixture skip.
+The existing diagnostic self-tests also passed without private reads or worker
+calls; both release jobs were skipped. The delivered package stays
 **0.4.56**, and native QA remains blocked by the desktop helper's stale Escape
 state despite renewed user authorization. No packaged build is required for
 this source batch. Preserve current source Data, original inputs and that sole

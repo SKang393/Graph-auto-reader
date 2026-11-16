@@ -172,3 +172,60 @@ parameter sweep or allow private evaluation. Remove this compact baseline after
 the two-control audit's result is pushed and its consumer finishes. The
 [retirement record](AXIS-BOX-REFUSAL-DIAGNOSTIC-20261116.md) retains the inventory
 and actual-action journal identities.
+
+## Two-control clipped-source audit: branch closed
+
+The private source-support audit used a perpendicular-relaxed window. It did not
+establish that an original-ink bridge would be admissible within the existing
+production clipping. Before implementing a new worker protocol, one owned
+audit checked exactly `positive_half_s1_g128` and `negative_half_s1_g128` from
+the retained baseline: 320 by 240, digital width one, gray 128, phase 0.5,
+angles plus/minus two degrees. Source and derived pixel hashes, dimensions,
+metadata, dark X endpoints, gap kind/length and replay work had to match the
+cached report. These two controls were recreated for a new property; the full
+thirteen-case baseline was not rerun.
+
+The audit passes `ReplayHorizontalSpan.Window` directly to the existing source
+support observer. No radius, clipping or gray predicate changes. All positive-
+weight original contributors are enumerated; any excluded contributor makes
+eligibility uncertain before a connectivity search. One probe-only build passed
+with zero warnings/errors in **10.841863 s**, without an App/reference build.
+It used the current Imaging compiler assembly
+`00602cf9b13c325b6d5123bc10619770df9d01962e4c02eb2976aa1fdc491ced`.
+
+Exactly one invocation of
+`--owned-affine-clipped-source-support-check <absolute-owned-baseline-report>`
+completed **2/2 controls**, zero execution failures/unattempted controls, exit 0,
+empty stderr, **0.595657 s** wrapper / **0.1198694 s** core. Every one of the six
+stages completed twice. Both source/derived rasters matched their cached hashes.
+
+| Owned tilt | Replayed gap / work | Endpoint ink contributors, left/right | Outside clipped window, left/right |
+| --- | ---: | ---: | ---: |
+| +2 degrees | 11 / 41 | 2 / 2 | 1 / 2 |
+| -2 degrees | 12 / 28 | 3 / 2 | 2 / 2 |
+
+Both results are `UNCERTAIN_ENDPOINT_SUPPORT_OUTSIDE_WINDOW`. Their source BFS
+was correctly **unattempted** and connectivity remained **null**. This is not
+evidence that original ink is disconnected. There were **zero eligible controls
+and two completed feasibility refusals**. The unchanged-clipping bridge branch
+is closed for these controls; no production implementation, widened window,
+additional variant or private follow-up is justified by this result.
+
+The parent kept its **0.4992 logical-core** cap and 30/35-second cancellation/
+watchdog limits. Source/derived Gray8 totals were **153,600 / 165,816 bytes**;
+cumulative allocation **815,472 bytes**, not peak memory. All **37** protected
+runtime/baseline/Data files, including the four source Data files, were unchanged.
+No worker, OCR, fit, private/sealed read, image write, Apply or export occurred.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| Probe | `9ea782291900d1f2cc3ed6b16c86eef9d4cace5064eec5ee0914a5cf8d1ce427` |
+| Two-control report | `cdd478df261034dbe5f2a5e1b8c1ef7b4a5e680335e5f47af4ea04e500d76b98` |
+| Run receipt | `cb2c4d17e49cc3be624e40df050a6f1689a0d19a604be8b62ec0de18d380c267` |
+| Preservation receipt | `c94f66c9928eff55b7a31878a7344e8d0c2cac97c6c02ea2da6660eecac654f5` |
+
+The diagnostic execution passes; the proposed production bridge is not accepted.
+After this source/outcome push and CI review, retire the two-control output tree,
+its now-consumed baseline and inactive probe compiler outputs. The protected
+`runtime-pins.json` checkpoint, current source compiler inputs, originals and sole
+package remain outside cleanup. No dependency, model, schema or license changed.

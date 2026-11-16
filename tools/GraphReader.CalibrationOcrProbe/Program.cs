@@ -35,6 +35,7 @@ internal static class Program
         bool ownedAffineCalibration = args.Length > 0 && args[0] == "--owned-affine-calibration-check";
         bool ownedManualAffineCalibration = args.Length > 0 && args[0] == "--owned-manual-affine-calibration-check";
         bool ownedAffineStrokeSampling = args.Length > 0 && args[0] == "--owned-affine-stroke-sampling-check";
+        bool ownedAffineClippedSourceSupport = args.Length > 0 && args[0] == "--owned-affine-clipped-source-support-check";
         bool ownedAffineStrokeMask = args.Length > 0 && args[0] == "--owned-affine-stroke-mask-check";
         bool ownedAffineTickObservation = args.Length > 0 && args[0] == "--owned-affine-tick-observation-check";
         bool workerCheck = args.Length > 0 && args[0] is "--worker-check" or "--gpu-worker-check";
@@ -93,13 +94,13 @@ internal static class Program
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
-        int seconds = realDevAffineSourceSupport ? 30 : ownedAffineStrokeMask ? 30 : ownedAffineStrokeSampling ? 30 : realDevAffineSpanProperties ? 30 : realDevAffineTickRefusal ? 120 : ownedManualAffineCalibration ? 120 : ownedAffineTickObservation ? 300 : ownedAffineCalibration ? 600 : ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeIntersection ? 150 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck || ownedAffineMarker ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        int seconds = ownedAffineClippedSourceSupport ? 30 : realDevAffineSourceSupport ? 30 : ownedAffineStrokeMask ? 30 : ownedAffineStrokeSampling ? 30 : realDevAffineSpanProperties ? 30 : realDevAffineTickRefusal ? 120 : ownedManualAffineCalibration ? 120 : ownedAffineTickObservation ? 300 : ownedAffineCalibration ? 600 : ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeIntersection ? 150 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck || ownedAffineMarker ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(realDevAffineSourceSupport ? 35 : ownedAffineStrokeMask ? 35 : ownedAffineStrokeSampling ? 35 : realDevAffineSpanProperties ? 35 : realDevAffineTickRefusal ? 125 : ownedManualAffineCalibration ? 125 : ownedAffineTickObservation ? 305 : ownedAffineCalibration ? 605 : ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeIntersection ? 155 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck || ownedAffineMarker ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(ownedAffineClippedSourceSupport ? 35 : realDevAffineSourceSupport ? 35 : ownedAffineStrokeMask ? 35 : ownedAffineStrokeSampling ? 35 : realDevAffineSpanProperties ? 35 : realDevAffineTickRefusal ? 125 : ownedManualAffineCalibration ? 125 : ownedAffineTickObservation ? 305 : ownedAffineCalibration ? 605 : ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeIntersection ? 155 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck || ownedAffineMarker ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
@@ -249,6 +250,14 @@ internal static class Program
                 Emit(outcome.Report);
                 return outcome.Completed ? 0 : 1;
             }
+            if (args is ["--owned-affine-clipped-source-support-check", var clippedSupportBaseline])
+            {
+                using CpuBudgetJob ownedBudget = CpuBudgetJob.Apply();
+                var outcome = RealDevCalibrationCheck.RunOwnedAffineClippedSourceSupport(clippedSupportBaseline, ownedBudget, deadline.Token);
+                Emit(outcome.Report);
+                return outcome.Completed ? 0 : 1;
+            }
+            if (ownedAffineClippedSourceSupport) throw new InvalidDataException("Usage: --owned-affine-clipped-source-support-check <absolute-owned-baseline-report>");
             if (args is ["--owned-affine-stroke-mask-check", var strokeWorker, var strokeBaseline])
             {
                 using CpuBudgetJob ownedBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);

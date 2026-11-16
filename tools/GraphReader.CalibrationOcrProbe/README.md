@@ -524,3 +524,16 @@ the existing predicate before rectification and invokes the actual tick service
 once per case. All refusals, spurious ticks and operational failures remain in
 the result. It changes no App/OCR behavior and authorizes no private comparison.
 Its outcome and limitations are recorded in the same linked document.
+
+`--owned-affine-clipped-source-support-check <absolute-owned-baseline-report>`
+is the closed two-control feasibility audit. It recreates only the fixed
+positive/negative two-degree thin-gray128 controls, binds their pixels and replay
+properties to the prior baseline, then observes original endpoint support inside
+the production-clipped window unchanged. Excluded contributors give an uncertain
+completed refusal without searching. The report separates those refusals from
+execution failures and closes the branch when neither control is eligible.
+It uses the existing 30/35-second limits and CPU cap, without a native worker,
+private image, OCR, fit or image write. Both measured controls were ineligible;
+the result does not authorize widening or production integration. The same
+[outcome document](../../docs/AFFINE-STROKE-SAMPLING-20261116.md) records the
+identities, failure accounting and retirement condition.

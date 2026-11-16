@@ -57,8 +57,16 @@ batch [retains independently validated ticks](MANUAL-AFFINE-PARTIAL-TICKS-202611
 only for that explicit manual review path, preserving strict automatic behavior
 and review/Apply gates. Its local validation passes all 80 Rust tests, 1,322 App
 tests and 238 Axis tests, with one existing local fixture skip. The source-support
-checkpoint's full Windows CI also passed; the new partial-axis source awaits its
-own integrated CI run.
+checkpoint's full Windows CI also passed. The partial-axis source `2dbd81d7`
+now passes its own full CI: 3,203 .NET tests, 80 Rust tests and 68 packaging
+checks, 30 expected skips and zero failures. Its Axis suite ran all 239 tests.
+The subsequent two-control owned audit also closed without a production bridge:
+positive-weight endpoint contributors fell outside the unchanged clipping in
+both controls, so source connectivity was deliberately not searched. This is an
+eligibility refusal, not proof of disconnection. No window widening, threshold
+change or additional private comparison follows. Repeated-read performance is
+being checked independently; existing worker/model-session reuse is already
+implemented and must not be rebuilt as a supposed new optimization.
 No new package is required. The
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
 is implemented in source.
