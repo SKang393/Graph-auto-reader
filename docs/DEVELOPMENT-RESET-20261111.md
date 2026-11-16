@@ -4,7 +4,13 @@
 # Development direction, 2026-11-11
 
 Current state, 2026-11-16 UTC: the sole delivered package is
-[**0.4.57**](INTERNAL-PREVIEW-457-VERIFICATION-20261116.md). The
+[**0.4.58**](INTERNAL-PREVIEW-458-VERIFICATION-20261116.md), uploaded,
+hash-verified and activated from source `4279db15`. Exact-source full CI and
+the actual latest launcher pass; all shared user Data is preserved. This adds
+visibly incomplete review choices and preserves tilted geometry in those
+choices. The old 0.4.57 keeper awaits retirement after the activation record
+is pushed. Native UI, clean-machine and production acceptance remain incomplete.
+The earlier
 [tilted-axis source checkpoint](NATIVE-AFFINE-AXIS-REVIEW-20261115.md)
 `4fcf0b69e7a39e032fb862327b55d5aad9cdd3d1` has successful full Windows CI.
 The fixed development geometry diagnostic returns eight rectangles, one affine

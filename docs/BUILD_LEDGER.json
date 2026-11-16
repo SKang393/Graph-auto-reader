@@ -9216,14 +9216,21 @@
     "nativeReviewReport": null,
     "visualWorkflowChecked": false,
     "visualWorkflowScope": "Native tilted and incomplete-choice interactions remain unverified because Computer Use retains its Escape-stop state despite renewed authorization and no new Escape.",
-    "latestActivationPending": true,
+    "latestActivationPending": false,
     "existingWindowsLaptopChecked": false,
     "existingWindowsLaptopScope": "No repeated 0.4.58 laptop copy or unchanged Rust/OCR inference; prior 0.4.57 evidence remains scoped to that build.",
     "cleanWindowsVmChecked": false,
     "productionApproved": false,
     "launcherWrapperRequired": true,
     "supersededLocalBuild": "0.4.57-20261116T050648697Z-4db78d87",
-    "supersededRetirementPending": true
+    "supersededRetirementPending": true,
+    "latestActivatedUtc": "2026-11-16T08:40:40.7700301Z",
+    "latestPointerSha256": "0215c6e05bedeb435ed6ab469b78cd88eee9f9ba60595b8bfa9a24795163443f",
+    "latestLauncherSmokeExitCode": 0,
+    "latestLauncherSmokeMilliseconds": 2189.0716,
+    "activationSharedDataFilesPreserved": 16,
+    "retainedFiles": 478,
+    "retainedBytes": 284040423
   }
 }
 ]

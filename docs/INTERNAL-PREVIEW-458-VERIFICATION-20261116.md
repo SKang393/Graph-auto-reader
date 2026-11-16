@@ -98,11 +98,27 @@ tool's stale Escape stop persists despite renewed authorization and no new Escap
 
 ## Activation and retention
 
-The delivery ledger selects 0.4.58 with activation pending. The current launcher
-still selects 0.4.57 until this verified ledger is pushed and the existing
-[activation helper](INTERNAL-PREVIEW-ACTIVATION-20261116.md) completes. Preserve
-shared user Data and the old keeper through activation, verify the actual latest
-launcher, then push that outcome before retiring the exact old build.
+Delivery commit `bfb1847ea94d88afcfcc55f021b0669519f00c05` was verified on
+`origin/main` before the existing
+[activation helper](INTERNAL-PREVIEW-ACTIVATION-20261116.md) ran. Inspect passed
+in **6.207 seconds**. Activation passed in **7.785 seconds**, finishing
+`2026-11-16T08:40:40.7700301Z`; all 477 payload files and all sixteen shared
+Data files were verified. The latest pointer now selects **0.4.58** and has
+SHA-256 `0215c6e05bedeb435ed6ab469b78cd88eee9f9ba60595b8bfa9a24795163443f`.
+
+The actual primary `packaging/Run-Latest-DevPortable.cmd -Wait -PortableSmoke`
+returned **0**, with 279 informational stdout bytes and empty stderr. The
+measured **2,189.072 ms** includes wrapper and postcheck time, not just startup.
+Verification finished `08:42:41.9517319Z`: all 27 protected hashes were
+unchanged and no Data directory appeared inside the payload. The current keeper
+contains **478 files / 284,040,423 bytes**, including its verified ZIP.
+
+The old `0.4.57-20261116T050648697Z-4db78d87` keeper remains pending retirement
+until this activation outcome is pushed: **478 files / 284,026,401 bytes**.
+Completed `artifacts/hosted-preview-458` staging is **10 files / 87,466,575
+bytes**; `artifacts/preview458-check` is **20 files / 207,241 bytes** at this
+inventory. Recheck exact scope, hashes, reparse points and active consumers
+before removal. User Data is outside these scopes and must remain intact.
 
 After active activation/review consumers close and their outcome is pushed,
 retire `artifacts/hosted-preview-458` staging and `artifacts/preview458-check`
