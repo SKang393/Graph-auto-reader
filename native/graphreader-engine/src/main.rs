@@ -7,6 +7,8 @@ const MAX_PIXELS: usize = 16_777_216;
 // Resource budget only: never search a truncated candidate subset.
 const MAX_GRID_PAIR_CHECKS: usize = 128;
 const MAX_REVIEW_RESPONSE_BYTES: usize = 64 * 1024;
+// Internal measured-span outcome, normalized before any public proposal result.
+const DISCONNECTED_AXIS_SPAN: &str = "DISCONNECTED_AXIS_SPAN";
 
 #[derive(Clone, Copy)]
 struct Trace {
@@ -305,8 +307,11 @@ fn propose(
     let x_limit = (tick_height / 20).clamp(3, 32);
     let y_limit = (tick_width / 20).clamp(3, 32);
     match selection {
-        Ok((bottom, left)) => measure_axes(width, height, channels, pixels, &rows, &cols,
-            bottom, left, x_limit, y_limit, fallback, false),
+        Ok((bottom, left)) => {
+            let measured = measure_axes(width, height, channels, pixels, &rows, &cols,
+                bottom, left, x_limit, y_limit, fallback, false);
+            recover_content_span(width, height, channels, pixels, measured, fallback)
+        },
         Err("AMBIGUOUS_AXIS") => { trace(|t| t.route = "GRID"); resolve_grid(width, height, channels, pixels, &rows, &cols,
             tick_width * 2 / 5, tick_height * 2 / 5, x_limit, y_limit) },
         Err("NO_AXIS") => { trace(|t| t.route = "CONNECTED_RUNS"); resolve_connected_runs(width, height, channels, pixels) },
@@ -314,8 +319,23 @@ fn propose(
     }
 }
 
+fn recover_content_span(width: usize, height: usize, channels: usize, pixels: &[u8],
+    measured: Result<Proposal, &'static str>, content_extent: bool) -> Result<Proposal, &'static str>
+{
+    match measured {
+        Err(DISCONNECTED_AXIS_SPAN) if content_extent && !BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) => {
+            trace(|t| t.route = "CONNECTED_RUNS");
+            // Reuse the request-wide bridge budget and the existing unique,
+            // outward-tick qualifier, including its ambiguity/resource refusal.
+            resolve_connected_runs(width, height, channels, pixels)
+        },
+        Err(DISCONNECTED_AXIS_SPAN) => Err("NO_AXIS"),
+        result => result,
+    }
+}
+
 // Disconnected caption glyphs do not increase an axis run. This runs only
-// after the existing content-extent selection returned NO_AXIS.
+// after missing content projections or a disconnected measured content span.
 fn resolve_connected_runs(width: usize, height: usize, channels: usize, pixels: &[u8])
     -> Result<Proposal, &'static str>
 {
@@ -511,7 +531,7 @@ fn measure_axes(width: usize, height: usize, channels: usize, pixels: &[u8], row
             (Some(x), Some(y)) => (x, y),
             _ => {
                 trace(|t| { t.reason = "DISCONNECTED"; if outward_only { t.connection_rejections += 1; } });
-                return Err("NO_AXIS");
+                return Err(DISCONNECTED_AXIS_SPAN);
             }
         }
     } else { (Vec::new(), Vec::new()) };
@@ -1671,7 +1691,8 @@ mod tests {
         // Primary success intentionally retains its historical behavior.
         assert!(propose(128, 128, 1, &source).is_ok());
         let padded = padded_pixels(&source, 256, 64, 64);
-        assert_eq!(propose(256, 256, 1, &padded), Err("NO_AXIS"));
+        // Strict connected recovery still refuses the padded broken spans.
+        assert_eq!(propose(256, 256, 1, &padded), Err("AMBIGUOUS_AXIS"));
     }
     #[test]
     fn fallback_rejects_competing_panels_without_searching_for_an_alternative() {
@@ -2157,6 +2178,91 @@ mod tests {
         for y in [110, 140, 180] { for x in 96..100 { image[y * 512 + x] = 0; } }
         for x in (0..512).step_by(2) { image[400 * 512 + x] = 0; }
         image
+    }
+    fn content_projection_decoy_pixels() -> Vec<u8> {
+        let mut image = vec![255; 512 * 512];
+        for x in 80..=440 { image[420 * 512 + x] = 0; }
+        for y in 250..=420 { image[y * 512 + 80] = 0; }
+        for x in [140, 260, 380] { for y in 421..=425 { image[y * 512 + x] = 0; } }
+        for y in [280, 330, 380] { for x in 74..=79 { image[y * 512 + x] = 0; } }
+        for y in (0..=398).step_by(2) { image[y * 512 + 20] = 0; }
+        image[420 * 512 + 20] = 0;
+        image
+    }
+    #[test]
+    fn content_projection_disconnected_decoy_recovers_observed_plot() {
+        let image = content_projection_decoy_pixels();
+        BRIDGE_WORK.with(|work| work.set(0));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+        let expected = resolve_connected_runs(512, 512, 1, &image).expect("unique observed L with outward ticks");
+        assert_eq!((expected.left, expected.bottom, expected.right, expected.top), (80, 420, 440, 250));
+        assert_eq!(expected.x_ticks, vec![140, 260, 380]);
+        assert_eq!(expected.y_ticks, vec![280, 330, 380]);
+        TRACE.with(|cell| cell.set(Some(Trace::default())));
+        assert_eq!(propose(512, 512, 1, &image), Ok(expected));
+        let observed = TRACE.with(|cell| cell.replace(None)).unwrap();
+        assert_eq!(observed.route, "CONNECTED_RUNS");
+        assert_eq!(observed.qualified_pairs, 1);
+        assert!(BRIDGE_WORK.with(|work| work.get()) > 0, "failed content measurement must not reset its charged bridge work");
+    }
+    #[test]
+    fn content_span_recovery_keeps_real_gaps_and_multiple_plots_refused() {
+        let mut broken = content_projection_decoy_pixels();
+        for x in 180..=240 { broken[420 * 512 + x] = 255; }
+        assert_eq!(propose(512, 512, 1, &broken), Err("AMBIGUOUS_AXIS"));
+
+        let mut multiple = vec![255; 512 * 512];
+        for (left, top, bottom) in [(80, 30, 200), (300, 250, 420)] {
+            for x in left..=left + 140 { multiple[bottom * 512 + x] = 0; }
+            for y in top..=bottom { multiple[y * 512 + left] = 0; }
+            for x in [left + 20, left + 70, left + 120] {
+                for y in bottom + 1..=bottom + 5 { multiple[y * 512 + x] = 0; }
+            }
+            for y in [top + 30, top + 80, top + 130] {
+                for x in left - 6..left { multiple[y * 512 + x] = 0; }
+            }
+        }
+        BRIDGE_WORK.with(|work| work.set(0));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+        TRACE.with(|cell| cell.set(Some(Trace::default())));
+        assert_eq!(recover_content_span(512, 512, 1, &multiple, Err(DISCONNECTED_AXIS_SPAN), true), Err("AMBIGUOUS_AXIS"));
+        let observed = TRACE.with(|cell| cell.replace(None)).unwrap();
+        assert_eq!(observed.reason, "MULTIPLE_PAIRS");
+        assert_eq!(observed.qualified_pairs, 2);
+    }
+    #[test]
+    fn content_span_recovery_preserves_shared_budget_and_never_retries_other_failures() {
+        let image = content_projection_decoy_pixels();
+        BRIDGE_WORK.with(|work| work.set(17));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+        assert!(recover_content_span(512, 512, 1, &image, Err(DISCONNECTED_AXIS_SPAN), true).is_ok());
+        assert_eq!(BRIDGE_WORK.with(|work| work.get()), 17);
+
+        BRIDGE_WORK.with(|work| work.set(MAX_PIXELS));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(true));
+        TRACE.with(|cell| cell.set(Some(Trace::default())));
+        assert_eq!(recover_content_span(512, 512, 1, &image, Err(DISCONNECTED_AXIS_SPAN), true), Err("NO_AXIS"));
+        assert_eq!(BRIDGE_WORK.with(|work| work.get()), MAX_PIXELS);
+        assert!(BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()));
+        assert_eq!(TRACE.with(|cell| cell.replace(None)).unwrap().pairs_checked, 0);
+        BRIDGE_WORK.with(|work| work.set(0));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+        for reason in ["NO_INTERSECTION", "NO_AXIS", "AMBIGUOUS_AXIS"] {
+            assert_eq!(recover_content_span(512, 512, 1, &image, Err(reason), true), Err(reason));
+        }
+        assert_eq!(recover_content_span(512, 512, 1, &image, Err(DISCONNECTED_AXIS_SPAN), false), Err("NO_AXIS"));
+        assert_eq!(BRIDGE_WORK.with(|work| work.get()), 0);
+    }
+    #[test]
+    fn content_span_recovery_refuses_when_remaining_bridge_work_exhausts() {
+        let image = owned_outline_axis_fixture(true);
+        BRIDGE_WORK.with(|work| work.set(MAX_PIXELS - 1));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+        assert_eq!(recover_content_span(768, 768, 1, &image, Err(DISCONNECTED_AXIS_SPAN), true), Err("AMBIGUOUS_AXIS"));
+        assert_eq!(BRIDGE_WORK.with(|work| work.get()), MAX_PIXELS);
+        assert!(BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()));
+        BRIDGE_WORK.with(|work| work.set(0));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
     }
     #[test]
     fn dotted_caption_small_plot_recovers_original_pixels() {

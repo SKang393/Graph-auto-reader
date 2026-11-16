@@ -3,6 +3,29 @@
 
 # Development direction, 2026-11-11
 
+The [content-span routing repair](RUST-CONTENT-SPAN-RECOVERY-20261116.md)
+fixes an owned counterexample where disconnected decoy ink prevented the existing
+strict solver from finding a fully ticked plot. All 89 Rust tests and eight
+existing wire controls pass. Its single fixed real-development confirmation
+still refuses geometry after one connected-run pair fails connectivity, so
+numeric calibration remains unreached. Do not claim a real-accuracy improvement
+or repeat the runtime comparison. The next permitted diagnosis is image-property
+inspection of that exact refusal, with the compact locator retained for it.
+Source integration and full Windows CI are pending; no new package is created.
+
+The [new fixed one-project development diagnosis](NEXT-DEV-PROJECT-CALIBRATION-20261116.md)
+uses the thirteenth sorted development project, without reopening the earlier
+twelve-image comparison or independent evaluation. Its one prepared panel
+completed in 3.9404 seconds but automatic geometry was refused: Rust `NO_AXIS`
+and native pair-work limit. Tick measurement, OCR and association were not
+reached. Originals and all 27 protected hashes are unchanged. The separate
+single native work observation reached exact-pair request 257 after all 256
+attempted pairs were admitted, with zero contact rejections. It took 3.5958
+seconds overall and is now closed. No model, threshold, search cap or automatic
+candidate selection changes are justified by these counters. The localized
+recovery message now names the existing axis-choice and marked-axis
+label-reading paths.
+
 Current state, 2026-11-16 UTC: the sole delivered package is
 [**0.4.58**](INTERNAL-PREVIEW-458-VERIFICATION-20261116.md), uploaded,
 hash-verified and activated from source `4279db15`. Exact-source full CI and

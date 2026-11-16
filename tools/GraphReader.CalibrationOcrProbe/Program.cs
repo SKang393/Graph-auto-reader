@@ -21,7 +21,7 @@ internal static class Program
 {
     internal const string ModelHash = "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743";
     internal const string ManifestHash = "17d44e8e86fa60183c30531c05c02e8da463ea9632dd494cf039227e3c4b0b2a";
-    private const int MaximumOutputBytes = 1_000_000;
+    internal const int MaximumOutputBytes = 1_000_000;
     internal static readonly JsonSerializerOptions Json = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
@@ -32,6 +32,12 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        bool nextDevProject = args.Length > 0 && args[0] == "--real-dev-next-project-calibration-check";
+        bool nextDevRouting = args.Length > 0 && args[0] == "--real-dev-next-project-routing-check";
+        bool nextDevProjectSelfTest = args.Length > 0 && args[0] == "--real-dev-next-project-calibration-self-test";
+        bool nextDevWork = args.Length > 0 && args[0] == "--real-dev-next-project-work-check";
+        bool nextDevRustWork = args.Length > 0 && args[0] == "--real-dev-next-project-rust-work-check";
+        bool nextDevWorkSelfTest = args.Length > 0 && args[0] == "--real-dev-next-project-work-self-test";
         bool axisChoiceAvailability = args.Length > 0 && args[0] == "--real-dev-axis-choice-availability-check";
         bool axisChoiceExecutionStarted = false;
         bool axisChoiceSelfTest = args.Length > 0 && args[0] == "--real-dev-axis-choice-availability-self-test";
@@ -96,21 +102,71 @@ internal static class Program
         bool ownedNativeRejection = args.Length > 0 && args[0] == "--owned-native-rejection-check";
         bool ownedNativePruning = args.Length > 0 && args[0] == "--owned-native-pruning-check";
         bool ownedNativeIntersection = args.Length > 0 && args[0] == "--owned-native-intersection-check";
-        bool realDevPrivate = axisChoiceAvailability || realDevAffineSourceSupport || realDevAffineSpanProperties || realDevAffineTickRefusal || realDevAffineCalibration || realDevNativeAffineTrace || realDevIntervalClusterTrace || realDevIntervalLabelTrace || realDevCachedXRowProperties || realDevNativeRasterEndpointTrace || realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevRankedReviewTrace || realDevExactBoxTickTrace || realDevCachedAxisProperties || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
+        bool realDevPrivate = nextDevRouting || nextDevRustWork || nextDevWork || nextDevProject || axisChoiceAvailability || realDevAffineSourceSupport || realDevAffineSpanProperties || realDevAffineTickRefusal || realDevAffineCalibration || realDevNativeAffineTrace || realDevIntervalClusterTrace || realDevIntervalLabelTrace || realDevCachedXRowProperties || realDevNativeRasterEndpointTrace || realDevCalibration || realDevGeometry || realDevPreparation || realDevAxisDecision || realDevPreparedCalibration || realDevPreparedCalibration450 || realDevPreparedCalibration451 || realDevMirage || realDevTrace452 || realDevPrintedXTrace || realDevSpatialTrace || realDevEndpointTrace || realDevRankedReviewTrace || realDevExactBoxTickTrace || realDevCachedAxisProperties || realDevSortedSpatialGeometryTrace || realDevForwardExtentGeometryTrace || realDevNativeWorkTrace || realDevReviewRoutingTrace || realDevNativeEligibilityTrace || realDevNativeReviewObservation || realDevRoundedReviewObservation || realDevPostGroupingTrace || realDevNativeRejection || realDevPairPruning || realDevIntersection || realDevDirectional;
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
-        int seconds = axisChoiceAvailability ? 240 : axisChoiceSelfTest ? 15 : ownedAffinePartialProperties ? 30 : ownedAffinePartialReview || ownedAffinePartialIndexed ? 55 : ownedInferenceKey ? 30 : ownedAffineInteriorSupport ? 30 : realDevAffineSourceSupport ? 30 : ownedAffineStrokeSampling ? 30 : realDevAffineSpanProperties ? 30 : realDevAffineTickRefusal ? 120 : ownedManualAffineCalibration ? 120 : ownedAffineTickObservation ? 300 : ownedAffineCalibration ? 600 : ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeIntersection ? 150 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck || ownedAffineMarker ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        int seconds = nextDevWork || nextDevRustWork ? 45 : nextDevWorkSelfTest ? 30 : nextDevProject || nextDevRouting ? 90 : nextDevProjectSelfTest ? 15 : axisChoiceAvailability ? 240 : axisChoiceSelfTest ? 15 : ownedAffinePartialProperties ? 30 : ownedAffinePartialReview || ownedAffinePartialIndexed ? 55 : ownedInferenceKey ? 30 : ownedAffineInteriorSupport ? 30 : realDevAffineSourceSupport ? 30 : ownedAffineStrokeSampling ? 30 : realDevAffineSpanProperties ? 30 : realDevAffineTickRefusal ? 120 : ownedManualAffineCalibration ? 120 : ownedAffineTickObservation ? 300 : ownedAffineCalibration ? 600 : ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeIntersection ? 150 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck || ownedAffineMarker ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(axisChoiceAvailability ? 245 : axisChoiceSelfTest ? 20 : ownedAffinePartialProperties ? 35 : ownedAffinePartialReview || ownedAffinePartialIndexed ? 60 : ownedInferenceKey ? 35 : ownedAffineInteriorSupport ? 35 : realDevAffineSourceSupport ? 35 : ownedAffineStrokeSampling ? 35 : realDevAffineSpanProperties ? 35 : realDevAffineTickRefusal ? 125 : ownedManualAffineCalibration ? 125 : ownedAffineTickObservation ? 305 : ownedAffineCalibration ? 605 : ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeIntersection ? 155 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck || ownedAffineMarker ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(nextDevWork || nextDevRustWork ? 50 : nextDevWorkSelfTest ? 35 : nextDevProject || nextDevRouting ? 95 : nextDevProjectSelfTest ? 20 : axisChoiceAvailability ? 245 : axisChoiceSelfTest ? 20 : ownedAffinePartialProperties ? 35 : ownedAffinePartialReview || ownedAffinePartialIndexed ? 60 : ownedInferenceKey ? 35 : ownedAffineInteriorSupport ? 35 : realDevAffineSourceSupport ? 35 : ownedAffineStrokeSampling ? 35 : realDevAffineSpanProperties ? 35 : realDevAffineTickRefusal ? 125 : ownedManualAffineCalibration ? 125 : ownedAffineTickObservation ? 305 : ownedAffineCalibration ? 605 : ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeIntersection ? 155 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck || ownedAffineMarker ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--real-dev-next-project-work-self-test"])
+            {
+                using CpuBudgetJob workBudget = CpuBudgetJob.Apply();
+                Emit(await RealDevCalibrationCheck.NextProjectWorkSelfTestAsync(deadline.Token));
+                return 0;
+            }
+            if (nextDevWorkSelfTest) throw new InvalidDataException("Invalid next-project work self-test arguments.");
+            if (args is ["--real-dev-next-project-work-check", var workCorpus, var workApp, var workAssets, var workRust, var workLocator, "--explicit-opt-in"])
+            {
+                using CpuBudgetJob workBudget = CpuBudgetJob.Apply();
+                var outcome = await RealDevCalibrationCheck.RunNextProjectWorkAsync(
+                    workCorpus, workApp, workAssets, workRust, workLocator, workBudget, deadline.Token);
+                Emit(outcome.Report);
+                return outcome.Completed ? 0 : 1;
+            }
+            if (nextDevWork) throw new InvalidDataException("Invalid next-project work diagnostic arguments.");
+            if (args is ["--real-dev-next-project-rust-work-check", var rustWorkCorpus, var rustWorkApp, var rustWorkAssets, var rustWorkWorker, var rustWorkLocator, "--explicit-opt-in"])
+            {
+                using CpuBudgetJob workBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                var outcome = await RealDevCalibrationCheck.RunNextProjectRustWorkAsync(
+                    rustWorkCorpus, rustWorkApp, rustWorkAssets, rustWorkWorker, rustWorkLocator, workBudget, deadline.Token);
+                Emit(outcome.Report);
+                return outcome.Completed ? 0 : 1;
+            }
+            if (nextDevRustWork) throw new InvalidDataException("Invalid next-project Rust work diagnostic arguments.");
+            if (args is ["--real-dev-next-project-calibration-self-test"])
+            {
+                using CpuBudgetJob nextBudget = CpuBudgetJob.Apply();
+                Emit(RealDevCalibrationCheck.NextProjectCalibrationSelfTest());
+                return 0;
+            }
+            if (nextDevProjectSelfTest) throw new InvalidDataException("Invalid next-project self-test arguments.");
+            if (args is ["--real-dev-next-project-calibration-check", var nextCorpus, var nextApp, var nextAssets, var nextRust, "--explicit-opt-in"])
+            {
+                using CpuBudgetJob nextBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                var outcome = await RealDevCalibrationCheck.RunNextProjectCalibrationAsync(
+                    nextCorpus, nextApp, nextAssets, nextRust, nextBudget, deadline.Token);
+                Emit(outcome.Report);
+                return outcome.Completed ? 0 : 1;
+            }
+            if (nextDevProject) throw new InvalidDataException("Invalid next-project diagnostic arguments.");
+            if (args is ["--real-dev-next-project-routing-check", var routingCorpus, var routingApp, var routingAssets, var routingRust, var routingLocator, "--explicit-opt-in"])
+            {
+                using CpuBudgetJob routingBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                var outcome = await RealDevCalibrationCheck.RunNextProjectRoutingCalibrationAsync(
+                    routingCorpus, routingApp, routingAssets, routingRust, routingLocator, routingBudget, deadline.Token);
+                Emit(outcome.Report);
+                return outcome.Completed ? 0 : 1;
+            }
+            if (nextDevRouting) throw new InvalidDataException("Invalid next-project routing arguments.");
             if (args is ["--real-dev-axis-choice-availability-self-test"])
             {
                 using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);

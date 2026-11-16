@@ -544,6 +544,46 @@ apply. No model file, provider discovery, inference session, image or private
 input is accessed. A paired comparison must retain the original report and use
 the same runner and tensors; it does not measure OCR or application latency.
 
+`--real-dev-next-project-calibration-check <absolute-corpus-root> <absolute-source-App.exe> <absolute-reviewed-OCR-root> <absolute-current-Rust.exe> --explicit-opt-in`
+performs one separately declared development diagnosis. It pins the current
+runtime and existing 120/51 assignment before selecting zero-based ordinal 12
+from the sorted development case IDs. It opens one original project, prepares
+every panel and accounts for geometry, rectification, measured ticks, literal
+CPU OCR and association, including refused/unattempted stages. It does not read
+the earlier twelve image payloads, select another case after failure, inspect
+truth or change a split/model/threshold. The 90/95-second bounds and verified
+half-core parent/child limits apply. Its complete output is private and belongs
+only in the ignored run directory; publish the aggregate section only. The
+separate `--real-dev-next-project-calibration-self-test` uses owned metadata and
+stage records, with no private payload or model call. See the
+[fixed scope and current outcome](../../docs/NEXT-DEV-PROJECT-CALIBRATION-20261116.md).
+
+`--real-dev-next-project-work-check <absolute-corpus-root> <absolute-source-App.exe> <absolute-reviewed-OCR-root> <absolute-current-Rust.exe> <absolute-cached-locator.json> --explicit-opt-in`
+is the separate, single native work-accounting follow-up to that refusal. Its
+locator hash, source/panel identity and runtime are fixed before access. It
+performs one in-process native observation with the existing 256-pair limit,
+one OpenCV thread, a half-core parent cap, a 12-second native token and 45/50-second
+overall bounds. It emits aggregate counters and hashes, with no Rust, OCR,
+truth or independent-split call. In-process timing excludes child startup/IPC.
+The separate `--real-dev-next-project-work-self-test` uses an owned image and
+checks observer parity and locator rejection, with zero private reads.
+
+`--real-dev-next-project-rust-work-check` takes those same five paths and
+`--explicit-opt-in`, and shares the fixed input/runtime/final-identity guards.
+It uses the existing Rust diagnostic protocol once to explain the primary's
+refusal. It emits typed decision counters without proposal geometry, native/OCR
+calls or private truth. Its 12/45/50-second limits and verified parent/child
+CPU budgets match the declared scope in the outcome document.
+
+`--real-dev-next-project-routing-check` takes the same five paths and explicit
+opt-in for the one changed-stage confirmation. It pins the separate owned-tested
+Rust recovery build while leaving the baseline profile and all twenty App
+runtime files unchanged. The cached locator binds the same sole prepared panel.
+One diagnostic Rust call supplies both the ordinary proposal and route counters
+to the normal geometry/tick/OCR/association chain; no separate primary rerun is
+made. Complete output is private and must stay in the ignored run directory.
+Publish only aggregate stage results, and retain every refusal/unattempted stage.
+
 `--real-dev-axis-choice-availability-check <absolute-corpus-root> <absolute-source-App.exe> <absolute-keeper-Rust.exe> --explicit-opt-in`
 is a separate image-only check of explicit axis choices. It binds the tested
 `96f89b04` source runtime, the packaged 457 Rust worker and the retained first

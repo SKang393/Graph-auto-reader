@@ -59,7 +59,7 @@
   <sys:String x:Key="Manual.AffineAxisSuggestionNotice">The marked axes are tilted. Check the marked points, visible zero and read labels before applying calibration.</sys:String>
   <sys:String x:Key="Manual.CalibrationRectifiedWarning">Labels and tick positions were read from a rectified image and mapped back to the original. Check the marked positions and values before applying.</sys:String>
   <sys:String x:Key="Manual.CalibrationRectificationFailed">The tilted axes could not be prepared for label reading. Enter the actual axis values manually.</sys:String>
-  <sys:String x:Key="Errors.ManualAxisPairBudgetExceeded">The axis search found too many possible intersections. Crop one graph including its labels, or choose Calibrate axes to mark three points manually.</sys:String>
+  <sys:String x:Key="Errors.ManualAxisPairBudgetExceeded">The axis search did not finish. Choose Review axis choices. If no choice fits, choose Mark axes for label reading, or crop one graph including its labels.</sys:String>
   <sys:String x:Key="Errors.ManualAxisRotatedUnsupported">The detected axes are tilted, so automatic calibration is unavailable. Choose Calibrate axes to mark the three actual axis points.</sys:String>
   <sys:String x:Key="Errors.ManualAxisTimeout">The axis search reached its time limit. Crop one graph including its labels, or choose Calibrate axes to mark three points manually.</sys:String>
   <sys:String x:Key="Errors.EnhancementConfigurationInvalid">The Real-ESRGAN configuration is invalid. Continue with the unchanged original image.</sys:String>

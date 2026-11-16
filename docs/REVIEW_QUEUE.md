@@ -311,9 +311,11 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 
 ## REV-013 - name the next original development graph
 
-- **Status:** waiting for an exact original graph identity
-- **Blocks:** one changed-stage real-development confirmation of the newly
-  verified original-pixel affine support repair; independent code work continues
+- **Status:** waiting only for the historical exact graph identity; a separate
+  fixed development diagnosis can proceed under existing authorization
+- **Blocks:** a paired changed-stage confirmation on the prior exact panel;
+  the [new one-project diagnosis](NEXT-DEV-PROJECT-CALIBRATION-20261116.md)
+  independently selects ordinal 12 before image access and does not depend on it
 - **Effort:** about one minute to provide an existing `.dig` or image path
 - **Action:** identify one authorized development graph that still needs
   calibration, using its existing local file path; no upload or new approval is
