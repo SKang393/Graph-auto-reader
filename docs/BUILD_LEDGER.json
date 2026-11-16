@@ -9316,14 +9316,21 @@
     "nativeReviewReport": null,
     "visualWorkflowChecked": false,
     "visualWorkflowScope": "Native tilted calibration Apply/Undo remains unverified because Computer Use retains its Escape-stop state despite renewed authorization and no new Escape.",
-    "latestActivationPending": true,
+    "latestActivationPending": false,
     "existingWindowsLaptopChecked": false,
     "existingWindowsLaptopScope": "No 0.4.59 laptop run; prior existing-host evidence remains scoped to 0.4.58.",
     "cleanWindowsVmChecked": false,
     "productionApproved": false,
     "launcherWrapperRequired": true,
     "supersededLocalBuild": "0.4.58-20261116T082429970Z-4279db15",
-    "supersededRetirementPending": true
+    "supersededRetirementPending": true,
+    "latestActivatedUtc": "2026-11-16T14:58:47.6392372Z",
+    "latestPointerSha256": "38841c17234daa1a9aa62629dd7a277b3b94d7ca38b80eead3b56ecdc74981c3",
+    "latestLauncherSmokeExitCode": 0,
+    "latestLauncherSmokeMilliseconds": 4627.4455,
+    "activationSharedDataFilesPreserved": 16,
+    "retainedFiles": 478,
+    "retainedBytes": 284086838
   }
 }
 ]

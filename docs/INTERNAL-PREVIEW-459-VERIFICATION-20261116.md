@@ -122,13 +122,34 @@ preview, without an installer or public release.
 
 ## Activation and bounded retirement scope
 
-Actual download and headless verification pass. Activation is pending the
-delivery ledger/source record reaching `origin/main`. Use the existing helper's
-`Inspect` then `Activate` modes with this exact ZIP/source and previous keeper
-`0.4.58-20261116T082429970Z-4279db15`. Preserve shared Data and all original
-inputs. The current 0.4.58 keeper remains intact until that transaction succeeds.
+Delivery commit `242462565381bf2314996150237e8f6e11b0ef35` reached
+`origin/main` before the existing activation helper ran. `Inspect` passed
+in **6,304.8901 ms**, finishing **2026-11-16T14:58:17.2211709Z**.
+`Activate` passed in **7,267.8066 ms**, finishing **14:58:47.6392372Z**.
+It verified all 477 payload files and sixteen shared Data files, moved the
+single payload and ZIP, and switched the latest pointer atomically. Pointer
+SHA-256 is `38841c17234daa1a9aa62629dd7a277b3b94d7ca38b80eead3b56ecdc74981c3`.
 
-After activation and the actual latest-launcher smoke, retire the superseded
+The actual primary `packaging/Run-Latest-DevPortable.cmd -Wait -PortableSmoke`
+then returned **0**, with 279 informational stdout bytes and empty stderr.
+The **4,627.4455 ms** includes the wrapper and full payload postcheck, not only
+application startup. Verification finished **15:00:33.1812134Z**; all 31
+protected hashes and the 477 payload hashes remained unchanged. No package
+Data appeared. The new keeper contains **478 files / 284,086,838 bytes**,
+including its ZIP.
+
+Two invocation failures are recorded rather than hidden. The first inspection
+used a child PowerShell and refused `Active preview consumer` after 8.4364604
+seconds of wrapper wall time. A subsequent process query found no remaining
+consumer; the pointer and staging were untouched. The likely self-match was
+the parent's command line containing the target paths. Calling the same helper
+in the current PowerShell host passed with every guard unchanged. The first
+launcher wrapper exited 1 after 0.930293 seconds because `cmd` rejected escaped
+quotes around the command path; it never reached the application. Correcting
+the fixed-path invocation produced the successful smoke above. Neither failure
+caused a rebuild, second package download or repeated graph/OCR request.
+
+After this activation outcome is pushed, retire the superseded
 keeper (478 files / 284,040,423 bytes), completed `hosted-preview-459` download
 staging and `preview459-check` scripts/receipts/isolated settings after their
 outcome is pushed and consumers finish. The moved 0.4.59 payload and ZIP are

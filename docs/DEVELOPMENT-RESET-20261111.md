@@ -52,8 +52,11 @@ runtime batch since 0.4.58, not a package for the diagnostic helper alone.
 Prepared source `d243e5b1` passed exact-head full CI: 3,276 .NET passes,
 30 explicit skips and 89 Rust passes. The downloaded package passed all 477
 payload hashes, both startup/refusal smokes and one conditional owned Rust
-recovery request. Guarded activation is pending the delivery record on main;
-the current launcher still selects 0.4.58. Native UI, installer, clean-machine and production acceptance remain
+recovery request. The delivery record is pushed, guarded activation succeeded,
+and the actual latest-launcher smoke passed. All sixteen shared Data files are
+preserved. The launcher now selects 0.4.59; retirement of the superseded keeper
+and completed staging follows the pushed activation outcome. Native UI,
+installer, clean-machine and production acceptance remain
 incomplete; no public release or production activation is authorized by these
 checks.
 
@@ -93,18 +96,19 @@ candidate selection changes are justified by these counters. The localized
 recovery message now names the existing axis-choice and marked-axis
 label-reading paths.
 
-Current state, 2026-11-16 UTC: the sole delivered package is
-[**0.4.58**](INTERNAL-PREVIEW-458-VERIFICATION-20261116.md), uploaded,
-hash-verified and activated from source `4279db15`. Exact-source full CI and
+Current state, 2026-11-16 UTC: the selected delivered package is
+[**0.4.59**](INTERNAL-PREVIEW-459-VERIFICATION-20261116.md), uploaded,
+hash-verified and activated from source `d243e5b1`. Exact-source full CI and
 the actual latest launcher pass; all shared user Data is preserved. This adds
-visibly incomplete review choices and preserves tilted geometry in those
-choices. The old 0.4.57 keeper and delivery staging were retired after the
-activation record was pushed. All protected hashes remained unchanged. Native
-UI, clean-machine and production acceptance remain incomplete.
+the geometry, fitting and label-read fixes described above to the existing
+tilted and visibly incomplete review choices. The superseded 0.4.58 keeper
+and completed delivery staging await guarded retirement after the activation
+record is pushed. Native UI, clean-machine and production acceptance remain
+incomplete.
 
-Newer source `d26c6e42f2f974e31a07b8b877837b74e3992032` adds
+Packaged source includes `d26c6e42f2f974e31a07b8b877837b74e3992032`, adding
 [original-pixel support inside the existing affine tick bridge window](AFFINE-ORIGINAL-SUPPORT-20261116.md).
-It is not yet in the packaged preview. The fixed owned connected/disconnected
+It is included in 0.4.59. The fixed owned connected/disconnected
 pair passed through the actual C# to Rust client in 0.587 seconds overall:
 connected ink supported the exact box with zero invented ticks, while the real
 gap remained refused. Source and rectified pixels matched the cached baseline.
