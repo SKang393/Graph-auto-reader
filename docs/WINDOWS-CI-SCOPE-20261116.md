@@ -42,11 +42,18 @@ documentation commit `4d5df76cbc45af2feab584cc155eccb1c6dd795c` against exact
 parent `bfb1847ea94d88afcfcc55f021b0669519f00c05`. It returned
 `docs_only_verified_parent`, referencing successful
 [run 43833003490](https://github.com/SKang393/Graph-auto-reader/actions/runs/43833003490),
-in **0.972 seconds**. No secret was emitted. Its disposable text receipt is
-`artifacts/ci-scope-live-check.txt`, eligible for removal after this record is
-pushed. No private/sealed inputs, inference or model selection ran.
+in **0.972 seconds**. No secret was emitted. Its disposable text receipt,
+`artifacts/ci-scope-live-check.txt` (98 bytes), was retired after this record
+was pushed in `68595526`. No private/sealed inputs, inference or model selection
+ran.
 
-The first hosted run of the changed workflow must take the full path because
-the workflow and classifier changed. That hosted result and a subsequent
-necessary documentation-only outcome push remain pending; no hosted time
-saving is claimed yet. Full product and native acceptance remain separate.
+The changed workflow on `6859552613dcc515921c9635af16b9a832241dc5` passed
+[full CI 43835295159](https://github.com/SKang393/Graph-auto-reader/actions/runs/43835295159),
+job `133190291302`. It correctly emitted `full_product_validation=true` and
+`scope_reason=full_changed_path`. All **34 classifier assertions**, **3,243
+.NET tests**, **80 Rust tests** and **68 packaging controls** passed, with
+**30 explicit .NET skips** and zero failures. Both release jobs were skipped.
+
+The subsequent necessary documentation-only retention/outcome push remains
+pending. No hosted time saving is claimed before that path completes. Full
+product and native acceptance remain separate.

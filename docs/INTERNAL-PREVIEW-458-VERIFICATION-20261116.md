@@ -113,16 +113,18 @@ Verification finished `08:42:41.9517319Z`: all 27 protected hashes were
 unchanged and no Data directory appeared inside the payload. The current keeper
 contains **478 files / 284,040,423 bytes**, including its verified ZIP.
 
-The old `0.4.57-20261116T050648697Z-4db78d87` keeper remains pending retirement
-until this activation outcome is pushed: **478 files / 284,026,401 bytes**.
-Completed `artifacts/hosted-preview-458` staging is **10 files / 87,466,575
-bytes**; `artifacts/preview458-check` is **20 files / 207,241 bytes** at this
-inventory. Recheck exact scope, hashes, reparse points and active consumers
-before removal. User Data is outside these scopes and must remain intact.
+The activation outcome `4d5df76c` reached `origin/main` with `68595526` before
+retirement at **2026-11-16T08:57:20.9918972Z**. Exact canonical-path,
+no-reparse, no-tracked-file, inventory and active-consumer checks passed.
+The old `0.4.57-20261116T050648697Z-4db78d87` keeper was retired:
+**478 files / 284,026,401 bytes**. Completed `artifacts/hosted-preview-458`
+staging and `artifacts/preview458-check` receipts/client were also retired:
+**30 files / 87,673,816 bytes**. These historical raw paths no longer exist.
+The separately recorded CI lookup receipt was retired: **one file / 98 bytes**.
 
-After active activation/review consumers close and their outcome is pushed,
-retire `artifacts/hosted-preview-458` staging and `artifacts/preview458-check`
-receipts/client. Preserve the sole activated build and uploaded artifact,
+All 27 protected hashes and the retained ZIP were unchanged after removal.
+Exactly one packaged build directory remains: 0.4.58. Preserve that build,
+the uploaded artifact,
 original images, owned native-QA inputs, protected runtime checkpoint and current
 assets. This is an internal portable preview with no installer, public release,
 paid credit use or independent reset redemption.

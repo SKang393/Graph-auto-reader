@@ -9141,7 +9141,8 @@
     "existingWindowsLaptopValidationBytesRetired": 284026407,
     "existingWindowsLaptopValidationRetiredUtc": "2026-11-16T05:46:32.7041179Z",
     "supersededByVersion": "0.4.58",
-    "currentBuildRetirementPending": true
+    "currentBuildRetirementPending": false,
+    "currentBuildRetiredUtc": "2026-11-16T08:57:20.9918972Z"
   }
 },
 {
@@ -9223,14 +9224,22 @@
     "productionApproved": false,
     "launcherWrapperRequired": true,
     "supersededLocalBuild": "0.4.57-20261116T050648697Z-4db78d87",
-    "supersededRetirementPending": true,
+    "supersededRetirementPending": false,
     "latestActivatedUtc": "2026-11-16T08:40:40.7700301Z",
     "latestPointerSha256": "0215c6e05bedeb435ed6ab469b78cd88eee9f9ba60595b8bfa9a24795163443f",
     "latestLauncherSmokeExitCode": 0,
     "latestLauncherSmokeMilliseconds": 2189.0716,
     "activationSharedDataFilesPreserved": 16,
     "retainedFiles": 478,
-    "retainedBytes": 284040423
+    "retainedBytes": 284040423,
+    "supersededLocalBuildRetired": "0.4.57-20261116T050648697Z-4db78d87",
+    "supersededLocalBuildFilesRetired": 478,
+    "supersededLocalBuildBytesRetired": 284026401,
+    "supersededRetirementVerifiedUtc": "2026-11-16T08:57:20.9918972Z",
+    "localStagingRetired": true,
+    "completedStagingFilesRetired": 30,
+    "completedStagingBytesRetired": 87673816,
+    "completedStagingRetirementVerifiedUtc": "2026-11-16T08:57:20.9918972Z"
   }
 }
 ]
