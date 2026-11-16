@@ -591,7 +591,7 @@ under the current ignored artifacts directory, excluding Data and reparse
 ancestors. Original, copy and final inventory hashes must match. No geometry,
 OCR, model, truth or independent payload is read; the half-core parent and
 30/35-second bounds apply. Its inspection is complete and the temporary locator
-and PNG are scheduled for retirement after the concise outcome push. This
+and PNG are retired after the concise outcome push. This
 historical command does not authorize another private run.
 
 `--real-dev-axis-choice-availability-check <absolute-corpus-root> <absolute-source-App.exe> <absolute-keeper-Rust.exe> --explicit-opt-in`

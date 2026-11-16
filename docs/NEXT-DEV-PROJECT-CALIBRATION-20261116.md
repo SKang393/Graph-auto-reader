@@ -301,6 +301,13 @@ in the [routing outcome](RUST-CONTENT-SPAN-RECOVERY-20261116.md). The inspection
 mode is developer tooling, not shipped app behavior. It adds no dependency,
 model, license, contract change or package.
 
+Inspection source/outcome `1c4091cdb80bcff37d5bed2f4bbe3d8475ebd945` also passed
+[full Windows CI 43865123131](https://github.com/SKang393/Graph-auto-reader/actions/runs/43865123131)
+from **2026-11-16T12:16:48Z** to **12:29:34Z**: **3,258 .NET passes**, 30 explicit
+skips, **89 Rust passes**, 68 packaging checks and zero failures. The probe
+compiled and existing owned diagnostic self-tests passed with zero private
+reads. This does not repeat the private image extraction. Release jobs skipped.
+
 ## Retention
 
 Ignored output scope: `artifacts/next-dev-project-calibration-check`. The compact
@@ -314,3 +321,15 @@ Preserve
 originals, independent evaluation, user Data, current runtime models, the
 protected checkpoint and the sole package. No new package, model promotion,
 license dependency or scientific-accuracy acceptance is created.
+
+After source/outcome `1c4091cdb80bcff37d5bed2f4bbe3d8475ebd945` reached
+`origin/main` and the primary checkout, guarded retirement completed at
+**2026-11-16T12:18:45.5408241Z**. The two diagnostic directories and probe
+`bin`/`obj` contained **180 files / 76,503,873 bytes**; all four are now absent.
+The private inspection PNG, exact locator, raw reports and isolated candidate
+worker are retired, not available local inputs. No tracked file, reparse point,
+Data directory or live process was inside the deletion scopes. All **27
+protected hashes**, including the separate runtime checkpoint and user Data,
+and the sole 0.4.58 ZIP remain unchanged. Original corpus, current source App
+runtime and its Data are preserved. The subsequent remote 0.4.58 check has its
+own isolated consumer/scope and uses only an existing owned PNG and the keeper.

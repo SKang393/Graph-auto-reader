@@ -14,9 +14,15 @@ completed: most measured dark runs are one pixel wide, with missing dark
 cross-sections under the unchanged threshold. This is not an axis fit or a
 justification for threshold changes. Source audits found no additional safe
 pruning, decoder, caching or generator repair. Its compact locator and PNG are
-closed inputs pending routine retirement after the outcome push.
+closed inputs, now retired after the outcome push. Guarded cleanup removed
+180 completed diagnostic/compiler files (76,503,873 bytes); all 27 protected
+hashes and the sole package remain unchanged.
 Source `8516b75e` is integrated and pushed; full Windows CI passed 3,258 .NET
 tests (30 explicit skips), 89 Rust tests and 68 packaging checks, zero failures.
+The inspection follow-up `1c4091cd` also passed full Windows CI with those same
+counts. An independent existing-Flex5 check of the sole 0.4.58 package returned
+the exact desktop tilted-choice response in 569 ms, with all payload and user
+Data hashes preserved. It is headless compatibility evidence only.
 No new package is created. Preserve the refusal and unreached downstream stages
 while the next source-supported product improvement is selected.
 

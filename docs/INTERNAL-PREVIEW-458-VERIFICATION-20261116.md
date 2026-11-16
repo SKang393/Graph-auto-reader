@@ -128,3 +128,56 @@ the uploaded artifact,
 original images, owned native-QA inputs, protected runtime checkpoint and current
 assets. This is an internal portable preview with no installer, public release,
 paid credit use or independent reset redemption.
+
+## Existing Flex5 laptop, owned tilted choice
+
+The missing 0.4.58 laptop check ran once on the existing trusted Windows x64
+host, version **10.0.26200.0**, using the exact keeper ZIP and the same owned
+positive-tilt PNG above. The initial sandbox SSH attempt was denied before
+connection; the normal-host trusted preflight then succeeded. Existing host
+keys and identity were reused with strict checking and noninteractive access.
+No trust, credentials, dependency or installed application was changed.
+
+One transfer of the ZIP, PNG and bounded PowerShell client took **3.5193 s**.
+The new isolated scope was under `GraphAutoReaderValidation/preview458/`
+`tilted-choice-20261116`, with Data outside the extracted payload. All **477
+files / 196,397,703 bytes** matched their archive entries before execution.
+One hidden `GraphReader.App.exe --native-axis-candidates-worker` request sent
+only the existing PNG with a four-byte little-endian length prefix. The worker's
+existing CPU/thread limits applied, with a 20-second outer deadline. The client
+checked exact frame length, bounded JSON, geometry one-of, finite anchors,
+orientation, nondegeneracy, image bounds and review-only zero confidence.
+
+The worker exited **0**, with **empty stderr**, in **569.223 ms**. Its single
+response contained **one valid affine choice** and `EnumerationCompleted=true`.
+The **285-byte response body is byte-identical to the recorded desktop 458
+response**. This equality was checked from the saved response without another
+worker invocation. The SSH verification command took **12.6033 s wall**,
+including **11,574.0958 ms** inside the verification script. These single host
+observations do not establish a general speedup. The clean result file's UTC
+modification time was **2026-11-16T12:20:53.4535527Z**, not an independently
+recorded run start/end time.
+
+The wrapper printed two `VoidTaskResult` lines before its aggregate JSON;
+these are script output noise, not worker output. Its separate `result.json`
+contains clean JSON. Every declared stage completed, with one worker attempt
+and no failure, timeout or unattempted worker. All payload hashes, ZIP and input
+matched afterward; isolated Data remained absent. The desktop keeper and all
+sixteen shared Data hashes were also unchanged. No choice was selected and no
+OCR, model, numeric fit, Apply, export, private or independent input was used.
+This is **headless existing-host compatibility**, not native visual workflow,
+clean-machine acceptance or complete automatic calibration.
+
+| Follow-up evidence | SHA-256 |
+| --- | --- |
+| Client script | `2d1ba8e6f7fd20bd43e2db01af98b84fedfe7b803cf47efc4d514b261c179f77` |
+| Remote clean result | `3067f42f4848362b3aa2966c0760db16cb599e67a07a0e053ccad8ba945ed600` |
+| Complete framed response, 289 bytes | `7e3d3f890b9d3d88d8e349d2afc85a337f6c294f483b68c39dac7507a7093efd` |
+| Local stdout receipt, 704 bytes | `090d08490e49dc77baea2191737e1b72de66ad863c132bde90cb38b03bec919a` |
+
+After this outcome is pushed, retire only the new remote task scope (**482
+files / 284,056,234 bytes**) and local `artifacts/flex5-458-check` receipts.
+The remote inventory found no reparse points or scoped executable consumers.
+Revalidate exact paths, identities and consumers before removal. Preserve the
+desktop keeper, original owned input, host state and shared Data. No package,
+public release, approval change, paid credit or independent reset was created.

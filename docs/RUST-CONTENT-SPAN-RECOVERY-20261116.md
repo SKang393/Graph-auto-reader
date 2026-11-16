@@ -129,7 +129,8 @@ self-test. Release/publish jobs were skipped.
 Source remains Apache-2.0; no new
 dependency, model, production approval or package was added. The sole delivered
 build is still 0.4.58. The following image-property inspection is now complete
-and is recorded in the linked development diagnosis. After its concise outcome
-is pushed, retire the closed raw reports, 996-byte locator, inspection PNG and
-isolated Rust build. Preserve original data, active user state, current models
-and the package.
+and is recorded in the linked development diagnosis. Its concise outcome is
+pushed as `1c4091cd`; the closed raw reports, 996-byte locator, inspection PNG,
+isolated Rust build and probe compiler outputs are now retired. The linked
+record includes the guarded removal counts and checks. Original data, active
+user state, current models and the sole package remain preserved.
