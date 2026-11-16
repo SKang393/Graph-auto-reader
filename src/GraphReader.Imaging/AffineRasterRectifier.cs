@@ -2,6 +2,9 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("GraphReader.Imaging.Tests")]
 
 namespace GraphReader.Imaging;
 
@@ -127,6 +130,7 @@ public static class AffineRasterRectifier
         byte[] output = new byte[checked(outputStride * outputHeight)];
         ReadOnlySpan<byte> source = pixels.Span;
         var activeSlice = Stopwatch.StartNew();
+        var pacing = new AffinePacingBalance();
         double pacingMilliseconds = 0;
         for (int y = 0; y < outputHeight; y++)
         {
@@ -142,15 +146,20 @@ public static class AffineRasterRectifier
             if (active >= ActiveSliceTarget)
             {
                 activeSlice.Stop();
-                var wait = Stopwatch.StartNew();
-                try
+                TimeSpan requested = pacing.RecordActive(active);
+                if (requested > TimeSpan.Zero)
                 {
-                    Task.Delay(active, cancellationToken).GetAwaiter().GetResult();
-                }
-                finally
-                {
-                    wait.Stop();
-                    pacingMilliseconds += wait.Elapsed.TotalMilliseconds;
+                    var wait = Stopwatch.StartNew();
+                    try
+                    {
+                        Task.Delay(requested, cancellationToken).GetAwaiter().GetResult();
+                    }
+                    finally
+                    {
+                        wait.Stop();
+                        pacingMilliseconds += wait.Elapsed.TotalMilliseconds;
+                        pacing.RecordWait(wait.Elapsed);
+                    }
                 }
                 cancellationToken.ThrowIfCancellationRequested();
                 activeSlice.Restart();
@@ -211,4 +220,26 @@ public static class AffineRasterRectifier
 
     private static byte SamplePixel(ReadOnlySpan<byte> source, int width, int height, int stride, int x, int y) =>
         x < 0 || y < 0 || x >= width || y >= height ? byte.MaxValue : source[(y * stride) + x];
+}
+
+// Wall-time duty accounting only. Any enclosing CPU job remains unchanged.
+// Oversleep credit is limited to four existing 2 ms active slices.
+internal sealed class AffinePacingBalance
+{
+    private static readonly long MaximumCreditTicks = TimeSpan.FromMilliseconds(8).Ticks;
+    private long debtTicks;
+
+    internal TimeSpan RecordActive(TimeSpan active)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(active, TimeSpan.Zero);
+        debtTicks = debtTicks > long.MaxValue - active.Ticks ? long.MaxValue : debtTicks + active.Ticks;
+        return TimeSpan.FromTicks(Math.Max(0, debtTicks));
+    }
+
+    internal void RecordWait(TimeSpan actual)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(actual, TimeSpan.Zero);
+        if (debtTicks <= 0) throw new InvalidOperationException("A wait requires positive pacing debt.");
+        debtTicks = Math.Max(-MaximumCreditTicks, debtTicks - actual.Ticks);
+    }
 }

@@ -36,8 +36,14 @@ retained for the completed one-frame property audit without another twelve-proje
 geometry or OCR pass. That audit reproduced a three-pixel disconnected gap and
 427 search steps. Relaxing only perpendicular clipping at the same radius did
 not connect it; production clipping and thresholds remain unchanged. The next
-bounded investigation checks thin-stroke preservation through rectification on
-owned controls before any further selected-frame diagnosis. The
+bounded investigation checked thin gray strokes through rectification on owned
+controls. The [source-mask prototype](AFFINE-STROKE-SAMPLING-20261116.md) restored
+anchor darkness but still refused four thin tilted cases, so it is closed failed
+without production sampling changes or private retuning. The independent
+[pacing repair](AFFINE-RECTIFIER-PACING-20261116.md) passes 35 Imaging tests and
+preserves every non-timing field in the thirteen-case owned comparison. That
+single comparison reduced rectification from 1.52 to 0.49 seconds under the same
+CPU allowance; full CI is pending and no new package is required. The
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
 is implemented in source.
 Its local solution tests and actual one-call worker check now pass, preserving
