@@ -166,12 +166,15 @@ control. These historical output paths are retired, not current dependencies.
 All 509 protected file hashes stayed unchanged. Canonical-path, reparse,
 tracked-file, inventory and active-consumer guards passed before removal.
 
-Only the **2,333-byte owned PNG** remains from this run. Its named consumer is
-the upcoming integrated 0.4.59 package verification: if the hosted worker differs
-from the exercised local worker, use it for one direct transport/recovery check.
-Retire it when that check completes or the workers prove byte-identical.
-No private or independent evaluation is reopened. The sole 0.4.58 keeper,
-current models, Debug/Data, other owned native-QA inputs, protected runtime
-checkpoint, original research files and unrelated dirty files are preserved.
+The **2,333-byte owned PNG** was retained only for the integrated 0.4.59 package
+verification. Its hosted worker differed, and one direct transport/recovery
+check passed in 318.3286 ms with the exact box/ticks and `CONNECTED_RUNS` route.
+After that [delivery and activation outcome](INTERNAL-PREVIEW-459-VERIFICATION-20261116.md)
+was pushed, the PNG was retired at **2026-11-16T15:20:20.1868468Z** with the
+completed package staging. No local files remain from this control. No private
+or independent evaluation was reopened. The current 0.4.59 keeper, models,
+Debug/Data, other owned native-QA inputs, protected runtime checkpoint, original
+research files and unrelated dirty files are preserved. The historical 0.4.58
+asset path above is retired; it is not a current dependency.
 The helper and documented fixture can regenerate a deliberately selected
 future control; the historical binding is not a promise of a current runtime.

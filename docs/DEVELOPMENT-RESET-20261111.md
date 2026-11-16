@@ -6,11 +6,15 @@
 The [busy-footer Cancel repair](CALIBRATION-BUSY-CANCEL-20261116.md) makes the
 existing cancellation command visible during ManualPreview searches and label
 reads. The unshown-window WPF regression and all 1,349 App tests pass, with no
-skips. It changes presentation only and awaits source integration/full CI;
+skips. Source `9937c01f` is integrated and pushed; exact-head full CI passed
+3,277 .NET tests (30 explicit skips), 89 Rust tests and all packaging controls.
+Its closed local test/compiler outputs were retired: 331 files / 175,901,468
+bytes, with all 508 protected hashes unchanged. It changes presentation only;
 the delivered 0.4.59 package is unchanged. The [CI scheduling follow-up](WINDOWS-CI-SCOPE-20261116.md#remove-a-measured-repeat-of-unchanged-release-fixtures)
 reuses one costly unchanged fixture suite only for verified documentation
-pushes; the existing 44 scope controls pass. Its measured hosted benefit still
-requires the next necessary documentation run.
+pushes; the existing 44 scope controls pass and the heavy fixture still ran
+successfully in full CI. Its measured hosted benefit still requires the next
+necessary documentation run.
 
 The [identical-family fit reuse](AXIS-FINAL-FIT-REUSE-20261116.md) removes repeated
 final fits from the fallback solver without changing candidates, ranking or
@@ -50,8 +54,8 @@ broad owned matrices were not repeated. Helper/outcome `d0c9817d` is integrated
 and pushed; exact-head full CI passed 3,276 .NET tests (30 explicit skips),
 89 Rust tests and all packaging checks. Closed local compiler/test outputs
 were then retired: 1,199 files and 512,663,588 bytes, with all 509 protected
-hashes unchanged. Its sole retained PNG has a named package-verification
-consumer and will be retired after that check.
+hashes unchanged. Its retained PNG subsequently passed the one conditional
+packaged-worker check and has now been retired with completed delivery staging.
 
 One integrated [**0.4.59 internal portable preview**](INTERNAL-PREVIEW-459-VERIFICATION-20261116.md)
 is built, uploaded and verified for the accumulated
@@ -63,8 +67,9 @@ Prepared source `d243e5b1` passed exact-head full CI: 3,276 .NET passes,
 payload hashes, both startup/refusal smokes and one conditional owned Rust
 recovery request. The delivery record is pushed, guarded activation succeeded,
 and the actual latest-launcher smoke passed. All sixteen shared Data files are
-preserved. The launcher now selects 0.4.59; retirement of the superseded keeper
-and completed staging follows the pushed activation outcome. Native UI,
+preserved. The launcher now selects 0.4.59. After the activation outcome was
+pushed, the superseded keeper and completed staging were retired: 492 files /
+371,465,697 bytes, with all 508 protected hashes unchanged. Native UI,
 installer, clean-machine and production acceptance remain
 incomplete; no public release or production activation is authorized by these
 checks.
@@ -111,8 +116,8 @@ hash-verified and activated from source `d243e5b1`. Exact-source full CI and
 the actual latest launcher pass; all shared user Data is preserved. This adds
 the geometry, fitting and label-read fixes described above to the existing
 tilted and visibly incomplete review choices. The superseded 0.4.58 keeper
-and completed delivery staging await guarded retirement after the activation
-record is pushed. Native UI, clean-machine and production acceptance remain
+and completed delivery staging are retired after the pushed activation
+record; exactly one packaged build remains. Native UI, clean-machine and production acceptance remain
 incomplete.
 
 Packaged source includes `d26c6e42f2f974e31a07b8b877837b74e3992032`, adding

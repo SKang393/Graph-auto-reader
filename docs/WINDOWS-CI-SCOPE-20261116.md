@@ -145,6 +145,14 @@ The existing command
 **44 assertions in 1,577.6564 ms**, exit 0, at **2026-11-16T15:12:19.7072707Z**.
 `git diff --check` passed. Its isolated temporary directory was empty and
 removed after the check. This one-line scheduling change adds no redundant
-fixture test or dependency. Actual full-CI execution of the guarded suite and
-the next necessary docs-only run's skip/timing remain pending integration;
-no elapsed-time improvement is claimed before those runs finish.
+fixture test or dependency. Scheduling commit
+`31509ce1aa1288bbf72226bd112dc4488f5bd954` was pushed with the Cancel-control
+change at `9937c01fa8d6fad56025d16441ffff2b1ad3e265`.
+[Full CI 43894745902](https://github.com/SKang393/Graph-auto-reader/actions/runs/43894745902),
+job `133395121454`, passed **2026-11-16T15:17:30Z** to **15:29:13Z**.
+It reported `full_changed_path` with full validation and no parent reuse.
+The newly conditional release-artifact fixture **executed and passed all 68
+controls**. All 3,277 .NET tests (30 explicit skips), 89 Rust tests, 44 scope
+assertions and the other packaging/evidence checks passed. No release artifact
+was produced. The next necessary documentation retention/outcome push will
+verify actual skip behavior and elapsed time; no improvement is claimed yet.

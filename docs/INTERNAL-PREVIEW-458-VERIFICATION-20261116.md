@@ -3,6 +3,12 @@
 
 # Internal preview 0.4.58 verification
 
+Historical build: the verified [0.4.59 replacement](INTERNAL-PREVIEW-459-VERIFICATION-20261116.md)
+is uploaded and active. After its ledger and activation outcome reached main,
+the local 0.4.58 keeper was retired on **2026-11-16T15:20:20.1868468Z**:
+478 files / 284,040,423 bytes. The original uploaded artifact and this compact
+record remain; the local paths below describe historical checks.
+
 This integrated ManualPreview exposes eligible choices after an incomplete
 axis search and preserves actual tilted frames in the choice list. Selection
 remains explicit, incomplete status remains visible, and the existing numeric

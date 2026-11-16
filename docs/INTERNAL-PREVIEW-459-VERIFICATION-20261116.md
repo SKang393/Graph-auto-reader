@@ -149,11 +149,23 @@ quotes around the command path; it never reached the application. Correcting
 the fixed-path invocation produced the successful smoke above. Neither failure
 caused a rebuild, second package download or repeated graph/OCR request.
 
-After this activation outcome is pushed, retire the superseded
-keeper (478 files / 284,040,423 bytes), completed `hosted-preview-459` download
-staging and `preview459-check` scripts/receipts/isolated settings after their
-outcome is pushed and consumers finish. The moved 0.4.59 payload and ZIP are
-the new keeper, not staging leftovers. The owned content-span PNG's named
-consumer is now complete; retire its 2,333 bytes after the result is pushed.
+Activation outcome `5e4af6ddd86de733c83ceb0530e185aa2f75c364` reached main
+with `9937c01fa8d6fad56025d16441ffff2b1ad3e265` before guarded retirement at
+**2026-11-16T15:20:20.1868468Z**. Removed scopes were the superseded keeper
+(478 files / 284,040,423 bytes), completed `hosted-preview-459` download
+staging (two files / 87,398,819 bytes), `preview459-check` scripts, receipts
+and isolated settings (eleven files / 24,122 bytes), and the completed owned
+content-span PNG (one file / 2,333 bytes). These historical local paths no
+longer exist. The source, compact outcomes and uploaded artifact remain.
+
+Total retirement was **492 files / 371,465,697 bytes**. Canonical containment,
+no-reparse, exact inventory, untracked-content and active-consumer checks passed.
+All **508 protected hashes** remained unchanged, including every current
+keeper file, shared Data, Debug runtime/Data, owned native-QA inputs, protected
+runtime checkpoint and unrelated dirty files. Exactly one packaged build
+directory remains, **0.4.59-20261116T144747343Z-d243e5b1**, with its verified ZIP.
+The new Cancel-control test/compiler outputs belong to an active separate
+source batch and were excluded from this retirement.
+
 Native tilted calibration Apply/Undo remains blocked by the desktop tool's
 stale Escape-stop state despite renewed permission and no new Escape.

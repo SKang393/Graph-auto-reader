@@ -76,10 +76,26 @@ input, optimizer, model inference, new license, package or production approval
 is involved. New source retains Apache-2.0 notices. The sole selected package
 remains 0.4.59; this source-only control is not yet in that package.
 
-Source integration and full CI remain pending. Once the result/source is pushed
-and CI/review consumers finish, retire `artifacts/busy-cancel-surface-check`
-(six files / 2,014,169 bytes) and the newly regenerated App/App.Tests x64 Release
-compiler outputs. Retain active shared build caches, Debug/Data, current
-package/runtime assets, original data and independent evaluation boundaries.
-The commands above regenerate this owned test; historical analyzer failure
-requires its earlier test-source form.
+Source/outcome `9937c01fa8d6fad56025d16441ffff2b1ad3e265` is integrated and
+pushed. [Full Windows CI 43894745902](https://github.com/SKang393/Graph-auto-reader/actions/runs/43894745902),
+job `133395121454`, passed from **2026-11-16T15:17:30Z** to **15:29:13Z**
+on that exact head with `full_product_validation=true`, `full_changed_path`
+and no reused parent. It passed **3,277 .NET tests**, with 30 explicit skips
+and zero failures; all **1,349 App tests** ran without skips. All 89 Rust tests,
+44 scope assertions, 62 version checks, nine localization checks and 68
+packaging verification controls passed. Model-free probes, evidence, handoff,
+upload and packaging audits also passed. No release artifact was produced.
+
+After pushed source/outcomes, full CI and local consumers completed, guarded
+retirement finished **2026-11-16T15:31:47.1281330Z**. Removed scopes were
+`artifacts/busy-cancel-surface-check` (six files / 2,014,169 bytes), App.Tests
+`bin/x64/Release` (209 / 85,729,399) and `obj/x64/Release` (18 / 3,875,872),
+and App `bin/x64/Release` (53 / 75,958,790) and `obj/x64/Release`
+(45 / 8,323,238): **331 files / 175,901,468 bytes** total. These generated
+paths are retired. Canonical-path, reparse, tracked-content, inventory and
+active-consumer checks passed; all **508 protected hashes** stayed unchanged.
+Shared build dependencies, Debug/Data, the sole 0.4.59 package/runtime assets,
+original data and independent evaluation boundaries remain intact. The commands
+above regenerate this owned test; historical analyzer failure requires its
+earlier test-source form. Scoped source integration passes; native interaction
+remains unverified and the package does not yet contain this control.

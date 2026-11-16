@@ -9323,14 +9323,24 @@
     "productionApproved": false,
     "launcherWrapperRequired": true,
     "supersededLocalBuild": "0.4.58-20261116T082429970Z-4279db15",
-    "supersededRetirementPending": true,
+    "supersededRetirementPending": false,
     "latestActivatedUtc": "2026-11-16T14:58:47.6392372Z",
     "latestPointerSha256": "38841c17234daa1a9aa62629dd7a277b3b94d7ca38b80eead3b56ecdc74981c3",
     "latestLauncherSmokeExitCode": 0,
     "latestLauncherSmokeMilliseconds": 4627.4455,
     "activationSharedDataFilesPreserved": 16,
     "retainedFiles": 478,
-    "retainedBytes": 284086838
+    "retainedBytes": 284086838,
+    "supersededLocalBuildRetired": "0.4.58-20261116T082429970Z-4279db15",
+    "supersededLocalBuildFilesRetired": 478,
+    "supersededLocalBuildBytesRetired": 284040423,
+    "supersededRetirementVerifiedUtc": "2026-11-16T15:20:20.1868468Z",
+    "localStagingRetired": true,
+    "completedStagingFilesRetired": 13,
+    "completedStagingBytesRetired": 87422941,
+    "completedStagingRetirementVerifiedUtc": "2026-11-16T15:20:20.1868468Z",
+    "ownedContentSpanInputRetired": true,
+    "ownedContentSpanInputBytesRetired": 2333
   }
 }
 ]
