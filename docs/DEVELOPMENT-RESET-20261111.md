@@ -44,14 +44,16 @@ were then retired: 1,199 files and 512,663,588 bytes, with all 509 protected
 hashes unchanged. Its sole retained PNG has a named package-verification
 consumer and will be retired after that check.
 
-Prepare one integrated **0.4.59 internal portable preview** for the accumulated
+One integrated [**0.4.59 internal portable preview**](INTERNAL-PREVIEW-459-VERIFICATION-20261116.md)
+is built, uploaded and verified for the accumulated
 affine original-pixel support, Rust content-span recovery, duplicate-final-fit
 reuse, stale-status repair and abandoned-label cancellation. This is a meaningful
 runtime batch since 0.4.58, not a package for the diagnostic helper alone.
-Require full CI on the prepared source/version commit, then use the existing
-hosted build, actual download verification and guarded activation. The current
-keeper remains 0.4.58 until the replacement is verified, uploaded and recorded
-on main. Native UI, installer, clean-machine and production acceptance remain
+Prepared source `d243e5b1` passed exact-head full CI: 3,276 .NET passes,
+30 explicit skips and 89 Rust passes. The downloaded package passed all 477
+payload hashes, both startup/refusal smokes and one conditional owned Rust
+recovery request. Guarded activation is pending the delivery record on main;
+the current launcher still selects 0.4.58. Native UI, installer, clean-machine and production acceptance remain
 incomplete; no public release or production activation is authorized by these
 checks.
 
