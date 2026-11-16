@@ -537,3 +537,13 @@ private image, OCR, fit or image write. Both measured controls were ineligible;
 the result does not authorize widening or production integration. The same
 [outcome document](../../docs/AFFINE-STROKE-SAMPLING-20261116.md) records the
 identities, failure accounting and retirement condition.
+
+`--owned-inference-key-check <expected-loaded-inference-sha256>` measures cache-key
+derivation only. It verifies and locks the loaded Inference DLL, performs one
+32-value warmup, then one call each for fixed `[1,3,48,320]` and `[16,3,48,320]`
+finite owned tensors. Construction and before/after buffer hashing are outside
+the timed call. Exact keys, input preservation, call allocation, failures and
+unattempted cases are reported. The existing CPU cap and 30/35-second limits
+apply. No model file, provider discovery, inference session, image or private
+input is accessed. A paired comparison must retain the original report and use
+the same runner and tensors; it does not measure OCR or application latency.

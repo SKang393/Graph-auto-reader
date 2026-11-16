@@ -3,6 +3,7 @@
 
 using System.Security.Cryptography;
 using System.Buffers.Binary;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 
@@ -74,11 +75,25 @@ public static class InferenceCacheKeyDeriver
             hash.AppendData(integer);
         }
 
-        Span<byte> number = stackalloc byte[sizeof(float)];
-        foreach (var value in input.Values.Span)
+        ReadOnlySpan<float> values = input.Values.Span;
+        if (BitConverter.IsLittleEndian)
         {
-            BinaryPrimitives.WriteSingleLittleEndian(number, value);
-            hash.AppendData(number);
+            const int chunkFloats = 16_384;
+            for (int offset = 0; offset < values.Length;)
+            {
+                int count = Math.Min(chunkFloats, values.Length - offset);
+                hash.AppendData(MemoryMarshal.AsBytes(values.Slice(offset, count)));
+                offset += count;
+            }
+        }
+        else
+        {
+            Span<byte> number = stackalloc byte[sizeof(float)];
+            foreach (var value in values)
+            {
+                BinaryPrimitives.WriteSingleLittleEndian(number, value);
+                hash.AppendData(number);
+            }
         }
 
         return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();

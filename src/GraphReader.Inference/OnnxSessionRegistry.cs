@@ -632,9 +632,23 @@ public sealed class OnnxInferenceSession : IInferenceSession
 
 internal sealed class ReusableTensorPool : IDisposable
 {
-    private readonly ConcurrentDictionary<string, ConcurrentBag<PooledTensor>> _pools = new(StringComparer.Ordinal);
+    private const int DefaultMaximumIdleEntries = 8;
+    private const long DefaultMaximumIdleBytes = 16L * 1024 * 1024;
+    private const int MaximumIdleKeyCharacters = 256;
+    private readonly LinkedList<(string Key, PooledTensor Tensor)> _idle = new();
     private readonly object _sync = new();
+    private readonly int _maximumIdleEntries;
+    private readonly long _maximumIdleBytes;
+    private long _idleBytes;
     private int _disposed;
+
+    internal ReusableTensorPool(int maximumIdleEntries = DefaultMaximumIdleEntries, long maximumIdleBytes = DefaultMaximumIdleBytes)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(maximumIdleEntries);
+        ArgumentOutOfRangeException.ThrowIfNegative(maximumIdleBytes);
+        _maximumIdleEntries = maximumIdleEntries;
+        _maximumIdleBytes = maximumIdleBytes;
+    }
 
     public TensorLease Rent(long[] shape, int valueCount)
     {
@@ -642,27 +656,37 @@ internal sealed class ReusableTensorPool : IDisposable
         lock (_sync)
         {
             ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
-            var pool = _pools.GetOrAdd(key, static _ => new ConcurrentBag<PooledTensor>());
-            if (pool.TryTake(out var existing))
+            for (var node = _idle.Last; node is not null; node = node.Previous)
             {
+                if (node.Value.Key != key || node.Value.Tensor.ValueCount != valueCount) continue;
+                PooledTensor existing = node.Value.Tensor;
+                _idle.Remove(node);
+                _idleBytes -= (long)existing.Buffer.Length * sizeof(float);
                 return new TensorLease(this, key, existing, wasReused: true);
             }
         }
 
         var buffer = ArrayPool<float>.Shared.Rent(valueCount);
+        PooledTensor tensor;
         try
         {
             var value = OrtValue.CreateTensorValueFromMemory(
                 OrtMemoryInfo.DefaultInstance,
                 buffer.AsMemory(0, valueCount),
                 shape);
-            return new TensorLease(this, key, new PooledTensor(buffer, value, valueCount), wasReused: false);
+            tensor = new PooledTensor(buffer, value, valueCount);
         }
         catch
         {
             ArrayPool<float>.Shared.Return(buffer, clearArray: true);
             throw;
         }
+        lock (_sync)
+        {
+            if (_disposed == 0) return new TensorLease(this, key, tensor, wasReused: false);
+        }
+        tensor.Dispose();
+        throw new ObjectDisposedException(nameof(ReusableTensorPool));
     }
 
     public void Dispose()
@@ -675,15 +699,9 @@ internal sealed class ReusableTensorPool : IDisposable
                 return;
             }
 
-            foreach (var pool in _pools.Values)
-            {
-                while (pool.TryTake(out var tensor))
-                {
-                    tensors.Add(tensor);
-                }
-            }
-
-            _pools.Clear();
+            foreach (var item in _idle) tensors.Add(item.Tensor);
+            _idle.Clear();
+            _idleBytes = 0;
         }
 
         foreach (var tensor in tensors)
@@ -695,23 +713,28 @@ internal sealed class ReusableTensorPool : IDisposable
     private void Return(string key, PooledTensor tensor)
     {
         Array.Clear(tensor.Buffer, 0, tensor.ValueCount);
-        var dispose = false;
+        List<PooledTensor> dispose = [];
+        long bytes = (long)tensor.Buffer.Length * sizeof(float);
         lock (_sync)
         {
-            if (Volatile.Read(ref _disposed) != 0)
+            if (_disposed != 0 || _maximumIdleEntries == 0 || bytes > _maximumIdleBytes || key.Length > MaximumIdleKeyCharacters)
             {
-                dispose = true;
+                dispose.Add(tensor);
             }
             else
             {
-                _pools.GetOrAdd(key, static _ => new ConcurrentBag<PooledTensor>()).Add(tensor);
+                while (_idle.Count >= _maximumIdleEntries || _idleBytes > _maximumIdleBytes - bytes)
+                {
+                    var oldest = _idle.First!;
+                    _idle.RemoveFirst();
+                    _idleBytes -= (long)oldest.Value.Tensor.Buffer.Length * sizeof(float);
+                    dispose.Add(oldest.Value.Tensor);
+                }
+                _idle.AddLast((key, tensor));
+                _idleBytes += bytes;
             }
         }
-
-        if (dispose)
-        {
-            tensor.Dispose();
-        }
+        foreach (var item in dispose) item.Dispose();
     }
 
     internal sealed class TensorLease : IDisposable
