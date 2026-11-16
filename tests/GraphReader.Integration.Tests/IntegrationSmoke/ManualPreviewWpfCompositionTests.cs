@@ -253,8 +253,9 @@ public sealed class ManualPreviewWpfCompositionTests
         Assert.AreEqual(firstHash, Sha256(firstImage));
         Assert.AreEqual(secondHash, Sha256(secondImage));
         CollectionAssert.AreEquivalent(
-            new[] { firstHash, secondHash },
-            workspace.CurrentProject.Sources.Select(static source => source.Sha256).ToArray());
+            new[] { firstHash },
+            workspace.CurrentProject.Sources.Select(static source => source.Sha256).ToArray(),
+            "Closing the second image removes its project source, not the original image file.");
 
         PanelRecord savedPanel = workspace.CurrentProject.Panels.Single();
         Assert.HasCount(0, savedPanel.Markers);
