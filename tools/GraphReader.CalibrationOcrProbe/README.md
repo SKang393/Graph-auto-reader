@@ -584,6 +584,16 @@ to the normal geometry/tick/OCR/association chain; no separate primary rerun is
 made. Complete output is private and must stay in the ignored run directory.
 Publish only aggregate stage results, and retain every refusal/unattempted stage.
 
+`--real-dev-next-project-image-inspection <absolute-corpus-root> <absolute-cached-locator.json> <absolute-new-output.png> --explicit-opt-in`
+was the one image-only follow-up for the same fixed refusal. It binds the
+exact locator/source/full-panel identities and writes one create-only PNG
+under the current ignored artifacts directory, excluding Data and reparse
+ancestors. Original, copy and final inventory hashes must match. No geometry,
+OCR, model, truth or independent payload is read; the half-core parent and
+30/35-second bounds apply. Its inspection is complete and the temporary locator
+and PNG are scheduled for retirement after the concise outcome push. This
+historical command does not authorize another private run.
+
 `--real-dev-axis-choice-availability-check <absolute-corpus-root> <absolute-source-App.exe> <absolute-keeper-Rust.exe> --explicit-opt-in`
 is a separate image-only check of explicit axis choices. It binds the tested
 `96f89b04` source runtime, the packaged 457 Rust worker and the retained first

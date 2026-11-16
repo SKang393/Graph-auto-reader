@@ -9,9 +9,16 @@ strict solver from finding a fully ticked plot. All 89 Rust tests and eight
 existing wire controls pass. Its single fixed real-development confirmation
 still refuses geometry after one connected-run pair fails connectivity, so
 numeric calibration remains unreached. Do not claim a real-accuracy improvement
-or repeat the runtime comparison. The next permitted diagnosis is image-property
-inspection of that exact refusal, with the compact locator retained for it.
-Source integration and full Windows CI are pending; no new package is created.
+or repeat the runtime comparison. The image-only property inspection has now
+completed: most measured dark runs are one pixel wide, with missing dark
+cross-sections under the unchanged threshold. This is not an axis fit or a
+justification for threshold changes. Source audits found no additional safe
+pruning, decoder, caching or generator repair. Its compact locator and PNG are
+closed inputs pending routine retirement after the outcome push.
+Source `8516b75e` is integrated and pushed; full Windows CI passed 3,258 .NET
+tests (30 explicit skips), 89 Rust tests and 68 packaging checks, zero failures.
+No new package is created. Preserve the refusal and unreached downstream stages
+while the next source-supported product improvement is selected.
 
 The [new fixed one-project development diagnosis](NEXT-DEV-PROJECT-CALIBRATION-20261116.md)
 uses the thirteenth sorted development project, without reopening the earlier

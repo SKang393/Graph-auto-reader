@@ -240,15 +240,77 @@ confirmation still returns no geometry, now after one connected-run pair is
 checked and rejected for connectivity. OCR/association remain unreached, with
 all original identities preserved. No further runtime comparison is open.
 
+## Image-property inspection and limits
+
+One image-only extraction reused the exact locator and source identities. It
+performed no geometry, OCR, model, truth, other-project or independent-split
+call. The original stayed locked read-only. A create-only PNG destination under
+ignored `artifacts` excluded Data and reparse-point paths; original, image,
+full-panel, copied-file and final inventory identities were checked. The parent
+kept its half-core cap with 30/35-second cancellation/watchdog bounds.
+
+The probe-only compile passed in **11.2396 s**, zero warnings/errors. Source
+review found no material issue. The one invocation ran from
+**2026-11-16T11:51:56.7424759Z** to **11:51:57.2248166Z**, exit 0, empty stderr,
+no timeout, **0.4793 s wall** / **195.8141 ms** internal stages. All seven
+stages completed: one source read and one PNG written, no failures/unattempted
+source. The 325,819-byte PNG matched the embedded image hash. Original and
+all 27 protected hashes remained unchanged. The inspection image is private;
+it is never a public fixture or a retained alternative source.
+
+Visual inspection identified thin strokes alongside much heavier dividers and
+an annotation frame. A separate property measurement used two manually supplied
+raster regions on this same PNG. It did not detect axes or read scientific
+values. Pillow Gray8 matched the normal WPF Gray8 hash exactly. With the
+unchanged Rust predicate **Gray8 <128**, the measured cross-sections were:
+
+| Property | Vertical region | Horizontal region |
+| --- | ---: | ---: |
+| Cross-sections / no dark pixel | 464 / 77 | 1,194 / 15 |
+| Contiguous dark runs | 395 | 1,224 |
+| Median / maximum dark-run width, pixels | 1 / 12 | 1 / 6 |
+| Median dark-pixel intensity | 106 | 104 |
+| Last-minus-first quarter centroid shift, pixels | -1 | 0 |
+
+Measurement took **46.1184 ms**. Every dark pixel in each supplied region was
+included, so nearby ticks, text or other strokes can affect widths and drift.
+These are raster cross-section lengths, not fitted perpendicular axis widths,
+and they do not prove axis identity, connectivity or calibration correctness.
+There was no threshold sweep, crop/pixel mutation or new geometry invocation.
+The extraction is not automatic calibration and the PNG was only an inspection
+copy; it does not establish a decoder defect or authorize a contrast change.
+
+Source-only follow-ups found no additional supported repair. Connected-family
+construction already splits disconnected support and deduplicates identical
+member sets. Native post-ranking guards cannot simply move before pair charging
+without changing the winner, ambiguity or visible choices. Existing owned tests
+cover subpixel phases, connected/gapped ink and affine mapping; the synthetic
+renderer already supports line width, skew, downsampling and dropout. No new
+generator or caching change follows from this single observation. The current
+graph remains a fully accounted geometry refusal, with downstream stages
+unreached; no further unchanged comparison is open.
+
+| Inspection evidence | SHA-256 |
+| --- | --- |
+| Probe | `0a428e5644b2f26c9572eca5b5417145c9570a57d635dbe34fcfa678203d77cc` |
+| Extraction report, 1,007 bytes | `3c0a3f487a64a0a16ab2035a9707b1362a2880157ed9bbf2e7003b7b6a85fbc2` |
+| Property report, 1,922 bytes | `21e19ee6e8b518366bb9856a0eb654e3895ca43503199ecfbb96d7c666e8808f` |
+
+The source-only routing batch's full Windows CI and integration are recorded
+in the [routing outcome](RUST-CONTENT-SPAN-RECOVERY-20261116.md). The inspection
+mode is developer tooling, not shipped app behavior. It adds no dependency,
+model, license, contract change or package.
+
 ## Retention
 
 Ignored output scope: `artifacts/next-dev-project-calibration-check`. The compact
-locator's baseline and changed-stage tracing consumers have finished. Retain its
-996-byte identity only for the next image-property inspection of the exact
-connectivity refusal, without another geometry/OCR call. Commit concise aggregate
-outcomes, then retire disposable predictions, logs and runtime staging after
-CI/integration finish and the outcome is pushed. Retire the locator when its
-named image-property consumer finishes. Preserve
+locator's baseline, changed-stage and image-property consumers have finished.
+Commit this concise outcome, then retire the locator, disposable predictions,
+inspection image, property report, logs and completed runtime staging. The
+isolated Rust output scope is `artifacts/rust-content-recovery-check`; compiler
+outputs from the probe are also closed. Retained source documents the commands
+and identities, but does not authorize regenerating closed private evaluations.
+Preserve
 originals, independent evaluation, user Data, current runtime models, the
 protected checkpoint and the sole package. No new package, model promotion,
 license dependency or scientific-accuracy acceptance is created.

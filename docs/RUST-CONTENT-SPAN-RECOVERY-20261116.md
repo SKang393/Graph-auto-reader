@@ -114,10 +114,22 @@ Private report, 6,810 bytes:
 The confirmation is closed; do not repeat it unchanged or tune against its
 unavailable private calibration answers.
 
-Exact-source CI and integration are pending. Source remains Apache-2.0; no new
+Source/outcome commit `8516b75e327a00c33114c4a41026b5b1ae1dce1e` is integrated
+and pushed to `origin/main`. Exact-head Windows CI
+[43860789576](https://github.com/SKang393/Graph-auto-reader/actions/runs/43860789576)
+passed from **2026-11-16T11:47:11Z** to **11:58:41Z**, with full product
+validation (`full_changed_path`). It passed **3,258 .NET tests**, with 30
+explicit skips and zero failures, **89 Rust tests**, 68 packaging checks,
+62 version checks, six ledger checks, 12 portable checks and nine localization
+self-tests. Both next-project owned self-tests passed with zero private reads.
+The new routing behavior is covered by Rust regression tests and the single
+local changed-stage confirmation; there is no separate routing-specific CI
+self-test. Release/publish jobs were skipped.
+
+Source remains Apache-2.0; no new
 dependency, model, production approval or package was added. The sole delivered
-build is still 0.4.58. Retain raw reports only through CI/integration and its
-pushed concise outcome. The 996-byte locator may serve the next image-property
-inspection of this exact connectivity refusal; that consumer must not rerun
-geometry/OCR or access independent evaluation. Retire it when that inspection
-closes. Preserve original data, active user state, current models and the package.
+build is still 0.4.58. The following image-property inspection is now complete
+and is recorded in the linked development diagnosis. After its concise outcome
+is pushed, retire the closed raw reports, 996-byte locator, inspection PNG and
+isolated Rust build. Preserve original data, active user state, current models
+and the package.
