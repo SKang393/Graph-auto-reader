@@ -13,8 +13,10 @@ bytes, with all 508 protected hashes unchanged. It changes presentation only;
 the delivered 0.4.59 package is unchanged. The [CI scheduling follow-up](WINDOWS-CI-SCOPE-20261116.md#remove-a-measured-repeat-of-unchanged-release-fixtures)
 reuses one costly unchanged fixture suite only for verified documentation
 pushes; the existing 44 scope controls pass and the heavy fixture still ran
-successfully in full CI. Its measured hosted benefit still requires the next
-necessary documentation run.
+successfully in full CI. The necessary documentation closeout then passed in
+2m13s versus 9m58s before, with exact-parent reuse, the intended fixture skip
+and all retained checks passing. This is an observed 7m45s reduction, not a
+controlled runner benchmark. No further package was created.
 
 The [identical-family fit reuse](AXIS-FINAL-FIT-REUSE-20261116.md) removes repeated
 final fits from the fallback solver without changing candidates, ranking or

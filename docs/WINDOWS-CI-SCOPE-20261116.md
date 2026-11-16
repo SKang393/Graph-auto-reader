@@ -154,5 +154,23 @@ It reported `full_changed_path` with full validation and no parent reuse.
 The newly conditional release-artifact fixture **executed and passed all 68
 controls**. All 3,277 .NET tests (30 explicit skips), 89 Rust tests, 44 scope
 assertions and the other packaging/evidence checks passed. No release artifact
-was produced. The next necessary documentation retention/outcome push will
-verify actual skip behavior and elapsed time; no improvement is claimed yet.
+was produced.
+
+The necessary retention/outcome commit
+`79081fa939779cf2a7f5176de8e0aec4aa1065ab` then passed
+[documentation CI 43897557542](https://github.com/SKang393/Graph-auto-reader/actions/runs/43897557542),
+job `133405123284`, from **2026-11-16T15:33:09Z** to **15:35:22Z**.
+It reported `full_product_validation=false`, `docs_only_verified_parent`,
+and exact predecessor run `43894745902`. The release-artifact fixture was
+**skipped**, as were the already guarded product build/test/probe stages.
+The 44 scope assertions, 62 version controls, ledger/retention, reviewed runtime,
+hosted-preview, activation, nine localization checks, evidence, handoff, upload,
+packaging definition validation and audit all passed. No product-test or
+release-fixture pass count is attributed to this documentation run.
+
+Observed elapsed time changed from **9m58s to 2m13s**, a reduction of
+**7m45s (about 78%)**. These are two necessary hosted runs, not a controlled
+benchmark or a guarantee for every runner. The removed repeated fixture work
+accounts for approximately the observed reduction. Full source validation and
+runtime/model acceptance requirements are unchanged. No timing-only rerun,
+extra package, dependency or private evaluation was needed.

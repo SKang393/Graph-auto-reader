@@ -311,11 +311,11 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 
 ## REV-013 - name the next original development graph
 
-- **Status:** waiting only for the historical exact graph identity; a separate
-  fixed development diagnosis can proceed under existing authorization
+- **Status:** waiting for the historical exact graph identity or a named next
+  development repair target; the separately fixed diagnosis is now closed
 - **Blocks:** a paired changed-stage confirmation on the prior exact panel;
-  the [new one-project diagnosis](NEXT-DEV-PROJECT-CALIBRATION-20261116.md)
-  independently selects ordinal 12 before image access and does not depend on it
+  the [separate one-project diagnosis](NEXT-DEV-PROJECT-CALIBRATION-20261116.md)
+  selected ordinal 12 before image access and completed independently
 - **Effort:** about one minute to provide an existing `.dig` or image path
 - **Action:** identify one authorized development graph that still needs
   calibration, using its existing local file path; no upload or new approval is
@@ -330,3 +330,12 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 - **Unblocks when:** an authoritative original path or case/panel locator is
   available and verified against the authorized development split. A new input
   will be reported as a new diagnostic, not a paired historical result
+
+The separately preselected ordinal-12 diagnosis and changed-stage confirmation
+are now closed, with geometry still refused and downstream OCR/fit unreached.
+The 0.4.59 package and subsequent Cancel/CI fixes are verified; they do not
+justify replaying that unchanged private comparison. On 2026-11-16, the
+maintainer was asked asynchronously for the existing local `.dig` or image
+path to target next. This requests a concrete failure target, not renewed
+permission. Preserve originals and verify development membership before any
+new bounded trace; independent evaluation remains untouched.
