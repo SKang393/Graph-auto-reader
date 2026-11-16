@@ -339,6 +339,18 @@ fn recover_content_span(width: usize, height: usize, channels: usize, pixels: &[
 fn resolve_connected_runs(width: usize, height: usize, channels: usize, pixels: &[u8])
     -> Result<Proposal, &'static str>
 {
+    let (rows, cols) = connected_run_scores(width, height, channels, pixels);
+    let row_max = *rows.iter().max().ok_or("NO_AXIS")?;
+    let col_max = *cols.iter().max().ok_or("NO_AXIS")?;
+    if row_max == 0 || col_max == 0 { return Err("NO_AXIS"); }
+    resolve_grid(width, height, channels, pixels, &rows, &cols,
+        row_max * 2 / 5, col_max * 2 / 5,
+        (col_max / 20).clamp(3, 32), (row_max / 20).clamp(3, 32))
+}
+
+fn connected_run_scores(width: usize, height: usize, channels: usize, pixels: &[u8])
+    -> (Vec<usize>, Vec<usize>)
+{
     let mut rows = vec![0usize; height];
     let mut cols = vec![0usize; width];
     for y in 0..height {
@@ -355,12 +367,7 @@ fn resolve_connected_runs(width: usize, height: usize, channels: usize, pixels: 
             else { run = 0; }
         }
     }
-    let row_max = *rows.iter().max().ok_or("NO_AXIS")?;
-    let col_max = *cols.iter().max().ok_or("NO_AXIS")?;
-    if row_max == 0 || col_max == 0 { return Err("NO_AXIS"); }
-    resolve_grid(width, height, channels, pixels, &rows, &cols,
-        row_max * 2 / 5, col_max * 2 / 5,
-        (col_max / 20).clamp(3, 32), (row_max / 20).clamp(3, 32))
+    (rows, cols)
 }
 
 fn strong_line_bands(scores: &[usize], minimum: usize, row: bool) -> Result<Vec<(usize, usize)>, &'static str> {
@@ -603,7 +610,10 @@ fn review_proposals(width: usize, height: usize, channels: usize, pixels: &[u8])
     } }
     let mut tick_width = width;
     let mut tick_height = height;
+    let mut content_extent = false;
+    let mut used_runs = false;
     if matches!(select_pair(&rows, &cols, width * 2 / 5, height * 2 / 5), Err("NO_AXIS")) {
+        content_extent = true;
         let first_row = rows.iter().position(|&n| n > 0).ok_or("NO_AXIS")?;
         let last_row = rows.iter().rposition(|&n| n > 0).ok_or("NO_AXIS")?;
         let first_col = cols.iter().position(|&n| n > 0).ok_or("NO_AXIS")?;
@@ -611,30 +621,32 @@ fn review_proposals(width: usize, height: usize, channels: usize, pixels: &[u8])
         tick_width = last_col - first_col + 1;
         tick_height = last_row - first_row + 1;
         if matches!(select_pair(&rows, &cols, tick_width * 2 / 5, tick_height * 2 / 5), Err("NO_AXIS")) {
-            // Reuse these two projections for the existing connected-run route.
-            rows.fill(0); cols.fill(0);
-            for y in 0..height {
-                let mut run = 0;
-                for x in 0..width {
-                    if is_dark(pixels, (y * width + x) * channels, channels) { run += 1; rows[y] = rows[y].max(run); }
-                    else { run = 0; }
-                }
-            }
-            for x in 0..width {
-                let mut run = 0;
-                for y in 0..height {
-                    if is_dark(pixels, (y * width + x) * channels, channels) { run += 1; cols[x] = cols[x].max(run); }
-                    else { run = 0; }
-                }
-            }
+            used_runs = true;
+            (rows, cols) = connected_run_scores(width, height, channels, pixels);
             tick_width = *rows.iter().max().ok_or("NO_AXIS")?;
             tick_height = *cols.iter().max().ok_or("NO_AXIS")?;
             if tick_width == 0 || tick_height == 0 { return Err("NO_AXIS"); }
         }
     }
-    review_grid(width, height, channels, pixels, &rows, &cols,
+    let result = review_grid(width, height, channels, pixels, &rows, &cols,
         tick_width * 2 / 5, tick_height * 2 / 5,
-        (tick_height / 20).clamp(3, 32), (tick_width / 20).clamp(3, 32))
+        (tick_height / 20).clamp(3, 32), (tick_width / 20).clamp(3, 32));
+    // A content projection can be dominated by disconnected caption ink.
+    // If it yields no review candidate, enumerate the same strict connected-run
+    // hypotheses as automatic recovery, retaining the request-wide bridge budget.
+    // Never retry an incomplete/ambiguous search or an already-used run route.
+    if matches!(result, Err(DISCONNECTED_AXIS_SPAN)) && content_extent && !used_runs &&
+        !BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) {
+        let (run_rows, run_cols) = connected_run_scores(width, height, channels, pixels);
+        let row_max = *run_rows.iter().max().ok_or("NO_AXIS")?;
+        let col_max = *run_cols.iter().max().ok_or("NO_AXIS")?;
+        if row_max == 0 || col_max == 0 { return Err("NO_AXIS"); }
+        return review_grid(width, height, channels, pixels, &run_rows, &run_cols,
+            row_max * 2 / 5, col_max * 2 / 5,
+            (col_max / 20).clamp(3, 32), (row_max / 20).clamp(3, 32))
+            .map_err(|reason| if reason == DISCONNECTED_AXIS_SPAN { "NO_AXIS" } else { reason });
+    }
+    result.map_err(|reason| if reason == DISCONNECTED_AXIS_SPAN { "NO_AXIS" } else { reason })
 }
 
 fn review_grid(width: usize, height: usize, channels: usize, pixels: &[u8],
@@ -645,13 +657,15 @@ fn review_grid(width: usize, height: usize, channels: usize, pixels: &[u8],
     let col_bands = strong_line_bands(cols, col_minimum, false)?;
     if row_bands.len() * col_bands.len() > MAX_GRID_PAIR_CHECKS { return Err("AMBIGUOUS_AXIS"); }
     let mut proposals = Vec::new();
+    let mut disconnected = false;
     for &(bottom, _) in &row_bands { for &(left, _) in &col_bands {
         let measured = measure_axes(width, height, channels, pixels, rows, cols,
             bottom, left, x_limit, y_limit, true, true);
         if BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) { return Err("AMBIGUOUS_AXIS"); }
+        disconnected |= matches!(measured, Err(DISCONNECTED_AXIS_SPAN));
         if let Ok(proposal) = measured { proposals.push(proposal); }
     } }
-    if proposals.is_empty() { return Err("NO_AXIS"); }
+    if proposals.is_empty() { return Err(if disconnected { DISCONNECTED_AXIS_SPAN } else { "NO_AXIS" }); }
     Ok(proposals)
 }
 
@@ -2179,6 +2193,36 @@ mod tests {
         for x in (0..512).step_by(2) { image[400 * 512 + x] = 0; }
         image
     }
+    #[test]
+    fn owned_review_retains_automatic_content_recovery() {
+        let image = content_projection_decoy_pixels();
+        for channels in [1, 3] {
+            let pixels = if channels == 1 { image.clone() } else { image.iter().flat_map(|&p| [p; 3]).collect() };
+            let unchanged = pixels.clone();
+            let auto = propose(512,512,channels,&pixels).expect("automatic control");
+            let mut frame = Vec::from(*b"GRA1");
+            for value in [512u32,512,channels as u32,pixels.len() as u32] { frame.extend_from_slice(&value.to_le_bytes()); }
+            frame.extend_from_slice(&pixels);
+            let review = process_review(&frame[..]).expect("review must offer same strict owned plot");
+            assert_eq!(review.len(),1);
+            assert_eq!((review[0].left,review[0].bottom,review[0].right,review[0].top), (auto.left,auto.bottom,auto.right,auto.top));
+            assert_eq!(review[0].x_ticks,auto.x_ticks); assert_eq!(review[0].y_ticks,auto.y_ticks);
+            assert_eq!(review_response(&review).unwrap(), "REVIEW1 1\nBOX 80 420 440 250 140,260,380 280,330,380\n");
+            assert_eq!(pixels,unchanged);
+            assert!(BRIDGE_WORK.with(|work| work.get()) > 0);
+        }
+    }
+
+    #[test]
+    fn owned_review_content_recovery_keeps_missing_ink_and_ticks_refused() {
+        let mut broken = content_projection_decoy_pixels();
+        for x in 180..=240 { broken[420 * 512 + x] = 255; }
+        assert!(review_proposals(512,512,1,&broken).is_err());
+        let mut missing = content_projection_decoy_pixels();
+        for x in [140,260,380] { for y in 421..=425 { missing[y*512+x]=255; } }
+        assert!(review_proposals(512,512,1,&missing).is_err());
+    }
+
     fn content_projection_decoy_pixels() -> Vec<u8> {
         let mut image = vec![255; 512 * 512];
         for x in 80..=440 { image[420 * 512 + x] = 0; }
