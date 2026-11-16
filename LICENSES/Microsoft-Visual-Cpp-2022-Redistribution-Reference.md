@@ -19,5 +19,3 @@ It is not a replacement for the applicable Microsoft license terms.
 - Official supported v14 runtime guidance:
   <https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170>
 
-The private maintainer authority attestation is intentionally excluded from
-Git and release artifacts.
