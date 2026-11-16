@@ -232,3 +232,26 @@ owned check's scope; shared Data and the 457 keeper remained unchanged. Complete
 owned reports/PNGs and probe compiler output can now be retired after this
 follow-up is pushed and current consumers close. Retain the four separate
 native-QA images and protected runtime checkpoint.
+
+## Pushed follow-up and output retirement
+
+Follow-up commit `8e44e36260ca05f6bfa4a7ba3146ea8fcbf60020` is integrated into
+`origin/main`. [Windows CI 43820515437](https://github.com/SKang393/Graph-auto-reader/actions/runs/43820515437)
+completed successfully at `2026-11-16T07:10:59Z`: **3,220 .NET passes**, **30
+expected skips**, zero failures, **80 Rust tests**, version policy **62**, ledger
+**6**, and portable retention **12**. This verifies the source/test checkpoint;
+it does not regrade either failed historical owned-control invocation.
+
+At `2026-11-16T07:14:27.0662395Z`, closed outputs were retired after checking the
+pushed outcome, exact canonical paths, absence of reparse points, tracked source,
+user data and live consumers: the owned-run directory (**43 files / 62,874
+bytes**), probe `bin` (**108 / 183,630,572**) and probe `obj` (**39 / 5,079,427**).
+Total **190 files / 188,772,873 bytes**. All eleven protected files, sixteen shared
+Data files and the 457 ZIP stayed unchanged. The compact preservation baseline
+now serves the active incomplete-axis-review validation; the retired raw report
+hashes above are historical identities, not available-file promises.
+
+An initial cleanup preflight refused two hash-only guards because they did not
+carry a byte-count field. No deletion occurred. Checking length when present
+and always checking SHA-256 resolved that metadata mismatch; all hashes matched.
+No new package or private/sealed run accompanied this closeout.

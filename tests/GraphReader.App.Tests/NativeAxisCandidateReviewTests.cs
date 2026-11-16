@@ -32,8 +32,13 @@ public sealed class NativeAxisCandidateReviewTests
         Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { Candidates = [candidate with { Index = 1 }] }, 100, 100));
         Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { Candidates = [candidate with { Geometry = candidate.Geometry with { Right = 100 } }] }, 100, 100));
         Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { Candidates = [candidate with { Geometry = candidate.Geometry with { Confidence = .5 } }] }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { EnumerationCompleted = false, Candidates = [candidate with { Geometry = candidate.Geometry with { Confidence = double.NaN } }] }, 100, 100));
         Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { Candidates = Enumerable.Repeat(candidate, 129).ToArray() }, 100, 100));
         Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(new([], "OPENCV_AXIS_AMBIGUOUS"), 100, 100));
+        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(valid with { EnumerationCompleted = false }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { EnumerationCompleted = false, Candidates = [] }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { EnumerationCompleted = false, ErrorCode = "OPENCV_AXIS_AMBIGUOUS" }, 100, 100));
+        Assert.IsFalse(OpenCvAxisProposalService.ValidCandidates(valid with { EnumerationCompleted = false, Provider = "rust-review" }, 100, 100));
     }
 
     [TestMethod]
@@ -56,6 +61,8 @@ public sealed class NativeAxisCandidateReviewTests
     [TestMethod]
     [DataRow("{\"Candidates\":[],\"ErrorCode\":\"OPENCV_AXIS_AMBIGUOUS\",\"Unknown\":0}")]
     [DataRow("{\"Candidates\":[],\"Candidates\":[],\"ErrorCode\":\"OPENCV_AXIS_AMBIGUOUS\"}")]
+    [DataRow("{\"Candidates\":[],\"ErrorCode\":null,\"EnumerationCompleted\":\"false\"}")]
+    [DataRow("{\"Candidates\":[],\"ErrorCode\":null,\"EnumerationCompleted\":true,\"EnumerationCompleted\":false}")]
     public async Task CandidateProtocolRejectsUnknownOrDuplicateProperties(string json)
     {
         byte[] bytes = Encoding.UTF8.GetBytes(json);
@@ -93,7 +100,24 @@ public sealed class NativeAxisCandidateReviewTests
     }
 
     [TestMethod]
-    public async Task ExactContactBudgetFailureReturnsNoPartialCandidates()
+    public async Task CandidateCompletionFlagRoundTripsAndLegacyFailureDefaultsComplete()
+    {
+        var incomplete = new AxisCandidateReviewResult([new(0, new(10, 90, 90, 10, 0))], null) { EnumerationCompleted = false };
+        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(incomplete);
+        byte[] prefix = new byte[4]; BinaryPrimitives.WriteInt32LittleEndian(prefix, bytes.Length);
+        using var stream = new MemoryStream(); stream.Write(prefix); stream.Write(bytes); stream.Position = 0;
+        AxisCandidateReviewResult? actual = await OpenCvAxisProposalService.ReadCandidateResponseAsync(stream, CancellationToken.None);
+        Assert.IsNotNull(actual);
+        Assert.IsFalse(actual.EnumerationCompleted);
+        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(actual, 100, 100));
+        byte[] legacy = Encoding.UTF8.GetBytes("{\"Candidates\":[],\"ErrorCode\":\"OPENCV_AXIS_AMBIGUOUS\"}");
+        BinaryPrimitives.WriteInt32LittleEndian(prefix, legacy.Length);
+        using var legacyStream = new MemoryStream(); legacyStream.Write(prefix); legacyStream.Write(legacy); legacyStream.Position = 0;
+        Assert.IsTrue((await OpenCvAxisProposalService.ReadCandidateResponseAsync(legacyStream, CancellationToken.None))!.EnumerationCompleted);
+    }
+
+    [TestMethod]
+    public async Task ExactContactBudgetAllowsExplicitIncompleteReviewButNotCancellation()
     {
         var lines = new List<GeometryLineCandidate>
         {
@@ -107,14 +131,17 @@ public sealed class NativeAxisCandidateReviewTests
         NativeAxisCandidateReviewObservation? budget = null;
         AxisCandidateReviewResult exceeded = await NativeAxisCandidateReview.ProcessLinesAsync(lines, 1800, 800,
             value => budget = value, CancellationToken.None);
-        Assert.AreEqual("OPENCV_AXIS_AMBIGUOUS", exceeded.ErrorCode);
-        Assert.IsEmpty(exceeded.Candidates);
+        Assert.IsNull(exceeded.ErrorCode);
+        Assert.IsFalse(exceeded.EnumerationCompleted);
+        Assert.IsGreaterThan(0, exceeded.Candidates.Count);
+        Assert.IsTrue(OpenCvAxisProposalService.ValidCandidates(exceeded, 1800, 800));
         Assert.IsNotNull(budget);
-        Assert.AreEqual("enumeration", budget.Stage);
+        Assert.AreEqual("incomplete_review", budget.Stage);
         Assert.AreEqual("native_pair_budget_exceeded", budget.FailureDetail);
         Assert.IsFalse(budget.EnumerationCompleted);
         Assert.AreEqual(0, budget.RawSnapshotCount);
-        Assert.AreEqual(0, budget.CheckedCount);
+        Assert.AreEqual(128, budget.IncompleteSnapshotCount);
+        Assert.IsGreaterThan(0, budget.CheckedCount);
         Assert.IsNotNull(budget.Work);
         Assert.AreEqual(AxisGeometryBudgetKind.ExactPairs, budget.Work.BudgetKind);
         Assert.AreEqual(129L, budget.Work.ExactPairRequests);

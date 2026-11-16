@@ -14,6 +14,7 @@ namespace GraphReader.App.Services;
 public sealed class OpenCvAxisProposalService : IAxisProposalService, IAxisCandidateReviewService
 {
     private static readonly string[] CandidateResultFields = ["Candidates", "ErrorCode"];
+    private static readonly string[] CandidateResultFieldsWithCompletion = ["Candidates", "ErrorCode", "EnumerationCompleted"];
     private static readonly string[] CandidateFields = ["Index", "Geometry"];
     private static readonly string[] CandidateGeometryFields = ["Left", "Bottom", "Right", "Top", "Confidence", "FirstTickX", "LastTickX", "XTickPositions", "YTickPositions"];
     private readonly string workerPath;
@@ -70,7 +71,8 @@ public sealed class OpenCvAxisProposalService : IAxisProposalService, IAxisCandi
             byte[] extra = new byte[1];
             if (await process.StandardOutput.BaseStream.ReadAsync(extra, deadline.Token).ConfigureAwait(false) != 0 ||
                 process.ExitCode != 0 || result?.Provider != "opencv-review" || !ValidCandidates(result, width, height)) return CandidateFailure("OPENCV_AXIS_UNAVAILABLE");
-            return new AxisCandidateReviewResult(Array.AsReadOnly(result!.Candidates.ToArray()), result.ErrorCode);
+            return new AxisCandidateReviewResult(Array.AsReadOnly(result!.Candidates.ToArray()), result.ErrorCode)
+                { EnumerationCompleted = result.EnumerationCompleted };
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) { return CandidateFailure("OPENCV_AXIS_TIMEOUT"); }
         catch (Exception) { cancellationToken.ThrowIfCancellationRequested(); return CandidateFailure("OPENCV_AXIS_UNAVAILABLE"); }
@@ -89,7 +91,8 @@ public sealed class OpenCvAxisProposalService : IAxisProposalService, IAxisCandi
         byte[] bytes = new byte[length]; await stream.ReadExactlyAsync(bytes, token).ConfigureAwait(false);
         using JsonDocument document = JsonDocument.Parse(bytes);
         JsonElement root = document.RootElement;
-        if (!HasExactProperties(root, CandidateResultFields) ||
+        if (!(HasExactProperties(root, CandidateResultFields) || HasExactProperties(root, CandidateResultFieldsWithCompletion)) ||
+            (root.TryGetProperty("EnumerationCompleted", out JsonElement completed) && completed.ValueKind is not (JsonValueKind.True or JsonValueKind.False)) ||
             root.GetProperty("Candidates").ValueKind != JsonValueKind.Array) throw new InvalidDataException();
         foreach (JsonElement candidate in root.GetProperty("Candidates").EnumerateArray())
         {
@@ -111,6 +114,7 @@ public sealed class OpenCvAxisProposalService : IAxisProposalService, IAxisCandi
     internal static bool ValidCandidates(AxisCandidateReviewResult? result, int width, int height)
     {
         if (result?.Candidates is null || result.Provider is not ("opencv-review" or "rust-review") || result.Candidates.Count > NativeAxisCandidateReview.MaximumCandidates) return false;
+        if (!result.EnumerationCompleted && (result.Provider != "opencv-review" || result.ErrorCode is not null || result.Candidates.Count == 0)) return false;
         if (result.ErrorCode is not null)
             return result.Candidates.Count == 0 && result.ErrorCode is "OPENCV_AXIS_UNAVAILABLE" or "OPENCV_AXIS_AMBIGUOUS" or "INVALID_INPUT";
         if (result.Candidates.Count == 0) return false;

@@ -60,6 +60,10 @@ public sealed partial class MainWindowViewModel
         {
             if (!HasAxisGeometryReviewWarning) return string.Empty;
             bool partial = _axisSuggestion!.ReviewReasons.Any(reason => reason is "x_axis_partial" or "y_axis_partial");
+            if (_axisSuggestion.ReviewReasons.Contains("native_incomplete_candidate_search", StringComparer.Ordinal))
+                return GetLocalizedString(LocalizationKeys.ManualAxisCandidatesIncompleteWarning) + "\n" +
+                    GetLocalizedString(partial ? LocalizationKeys.ManualAxisGeometryPartialWarning
+                        : LocalizationKeys.ManualAxisGeometryReviewWarning);
             if (_axisSuggestion.ReviewReasons.Contains("native_multiple_ranked_candidates", StringComparer.Ordinal))
             {
                 string warning = GetLocalizedString(LocalizationKeys.ManualAxisGeometryAmbiguousWarning);

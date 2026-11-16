@@ -20,8 +20,11 @@ public sealed partial class MainWindowViewModel
     public ICommand FindAxisCandidatesCommand { get; private set; } = null!;
     public ICommand UseAxisCandidateCommand { get; private set; } = null!;
     public bool HasAxisCandidates => AxisCandidates.Count != 0;
-    public string AxisCandidatesStatusText => GetLocalizedString(_axisCandidatesUnavailable
-        ? LocalizationKeys.ManualAxisCandidatesUnavailable : LocalizationKeys.ManualAxisCandidatesInstructions);
+    public string AxisCandidatesStatusText => _axisCandidatesUnavailable
+        ? GetLocalizedString(LocalizationKeys.ManualAxisCandidatesUnavailable)
+        : (_axisCandidateReview is { EnumerationCompleted: false }
+            ? GetLocalizedString(LocalizationKeys.ManualAxisCandidatesIncompleteWarning) + "\n" : string.Empty) +
+            GetLocalizedString(LocalizationKeys.ManualAxisCandidatesInstructions);
 
     public AxisReviewCandidateViewModel? SelectedAxisCandidate
     {

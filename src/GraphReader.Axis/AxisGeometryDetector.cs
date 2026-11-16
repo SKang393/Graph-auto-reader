@@ -164,93 +164,101 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         ref long envelopeComparisons = ref (work is null ? ref unobservedEnvelopeComparisons : ref work.EnvelopeComparisons);
         bool useEnvelopeIndex = request.MaximumExaminedPairs is not null &&
             (long)horizontalAxisFamilies.Count * verticalAxisFamilies.Count > maximumEnvelopeComparisons;
-        EnvelopeIndex? envelopeIndex = useEnvelopeIndex
-            ? BuildEnvelopeIndex(verticalEnvelopes, maximumEnvelopeComparisons, ref envelopeComparisons, cancellationToken) : null;
-        for (int horizontalIndex = 0; horizontalIndex < horizontalAxisFamilies.Count; horizontalIndex++)
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            LineFamily horizontalFamily = horizontalAxisFamilies[horizontalIndex];
-
-            List<int>? overlaps = envelopeIndex is null ? null : FindOverlaps(envelopeIndex,
-                horizontalEnvelopes[horizontalIndex], maximumEnvelopeComparisons, ref envelopeComparisons, cancellationToken);
-            int verticalCount = overlaps?.Count ?? verticalAxisFamilies.Count;
-            for (int verticalPosition = 0; verticalPosition < verticalCount; verticalPosition++)
+            EnvelopeIndex? envelopeIndex = useEnvelopeIndex
+                ? BuildEnvelopeIndex(verticalEnvelopes, maximumEnvelopeComparisons, ref envelopeComparisons, cancellationToken) : null;
+            for (int horizontalIndex = 0; horizontalIndex < horizontalAxisFamilies.Count; horizontalIndex++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                int verticalIndex = overlaps is null ? verticalPosition : overlaps[verticalPosition];
-                LineFamily verticalFamily = verticalAxisFamilies[verticalIndex];
-                if (request.MaximumExaminedPairs is not null && envelopeIndex is null)
-                {
-                    if (++envelopeComparisons > maximumEnvelopeComparisons)
-                        throw DetectionFailure("Axis pair envelope comparison limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded,
-                            AxisGeometryBudgetKind.EnvelopeComparisons);
-                    if (horizontalEnvelopes[horizontalIndex].IsDisjoint(verticalEnvelopes[verticalIndex])) continue;
-                }
-                if (work is not null) work.IntersectionsChecked++;
-                if (!TryIntersect(horizontalFamily, verticalFamily, out var intersection))
-                {
-                    continue;
-                }
+                LineFamily horizontalFamily = horizontalAxisFamilies[horizontalIndex];
 
-                if (!IsInsideWithTolerance(
+                List<int>? overlaps = envelopeIndex is null ? null : FindOverlaps(envelopeIndex,
+                    horizontalEnvelopes[horizontalIndex], maximumEnvelopeComparisons, ref envelopeComparisons, cancellationToken);
+                int verticalCount = overlaps?.Count ?? verticalAxisFamilies.Count;
+                for (int verticalPosition = 0; verticalPosition < verticalCount; verticalPosition++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    int verticalIndex = overlaps is null ? verticalPosition : overlaps[verticalPosition];
+                    LineFamily verticalFamily = verticalAxisFamilies[verticalIndex];
+                    if (request.MaximumExaminedPairs is not null && envelopeIndex is null)
+                    {
+                        if (++envelopeComparisons > maximumEnvelopeComparisons)
+                            throw DetectionFailure("Axis pair envelope comparison limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded,
+                                AxisGeometryBudgetKind.EnvelopeComparisons);
+                        if (horizontalEnvelopes[horizontalIndex].IsDisjoint(verticalEnvelopes[verticalIndex])) continue;
+                    }
+                    if (work is not null) work.IntersectionsChecked++;
+                    if (!TryIntersect(horizontalFamily, verticalFamily, out var intersection))
+                    {
+                        continue;
+                    }
+
+                    if (!IsInsideWithTolerance(
+                            intersection,
+                            request.ImageWidth,
+                            request.ImageHeight,
+                            options.MergeDistancePixels * 2d))
+                    {
+                        continue;
+                    }
+                    if (work is not null) work.IntersectionsInside++;
+                    AxisPairExtents? boundedExtents = null;
+                    if (request.MaximumExaminedPairs is int maximum)
+                    {
+                        // The fitted lines have only one intersection. Envelope overlap
+                        // elsewhere cannot supply observed contact at that point.
+                        if (!horizontalEnvelopes[horizontalIndex].Contains(intersection) ||
+                            !verticalEnvelopes[verticalIndex].Contains(intersection)) continue;
+                        // Reuse scoring's exact frame clipping: a nonpositive final
+                        // extent can never be admitted, even when raw projections are positive.
+                        boundedExtents = MeasureAxisPairExtents(horizontalFamily, verticalFamily, intersection,
+                            request.ImageWidth, request.ImageHeight);
+                        work?.RecordExtents(boundedExtents.Value);
+                        if (!(boundedExtents.Value.RightDistance > 0d) || !(boundedExtents.Value.TopDistance > 0d)) continue;
+                        if (work is not null) work.ExactPairRequests++;
+                        if (++examinedPairs > maximum)
+                            throw DetectionFailure("Axis pair examination limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded,
+                                AxisGeometryBudgetKind.ExactPairs);
+                    }
+                    else if (work is not null) work.ExactPairRequests++;
+                    if (work is not null) work.ExactPairAttempts++;
+                    if (!HasObservedContact(horizontalFamily, intersection, options.MergeDistancePixels * 2d))
+                    {
+                        if (work is not null) work.HorizontalContactRejections++;
+                        continue;
+                    }
+                    if (!HasObservedContact(verticalFamily, intersection, options.MergeDistancePixels * 2d))
+                    {
+                        if (work is not null) work.VerticalContactRejections++;
+                        continue;
+                    }
+
+                    var pair = ScoreAxisPair(
+                        horizontalFamily,
+                        verticalFamily,
                         intersection,
                         request.ImageWidth,
                         request.ImageHeight,
-                        options.MergeDistancePixels * 2d))
-                {
-                    continue;
-                }
-                if (work is not null) work.IntersectionsInside++;
-                AxisPairExtents? boundedExtents = null;
-                if (request.MaximumExaminedPairs is int maximum)
-                {
-                    // The fitted lines have only one intersection. Envelope overlap
-                    // elsewhere cannot supply observed contact at that point.
-                    if (!horizontalEnvelopes[horizontalIndex].Contains(intersection) ||
-                        !verticalEnvelopes[verticalIndex].Contains(intersection)) continue;
-                    // Reuse scoring's exact frame clipping: a nonpositive final
-                    // extent can never be admitted, even when raw projections are positive.
-                    boundedExtents = MeasureAxisPairExtents(horizontalFamily, verticalFamily, intersection,
-                        request.ImageWidth, request.ImageHeight);
-                    work?.RecordExtents(boundedExtents.Value);
-                    if (!(boundedExtents.Value.RightDistance > 0d) || !(boundedExtents.Value.TopDistance > 0d)) continue;
-                    if (work is not null) work.ExactPairRequests++;
-                    if (++examinedPairs > maximum)
-                        throw DetectionFailure("Axis pair examination limit exceeded.", AxisGeometryFailureReason.PairBudgetExceeded,
-                            AxisGeometryBudgetKind.ExactPairs);
-                }
-                else if (work is not null) work.ExactPairRequests++;
-                if (work is not null) work.ExactPairAttempts++;
-                if (!HasObservedContact(horizontalFamily, intersection, options.MergeDistancePixels * 2d))
-                {
-                    if (work is not null) work.HorizontalContactRejections++;
-                    continue;
-                }
-                if (!HasObservedContact(verticalFamily, intersection, options.MergeDistancePixels * 2d))
-                {
-                    if (work is not null) work.VerticalContactRejections++;
-                    continue;
-                }
-
-                var pair = ScoreAxisPair(
-                    horizontalFamily,
-                    verticalFamily,
-                    intersection,
-                    request.ImageWidth,
-                    request.ImageHeight,
-                    boundedExtents,
-                    out AxisPairExtents scoredExtents);
-                if (work is not null)
-                {
-                    if (boundedExtents is null) work.RecordExtents(scoredExtents);
-                    work.ScoredPairs++;
-                }
-                if (pair.RightDistance > 0d && pair.TopDistance > 0d)
-                {
-                    pairCandidates.Add(pair);
-                    if (work is not null) work.AdmittedPairs++;
+                        boundedExtents,
+                        out AxisPairExtents scoredExtents);
+                    if (work is not null)
+                    {
+                        if (boundedExtents is null) work.RecordExtents(scoredExtents);
+                        work.ScoredPairs++;
+                    }
+                    if (pair.RightDistance > 0d && pair.TopDistance > 0d)
+                    {
+                        pairCandidates.Add(pair);
+                        if (work is not null) work.AdmittedPairs++;
+                    }
                 }
             }
+        }
+        catch (AxisGeometryDetectionException failure) when (failure.Reason == AxisGeometryFailureReason.PairBudgetExceeded)
+        {
+            NotifyIncompleteReviewObserver(request.IncompleteReviewObserver, pairCandidates, failure, cancellationToken);
+            throw;
         }
         if (work is not null) work.EnumerationCompleted = true;
 
@@ -396,6 +404,34 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
 
         NotifyCandidateObserver(request.CandidateObserver, pairCandidates, cancellationToken);
         return result;
+    }
+
+    private static void NotifyIncompleteReviewObserver(IAxisGeometryIncompleteReviewObserver? observer,
+        IReadOnlyList<AxisPair> admittedPairs, AxisGeometryDetectionException failure, CancellationToken token)
+    {
+        if (observer is null || admittedPairs.Count == 0) return;
+        token.ThrowIfCancellationRequested();
+        var candidates = new AxisGeometryIncompleteReviewCandidate[admittedPairs.Count];
+        for (int index = 0; index < admittedPairs.Count; index++)
+        {
+            token.ThrowIfCancellationRequested();
+            candidates[index] = new(CreatePlotPolygon(admittedPairs[index]));
+        }
+        token.ThrowIfCancellationRequested();
+        try
+        {
+            observer.OnSearchInterrupted(new(candidates, failure.Reason, failure.BudgetKind));
+            token.ThrowIfCancellationRequested();
+        }
+        catch (OperationCanceledException) when (!token.IsCancellationRequested)
+        {
+            // Observer-local cancellation cannot replace the original budget refusal.
+        }
+        catch (Exception error) when (error is not OperationCanceledException and not OutOfMemoryException and
+            not StackOverflowException and not AccessViolationException)
+        {
+            // Explicit-review observation must not turn refusal into success or replace it.
+        }
     }
 
     private static void NotifyCandidateObserver(

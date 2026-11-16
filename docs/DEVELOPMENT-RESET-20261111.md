@@ -99,6 +99,11 @@ ticks and literal labels. Explicit refit produced three measured pairs while
 missing Y kept Apply disabled. Its raw invocation still reports a misplaced
 pre-refit assertion failure; the sequencing-only harness correction compiled
 without another worker/OCR run. Full details and both failures remain recorded.
+The next [incomplete-search review change](INCOMPLETE-AXIS-REVIEW-20261116.md)
+retains already-admitted rectangular choices after a C# work-limit refusal,
+with explicit incomplete warnings and source-bound manual selection. Automatic
+detection remains strict. The full Axis suite (249) and focused WPF review guards
+(138) pass; full CI is pending and the current package remains 0.4.57.
 The
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
 is implemented in source.

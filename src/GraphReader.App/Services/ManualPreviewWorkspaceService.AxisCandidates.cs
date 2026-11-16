@@ -10,6 +10,7 @@ public sealed record WorkspaceAxisCandidateReview(string TabId, string Binding, 
     internal object? OriginalImageIdentity { get; init; }
     internal object? CandidateIdentity { get; init; }
     public string Provider { get; init; } = "opencv-review";
+    public bool EnumerationCompleted { get; init; } = true;
 }
 
 public interface IAxisCandidateReviewWorkspace
@@ -22,11 +23,13 @@ public interface IAxisCandidateReviewWorkspace
 
 public partial class ManualPreviewWorkspaceService : IAxisCandidateReviewWorkspace
 {
-    private sealed record AxisCandidateIdentity(string Provider, IReadOnlyList<AxisReviewCandidate> Candidates);
+    private sealed record AxisCandidateIdentity(string Provider, bool EnumerationCompleted, IReadOnlyList<AxisReviewCandidate> Candidates);
     private static readonly IReadOnlyList<string> SelectedAxisCandidateReasons =
         Array.AsReadOnly(new[] { "native_user_selected_candidate" });
     private static readonly IReadOnlyList<string> SelectedRustAxisCandidateReasons =
         Array.AsReadOnly(new[] { "rust_user_selected_candidate" });
+    private static readonly IReadOnlyList<string> SelectedIncompleteAxisCandidateReasons =
+        Array.AsReadOnly(new[] { "native_user_selected_candidate", "native_incomplete_candidate_search" });
 
     public bool CanReviewAxisCandidates =>
         RuntimeEnvironment == WorkflowRuntimeEnvironment.ManualPreview &&
@@ -56,8 +59,8 @@ public partial class ManualPreviewWorkspaceService : IAxisCandidateReviewWorkspa
         }).ToArray());
         var review = new WorkspaceAxisCandidateReview(tabId, binding, candidates)
         {
-            OriginalImageIdentity = originalImage, Provider = result.Provider,
-            CandidateIdentity = new AxisCandidateIdentity(result.Provider, candidates),
+            OriginalImageIdentity = originalImage, Provider = result.Provider, EnumerationCompleted = result.EnumerationCompleted,
+            CandidateIdentity = new AxisCandidateIdentity(result.Provider, result.EnumerationCompleted, candidates),
         };
         return IsAxisCandidateReviewCurrent(review) ? review : null;
     }
@@ -69,8 +72,9 @@ public partial class ManualPreviewWorkspaceService : IAxisCandidateReviewWorkspa
         return tab is not null && _originalPanelBytesByTab.TryGetValue(tab.TabId, out var image) &&
             ReferenceEquals(image, review.OriginalImageIdentity) && review.Binding == AxisSuggestionBinding(tab) &&
             review.CandidateIdentity is AxisCandidateIdentity identity && identity.Provider == review.Provider &&
+            identity.EnumerationCompleted == review.EnumerationCompleted &&
             ReferenceEquals(identity.Candidates, review.Candidates) &&
-            OpenCvAxisProposalService.ValidCandidates(new(review.Candidates, null) { Provider = review.Provider }, tab.PixelWidth, tab.PixelHeight);
+            OpenCvAxisProposalService.ValidCandidates(new(review.Candidates, null) { Provider = review.Provider, EnumerationCompleted = review.EnumerationCompleted }, tab.PixelWidth, tab.PixelHeight);
     }
 
     public WorkspaceAxisSuggestion? SelectAxisCandidate(WorkspaceAxisCandidateReview review, int index)
@@ -81,7 +85,7 @@ public partial class ManualPreviewWorkspaceService : IAxisCandidateReviewWorkspa
         {
             OriginalImageIdentity = review.OriginalImageIdentity,
             Provider = review.Provider,
-            ReviewReasons = review.Provider == "rust-review" ? SelectedRustAxisCandidateReasons : SelectedAxisCandidateReasons,
+            ReviewReasons = review.Provider == "rust-review" ? SelectedRustAxisCandidateReasons : review.EnumerationCompleted ? SelectedAxisCandidateReasons : SelectedIncompleteAxisCandidateReasons,
         };
     }
 }

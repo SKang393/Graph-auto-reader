@@ -125,6 +125,13 @@ public sealed record AxisGeometryRequest(
     /// </summary>
     public IAxisGeometryCandidateObserver? CandidateObserver { get; init; }
 
+    /// <summary>
+    /// Optional explicit-review evidence from an interrupted pair-budget search.
+    /// This does not turn an incomplete search into a detection result or ranked list.
+    /// No callback is published for cancellation, invalid input, or an empty prefix.
+    /// </summary>
+    public IAxisGeometryIncompleteReviewObserver? IncompleteReviewObserver { get; init; }
+
     /// <summary>Optional aggregate work diagnostics, including failed/cancelled prefixes.
     /// Observer exceptions do not affect detection. No locations or candidate identities are emitted.</summary>
     public IAxisGeometryWorkObserver? WorkObserver { get; init; }
@@ -135,11 +142,39 @@ public sealed record AxisGeometryRequest(
     /// expanded by the existing contact tolerance, then test the fitted intersection
     /// against the frame and both envelopes. At most B squared cheap pair checks
     /// (including these envelope and intersection checks) and B surviving member-contact
-    /// examinations are permitted. Either exhaustion fails without publishing partial
-    /// geometry or candidates; the exception BudgetKind identifies the exhausted bound.
+    /// examinations are permitted. Either exhaustion fails without returning geometry
+    /// or publishing ranked candidates; the exception BudgetKind identifies the exhausted bound.
+    /// A separate opt-in IncompleteReviewObserver may receive unranked admitted geometry.
     /// Null retains the original unrestricted enumeration without envelope pruning.
     /// </summary>
     public int? MaximumExaminedPairs { get; init; }
+}
+
+public interface IAxisGeometryIncompleteReviewObserver
+{
+    void OnSearchInterrupted(AxisGeometryIncompleteReviewSnapshot snapshot);
+}
+
+/// <summary>Admitted original-pixel geometry for explicit review only.
+/// It carries no rank, score, confidence, or claim to be the best candidate.</summary>
+public sealed record AxisGeometryIncompleteReviewCandidate(PlotPolygon PlotPolygon);
+
+/// <summary>An immutable, unranked prefix in admitted enumeration order.
+/// The automatic search still throws the original pair-budget refusal.</summary>
+public sealed class AxisGeometryIncompleteReviewSnapshot
+{
+    internal AxisGeometryIncompleteReviewSnapshot(AxisGeometryIncompleteReviewCandidate[] candidates,
+        AxisGeometryFailureReason failureReason, AxisGeometryBudgetKind budgetKind)
+    {
+        Candidates = Array.AsReadOnly(candidates);
+        FailureReason = failureReason;
+        BudgetKind = budgetKind;
+    }
+
+    public IReadOnlyList<AxisGeometryIncompleteReviewCandidate> Candidates { get; }
+    public AxisGeometryFailureReason FailureReason { get; }
+    public AxisGeometryBudgetKind BudgetKind { get; }
+    public bool EnumerationCompleted { get; }
 }
 
 public interface IAxisGeometryWorkObserver

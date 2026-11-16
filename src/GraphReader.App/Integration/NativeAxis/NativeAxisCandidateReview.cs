@@ -16,7 +16,10 @@ namespace GraphReader.App.Integration.NativeAxis;
 internal sealed record NativeAxisCandidateReviewObservation(
     string Stage, bool EnumerationCompleted, bool Cancelled,
     int RawSnapshotCount, int CheckedCount, int EligibleCount, int RotatedCount, int RoundedExclusionCount, int DuplicateExclusionCount,
-    string? FailureDetail, string? HardGeometryRejection, AxisGeometryWorkSnapshot? Work);
+    string? FailureDetail, string? HardGeometryRejection, AxisGeometryWorkSnapshot? Work)
+{
+    public int IncompleteSnapshotCount { get; init; }
+}
 
 internal static class NativeAxisCandidateReview
 {
@@ -24,9 +27,10 @@ internal static class NativeAxisCandidateReview
     internal const int MaximumCandidates = 128;
 
     private sealed class Observer(Action<NativeAxisCandidateReviewObservation>? callback)
-        : IAxisGeometryCandidateObserver, IAxisGeometryWorkObserver
+        : IAxisGeometryCandidateObserver, IAxisGeometryWorkObserver, IAxisGeometryIncompleteReviewObserver
     {
         internal System.Collections.ObjectModel.ReadOnlyCollection<AxisGeometryCandidateSnapshot>? Snapshots { get; private set; }
+        internal AxisGeometryIncompleteReviewSnapshot? Interrupted { get; private set; }
         internal bool Enabled => callback is not null;
         internal string Stage { get; set; } = "enumeration";
         internal bool Cancelled { get; set; }
@@ -41,6 +45,7 @@ internal static class NativeAxisCandidateReview
         public void OnCandidatesRanked(IReadOnlyList<AxisGeometryCandidateSnapshot> candidates) =>
             Snapshots = Array.AsReadOnly(candidates.ToArray());
         public void OnWorkObserved(AxisGeometryWorkSnapshot snapshot) => _work = snapshot;
+        public void OnSearchInterrupted(AxisGeometryIncompleteReviewSnapshot snapshot) => Interrupted = snapshot;
         internal void Notify()
         {
             if (callback is null) return;
@@ -48,7 +53,8 @@ internal static class NativeAxisCandidateReview
             {
                 callback(new(Stage, _work?.EnumerationCompleted ?? (Snapshots is not null), Cancelled,
                     Snapshots?.Count ?? 0, CheckedCount, EligibleCount, RotatedCount, RoundedExclusionCount, DuplicateExclusionCount,
-                    FailureDetail, HardGeometryRejection, _work));
+                    FailureDetail, HardGeometryRejection, _work)
+                    { IncompleteSnapshotCount = Interrupted?.Candidates.Count ?? 0 });
             }
             catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException and not AccessViolationException)
             {
@@ -136,34 +142,43 @@ internal static class NativeAxisCandidateReview
         IReadOnlyList<GeometryLineCandidate> lines, int width, int height, Observer observer, byte[]? pixels, CancellationToken token)
     {
         observer.Stage = "enumeration";
+        bool enumerationCompleted = true;
         try
         {
             _ = await new AxisGeometryDetector().DetectAsync(new AxisGeometryRequest(width, height, lines)
                 { CandidateObserver = observer, WorkObserver = observer.Enabled ? observer : null,
+                    IncompleteReviewObserver = observer,
                     MaximumExaminedPairs = MaximumCandidates }, token).ConfigureAwait(false);
         }
         catch (AxisGeometryDetectionException error)
         {
             observer.FailureDetail = NativeAxisWorker.FailureDetail(error);
-            return Failure("OPENCV_AXIS_AMBIGUOUS");
+            token.ThrowIfCancellationRequested();
+            if (error.Reason != AxisGeometryFailureReason.PairBudgetExceeded || observer.Interrupted is not { EnumerationCompleted: false } interrupted ||
+                interrupted.FailureReason != error.Reason || interrupted.BudgetKind != error.BudgetKind)
+                return Failure("OPENCV_AXIS_AMBIGUOUS");
+            enumerationCompleted = false;
         }
         observer.Stage = "snapshot_validation";
-        if (observer.Snapshots is not { Count: > 0 and <= MaximumCandidates } snapshots)
+        PlotPolygon[]? polygons = enumerationCompleted
+            ? observer.Snapshots?.Select(snapshot => new PlotPolygon(snapshot.Intersection, snapshot.BottomRight, snapshot.TopRight, snapshot.TopLeft)).ToArray()
+            : observer.Interrupted?.Candidates.Select(candidate => candidate.PlotPolygon).ToArray();
+        if (polygons is not { Length: > 0 and <= MaximumCandidates })
         {
-            observer.FailureDetail = observer.Snapshots is { Count: > MaximumCandidates }
+            observer.FailureDetail = polygons is { Length: > MaximumCandidates }
                 ? "native_snapshot_limit_exceeded" : "native_no_ranked_candidates";
             return Failure("OPENCV_AXIS_AMBIGUOUS");
         }
         observer.Stage = "geometry_eligibility";
-        var candidates = new List<AxisReviewCandidate>(snapshots.Count);
+        var candidates = new List<AxisReviewCandidate>(polygons.Length);
         var distinct = new HashSet<(int Left, int Bottom, int Right, int Top)>();
-        for (int i = 0; i < snapshots.Count; i++)
+        for (int i = 0; i < polygons.Length; i++)
         {
             token.ThrowIfCancellationRequested();
-            AxisGeometryCandidateSnapshot snapshot = snapshots[i];
-            PixelPoint[] corners = [snapshot.Intersection, snapshot.BottomRight, snapshot.TopRight, snapshot.TopLeft];
+            PlotPolygon polygon = polygons[i];
+            PixelPoint[] corners = [polygon.BottomLeft, polygon.BottomRight, polygon.TopRight, polygon.TopLeft];
             if (observer.Enabled) observer.CheckedCount++;
-            // Enumeration is complete. Unsupported rotation or integer representation
+            // Unsupported rotation or integer representation
             // excludes only this option; malformed geometry still invalidates the response.
             string? rejection = NativeAxisWorker.GeometryRejection(corners, 1, width, height);
             if (rejection == "native_rotated_geometry")
@@ -197,8 +212,9 @@ internal static class NativeAxisCandidateReview
             observer.FailureDetail = "native_no_eligible_candidates";
             return Failure("OPENCV_AXIS_AMBIGUOUS");
         }
-        observer.Stage = "complete";
-        return new(candidates.AsReadOnly(), null);
+        observer.Stage = enumerationCompleted ? "complete" : "incomplete_review";
+        token.ThrowIfCancellationRequested();
+        return new(candidates.AsReadOnly(), null) { EnumerationCompleted = enumerationCompleted };
     }
 
     internal static bool TryGeometry(PixelPoint[] corners, int width, int height, out RustAxisGeometry? geometry)

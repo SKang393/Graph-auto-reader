@@ -29,12 +29,12 @@ public sealed class RustFirstAxisProposalService(IAxisProposalService primary, I
         {
             AxisCandidateReviewResult result = await primary.ReviewCandidatesAsync(originalImage, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
-            if (result.Provider != "rust-review" || result.Candidates is null ||
+            if (result.Provider != "rust-review" || !result.EnumerationCompleted || result.Candidates is null ||
                 result.ErrorCode is null && result.Candidates.Count == 0 ||
                 result.ErrorCode is not null && result.Candidates.Count != 0)
                 return new AxisCandidateReviewResult(Array.Empty<AxisReviewCandidate>(), "INVALID_RESPONSE") { Provider = "rust-review" };
             if (result.ErrorCode is null) return result;
-            if (result.ErrorCode is not ("NO_AXIS" or "UNSUPPORTED_PLATFORM" or "WORKER_START_FAILED")) return result;
+            if (result.ErrorCode is not ("NO_AXIS" or "AMBIGUOUS_AXIS" or "UNSUPPORTED_PLATFORM" or "WORKER_START_FAILED")) return result;
         }
         return _fallback is IAxisCandidateReviewService { CanReviewCandidates: true } review
             ? await review.ReviewCandidatesAsync(originalImage, cancellationToken).ConfigureAwait(false)

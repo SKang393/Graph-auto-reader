@@ -8,6 +8,7 @@ namespace GraphReader.App.Services;
 public sealed record AxisReviewCandidate(int Index, RustAxisGeometry Geometry);
 public sealed record AxisCandidateReviewResult(IReadOnlyList<AxisReviewCandidate> Candidates, string? ErrorCode)
 {
+    public bool EnumerationCompleted { get; init; } = true;
     [JsonIgnore]
     public string Provider { get; init; } = "opencv-review";
 }

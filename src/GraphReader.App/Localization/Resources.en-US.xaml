@@ -103,7 +103,8 @@
   <sys:String x:Key="Manual.AxisCandidates.Instructions">Select an option to preview its axes, then choose Use selected axes. Check the positions and read or enter the printed values before applying calibration.</sys:String>
   <sys:String x:Key="Manual.AxisCandidates.Label">Option {0}: ({1}, {2}) to ({3}, {4})</sys:String>
   <sys:String x:Key="Manual.AxisCandidates.Use">Use selected axes</sys:String>
-  <sys:String x:Key="Manual.AxisCandidates.Unavailable">No complete set of axis choices is available. Mark axes for label reading, or crop one graph including its labels before retrying.</sys:String>
+  <sys:String x:Key="Manual.AxisCandidates.Unavailable">No usable axis choices were found. Mark axes for label reading, or crop one graph including its labels before retrying.</sys:String>
+  <sys:String x:Key="Manual.AxisCandidates.IncompleteWarning">The search ended before all axis choices were checked. The correct axes may be missing. Check the selected positions and actual labels before applying calibration.</sys:String>
   <sys:String x:Key="Manual.AxisReviewed">I checked anchor pixels and actual labels.</sys:String>
   <sys:String x:Key="Manual.AxisApply">Apply</sys:String>
   <sys:String x:Key="Manual.AxisDismiss">Dismiss</sys:String>

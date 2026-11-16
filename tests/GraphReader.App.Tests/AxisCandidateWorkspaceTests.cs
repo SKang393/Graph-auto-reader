@@ -14,9 +14,10 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class AxisCandidateWorkspaceTests
 {
-    private static readonly string[] FailClosedRustErrors = ["AMBIGUOUS_AXIS", "CPU_BUDGET_UNAVAILABLE", "INVALID_RESPONSE", "WORKER_TIMEOUT"];
+    private static readonly string[] FailClosedRustErrors = ["CPU_BUDGET_UNAVAILABLE", "INVALID_RESPONSE", "WORKER_TIMEOUT"];
     private static readonly int[] RustXTicks = [10, 50, 100];
     private static readonly int[] RustYTicks = [10, 50, 100];
+    private static readonly string[] IncompleteReviewReasons = ["native_user_selected_candidate", "native_incomplete_candidate_search"];
 
     [TestMethod]
     public void RustChoiceRequiresReviewAndForwardsMeasuredTicksOnlyOnExplicitRead() => WithImage(path =>
@@ -144,6 +145,23 @@ public sealed class AxisCandidateWorkspaceTests
     });
 
     [TestMethod]
+    public void IncompleteCandidatesRequireSelectionAndCompletionStatusCannotBeForged() => WithImage(path =>
+    {
+        var provider = new CandidateProvider { Incomplete = true };
+        using var workspace = new ManualPreviewWorkspaceService(axisProposalService: provider);
+        Pump(workspace.ImportImagesAsync([path], CancellationToken.None));
+        string tabId = workspace.CreateWorkspace().Single().TabId;
+        WorkspaceAxisCandidateReview review = Pump(workspace.ReviewAxisCandidatesAsync(tabId, CancellationToken.None))!;
+        Assert.IsFalse(review.EnumerationCompleted);
+        Assert.IsTrue(workspace.IsAxisCandidateReviewCurrent(review));
+        Assert.IsFalse(workspace.IsAxisCandidateReviewCurrent(review with { EnumerationCompleted = true }));
+        Assert.IsNull(workspace.SelectAxisCandidate(review with { EnumerationCompleted = true }, 0));
+        WorkspaceAxisSuggestion selected = workspace.SelectAxisCandidate(review, 1)!;
+        CollectionAssert.AreEqual(IncompleteReviewReasons, selected.ReviewReasons.ToArray());
+        Assert.IsNull(workspace.SelectAxisCandidate(review, -1));
+    });
+
+    [TestMethod]
     public void WorkspaceCancellationDoesNotPublishPendingCandidates() => WithImage(path =>
     {
         var provider = new CandidateProvider
@@ -189,6 +207,7 @@ public sealed class AxisCandidateWorkspaceTests
         AxisCandidateReviewResult result = composite.ReviewCandidatesAsync([1, 2, 3], CancellationToken.None)
             .GetAwaiter().GetResult();
         Assert.AreEqual(1, fallback.CandidateCalls);
+
         Assert.AreEqual(0, primary.CandidateCalls);
         Assert.AreEqual(0, primary.SuggestCalls);
         Assert.AreEqual(0, fallback.SuggestCalls);
@@ -216,12 +235,22 @@ public sealed class AxisCandidateWorkspaceTests
         Assert.AreEqual("opencv-review", result.Provider);
         Assert.AreEqual(1, fallback.CandidateCalls);
 
+        var ambiguous = new CandidateProvider(candidates: Array.Empty<AxisReviewCandidate>(), errorCode: "AMBIGUOUS_AXIS", provider: "rust-review");
+        result = await new RustFirstAxisProposalService(ambiguous, fallback).ReviewCandidatesAsync([1], CancellationToken.None);
+        Assert.AreEqual("opencv-review", result.Provider);
+        Assert.AreEqual(2, fallback.CandidateCalls);
+
+        var contradictory = new CandidateProvider(candidates: Array.Empty<AxisReviewCandidate>(), errorCode: "AMBIGUOUS_AXIS", provider: "rust-review") { Incomplete = true };
+        result = await new RustFirstAxisProposalService(contradictory, fallback).ReviewCandidatesAsync([1], CancellationToken.None);
+        Assert.AreEqual("INVALID_RESPONSE", result.ErrorCode);
+        Assert.AreEqual(2, fallback.CandidateCalls);
+
         foreach (string error in FailClosedRustErrors)
         {
             var failed = new CandidateProvider(candidates: Array.Empty<AxisReviewCandidate>(), errorCode: error, provider: "rust-review");
             result = await new RustFirstAxisProposalService(failed, fallback).ReviewCandidatesAsync([1], CancellationToken.None);
             Assert.AreEqual(error, result.ErrorCode);
-            Assert.AreEqual(1, fallback.CandidateCalls);
+            Assert.AreEqual(2, fallback.CandidateCalls);
         }
     }
 
@@ -251,6 +280,7 @@ public sealed class AxisCandidateWorkspaceTests
         public bool CanReviewCandidates => _canReview;
         public int CandidateCalls { get; private set; }
         public int SuggestCalls { get; private set; }
+        public bool Incomplete { get; init; }
         public byte[]? ReviewInput { get; private set; }
         public TaskCompletionSource<AxisCandidateReviewResult>? Pending { get; set; }
         public IReadOnlyList<AxisReviewCandidate> Candidates => _candidates;
@@ -267,7 +297,7 @@ public sealed class AxisCandidateWorkspaceTests
             CandidateCalls++;
             cancellationToken.ThrowIfCancellationRequested();
             ReviewInput = (byte[])originalImage.Clone();
-            return Pending?.Task ?? Task.FromResult(new AxisCandidateReviewResult(_candidates, _errorCode) { Provider = _provider });
+            return Pending?.Task ?? Task.FromResult(new AxisCandidateReviewResult(_candidates, _errorCode) { Provider = _provider, EnumerationCompleted = !Incomplete });
         }
     }
 
