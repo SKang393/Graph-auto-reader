@@ -202,3 +202,10 @@ are now completion-only output. Retire them after this result is pushed and no
 recording consumer remains. The source helper/tests, current package and uploaded
 artifact are retained; historical raw-output hashes above are no longer local
 file promises.
+
+The initial closeout was pushed in `4eeab5ff`, followed by the owned diagnostic
+checkpoint `3f3678eb`. The latter passed full Windows CI 43816512059. At
+`2026-11-16T06:27:25.9647379Z`, the remaining activation receipt scope was retired:
+**15 files / 343,634 bytes**, with all eleven protected files, sixteen shared
+Data files and the 457 keeper preserved. Only its compact preservation baseline
+was retained for the active owned follow-up, outside the retired scope.

@@ -15,6 +15,29 @@ namespace GraphReader.CalibrationOcrProbe;
 
 internal static partial class RealDevCalibrationCheck
 {
+    internal sealed record OwnedRetainedSpanPreflight(bool Passed, string FrameSha256, string DerivedSha256,
+        int Width, int Height, int Left, int Top, int Right, int Bottom, byte OriginGray, byte XEndGray,
+        bool XSpanObserved, string XSpanKind, int XSpanWork, int YFirstRawGapLength, int MaximumGapLength);
+
+    internal static OwnedRetainedSpanPreflight CheckOwnedRetainedSpan(byte[] image, RustAffineAxisGeometry axes, CancellationToken token)
+    {
+        var prepared = CalibrationWorkingFrame.Create(image, 640, 480, axes, "owned-indexed-fixture-preflight", token);
+        CalibrationWorkingFrame frame = prepared.Frame;
+        byte[] gray = DecodePropertyGray(prepared.Image, frame.Width, frame.Height, token);
+        RustAxisGeometry box = frame.Geometry;
+        SpanReplay replay = ReplayHorizontalSpan(gray, frame.Width, frame.Height, box, token);
+        byte origin = gray[box.Bottom * frame.Width + box.Left], end = gray[box.Bottom * frame.Width + box.Right];
+        int index = box.Top;
+        while (index <= box.Bottom && gray[index * frame.Width + box.Left] < 200) { token.ThrowIfCancellationRequested(); index++; }
+        int start = index;
+        while (index <= box.Bottom && gray[index * frame.Width + box.Left] >= 200) { token.ThrowIfCancellationRequested(); index++; }
+        int maximumGap = replay.MaxSpan + 4;
+        bool passed = origin < 200 && end < 200 && replay.Observed && start > box.Top && index <= box.Bottom && index - start > maximumGap;
+        return new(passed, Program.Hash(JsonSerializer.SerializeToUtf8Bytes(axes, Program.Json)), Program.Hash(prepared.Image),
+            frame.Width, frame.Height, box.Left, box.Top, box.Right, box.Bottom, origin, end,
+            replay.Observed, replay.Kind, replay.Work, index - start, maximumGap);
+    }
+
     private const string PartialPropertySourceHash = "afdd99f8af2d548cc46b2ee8cf01603ead200f222f73d09f3f52d6f162984d56";
     private const string PartialPropertyResultHash = "f1a7c77f8c899d084fd1b52594fdc49d27416c00baeb2c5d4ff740c622eed391";
     private const string PartialPropertyDerivedHash = "7bf7a8007ec73ef6b0cbfa3eaac9e42c30f209fed2b7e25686e17787284162f0";

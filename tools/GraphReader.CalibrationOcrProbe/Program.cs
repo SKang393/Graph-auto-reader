@@ -33,6 +33,7 @@ internal static class Program
     public static async Task<int> Main(string[] args)
     {
         bool ownedAffinePartialProperties = args.Length > 0 && args[0] == "--owned-affine-partial-properties-check";
+        bool ownedAffinePartialIndexed = args.Length > 0 && args[0] == "--owned-affine-partial-review-indexed-check";
         bool ownedAffinePartialReview = args.Length > 0 && args[0] == "--owned-affine-partial-review-check";
         bool ownedInferenceKey = args.Length > 0 && args[0] == "--owned-inference-key-check";
         bool ownedAffineCalibration = args.Length > 0 && args[0] == "--owned-affine-calibration-check";
@@ -97,13 +98,13 @@ internal static class Program
         bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
         bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
         bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
-        int seconds = ownedAffinePartialProperties ? 30 : ownedAffinePartialReview ? 55 : ownedInferenceKey ? 30 : ownedAffineClippedSourceSupport ? 30 : realDevAffineSourceSupport ? 30 : ownedAffineStrokeMask ? 30 : ownedAffineStrokeSampling ? 30 : realDevAffineSpanProperties ? 30 : realDevAffineTickRefusal ? 120 : ownedManualAffineCalibration ? 120 : ownedAffineTickObservation ? 300 : ownedAffineCalibration ? 600 : ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeIntersection ? 150 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck || ownedAffineMarker ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        int seconds = ownedAffinePartialProperties ? 30 : ownedAffinePartialReview || ownedAffinePartialIndexed ? 55 : ownedInferenceKey ? 30 : ownedAffineClippedSourceSupport ? 30 : realDevAffineSourceSupport ? 30 : ownedAffineStrokeMask ? 30 : ownedAffineStrokeSampling ? 30 : realDevAffineSpanProperties ? 30 : realDevAffineTickRefusal ? 120 : ownedManualAffineCalibration ? 120 : ownedAffineTickObservation ? 300 : ownedAffineCalibration ? 600 : ocrPaddingAdapters ? 10 : ocrPadding || ocrPaddingGpu ? 120 : cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevPrivate ? 900 : ownedNativeIntersection ? 150 : ownedNativePruning ? 130 : ownedNativeRejection ? 110 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck || ownedAffineMarker ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(ownedAffinePartialProperties ? 35 : ownedAffinePartialReview ? 60 : ownedInferenceKey ? 35 : ownedAffineClippedSourceSupport ? 35 : realDevAffineSourceSupport ? 35 : ownedAffineStrokeMask ? 35 : ownedAffineStrokeSampling ? 35 : realDevAffineSpanProperties ? 35 : realDevAffineTickRefusal ? 125 : ownedManualAffineCalibration ? 125 : ownedAffineTickObservation ? 305 : ownedAffineCalibration ? 605 : ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeIntersection ? 155 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck || ownedAffineMarker ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(ownedAffinePartialProperties ? 35 : ownedAffinePartialReview || ownedAffinePartialIndexed ? 60 : ownedInferenceKey ? 35 : ownedAffineClippedSourceSupport ? 35 : realDevAffineSourceSupport ? 35 : ownedAffineStrokeMask ? 35 : ownedAffineStrokeSampling ? 35 : realDevAffineSpanProperties ? 35 : realDevAffineTickRefusal ? 125 : ownedManualAffineCalibration ? 125 : ownedAffineTickObservation ? 305 : ownedAffineCalibration ? 605 : ocrPaddingAdapters ? 15 : ocrPadding || ocrPaddingGpu ? 125 : cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevPrivate ? 905 : ownedNativeIntersection ? 155 : ownedNativePruning ? 135 : ownedNativeRejection ? 115 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck || ownedAffineMarker ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
@@ -361,6 +362,14 @@ internal static class Program
                 return outcome.Completed ? 0 : 1;
             }
             if (ownedAffinePartialProperties) throw new InvalidDataException("Usage: --owned-affine-partial-properties-check <existing-owned-PNG> <cached-result>");
+            if (args is ["--owned-affine-partial-review-indexed-check", var indexedOutput, var indexedApp, var indexedAssets, var indexedRust])
+            {
+                using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                var outcome = await OwnedAffinePartialReviewCheck.RunIndexedAsync(indexedOutput, indexedApp, indexedAssets, indexedRust, parentBudget, deadline.Token);
+                Emit(outcome.Report);
+                return outcome.Passed ? 0 : 1;
+            }
+            if (ownedAffinePartialIndexed) throw new InvalidDataException("Usage: --owned-affine-partial-review-indexed-check <new-output-root> <457-app> <457-assets> <457-rust>");
             if (args is ["--owned-affine-partial-review-check", var partialOutput, var partialApp, var partialAssets, var partialRust])
             {
                 using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);

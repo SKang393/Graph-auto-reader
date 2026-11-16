@@ -94,6 +94,11 @@ three labels and missing-value/Apply guards passed, but measured ticks were
 refused. The exact property audit found that the supplied X endpoint was already
 white in the original image, invalidating the fixture's intact-span assumption.
 No production sampling change or additional private run follows from that result.
+The single indexed-pixel fixture follow-up then retained all three actual X
+ticks and literal labels. Explicit refit produced three measured pairs while
+missing Y kept Apply disabled. Its raw invocation still reports a misplaced
+pre-refit assertion failure; the sequencing-only harness correction compiled
+without another worker/OCR run. Full details and both failures remain recorded.
 The
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
 is implemented in source.

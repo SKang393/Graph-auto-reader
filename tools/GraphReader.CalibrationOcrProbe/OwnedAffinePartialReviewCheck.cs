@@ -27,10 +27,17 @@ internal static class OwnedAffinePartialReviewCheck
     private static readonly double[] XValues = [1, 2, 3];
     private static readonly string[] Reasons = ["native_affine_geometry", "native_multiple_ranked_candidates"];
     private static readonly string[] Stages = ["preflight", "render", "import", "geometry", "label_read", "review_guards", "preservation"];
+    private static readonly string[] IndexedStages = ["preflight", "render", "retained_span_preflight", "import", "geometry", "label_read", "review_guards", "preservation"];
     internal sealed record Outcome(object Report, bool Passed);
 
     internal static Task<Outcome> RunAsync(string outputRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, CancellationToken token)
+        CpuBudgetJob budget, CancellationToken token) => StartAsync(outputRoot, app, assets, rust, budget, false, token);
+
+    internal static Task<Outcome> RunIndexedAsync(string outputRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, CancellationToken token) => StartAsync(outputRoot, app, assets, rust, budget, true, token);
+
+    private static Task<Outcome> StartAsync(string outputRoot, string app, string assets, string rust,
+        CpuBudgetJob budget, bool indexed, CancellationToken token)
     {
         var completion = new TaskCompletionSource<Outcome>(TaskCreationOptions.RunContinuationsAsynchronously);
         var thread = new Thread(() =>
@@ -41,7 +48,7 @@ internal static class OwnedAffinePartialReviewCheck
                 SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(dispatcher));
                 dispatcher.BeginInvoke(new Action(async () =>
                 {
-                    try { completion.SetResult(await RunCoreAsync(outputRoot, app, assets, rust, budget, token)); }
+                    try { completion.SetResult(await RunCoreAsync(outputRoot, app, assets, rust, budget, indexed, token)); }
                     catch (Exception error) { completion.SetException(error); }
                     finally { dispatcher.BeginInvokeShutdown(DispatcherPriority.Background); }
                 }));
@@ -55,10 +62,10 @@ internal static class OwnedAffinePartialReviewCheck
     }
 
     private static async Task<Outcome> RunCoreAsync(string outputRoot, string app, string assets, string rust,
-        CpuBudgetJob budget, CancellationToken token)
+        CpuBudgetJob budget, bool indexed, CancellationToken token)
     {
         var timer = Stopwatch.StartNew();
-        var stages = Stages.ToDictionary(name => name, _ => "unattempted", StringComparer.Ordinal);
+        var stages = (indexed ? IndexedStages : Stages).ToDictionary(name => name, _ => "unattempted", StringComparer.Ordinal);
         var timings = new Dictionary<string, double>(StringComparer.Ordinal);
         var checks = new Dictionary<string, bool>(StringComparer.Ordinal);
         var identities = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -66,7 +73,8 @@ internal static class OwnedAffinePartialReviewCheck
         string? error = null, fixtureHash = null, imagePath = null;
         long fixtureBytes = 0;
         SuppliedAutomaticAxis? axis = null; CountedTicks? ticks = null; CountedOcr? ocr = null;
-        object? view = null;
+        object? view = null, preRefitView = null;
+        RealDevCalibrationCheck.OwnedRetainedSpanPreflight? retainedSpan = null;
         var step = Stopwatch.StartNew();
         void FinishStage() { stages[stage] = "completed"; timings[stage] = step.Elapsed.TotalMilliseconds; step.Restart(); }
         void Check(string name, bool value) { checks[name] = value; }
@@ -75,9 +83,15 @@ internal static class OwnedAffinePartialReviewCheck
             token.ThrowIfCancellationRequested();
             VerifyRuntime(outputRoot, app, assets, rust, budget, identities);
             FinishStage(); stage = "render";
-            var fixture = Render(outputRoot);
+            var fixture = indexed ? RenderIndexed(outputRoot, token) : Render(outputRoot);
             imagePath = fixture.Path; byte[] image = fixture.Image; RustAffineAxisGeometry frame = fixture.Frame;
             fixtureHash = Program.Hash(image); fixtureBytes = image.Length;
+            if (indexed)
+            {
+                FinishStage(); stage = "retained_span_preflight";
+                retainedSpan = await Task.Run(() => RealDevCalibrationCheck.CheckOwnedRetainedSpan(image, frame, token), CancellationToken.None);
+                if (!retainedSpan.Passed) throw new InvalidDataException("RETAINED_SPAN_PRECONDITION_FAILED");
+            }
             axis = new(frame, fixtureHash);
             ticks = new(new RustAxisTickMeasurementService(rust));
             ocr = new(new CalibrationOcrWorkerClient(app, assets, () => CalibrationOcrDeviceSelection.Cpu));
@@ -103,6 +117,7 @@ internal static class OwnedAffinePartialReviewCheck
             Check("measured_x_three_y_empty", ticks.Result is { ErrorCode: null, Evidence: { } evidence } &&
                 evidence.XTickPositions.Count == 3 && evidence.YTickPositions.Count == 0);
             Check("same_derived_buffer_tick_and_ocr", ticks.Image is not null && ocr.InputHash == Program.Hash(ticks.Image));
+            if (indexed) Check("preflight_derived_matches_actual_receipt", retainedSpan is not null && ocr.InputHash == retainedSpan.DerivedSha256);
             Check("tick_array_echo", ocr.Request is { MeasuredXTicks: { } xs, MeasuredYTicks: null } &&
                 ticks.Result?.Evidence is { } measured && xs.SequenceEqual(measured.XTickPositions));
             Check("literal_x_values_unchanged", ocr.Response is { FailureCode: null } response &&
@@ -112,14 +127,16 @@ internal static class OwnedAffinePartialReviewCheck
             FinishStage(); stage = "review_guards";
             Check("native_warning_and_automatic_kind_preserved", vm.HasAffineAxisSuggestion && !vm.IsManualAxisDraft &&
                 vm.HasAxisGeometryReviewWarning && warning == vm.AxisGeometryReviewWarningText);
-            Check("measured_partial_x_values", vm.SuggestedFirstSession == "1" && vm.SuggestedFinalSession == "3" &&
-                vm.CalibrationPairedTickRows.Count == 3 && !vm.HasEstimatedCalibrationPositions);
+            preRefitView = new { vm.SuggestedFirstSession, vm.SuggestedFinalSession, vm.SuggestedYMaximum,
+                paired_row_count = vm.CalibrationPairedTickRows.Count, vm.HasEstimatedCalibrationPositions };
             Check("missing_y_and_unreviewed_apply_blocked", vm.SuggestedYMaximum.Length == 0 && !vm.AxisSuggestionReviewed &&
                 !vm.ApplyAxisSuggestionCommand.CanExecute(null));
             vm.AxisSuggestionReviewed = true;
             Check("review_does_not_invent_missing_value", !vm.ApplyAxisSuggestionCommand.CanExecute(null));
             string rawReceiptHash = Program.Hash(JsonSerializer.SerializeToUtf8Bytes(ocr.Response, Program.Json));
             vm.RefitSelectedCalibrationLabels();
+            Check("measured_partial_x_values", vm.SuggestedFirstSession == "1" && vm.SuggestedFinalSession == "3" &&
+                vm.CalibrationPairedTickRows.Count == 3 && !vm.HasEstimatedCalibrationPositions);
             Check("refit_requires_fresh_review_without_reocr", !vm.AxisSuggestionReviewed && !vm.ApplyAxisSuggestionCommand.CanExecute(null) &&
                 ocr.Calls == 1 && ticks.PartialCalls == 1 && axis.Calls == 1 && vm.SuggestedYMaximum.Length == 0);
             Check("raw_ocr_receipt_unchanged_by_refit", rawReceiptHash == Program.Hash(JsonSerializer.SerializeToUtf8Bytes(ocr.Response, Program.Json)));
@@ -136,7 +153,7 @@ internal static class OwnedAffinePartialReviewCheck
         {
             stages[stage] = "failed"; timings[stage] = step.Elapsed.TotalMilliseconds;
             status = failure is OperationCanceledException ? "cancelled" : "failed";
-            error = failure is ProductionWorkflowStageException known ? known.Failure.Code :
+            error = failure is InvalidDataException ? failure.Message : failure is ProductionWorkflowStageException known ? known.Failure.Code :
                 failure is TimeoutException ? failure.Message : failure.GetType().Name;
         }
         bool? sourcePreserved = null;
@@ -162,6 +179,7 @@ internal static class OwnedAffinePartialReviewCheck
         return new(new
         {
             schema = "graphreader.owned-affine-partial-review.v1", status, error,
+            fixture_mode = indexed ? "indexed_pixel_center_segments" : "original_wpf_vector_segments", retained_span_preflight = retainedSpan,
             declared_cases = 1, completed_cases = stages["preservation"] == "completed" ? 1 : 0,
             failed_cases = stages.ContainsValue("failed") ? 1 : 0, expectation_failed_cases = status == "expectation_failed" ? 1 : 0,
             stages, stage_counts = new { completed = stages.Values.Count(value => value == "completed"),
@@ -169,11 +187,11 @@ internal static class OwnedAffinePartialReviewCheck
             timings, checks, runtime_files = identities, required_runtime_fingerprint = RuntimeFingerprint,
             actual_runtime_fingerprint = identities.Count == 20 ? Fingerprint(identities) : null, preservation_error = preservationError,
             fixture = new { source_sha256 = fixtureHash, source_bytes = fixtureBytes, width = 640, height = 480, angle_degrees = 2,
-                renderer = "Black3px axes; X ticks140/340/540 with SegoeUI16 labels1/2/3; Y interior90px gap; no Y labels or ticks",
+                renderer = indexed ? "Indexed-pixel segment-distance<=1.5 for ALL axes/ticks; same WPF SegoeUI16 labels1/2/3; Y90px geometric gap" : "Black3px axes; X ticks140/340/540 with SegoeUI16 labels1/2/3; Y interior90px gap; no Y labels or ticks",
                 geometry_source = "Explicit source-bound automatic-tag frame, not detector inference", original_pixels_preserved = sourcePreserved },
             automatic_geometry_calls = axis?.Calls ?? 0, strict_tick_calls = ticks?.StrictCalls ?? 0,
             partial_tick_calls = ticks?.PartialCalls ?? 0, ocr_calls = ocr?.Calls ?? 0,
-            tick_receipt = ticks?.Result, ocr_request = ocr?.Request, ocr_response = ocr?.Response, view,
+            tick_receipt = ticks?.Result, ocr_request = ocr?.Request, ocr_response = ocr?.Response, pre_refit_view = preRefitView, view,
             failed_checks = checks.Where(pair => !pair.Value).Select(pair => pair.Key).ToArray(),
             apply_called = false, export_called = false, detector_accuracy_evaluated = false, production_approved = false,
             model_status = "Existing reviewed CPU OCR asset; not production-approved", private_reads = 0,
@@ -218,6 +236,56 @@ internal static class OwnedAffinePartialReviewCheck
             WorkerCount: 1, SessionCreationCount: 1, PersistentCache: false, CpuBudget: { Verified: true, MaximumLogicalCores: <= .5, PriorityClass: "BelowNormal" } } &&
         runtime.ModelSha256 == Program.ModelHash && runtime.ManifestSha256 == Program.ManifestHash && runtime.Files.Count == 4 &&
         runtime.Files.All(file => identities.TryGetValue(file.Name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ? file.Name : file.Name + ".dll", out string? hash) && hash == file.Sha256);
+
+    private static (string Path, byte[] Image, RustAffineAxisGeometry Frame) RenderIndexed(string output, CancellationToken token)
+    {
+        // Preserve the original label rendering. Axis/tick pixels use the existing
+        // OwnedAffineTickObservationCheck indexed-center distance convention below.
+        var visual = new DrawingVisual();
+        using (DrawingContext drawing = visual.RenderOpen())
+        {
+            drawing.DrawRectangle(Brushes.White, null, new Rect(0, 0, 640, 480));
+            drawing.PushTransform(new RotateTransform(2, 320, 240));
+            for (int index = 0; index < TickXs.Length; index++)
+            {
+                var text = new FormattedText((index + 1).ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture,
+                    FlowDirection.LeftToRight, new Typeface("Segoe UI"), 16, Brushes.Black, 1);
+                drawing.DrawText(text, new(TickXs[index] - text.Width / 2, 397));
+            }
+            drawing.Pop();
+        }
+        var labels = new RenderTargetBitmap(640, 480, 96, 96, PixelFormats.Pbgra32); labels.Render(visual);
+        var gray = new FormatConvertedBitmap(labels, PixelFormats.Gray8, null, 0);
+        byte[] pixels = new byte[640 * 480]; gray.CopyPixels(pixels, 640, 0);
+        Matrix matrix = Matrix.Identity; matrix.RotateAt(2, 320, 240);
+        Point Map(double x, double y) => matrix.Transform(new Point(x, y));
+        var segments = new List<(Point A, Point B)>
+        {
+            (Map(100, 380), Map(580, 380)), (Map(100, 80), Map(100, 140)), (Map(100, 230), Map(100, 380)),
+        };
+        segments.AddRange(TickXs.Select(x => (Map(x, 380), Map(x, 386))));
+        for (int row = 0; row < 480; row++)
+        {
+            token.ThrowIfCancellationRequested();
+            for (int column = 0; column < 640; column++)
+                if (segments.Any(segment => IndexedSegmentDistance(column, row, segment.A, segment.B) <= 1.5)) pixels[row * 640 + column] = 0;
+        }
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(BitmapSource.Create(640, 480, 96, 96, PixelFormats.Gray8, null, pixels, 640)));
+        using var stream = new MemoryStream(); encoder.Save(stream); byte[] image = stream.ToArray();
+        if (image.Length > 131_072) throw new InvalidDataException("Owned PNG exceeds its declared allowance.");
+        string path = Path.Combine(output, "owned-partial-affine-indexed.png");
+        using (var file = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None)) file.Write(image);
+        RustAxisPoint AxisPoint(double x, double y) { Point p = Map(x, y); return new(p.X, p.Y); }
+        return (path, image, new(AxisPoint(100, 380), AxisPoint(580, 380), AxisPoint(100, 80), 0));
+    }
+
+    // Identical arithmetic to OwnedAffineTickObservationCheck.Distance; no pixel shift.
+    private static double IndexedSegmentDistance(double x, double y, Point a, Point b)
+    {
+        double dx = b.X - a.X, dy = b.Y - a.Y, t = Math.Clamp(((x - a.X) * dx + (y - a.Y) * dy) / (dx * dx + dy * dy), 0, 1);
+        return Math.Sqrt(Math.Pow(x - a.X - t * dx, 2) + Math.Pow(y - a.Y - t * dy, 2));
+    }
 
     private static (string Path, byte[] Image, RustAffineAxisGeometry Frame) Render(string output)
     {
