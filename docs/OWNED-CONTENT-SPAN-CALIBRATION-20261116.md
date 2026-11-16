@@ -145,16 +145,33 @@ cache. Stdout/stderr were captured once in `result.json`/`stderr.txt`.
 
 ## Closeout
 
-The owned control passes its integration question. Source/outcome integration
-and full CI for the new helper remain pending. No new dependency, model,
-font payload or package was added; source is Apache-2.0 and the existing
-reviewed OCR notices remain in use. Preview 0.4.58 is unchanged.
+The owned control passes its integration question. Source/outcome commit
+`d0c9817d86d9e797e020b534a2e02da5c8ee5e04` is integrated and pushed.
+[Full Windows CI 43881972302](https://github.com/SKang393/Graph-auto-reader/actions/runs/43881972302),
+job `133349928620`, passed from **2026-11-16T14:04:26Z** to **14:16:45Z**
+on that exact head: **3,276 .NET passes**, 30 explicit skips, zero failures,
+including all 1,348 App tests without skips. All 89 Rust tests, 44 scope
+assertions, 68 packaging checks, 62 version checks, six ledger checks,
+12 portable checks and nine localization checks passed. Scope was
+`full_changed_path` with `full_product_validation=true`; no parent CI was reused
+and release jobs skipped. No dependency, model or font payload was added.
+Source remains Apache-2.0 and the existing reviewed OCR notices remain in use.
 
-All local execution/review consumers have finished. After the source and compact
-outcome are pushed and CI finishes, retire its PNG, binding manifest, raw reports
-and probe compiler outputs along with the closed preceding App Release/test
-outputs. Rebuild the helper and generate a matching runtime manifest from the
-listed schema to reproduce on a deliberately selected runtime; the retired
-manifest is historical evidence, not a current dependency. Preserve the sole
-package, current models, Debug/Data, owned native-QA inputs, protected runtime
-checkpoint, original research files and independent evaluation boundaries.
+After the pushed result, CI and local consumers completed, guarded retirement
+finished **2026-11-16T14:32:17.5510723Z**: **1,199 files / 512,663,588 bytes**.
+This includes stale-status and cancellation raw results; App and App.Tests
+`bin/Release`, `bin/x64/Release`, `obj/Release`, `obj/x64/Release`; the probe's
+`bin` and `obj`; and eight raw files plus the empty `temp` directory from this
+control. These historical output paths are retired, not current dependencies.
+All 509 protected file hashes stayed unchanged. Canonical-path, reparse,
+tracked-file, inventory and active-consumer guards passed before removal.
+
+Only the **2,333-byte owned PNG** remains from this run. Its named consumer is
+the upcoming integrated 0.4.59 package verification: if the hosted worker differs
+from the exercised local worker, use it for one direct transport/recovery check.
+Retire it when that check completes or the workers prove byte-identical.
+No private or independent evaluation is reopened. The sole 0.4.58 keeper,
+current models, Debug/Data, other owned native-QA inputs, protected runtime
+checkpoint, original research files and unrelated dirty files are preserved.
+The helper and documented fixture can regenerate a deliberately selected
+future control; the historical binding is not a promise of a current runtime.

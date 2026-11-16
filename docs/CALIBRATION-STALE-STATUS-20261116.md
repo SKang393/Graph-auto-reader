@@ -99,9 +99,12 @@ jobs skipped. Scoped source integration passes. No dependency or license
 change was made. The sole delivered build is still 0.4.58; this small source
 fix does not justify another package or establish native visual acceptance.
 
-After CI consumers finish, retire
-`artifacts/stale-label-status-check` and closed App/App.Tests Release compiler
-outputs after ownership and consumer checks. Preserve Debug runtimes and Data,
-the current package, owned native-QA inputs, original corpus, independent split,
-protected runtime checkpoint and other tasks' work. These commands regenerate
-the tests; historical red output additionally requires the baseline source.
+After the downstream owned content-span check and its full CI completed, this
+run's ten raw files (2,030,868 bytes) and closed App/App.Tests Release compiler
+outputs were retired at **2026-11-16T14:32:17.5510723Z**. The pushed source and
+outcomes preceded cleanup; the [combined retention record](OWNED-CONTENT-SPAN-CALIBRATION-20261116.md#closeout)
+accounts for all scopes and 509 unchanged protected hashes. Debug runtimes and
+Data, the current package, owned native-QA inputs, original corpus, independent
+split, protected runtime checkpoint and other tasks' work remain intact.
+These commands regenerate the tests; historical red output additionally
+requires the baseline source.

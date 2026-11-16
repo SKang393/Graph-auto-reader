@@ -94,11 +94,12 @@ passed on that exact head from **2026-11-16T13:29:52Z** to **13:41:18Z**:
 and nine localization checks passed. Scope was `full_changed_path`; release
 jobs skipped. Scoped source integration passes.
 
-The subsequent single owned content-span integration control temporarily
-consumes the current source App and App.Tests x64 Release outputs. After that
-consumer finishes and its outcome is pushed, retire the bounded
-`artifacts/calibration-label-cancel-check` results and closed App/App.Tests
-Release compiler outputs together with the preceding stale-status outputs.
-Preserve Debug runtimes, user Data, current models/package, original inputs,
-independent evaluation and other tasks' work. The commands above regenerate
-these tests; reproducing the historical red additionally needs the baseline.
+The subsequent single owned content-span integration control and its full CI
+completed. After its outcome reached `origin/main`, this run's eight raw files
+(2,019,307 bytes) and closed App/App.Tests Release compiler outputs were retired
+with the preceding stale-status outputs at **2026-11-16T14:32:17.5510723Z**.
+The [combined retention record](OWNED-CONTENT-SPAN-CALIBRATION-20261116.md#closeout)
+accounts for all scopes and 509 unchanged protected hashes. Debug runtimes,
+user Data, current models/package, original inputs, independent evaluation and
+other tasks' work remain intact. The commands above regenerate these tests;
+reproducing the historical red additionally needs the baseline.

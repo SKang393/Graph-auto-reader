@@ -37,8 +37,23 @@ six correct literal labels and six measured pairs produced a complete review
 draft without estimated positions. All seven stages completed; no Apply,
 export, private input or sealed read occurred. This closes the new Rust
 fixture's integration gap, not real-accuracy or production acceptance. Existing
-broad owned matrices were not repeated. The helper's source/outcome integration
-and full CI remain pending; the prior product source remains verified.
+broad owned matrices were not repeated. Helper/outcome `d0c9817d` is integrated
+and pushed; exact-head full CI passed 3,276 .NET tests (30 explicit skips),
+89 Rust tests and all packaging checks. Closed local compiler/test outputs
+were then retired: 1,199 files and 512,663,588 bytes, with all 509 protected
+hashes unchanged. Its sole retained PNG has a named package-verification
+consumer and will be retired after that check.
+
+Prepare one integrated **0.4.59 internal portable preview** for the accumulated
+affine original-pixel support, Rust content-span recovery, duplicate-final-fit
+reuse, stale-status repair and abandoned-label cancellation. This is a meaningful
+runtime batch since 0.4.58, not a package for the diagnostic helper alone.
+Require full CI on the prepared source/version commit, then use the existing
+hosted build, actual download verification and guarded activation. The current
+keeper remains 0.4.58 until the replacement is verified, uploaded and recorded
+on main. Native UI, installer, clean-machine and production acceptance remain
+incomplete; no public release or production activation is authorized by these
+checks.
 
 The [content-span routing repair](RUST-CONTENT-SPAN-RECOVERY-20261116.md)
 fixes an owned counterexample where disconnected decoy ink prevented the existing
