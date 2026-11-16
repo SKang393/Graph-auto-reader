@@ -3,7 +3,8 @@
 
 # Development direction, 2026-11-11
 
-Current state, 2026-11-15: the sole delivered package is **0.4.55**. The
+Current state, 2026-11-16 UTC: the sole delivered package is
+[**0.4.56**](INTERNAL-PREVIEW-456-VERIFICATION-20261116.md). The
 [tilted-axis source checkpoint](NATIVE-AFFINE-AXIS-REVIEW-20261115.md)
 `4fcf0b69e7a39e032fb862327b55d5aad9cdd3d1` has successful full Windows CI.
 The fixed development geometry diagnostic returns eight rectangles, one affine
@@ -44,9 +45,10 @@ that correction now passes four owned regressions and the full 1,310-test App
 suite. Its final source `472b715f` passed exact-head full Windows CI:
 3,180 .NET tests, 30 expected skips, zero failures, and 72 Rust tests. Native review remains blocked by the tool's
 persistent Escape-stop state despite the maintainer confirming no new Escape.
-One hosted integrated 0.4.56 preview is running from that frozen source
+The one hosted integrated 0.4.56 preview is uploaded, verified and activated from that frozen source
 for the accumulated automatic-frame, rectified-reading, affine-marker and manual
-fallback changes. The
+fallback changes; its latest launcher passes with all shared Data preserved.
+The superseded 0.4.55 package is retired. The
 [printed-X accessibility/language contract](CALIBRATION-LOCALIZATION-20261115.md)
 and [foreground profiling cancellation](NATIVE-PROFILING-INTERRUPTION-20261115.md)
 already have their scoped verification and need no duplicate repair.

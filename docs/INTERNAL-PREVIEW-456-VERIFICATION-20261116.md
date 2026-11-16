@@ -92,3 +92,38 @@ its uploaded ZIP/tree match, no-consumer checks and shared Data preservation.
 Keep the 16 shared Data files outside both package directories. The guarded
 helper and compact staging manifest remain active until that transaction closes;
 retire them and the outer download after the completion record is pushed.
+
+Delivery record `669903b370be6957f505a158903d51bcbd1df277` reached origin/main
+and the primary checkout before activation. The read-only inventory guard
+passed. One activation attempt then stopped on historical ledger entries
+without a `directory` property, before moving files. After that narrow guard
+repair, payload/ZIP moves and their hash verification completed, but
+`File.Replace` rejected PowerShell's empty backup-path argument. The old pointer
+remained intact. A guarded completion rechecked the pushed ledger blob, every
+replacement payload hash, the new ZIP and all shared Data, then completed only
+the pointer replacement with `Move-Item`. No package was rebuilt or downloaded
+again. The final helper hash is
+`d4507b7f119e0c96c455e2aad6f13e0e0149e7ecc69b6ef7c938219bfb69d37c`.
+
+Activation completed at `2026-11-16T01:13:11.7391497Z`. Latest pointer SHA-256:
+`69c3ab10b1be3568035c5f84d355c82e26cdc110bb96b48fe226d3ce6cef3ba7`.
+The actual CMD launcher passed `-Wait -PortableSmoke`: **exit 0 in 3,364.7217 ms**,
+279 informational stdout bytes, empty stderr, and all **16 shared Data files
+unchanged**. The exact new keeper contains **478 files / 284,011,831 bytes**,
+including its inner ZIP under `packages/`, with no internal Data directory.
+
+The superseded 0.4.55 archive and all its 477 payload files matched before
+removal. Resolved containment, no reparse points, executable and command-line
+consumers, pushed ledger bytes and the replacement keeper were checked.
+At `2026-11-16T01:14:43.1630113Z`, its **478 files / 283,926,718 bytes** were
+retired, its directory was absent, and **only 0.4.56** remained in `builds/`.
+All shared Data remained unchanged.
+
+The remaining completed staging scope is ready for retirement after this record
+is pushed: `artifacts/hosted-preview-456` (**10 files / 87,463,675 bytes**) and
+`artifacts/preview456-activation` (**nine files / 16,183 bytes**), totaling
+**19 files / 87,479,858 bytes**. It contains the outer download, disposable
+verification files, helper and two owned smoke settings, with no active
+consumer. Recheck counts, contained paths, reparse/consumer state and the
+current keeper/shared Data before removal. The uploaded artifact, retained ZIP
+and concise record preserve reproducibility; native QA uses the primary keeper.
