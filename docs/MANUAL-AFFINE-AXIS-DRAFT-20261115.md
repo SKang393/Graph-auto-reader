@@ -148,8 +148,94 @@ handoff; retire them after the concise record is pushed and those consumers
 finish. The original user data, four retained owned native inputs and sole
 delivered package remain outside this cleanup scope.
 
-Status: source, focused validation, repaired component validation and the real
-manual-route check pass. Integration, exact-head CI and native QA remain
-incomplete. One integrated internal preview is being prepared to deliver the
+Source/outcome commit `bb40265adc0a37b5906ed38f86a9e18ffae25d47` is pushed and
+integrated in both checkouts. The unrelated primary edits retained their hashes.
+The primary fast-forward initially refused the restored source file's checkout
+normalization; HEAD, index and normalized working blob were proved identical
+before restoring only that clean file and completing the fast-forward. No user
+edit was discarded. Version metadata is prepared for internal preview 0.4.56;
+the actual delivered keeper remains 0.4.55 until verified replacement.
+
+The exact-head
+[Windows CI 43779136477](https://github.com/SKang393/Graph-auto-reader/actions/runs/43779136477)
+passed for `bb40265`, from **2026-11-16 00:13:59 to 00:26:43 UTC**:
+**3,176 passed, 30 expected skips, zero failures** across thirteen .NET projects,
+including **1,306 App** and **31 Imaging** tests. All **72 Rust** tests and
+**68 packaging verification** controls passed, as did localization, evidence,
+handoff, upload and packaging audits. Release jobs were skipped. This verifies
+the initial manual-draft batch, not the correction follow-up below.
+
+Status: initial source integration, local validation, actual manual-route check
+and exact-head CI pass. Native QA remains incomplete. After the maintainer
+confirmed no new Escape, a fresh desktop
+connection still reported its Escape stop without usable window state or input;
+REV-011 records this tool blocker. One integrated internal preview is being prepared to deliver the
 automatic tilted-frame, reversible reading, affine marker and manual fallback
 changes together. This is not a production approval or public release.
+
+## Correction-route follow-up
+
+Before creating the prepared 0.4.56 package, bounded source review found the
+same representation loss in
+`MainWindowViewModel.CalibrationLabels.UpdateAxisSuggestionGeometryFromCorrectedAnchors`.
+When an automatic rectangle is corrected with tilted clicks, the overlay retains
+their two-dimensional positions but the OCR suggestion still uses independent
+rounded X/Y components. The manual factory is currently selected only when the
+previous suggestion was already user-defined. Its replacement branch also lacks
+notifications for a change between aligned and tilted geometry.
+
+The follow-up keeps corrected tilted geometry through the existing manual
+factory, preserves legacy aligned corrections and partial numeric values,
+invalidates old label evidence/review, and refreshes the geometry-kind notices.
+Acceptance uses owned coordinate/state and fresh-review invariants; private and
+sealed use remain zero. One owned regression should expose the defect against
+`bb40265` before the small source repair. No package has been created and no
+version is consumed again for this correction. The delivered keeper remains
+0.4.55; the prepared integrated preview remains 0.4.56.
+
+The four new owned cases reproduced all four defects against the unchanged
+frozen App DLL `0a6bdd4624c5f342c186d190f7637677a911b49a95aff9c42f0eb0678d90cd16`:
+orientation loss, missing geometry-kind notification, and invalid or source-stale
+tilted corrections retaining a draft. The test-only build with
+`-p:BuildProjectReferences=false` passed with zero warnings/errors in
+**16.8189626 s**. The red run had **four expected failures, zero passes/skips**
+in **2.7209122 s**, TRX SHA-256
+`3067fcea182f6c26a438677213372e9c0ab0d524347fa0abd62c45c02f063606`.
+
+The source repair extends the existing guarded manual-factory branch only to
+rectangular proposals corrected beyond the legacy two-pixel alignment rule.
+Aligned automatic corrections and the existing automatic-affine branch remain
+unchanged. The replacement now notifies both geometry-kind and provider-warning
+bindings. Tests also retain partial X values, invalidate the old rectangle
+receipt, require newly read rectified evidence and fresh review, and preserve
+scientific state until explicit Apply. Independent bounded source review found
+no material issue. The red run is a regression demonstration, not an acceptance
+pass.
+
+One dependency-enabled App.Tests Debug build passed with zero warnings/errors
+in **91.1517742 s**. The focused manual/rectified/correction/VM/localization/shell
+set passed **114/114**, zero failures/skips, in **16.4570158 s**. The single
+full App suite on those same outputs passed **1,310/1,310**, zero failures/skips,
+in **76.6850995 s**. All four formerly failing cases passed. No source repair
+or repeated green run was needed. A full local solution/probe/private comparison
+was not repeated; the final source commit still requires its full Windows CI.
+
+```text
+dotnet build tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Debug --no-restore -m:1 -nr:false -p:UseSharedCompilation=false -p:NuGetAudit=false
+dotnet vstest <App.Tests.dll> /TestCaseFilter:<focused correction and calibration classes> /Logger:trx
+dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Debug --no-build --no-restore -m:1 -nr:false -p:UseSharedCompilation=false -p:NuGetAudit=false --logger trx
+```
+
+Focused TRX SHA-256:
+`1c0c2141caf5fafb8ef4337e7c7f3ad1af59dc375f7d6fe5d48d9faf43462c6b`;
+full App TRX:
+`0e4cebf5e69c80d54d45375c1702af20c53fb58c3534048326952234d4b84643`.
+All four existing App Data files retained their paths, sizes and hashes.
+The current twenty-library manifest is
+`6d1db92f4c9d221db2e8434ac833568593fb5c79c0b283ec029d00acaca68396`;
+App DLL `811d3c5c84c34f5112595dc52f25c90769212ac678896eb9949099c2e6d1b787`,
+EXE `d79bac03aef6e3cb61d110e6506220aabdbfb445d8eda1a9e67361bb9f26b898`.
+All twenty source/test libraries matched; reviewed OpenCV and Rust identities
+were unchanged. No dependency, model, frozen schema, scientific threshold or
+license changed. New code retains Apache-2.0 notices. Source validation passes;
+final integration/CI, the one prepared package, and native QA remain pending.

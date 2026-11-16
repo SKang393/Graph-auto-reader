@@ -183,5 +183,14 @@ files retained their hashes: the current App EXE, current runtime manifest,
 marker-worker report, existing autosave and four owned PNGs. The four images,
 **24,926 bytes**, remain inputs for waiting native review. Existing Data/settings,
 originals, current runtime dependencies and the sole 0.4.55 package remain.
-Temporary artifact hashes above are now historical identities except the
-current marker-test/worker outputs, which still serve integration/CI review.
+Temporary artifact hashes above are now historical identities.
+
+After the exact-head CI result was recorded in pushed commit
+`bb40265adc0a37b5906ed38f86a9e18ffae25d47` and all marker-output consumers
+finished, `artifacts/affine-marker-assistance-check` (30 files / 5,113,833 bytes)
+and `artifacts/affine-marker-worker-check` (three files / 1,822 bytes) were also
+retired. The **33 files / 5,115,655 bytes** were checked for exact inventories,
+resolved containment and reparse points before removal; absence was verified
+at **2026-11-16 00:20:35.8960162 UTC**. Seven current runtime/receipt/owned-image
+files and all four existing App Data files retained their hashes. Current manual
+validation inputs, original data and the sole delivered 0.4.55 package remain.

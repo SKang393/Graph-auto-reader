@@ -371,11 +371,14 @@ public sealed partial class RectifiedCalibrationTests
     private sealed class AxisStub : IAxisProposalService
     {
         internal RustAffineAxisGeometry Frame { get; set; } = null!;
+        internal RustAxisGeometry? Rectangle { get; set; }
         internal int Calls { get; private set; }
         internal byte[]? Image { get; private set; }
         public Task<RustAxisProposalResult> SuggestAsync(byte[] image, CancellationToken token)
         {
             Calls++; Image = image;
+            if (Rectangle is { } rectangle)
+                return Task.FromResult(new RustAxisProposalResult(rectangle, null) { Provider = "opencv-review" });
             return Task.FromResult(new RustAxisProposalResult(null, null) { Provider = "opencv-review", AffineGeometry = Frame,
                 ReviewReasons = ["native_affine_geometry", "native_multiple_ranked_candidates"] });
         }

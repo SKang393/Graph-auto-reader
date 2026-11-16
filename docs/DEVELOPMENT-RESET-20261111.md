@@ -38,7 +38,12 @@ and now passes its focused tests plus one actual supplied-geometry control:
 six literal labels, six measured pairs and an unchanged source/workspace in
 4.05 seconds. Its full run exposed one old strict cancellation-type test
 assertion; the repaired Imaging suite passed and other twelve suites were green.
-Exact-head CI and native review remain required. Prepare one integrated preview
+Its initial source commit `bb40265` passed exact-head full Windows CI. Review
+then found the same orientation loss when correcting an automatic rectangle;
+that correction now passes four owned regressions and the full 1,310-test App
+suite, pending final integration/CI. Native review remains blocked by the tool's
+persistent Escape-stop state despite the maintainer confirming no new Escape.
+Prepare one integrated 0.4.56 preview
 for the accumulated automatic-frame, rectified-reading, affine-marker and manual
 fallback changes. The
 [printed-X accessibility/language contract](CALIBRATION-LOCALIZATION-20261115.md)

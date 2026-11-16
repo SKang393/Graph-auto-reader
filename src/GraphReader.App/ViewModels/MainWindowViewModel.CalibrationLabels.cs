@@ -316,7 +316,12 @@ public sealed partial class MainWindowViewModel
     private void UpdateAxisSuggestionGeometryFromCorrectedAnchors()
     {
         if (_axisSuggestion is not { } suggestion || _suggestedAnchors.Length != 3) return;
-        if (suggestion.IsUserDefined)
+        bool tiltedRectangleCorrection = suggestion.Geometry is not null &&
+            !ManualCalibrationMapper.HasLegacyAlignment(
+                new(_suggestedAnchors[0].X, _suggestedAnchors[0].Y),
+                new(_suggestedAnchors[1].X, _suggestedAnchors[1].Y),
+                new(_suggestedAnchors[2].X, _suggestedAnchors[2].Y));
+        if (suggestion.IsUserDefined || tiltedRectangleCorrection)
         {
             if (_workspaceService is not IAxisSuggestionWorkspace axes || !axes.IsAxisSuggestionCurrent(suggestion))
             {
@@ -333,6 +338,10 @@ public sealed partial class MainWindowViewModel
                 return;
             }
             _axisSuggestion = corrected;
+            OnPropertyChanged(nameof(HasAffineAxisSuggestion));
+            OnPropertyChanged(nameof(IsManualAxisDraft));
+            OnPropertyChanged(nameof(HasAxisGeometryReviewWarning));
+            OnPropertyChanged(nameof(AxisGeometryReviewWarningText));
             OnPropertyChanged(nameof(AxisSuggestionSummary));
             RelayCommand.RaiseCanExecuteChanged();
             return;

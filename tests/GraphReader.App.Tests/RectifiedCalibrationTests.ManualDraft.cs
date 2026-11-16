@@ -12,6 +12,105 @@ namespace GraphReader.App.Tests;
 public sealed partial class RectifiedCalibrationTests
 {
     [TestMethod]
+    public void AutomaticRectangleCorrectedToTiltedAnchorsPreservesPartialValuesAndReadsRectifiedEvidence() =>
+        WithFixture(2, false, (workspace, axis, ticks, reader, _) =>
+        {
+            axis.Rectangle = new(90, 290, 350, 70, .7);
+            reader.InvalidMiddleY = true;
+            using var vm = new MainWindowViewModel(workspace);
+            var tab = vm.SelectedTab!;
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            var oldLabels = CurrentLabels(vm);
+            Assert.IsFalse(oldLabels.IsRectified);
+            Assert.AreEqual("1", vm.SuggestedFirstSession);
+            Assert.AreEqual("3", vm.SuggestedFinalSession);
+            Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+            var project = workspace.CurrentProject;
+
+            CorrectFrame(vm, axis.Frame);
+
+            Assert.IsTrue(vm.HasAffineAxisSuggestion);
+            Assert.IsTrue(vm.IsManualAxisDraft);
+            Assert.IsFalse(vm.HasCalibrationLabelSuggestion, "The previous raw rectangle receipt cannot survive geometry correction.");
+            Assert.IsFalse(vm.HasCalibrationTickProposal);
+            Assert.AreEqual("1", vm.SuggestedFirstSession);
+            Assert.AreEqual("3", vm.SuggestedFinalSession);
+            Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.AreSame(project, workspace.CurrentProject);
+            Assert.IsNull(tab.Calibration);
+            reader.InvalidMiddleY = false;
+            Pump(vm.ReadCalibrationLabelsAsync(CancellationToken.None));
+            var labels = CurrentLabels(vm);
+            Assert.IsTrue(labels.IsRectified);
+            Assert.AreNotSame(oldLabels, labels);
+            Assert.AreEqual(axis.Frame with { Confidence = 0 }, labels.AxisSuggestion.AffineGeometry);
+            Assert.AreEqual("manual", labels.AxisSuggestion.Provider);
+            CollectionAssert.Contains(labels.AxisSuggestion.ReviewReasons.ToArray(), ManualCalibrationMapper.AffineReason);
+            vm.RefitSelectedCalibrationLabels();
+            Assert.HasCount(6, vm.CalibrationPairedTickRows);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(tab.Calibration);
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.IsNotNull(tab.Calibration);
+            Assert.IsFalse(ManualCalibrationMapper.IsAxisAligned(tab.Calibration));
+            Assert.AreEqual(1, axis.Calls);
+            Assert.AreEqual(2, ticks.Calls);
+            Assert.AreEqual(2, reader.Calls);
+        });
+
+    [TestMethod]
+    public void ManualCorrectionNotifiesGeometryKindInBothDirections() =>
+        WithFixture(2, false, (workspace, axis, _, _, _) =>
+        {
+            using var vm = new MainWindowViewModel(workspace);
+            CollectManualFrame(vm, axis.Frame);
+            var changed = new List<string?>();
+            vm.PropertyChanged += (_, args) => changed.Add(args.PropertyName);
+            CorrectFrame(vm, new(new(90, 290), new(350, 290), new(90, 70), 0));
+            Assert.IsFalse(vm.HasAffineAxisSuggestion);
+            Assert.IsTrue(vm.IsManualAxisDraft);
+            CollectionAssert.Contains(changed, nameof(vm.HasAffineAxisSuggestion));
+            CollectionAssert.Contains(changed, nameof(vm.IsManualAxisDraft));
+            changed.Clear();
+            CorrectFrame(vm, axis.Frame);
+            Assert.IsTrue(vm.HasAffineAxisSuggestion);
+            CollectionAssert.Contains(changed, nameof(vm.HasAffineAxisSuggestion));
+            CollectionAssert.Contains(changed, nameof(vm.IsManualAxisDraft));
+            Assert.IsNull(vm.SelectedTab!.Calibration);
+        });
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void AutomaticRectangleCorrectionRejectsInvalidOrStaleTiltedFrame(bool stale) =>
+        WithFixture(2, false, (workspace, axis, ticks, reader, _) =>
+        {
+            axis.Rectangle = new(90, 290, 350, 70, .7);
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestAxesAsync(CancellationToken.None));
+            vm.StartCalibrationCommand.Execute(null);
+            if (stale)
+            {
+                var originals = (Dictionary<string, GraphReader.Imaging.ImmutableImageBytes>)typeof(ManualPreviewWorkspaceService)
+                    .GetField("_originalPanelBytesByTab", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(workspace)!;
+                string id = vm.SelectedTab!.TabId;
+                originals[id] = new(originals[id].Copy());
+            }
+            var frame = stale ? axis.Frame : new(new(90, 290), new(350, 286), new(94, 300), 0);
+            ClickFrame(vm, frame);
+            Assert.IsFalse(vm.HasAxisSuggestion);
+            Assert.IsFalse(vm.ReadCalibrationLabelsCommand.CanExecute(null));
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(vm.SelectedTab!.Calibration);
+            Assert.AreEqual(0, ticks.Calls);
+            Assert.AreEqual(0, reader.Calls);
+        });
+
+    [TestMethod]
     [DataRow(2d, false)]
     [DataRow(-2d, false)]
     [DataRow(0d, true)]
@@ -170,6 +269,19 @@ public sealed partial class RectifiedCalibrationTests
     private static void CollectManualFrame(MainWindowViewModel vm, RustAffineAxisGeometry frame)
     {
         vm.BeginManualAxisDraftCommand.Execute(null);
+        Pump(vm.HandleCanvasPointAsync(new Point(frame.Origin.X, frame.Origin.Y)));
+        Pump(vm.HandleCanvasPointAsync(new Point(frame.YEnd.X, frame.YEnd.Y)));
+        Pump(vm.HandleCanvasPointAsync(new Point(frame.XEnd.X, frame.XEnd.Y)));
+    }
+
+    private static void CorrectFrame(MainWindowViewModel vm, RustAffineAxisGeometry frame)
+    {
+        vm.StartCalibrationCommand.Execute(null);
+        ClickFrame(vm, frame);
+    }
+
+    private static void ClickFrame(MainWindowViewModel vm, RustAffineAxisGeometry frame)
+    {
         Pump(vm.HandleCanvasPointAsync(new Point(frame.Origin.X, frame.Origin.Y)));
         Pump(vm.HandleCanvasPointAsync(new Point(frame.YEnd.X, frame.YEnd.Y)));
         Pump(vm.HandleCanvasPointAsync(new Point(frame.XEnd.X, frame.XEnd.Y)));

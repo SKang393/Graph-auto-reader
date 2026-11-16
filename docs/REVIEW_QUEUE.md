@@ -199,7 +199,11 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   maintainer explicitly answered "Resume everything i was on a meeting" on
   2026-11-15. The fresh window-list retry still returned its physical-Escape stop
   message, without usable window state or app input. Do not treat this as missing
-  permission or bypass the stop with another input mechanism. The
+  permission or bypass the stop with another input mechanism. The maintainer
+  subsequently confirmed "i didn't press escape". On 2026-11-16 UTC, one fresh
+  JavaScript kernel reset, initialization and window-list call still returned
+  the same stop message. No app launch or input was attempted. This is a
+  persistent tool stop state despite authorization, not a new user revocation. The
   [affine-label bridge](AFFINE-CALIBRATION-RECTIFICATION-20261115.md) and
   [marker extension](AFFINE-MARKER-ASSISTANCE-20261115.md) await native checks;
   their independent code and headless validation continue. Four small owned
@@ -218,7 +222,9 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   visibly canceled active profiling when calibration started, retained the device
   choice and owned point/calibration state, and closed normally. Do not repeat
   completed checks or treat this subset as full visual or production acceptance
-- **Why:** the user stopped Computer Use with physical Escape. Initial native
+- **Why:** earlier sessions recorded physical-Escape interruptions; the current
+  stop message persists despite the maintainer's explicit no-new-Escape reply.
+  Initial native
   CPU/default and adapter-list display was observed; saved-choice verification
   was not completed. The actual worker lifecycle and headless persistence tests
   already passed, so repeating those is unnecessary. On 2026-11-14 the
