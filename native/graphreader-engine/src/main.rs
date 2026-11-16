@@ -666,7 +666,14 @@ impl TickMeasureDiagnostic {
 
 fn measure_box_ticks_with_diagnostic(width: usize, height: usize, channels: usize, pixels: &[u8],
     left: usize, bottom: usize, right: usize, top: usize,
-    mut diagnostic: Option<&mut TickMeasureDiagnostic>) -> Result<(Vec<u32>, Vec<u32>), &'static str>
+    diagnostic: Option<&mut TickMeasureDiagnostic>) -> Result<(Vec<u32>, Vec<u32>), &'static str>
+{
+    measure_box_ticks_mode(width, height, channels, pixels, left, bottom, right, top, diagnostic, false)
+}
+
+fn measure_box_ticks_mode(width: usize, height: usize, channels: usize, pixels: &[u8],
+    left: usize, bottom: usize, right: usize, top: usize,
+    mut diagnostic: Option<&mut TickMeasureDiagnostic>, manual_partial: bool) -> Result<(Vec<u32>, Vec<u32>), &'static str>
 {
     if !(32..=4096).contains(&width) || !(32..=4096).contains(&height) || !matches!(channels, 1 | 3)
         || width.checked_mul(height).filter(|&n| n <= MAX_PIXELS).and_then(|n| n.checked_mul(channels)) != Some(pixels.len())
@@ -698,35 +705,8 @@ fn measure_box_ticks_with_diagnostic(width: usize, height: usize, channels: usiz
         return Err("AXIS_BOX_NOT_OBSERVED");
     }
     if let Some(trace) = diagnostic.as_deref_mut() { trace.stage = "ORIGIN_OBSERVED"; }
-    let clip = Some((left, top, right, bottom));
-    let x_bridges = match observed_axis_span_clipped(pixels, width, height, channels, bottom, left, right, true, clip) {
-        Some(bridges) => bridges,
-        None => {
-            if let Some(trace) = diagnostic.as_deref_mut() {
-                trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
-                trace.stage = if BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) { "X_BRIDGE_BUDGET" } else { "X_SPAN_UNOBSERVED" };
-            }
-            return Err("AXIS_BOX_NOT_OBSERVED");
-        }
-    };
-    if let Some(trace) = diagnostic.as_deref_mut() {
-        trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
-        trace.stage = "X_SPAN_OBSERVED";
-    }
-    let y_bridges = match observed_axis_span_clipped(pixels, width, height, channels, left, top, bottom, false, clip) {
-        Some(bridges) => bridges,
-        None => {
-            if let Some(trace) = diagnostic.as_deref_mut() {
-                trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
-                trace.stage = if BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) { "Y_BRIDGE_BUDGET" } else { "Y_SPAN_UNOBSERVED" };
-            }
-            return Err("AXIS_BOX_NOT_OBSERVED");
-        }
-    };
-    if let Some(trace) = diagnostic.as_deref_mut() {
-        trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
-        trace.stage = "SPANS_OBSERVED";
-    }
+    let (x_bridges, y_bridges) = measure_supplied_spans(pixels, width, height, channels,
+        left, bottom, right, top, &mut diagnostic, manual_partial)?;
 
     let mut rows = vec![0usize; height];
     let mut cols = vec![0usize; width];
@@ -742,14 +722,15 @@ fn measure_box_ticks_with_diagnostic(width: usize, height: usize, channels: usiz
     let y_limit = ((right - left + 1) / 20).clamp(3, 32);
     let x_bounds = Some((top, axis_bottom.saturating_add(x_limit + 1).min(height - 1)));
     let y_bounds = Some((axis_left.saturating_sub(y_limit + 1), right));
-    let x = match x_tick_positions(pixels, width, height, channels, left, axis_right, right, bottom, &rows, false, false, x_limit, &x_bridges, x_bounds) {
-        TickScan::Absent => x_tick_positions(pixels, width, height, channels, left, axis_right, right, bottom, &rows, false, true, x_limit, &x_bridges, x_bounds).positions(),
+    // A failed span contributes no tick positions, even if isolated strokes look like ticks.
+    let x = x_bridges.map_or_else(Vec::new, |bridges| match x_tick_positions(pixels, width, height, channels, left, axis_right, right, bottom, &rows, false, false, x_limit, &bridges, x_bounds) {
+        TickScan::Absent => x_tick_positions(pixels, width, height, channels, left, axis_right, right, bottom, &rows, false, true, x_limit, &bridges, x_bounds).positions(),
         scan => scan.positions(),
-    };
-    let y = match y_tick_positions(pixels, width, channels, left, top, bottom, axis_top, &cols, false, y_limit, &y_bridges, y_bounds) {
-        TickScan::Absent => y_tick_positions(pixels, width, channels, left, top, bottom, axis_top, &cols, true, y_limit, &y_bridges, y_bounds).positions(),
+    });
+    let y = y_bridges.map_or_else(Vec::new, |bridges| match y_tick_positions(pixels, width, channels, left, top, bottom, axis_top, &cols, false, y_limit, &bridges, y_bounds) {
+        TickScan::Absent => y_tick_positions(pixels, width, channels, left, top, bottom, axis_top, &cols, true, y_limit, &bridges, y_bounds).positions(),
         scan => scan.positions(),
-    };
+    });
     if let Some(trace) = diagnostic.as_deref_mut() {
         trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
         trace.stage = "TICKS_MEASURED";
@@ -757,17 +738,69 @@ fn measure_box_ticks_with_diagnostic(width: usize, height: usize, channels: usiz
     Ok((x, y))
 }
 
+
+// Shared bridge work is never reset between axes. A budget error cannot become
+// partial evidence, including when the other full span already passed.
+fn measure_supplied_spans(pixels: &[u8], width: usize, height: usize, channels: usize,
+    left: usize, bottom: usize, right: usize, top: usize,
+    diagnostic: &mut Option<&mut TickMeasureDiagnostic>, manual_partial: bool)
+    -> Result<(Option<Vec<(usize, usize)>>, Option<Vec<(usize, usize)>>), &'static str>
+{
+    let clip = Some((left, top, right, bottom));
+    let x_bridges = match observed_axis_span_clipped(pixels, width, height, channels, bottom, left, right, true, clip) {
+        Some(bridges) => Some(bridges),
+        None => {
+            if let Some(trace) = diagnostic.as_deref_mut() {
+                trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
+                trace.stage = if BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) { "X_BRIDGE_BUDGET" } else { "X_SPAN_UNOBSERVED" };
+            }
+            if !manual_partial || BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) {
+                return Err("AXIS_BOX_NOT_OBSERVED");
+            }
+            None
+        }
+    };
+    if let Some(trace) = diagnostic.as_deref_mut() {
+        trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
+        trace.stage = "X_SPAN_OBSERVED";
+    }
+    let y_bridges = match observed_axis_span_clipped(pixels, width, height, channels, left, top, bottom, false, clip) {
+        Some(bridges) => Some(bridges),
+        None => {
+            if let Some(trace) = diagnostic.as_deref_mut() {
+                trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
+                trace.stage = if BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) { "Y_BRIDGE_BUDGET" } else { "Y_SPAN_UNOBSERVED" };
+            }
+            if !manual_partial || BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()) {
+                return Err("AXIS_BOX_NOT_OBSERVED");
+            }
+            None
+        }
+    };
+    if x_bridges.is_none() && y_bridges.is_none() { return Err("AXIS_BOX_NOT_OBSERVED"); }
+    if let Some(trace) = diagnostic.as_deref_mut() {
+        trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
+        trace.stage = "SPANS_OBSERVED";
+    }
+
+    Ok((x_bridges, y_bridges))
+}
+
 fn process_measure_ticks(input: impl Read) -> Result<String, &'static str> {
-    process_measure_ticks_inner(input, None)
+    process_measure_ticks_inner(input, None, false)
+}
+
+fn process_manual_partial_ticks(input: impl Read) -> Result<String, &'static str> {
+    process_measure_ticks_inner(input, None, true)
 }
 
 fn process_measure_ticks_diagnostic(input: impl Read) -> (Result<String, &'static str>, TickMeasureDiagnostic) {
     let mut diagnostic = TickMeasureDiagnostic::default();
-    let result = process_measure_ticks_inner(input, Some(&mut diagnostic));
+    let result = process_measure_ticks_inner(input, Some(&mut diagnostic), false);
     (result, diagnostic)
 }
 
-fn process_measure_ticks_inner(mut input: impl Read, diagnostic: Option<&mut TickMeasureDiagnostic>) -> Result<String, &'static str> {
+fn process_measure_ticks_inner(mut input: impl Read, diagnostic: Option<&mut TickMeasureDiagnostic>, manual_partial: bool) -> Result<String, &'static str> {
     let mut header = [0u8; 36];
     input.read_exact(&mut header).map_err(|_| "INVALID_PROTOCOL")?;
     if &header[..4] != b"GRT1" { return Err("INVALID_PROTOCOL"); }
@@ -780,7 +813,11 @@ fn process_measure_ticks_inner(mut input: impl Read, diagnostic: Option<&mut Tic
     input.read_exact(&mut pixels).map_err(|_| "INVALID_PROTOCOL")?;
     let mut trailing = [0];
     if input.read(&mut trailing).map_err(|_| "INVALID_PROTOCOL")? != 0 { return Err("INVALID_PROTOCOL"); }
-    let (x, y) = measure_box_ticks_with_diagnostic(w, h, c, &pixels, left, bottom, right, top, diagnostic)?;
+    let (x, y) = if manual_partial {
+        measure_box_ticks_mode(w, h, c, &pixels, left, bottom, right, top, diagnostic, true)?
+    } else {
+        measure_box_ticks_with_diagnostic(w, h, c, &pixels, left, bottom, right, top, diagnostic)?
+    };
     let list = |values: &[u32]| if values.is_empty() { "-".to_string() } else { values.iter().map(u32::to_string).collect::<Vec<_>>().join(",") };
     Ok(format!("TICKS1 {left} {bottom} {right} {top} {} {}\n", list(&x), list(&y)))
 }
@@ -909,7 +946,9 @@ fn main() {
             println!("{}", diagnostic.line());
             if failed { std::process::exit(1); }
         } else {
-            match set_budget().and_then(|_| process_measure_ticks(io::stdin().lock())) {
+            match set_budget().and_then(|_| if args[0] == "--measure-ticks-manual-partial" {
+                process_manual_partial_ticks(io::stdin().lock())
+            } else { process_measure_ticks(io::stdin().lock()) }) {
                 Ok(response) => print!("{response}"),
                 Err(reason) => { println!("ERR {reason}"); std::process::exit(1); }
             }
@@ -951,6 +990,9 @@ fn main() {
 }
 
 fn measure_mode_requested(args: &[std::ffi::OsString]) -> Result<bool, &'static str> {
+    if args.iter().any(|arg| arg == "--measure-ticks-manual-partial") {
+        return if args.len() == 1 { Ok(true) } else { Err("INVALID_PROTOCOL") };
+    }
     if args.iter().any(|arg| arg == "--measure-ticks") {
         if args.len() == 1 { return Ok(true); }
         if args.len() == 2 && args[1] == "--measure-ticks-diagnostics" { return Ok(true); }
@@ -1134,6 +1176,88 @@ mod tests {
         for x in [40, 70, 100] { for y in 101..105 { image[y * 128 + x] = 0; } }
         for y in [20, 50, 80] { for x in 16..20 { image[y * 128 + x] = 0; } }
         image
+    }
+
+    #[test]
+    fn manual_partial_retains_only_ticks_on_independently_observed_spans() {
+        for horizontal in [true, false] {
+            let mut pixels = simple_supplied_box_pixels();
+            if horizontal {
+                for y in 40..=80 { pixels[y * 128 + 20] = 255; }
+            } else {
+                for x in 40..=80 { pixels[100 * 128 + x] = 255; }
+            }
+            let unchanged = pixels.clone();
+            let frame = supplied_box_frame(&pixels, 128, 128, 1, 20, 100, 115, 10);
+            assert_eq!(process_measure_ticks(&frame[..]), Err("AXIS_BOX_NOT_OBSERVED"));
+            let expected = if horizontal { "TICKS1 20 100 115 10 40,70,100 -\n" }
+                else { "TICKS1 20 100 115 10 - 20,50,80\n" };
+            assert_eq!(process_manual_partial_ticks(&frame[..]).unwrap(), expected);
+            assert_eq!(pixels, unchanged);
+        }
+    }
+
+    #[test]
+    fn manual_partial_refuses_origin_and_both_unobserved_spans() {
+        let mut pixels = simple_supplied_box_pixels();
+        pixels[100 * 128 + 20] = 255;
+        let frame = supplied_box_frame(&pixels, 128, 128, 1, 20, 100, 115, 10);
+        assert_eq!(process_manual_partial_ticks(&frame[..]), Err("AXIS_BOX_NOT_OBSERVED"));
+        pixels[100 * 128 + 20] = 0;
+        for x in 40..=80 { pixels[100 * 128 + x] = 255; }
+        for y in 40..=80 { pixels[y * 128 + 20] = 255; }
+        let frame = supplied_box_frame(&pixels, 128, 128, 1, 20, 100, 115, 10);
+        assert_eq!(process_manual_partial_ticks(&frame[..]), Err("AXIS_BOX_NOT_OBSERVED"));
+    }
+
+    #[test]
+    fn manual_partial_full_observation_preserves_strict_wire_and_rejections() {
+        for gray in [0, 128, 192] {
+            let mut pixels = simple_supplied_box_pixels();
+            for pixel in &mut pixels { if *pixel == 0 { *pixel = gray; } }
+            for channels in [1, 3] {
+                let input = if channels == 1 { pixels.clone() } else { pixels.iter().flat_map(|&v| [v, v, v]).collect() };
+                let frame = supplied_box_frame(&input, 128, 128, channels, 20, 100, 115, 10);
+                assert_eq!(process_manual_partial_ticks(&frame[..]), process_measure_ticks(&frame[..]));
+                assert_eq!(process_manual_partial_ticks(&frame[..35]), Err("INVALID_PROTOCOL"));
+                let mut extra = frame.clone(); extra.push(0);
+                assert_eq!(process_manual_partial_ticks(&extra[..]), Err("INVALID_PROTOCOL"));
+            }
+        }
+        let mut plain = vec![255; 128 * 128];
+        for x in 20..=115 { plain[100 * 128 + x] = 0; }
+        for y in 10..=100 { plain[y * 128 + 20] = 0; }
+        let frame = supplied_box_frame(&plain, 128, 128, 1, 20, 100, 115, 10);
+        assert_eq!(process_manual_partial_ticks(&frame[..]).unwrap(), "TICKS1 20 100 115 10 - -\n");
+        assert_eq!(process_manual_partial_ticks(&frame[..]), process_measure_ticks(&frame[..]));
+    }
+
+    #[test]
+    fn manual_partial_never_publishes_after_shared_bridge_budget_exhaustion() {
+        for horizontal in [true, false] {
+            let mut pixels = simple_supplied_box_pixels();
+            // One small observed bridge triggers work after a valid origin. The
+            // other axis remains fully observed with three genuine tick strokes.
+            if horizontal { pixels[100 * 128 + 60] = 255; pixels[99 * 128 + 60] = 0; }
+            else { pixels[60 * 128 + 20] = 255; pixels[60 * 128 + 21] = 0; }
+            BRIDGE_WORK.with(|work| work.set(MAX_PIXELS));
+            BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+            assert_eq!(measure_supplied_spans(&pixels, 128, 128, 1, 20, 100, 115, 10,
+                &mut None, true), Err("AXIS_BOX_NOT_OBSERVED"));
+            assert!(BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()));
+            assert_eq!(BRIDGE_WORK.with(|work| work.get()), MAX_PIXELS);
+            BRIDGE_WORK.with(|work| work.set(0));
+            BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+        }
+    }
+
+    #[test]
+    fn manual_partial_flag_is_explicit_and_cannot_mix_with_other_modes() {
+        assert_eq!(measure_mode_requested(&["--measure-ticks-manual-partial".into()]), Ok(true));
+        for other in ["--measure-ticks", "--measure-ticks-diagnostics", "--diagnostics", "--review-candidates"] {
+            assert_eq!(measure_mode_requested(&["--measure-ticks-manual-partial".into(), other.into()]), Err("INVALID_PROTOCOL"));
+            assert_eq!(measure_mode_requested(&[other.into(), "--measure-ticks-manual-partial".into()]), Err("INVALID_PROTOCOL"));
+        }
     }
 
     #[test]

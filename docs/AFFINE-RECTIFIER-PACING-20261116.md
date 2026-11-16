@@ -111,3 +111,5 @@ The candidate Imaging compiler output remains an active build input. All source
 App/probe runtimes, original data, selected-frame diagnosis inputs and the single
 delivered package remain preserved. The table's TRX/report hashes now identify
 retired historical outputs, whose concise result is retained in this document.
+The compact manifest and journal were themselves retired with the completed
+diagnosis tree at 03:54:05 UTC; their pushed hashes remain the historical record.

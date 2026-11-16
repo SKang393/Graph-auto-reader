@@ -386,20 +386,31 @@ public sealed partial class RectifiedCalibrationTests
     private sealed class TickStub : IAxisTickMeasurementService
     {
         internal int Calls { get; private set; }
+        internal int ManualPartialCalls { get; private set; }
+        internal string? PartialSide { get; set; }
+        internal string? EvidenceFault { get; set; }
         internal byte[]? Image { get; private set; }
         internal int[] X { get; private set; } = [];
         internal int[] Y { get; private set; } = [];
         internal AxisTickMeasurementResult? Result { get; private set; }
         internal TaskCompletionSource<AxisTickMeasurementResult>? Pending { get; set; }
         public Task<AxisTickMeasurementResult> MeasureAsync(byte[] image, RustAxisGeometry box, CancellationToken token)
+            => MeasureCore(image, box, false);
+        public Task<AxisTickMeasurementResult> MeasureManualPartialAsync(byte[] image, RustAxisGeometry box, CancellationToken token)
+            => MeasureCore(image, box, true);
+        private Task<AxisTickMeasurementResult> MeasureCore(byte[] image, RustAxisGeometry box, bool manualPartial)
         {
-            Calls++; Image = image;
+            Calls++; if (manualPartial) ManualPartialCalls++; Image = image;
             X = [box.Left + 20, box.Left + 100, box.Left + 180]; Y = [box.Top + 20, box.Top + 100, box.Top + 180];
             using var input = new MemoryStream(image);
             var bitmap = BitmapDecoder.Create(input, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad).Frames[0];
-            Result = new(Hash(image), bitmap.PixelWidth, bitmap.PixelHeight,
-                new(box.Left, box.Bottom, box.Right, box.Top, X, Y), null);
-            return Pending?.Task ?? Task.FromResult(Result);
+            var result = new AxisTickMeasurementResult(EvidenceFault == "hash" ? new string('f', 64) : Hash(image), bitmap.PixelWidth, bitmap.PixelHeight,
+                new(box.Left + (EvidenceFault == "box" ? 1 : 0), box.Bottom, box.Right, box.Top,
+                    manualPartial && (PartialSide is "Y" or "none") ? [] : X,
+                    manualPartial && (PartialSide is "X" or "none") ? [] : Y), null);
+            if (EvidenceFault == "none") result = result with { Evidence = null, ErrorCode = "AXIS_BOX_NOT_OBSERVED" };
+            Result = result;
+            return Pending?.Task ?? Task.FromResult(result);
         }
     }
     private sealed class ReaderStub(TickStub ticks) : ICalibrationOcrSuggestionService
@@ -411,20 +422,23 @@ public sealed partial class RectifiedCalibrationTests
         internal double FirstX { get; set; } = 1;
         internal TaskCompletionSource<CalibrationOcrResponse>? Pending { get; set; }
         internal CalibrationOcrProposal? AdditionalRow { get; set; }
+        internal string? OnlyAxis { get; set; }
+        internal CalibrationOcrRequest? LastRequest { get; private set; }
         public Task<CalibrationOcrResponse> SuggestAsync(CalibrationOcrRequest request, ReadOnlyMemory<byte> image, CancellationToken token)
         {
             Calls++;
+            LastRequest = request;
             Assert.IsTrue(System.Runtime.InteropServices.MemoryMarshal.TryGetArray(image, out ArraySegment<byte> segment));
             Image = segment.Array;
             Assert.AreEqual(Hash(Image!), request.PanelImageSha256);
             var proposals = new List<CalibrationOcrProposal>();
             for (int i = 0; i < 3; i++)
             {
-                proposals.Add(Row("x" + i, FirstX + i, "X", ticks.X[i], request.Plot.Bottom + 15));
+                if (OnlyAxis != "Y") proposals.Add(Row("x" + i, FirstX + i, "X", ticks.X[i], request.Plot.Bottom + 15));
                 var y = Row("y" + i, (2 - i) * 5, "Y", request.Plot.Left - 20, ticks.Y[i]);
                 if (InvalidMiddleY && i == 1) y = y with { Text = "S", NumericValue = null, NumericLiteral = false,
                     NormalizedText = null, Confidence = 0, FailureCode = CalibrationOcrReasonCodes.NonnumericReading };
-                proposals.Add(y);
+                if (OnlyAxis != "X") proposals.Add(y);
             }
             if (AdditionalRow is not null) proposals.Add(AdditionalRow);
             var sequence = new CalibrationOcrSequenceCheck(false, 3, 3, 0, []);

@@ -13,6 +13,8 @@ public sealed class RustAxisTickMeasurementTests
     private static readonly int[] ExpectedXTicks = [20, 40, 80, 110];
     private static readonly int[] ExpectedYTicks = [10, 50, 90];
     private static readonly int[] ExpectedWorkerXTicks = [20, 40, 60, 80, 96];
+    private static readonly int[] PartialXTicks = [40, 70, 100];
+    private static readonly int[] PartialYTicks = [20, 50, 80];
     private static readonly string[] EvidencePropertyNames =
         ["Left", "Bottom", "Right", "Top", "XTickPositions", "YTickPositions"];
     private static readonly MethodInfo Parser = typeof(RustAxisTickMeasurement).GetMethod("ParseResponse",
@@ -144,6 +146,25 @@ public sealed class RustAxisTickMeasurementTests
     }
 
     [TestMethod]
+    public async Task ManualPartialSharesPrestartCancellationAndRequestBounds()
+    {
+        using var canceled = new CancellationTokenSource();
+        canceled.Cancel();
+        TaskCanceledException error = await Assert.ThrowsExactlyAsync<TaskCanceledException>(async () =>
+            await RustAxisTickMeasurement.RunManualPartialAsync("unused", 64, 64, new byte[4096], Plot,
+                cancellationToken: canceled.Token));
+        Assert.AreEqual(canceled.Token, error.CancellationToken);
+        RustAxisTickMeasurementResult bad = await RustAxisTickMeasurement.RunManualPartialAsync(
+            "unused", 31, 64, new byte[31 * 64], Plot);
+        Assert.AreEqual("INVALID_INPUT", bad.ErrorCode);
+        Assert.IsNull(bad.Evidence);
+        bad = await RustAxisTickMeasurement.RunManualPartialAsync("unused", 128, 128,
+            new byte[128 * 128], Plot with { Right = 128 });
+        Assert.AreEqual("INVALID_INPUT", bad.ErrorCode);
+        Assert.IsNull(bad.Evidence);
+    }
+
+    [TestMethod]
     public async Task MissingWorkerReturnsStructuredStartFailure()
     {
         if (!OperatingSystem.IsWindows()) { Assert.Inconclusive("Worker process transport is Windows-only."); return; }
@@ -178,6 +199,77 @@ public sealed class RustAxisTickMeasurementTests
             result.Evidence.Right, result.Evidence.Top));
         CollectionAssert.AreEqual(ExpectedWorkerXTicks, result.Evidence.XTickPositions.ToArray());
         Assert.IsEmpty(result.Evidence.YTickPositions);
+
+        RustAxisTickMeasurementResult partial = await RustAxisTickMeasurement.RunManualPartialAsync(worker,
+            width, height, pixels, new RustAxisGeometry(8, 100, 115, 10, 0), channels);
+        Assert.IsNull(partial.ErrorCode);
+        Assert.IsNotNull(partial.Evidence);
+        CollectionAssert.AreEqual(result.Evidence.XTickPositions.ToArray(), partial.Evidence.XTickPositions.ToArray());
+        CollectionAssert.AreEqual(result.Evidence.YTickPositions.ToArray(), partial.Evidence.YTickPositions.ToArray());
+    }
+
+    [TestMethod]
+    [DataRow(true, 1)]
+    [DataRow(false, 1)]
+    [DataRow(true, 3)]
+    [DataRow(false, 3)]
+    public async Task BuiltWorkerManualPartialUsesExplicitModeAndRetainsOnlyObservedAxis(bool xObserved, int channels)
+    {
+        string? worker = Environment.GetEnvironmentVariable("GRAPHREADER_RUST_WORKER");
+        if (string.IsNullOrWhiteSpace(worker)) { Assert.Inconclusive("Set GRAPHREADER_RUST_WORKER to the built Rust worker."); return; }
+        byte[] gray = PartialFixture();
+        if (xObserved)
+            for (int y = 40; y <= 80; y++) gray[y * 128 + 20] = 255;
+        else
+            for (int x = 40; x <= 80; x++) gray[100 * 128 + x] = 255;
+        byte[] pixels = channels == 1 ? gray : ExpandGrayToRgb(gray);
+        byte[] unchanged = pixels.ToArray();
+        var box = new RustAxisGeometry(20, 100, 115, 10, 0);
+        RustAxisTickMeasurementResult strict = await RustAxisTickMeasurement.RunAsync(worker, 128, 128, pixels, box, channels);
+        Assert.AreEqual("AXIS_BOX_NOT_OBSERVED", strict.ErrorCode);
+        Assert.IsNull(strict.Evidence);
+
+        RustAxisTickMeasurementResult partial = await RustAxisTickMeasurement.RunManualPartialAsync(
+            worker, 128, 128, pixels, box, channels);
+        Assert.IsNull(partial.ErrorCode);
+        Assert.IsNotNull(partial.Evidence);
+        Assert.AreEqual((20, 100, 115, 10), (partial.Evidence.Left, partial.Evidence.Bottom,
+            partial.Evidence.Right, partial.Evidence.Top));
+        CollectionAssert.AreEqual(xObserved ? PartialXTicks : Array.Empty<int>(), partial.Evidence.XTickPositions.ToArray());
+        CollectionAssert.AreEqual(xObserved ? Array.Empty<int>() : PartialYTicks, partial.Evidence.YTickPositions.ToArray());
+        CollectionAssert.AreEqual(unchanged, pixels);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task BuiltWorkerManualPartialPreservesOriginAndBothSpanRefusals(bool missingOrigin)
+    {
+        string? worker = Environment.GetEnvironmentVariable("GRAPHREADER_RUST_WORKER");
+        if (string.IsNullOrWhiteSpace(worker)) { Assert.Inconclusive("Set GRAPHREADER_RUST_WORKER to the built Rust worker."); return; }
+        byte[] pixels = PartialFixture();
+        if (missingOrigin) pixels[100 * 128 + 20] = 255;
+        else
+        {
+            for (int y = 40; y <= 80; y++) pixels[y * 128 + 20] = 255;
+            for (int x = 40; x <= 80; x++) pixels[100 * 128 + x] = 255;
+        }
+        RustAxisTickMeasurementResult result = await RustAxisTickMeasurement.RunManualPartialAsync(worker,
+            128, 128, pixels, new RustAxisGeometry(20, 100, 115, 10, 0));
+        Assert.AreEqual("AXIS_BOX_NOT_OBSERVED", result.ErrorCode);
+        Assert.IsNull(result.Evidence);
+    }
+
+    private static byte[] PartialFixture()
+    {
+        byte[] pixels = Enumerable.Repeat((byte)255, 128 * 128).ToArray();
+        for (int x = 20; x <= 115; x++) pixels[100 * 128 + x] = 0;
+        for (int y = 10; y <= 100; y++) pixels[y * 128 + 20] = 0;
+        foreach (int x in PartialXTicks)
+            for (int y = 101; y < 105; y++) pixels[y * 128 + x] = 0;
+        foreach (int y in PartialYTicks)
+            for (int x = 16; x < 20; x++) pixels[y * 128 + x] = 0;
+        return pixels;
     }
 
     private static byte[] ExpandGrayToRgb(byte[] gray)

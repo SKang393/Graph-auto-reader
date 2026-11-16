@@ -159,3 +159,16 @@ The current-kernel report remains an active unchanged comparator for the
 comparison and source/outcome integration finish, raw stroke reports, build/run
 logs, staging receipts and prototype output can be retired. No image file,
 model, dependency, schema, packaged build or license changed.
+
+The pacing comparison and source-support diagnosis are now closed. Their raw
+stroke/prototype outputs were retired with the diagnosis tree on 2026-11-16.
+The sole baseline report, SHA-256
+`6aa95bee611c590342a33106042eff085c20fe50018b5939c8e00b5fafdfb62f`,
+was moved to `artifacts/affine-source-bridge-check/stroke-baseline.json` for one
+named next consumer: check original support in the unchanged clipped window
+for the existing positive/negative two-degree, thin gray-128 owned controls.
+That new property does not reopen the failed source-mask prototype, authorize a
+parameter sweep or allow private evaluation. Remove this compact baseline after
+the two-control audit's result is pushed and its consumer finishes. The
+[retirement record](AXIS-BOX-REFUSAL-DIAGNOSTIC-20261116.md) retains the inventory
+and actual-action journal identities.

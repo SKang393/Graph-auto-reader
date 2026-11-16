@@ -306,7 +306,10 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
         AxisTickMeasurementResult? measurementReceipt = null;
         if (attempted)
         {
-            AxisTickMeasurementResult measurement = await _axisTickMeasurementService!.MeasureAsync(prepared.Image, geometry, token);
+            bool manualPartial = suggestion.IsUserDefined && suggestion.Provider == "manual";
+            AxisTickMeasurementResult measurement = manualPartial
+                ? await _axisTickMeasurementService!.MeasureManualPartialAsync(prepared.Image, geometry, token)
+                : await _axisTickMeasurementService!.MeasureAsync(prepared.Image, geometry, token);
             measurementReceipt = measurement;
             token.ThrowIfCancellationRequested();
             if (!CanReadCalibrationLabels || !IsAxisSuggestionCurrent(suggestion)) return null;

@@ -24,13 +24,24 @@ public static class RustAxisTickMeasurement
 
     public static Task<RustAxisTickMeasurementResult> RunAsync(string workerPath, int width, int height,
         ReadOnlyMemory<byte> pixels, RustAxisGeometry geometry, int channels = 1,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        StartAsync(workerPath, width, height, pixels, geometry, channels, "--measure-ticks", cancellationToken);
+
+    /// <summary>For an explicitly marked frame, retains ticks only from independently observed full spans.</summary>
+    public static Task<RustAxisTickMeasurementResult> RunManualPartialAsync(string workerPath, int width, int height,
+        ReadOnlyMemory<byte> pixels, RustAxisGeometry geometry, int channels = 1,
+        CancellationToken cancellationToken = default) =>
+        StartAsync(workerPath, width, height, pixels, geometry, channels, "--measure-ticks-manual-partial", cancellationToken);
+
+    private static Task<RustAxisTickMeasurementResult> StartAsync(string workerPath, int width, int height,
+        ReadOnlyMemory<byte> pixels, RustAxisGeometry geometry, int channels, string mode,
+        CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
             return Task.FromCanceled<RustAxisTickMeasurementResult>(cancellationToken);
         if (!TrySnapshot(width, height, channels, pixels, geometry, out RequestSnapshot? request))
             return Task.FromResult(Failure("INVALID_INPUT"));
-        return Task.Run(() => RunCoreAsync(workerPath, request!, cancellationToken), CancellationToken.None);
+        return Task.Run(() => RunCoreAsync(workerPath, request!, mode, cancellationToken), CancellationToken.None);
     }
 
     private static bool TrySnapshot(int width, int height, int channels, ReadOnlyMemory<byte> pixels,
@@ -50,7 +61,7 @@ public static class RustAxisTickMeasurement
     }
 
     private static async Task<RustAxisTickMeasurementResult> RunCoreAsync(string workerPath,
-        RequestSnapshot request, CancellationToken cancellationToken)
+        RequestSnapshot request, string mode, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(workerPath)) return Failure("INVALID_INPUT");
@@ -66,7 +77,7 @@ public static class RustAxisTickMeasurement
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         }};
-        process.StartInfo.ArgumentList.Add("--measure-ticks");
+        process.StartInfo.ArgumentList.Add(mode);
 
         try
         {

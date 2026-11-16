@@ -16,13 +16,22 @@ public interface IAxisTickMeasurementService
 {
     Task<AxisTickMeasurementResult> MeasureAsync(byte[] originalImage, RustAxisGeometry geometry,
         CancellationToken cancellationToken);
+    // Existing adapters retain strict behavior unless they explicitly implement the manual path.
+    Task<AxisTickMeasurementResult> MeasureManualPartialAsync(byte[] originalImage, RustAxisGeometry geometry,
+        CancellationToken cancellationToken) => MeasureAsync(originalImage, geometry, cancellationToken);
 }
 
 /// <summary>Measures pixel strokes at an exact review box without selecting new geometry.</summary>
 public sealed class RustAxisTickMeasurementService(string workerPath) : IAxisTickMeasurementService
 {
     public Task<AxisTickMeasurementResult> MeasureAsync(byte[] originalImage, RustAxisGeometry geometry,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken) => MeasureCoreAsync(originalImage, geometry, false, cancellationToken);
+
+    public Task<AxisTickMeasurementResult> MeasureManualPartialAsync(byte[] originalImage, RustAxisGeometry geometry,
+        CancellationToken cancellationToken) => MeasureCoreAsync(originalImage, geometry, true, cancellationToken);
+
+    private Task<AxisTickMeasurementResult> MeasureCoreAsync(byte[] originalImage, RustAxisGeometry geometry,
+        bool manualPartial, CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
             return Task.FromCanceled<AxisTickMeasurementResult>(cancellationToken);
@@ -45,8 +54,9 @@ public sealed class RustAxisTickMeasurementService(string workerPath) : IAxisTic
                     PixelFormats.Gray8, null, 0);
                 byte[] pixels = new byte[checked(width * height)];
                 gray.CopyPixels(pixels, width, 0);
-                RustAxisTickMeasurementResult result = await RustAxisTickMeasurement.RunAsync(workerPath,
-                    width, height, pixels, geometry, cancellationToken: cancellationToken).ConfigureAwait(false);
+                RustAxisTickMeasurementResult result = manualPartial
+                    ? await RustAxisTickMeasurement.RunManualPartialAsync(workerPath, width, height, pixels, geometry, cancellationToken: cancellationToken).ConfigureAwait(false)
+                    : await RustAxisTickMeasurement.RunAsync(workerPath, width, height, pixels, geometry, cancellationToken: cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
                 return new AxisTickMeasurementResult(hash, width, height, result.Evidence, result.ErrorCode);
             }

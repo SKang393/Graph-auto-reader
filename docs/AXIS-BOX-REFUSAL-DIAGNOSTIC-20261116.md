@@ -336,9 +336,45 @@ write, Apply or export occurred. No private variants or retries followed.
 | Closeout | `fe823bdc5dcb467b68de127e1763f4957384d5222303bcfb4ac9384fd3834ab0` |
 
 The diagnostic execution passes its bounded checks; production calibration
-acceptance is unchanged and exact-source CI is pending. The frozen-runtime
+acceptance is unchanged. Exact-source Windows CI
+[43798711081](https://github.com/SKang393/Graph-auto-reader/actions/runs/43798711081)
+on `f8dfb2f3350f43b1ee92d5b88b7156f1dbaa5e9a` passed in **12 min 11 s**:
+**3,184 .NET tests**, **30 expected skips**, **75 Rust tests**, **68 packaging
+checks**, **9 localization checks** and all **five** new owned source-support
+controls, zero failures. The controls reported zero private reads and worker
+calls; both release jobs were skipped. The frozen-runtime
 investigation is closed. After this source/outcome push and CI review, its local
 selector, reports, raw logs, receipts and isolated diagnostic worker can be
 retired; no further private run is authorized by this result. The source App
 Data files, current compiler inputs, original corpus and sole 0.4.56 package
 remain protected. No dependency, model, frozen schema or license changed.
+
+At **2026-11-16T03:54:05.5401605Z**, the completed
+`artifacts/axis-box-diagnostic-check` tree was retired: **68 files / 28,708,710
+bytes**, including the private selector, completed reports, raw logs, old
+diagnostic worker and earlier compact retirement receipts. The sole active
+owned stroke baseline (**22,947 bytes**, hash
+`6aa95bee611c590342a33106042eff085c20fe50018b5939c8e00b5fafdfb62f`)
+was moved without duplication to
+`artifacts/affine-source-bridge-check/stroke-baseline.json`. Its named consumer
+is a two-control owned audit of clipped original support; retire it after that
+consumer's outcome push. This is not authorization for another private run.
+
+Automatic approval review rejected an earlier broader cleanup before execution
+because it included the protected `runtime-pins.json` checkpoint. The safer
+action excluded its entire directory, which remains byte-identical. Probe
+compiler directories were also retained for the immediate owned audit rather
+than deleted and rebuilt. Eleven freshly checked keepers were unchanged across
+the actual retirement. The Imaging compiler hash had already changed to
+`00602cf9b13c325b6d5123bc10619770df9d01962e4c02eb2976aa1fdc491ced`
+in the authorized managed build, so its current identity was checked separately
+from the older inventory snapshot. All original Data, QA images and the sole
+package were preserved. Path, reparse, tracked-file, exact inventory/hash and
+point-in-time process checks preceded the move/deletion.
+
+Inventory SHA-256:
+`998d5a1ee90714ec0648ef5d56c7596ca7a2a1d0250b5304c461a81ad2d6cd23`;
+actual-action journal:
+`dd69c1b054a9d22b508f52e0e7fc1d61272f0d6a7ad2de8101e3cc3765807354`.
+Earlier hashes in this document now identify historical retired outputs except
+for the explicitly retained protected checkpoint and active owned baseline.

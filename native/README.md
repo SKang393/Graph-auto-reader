@@ -56,6 +56,17 @@ Global proposal/review detection retains its separate `<128` predicate.
 Pale or unsupported exact endpoints can still reject measurement. Numeric
 labels, calibration cross-checks and explicit review remain application work.
 
+`--measure-ticks-manual-partial` is a separate opt-in for a user-marked affine
+frame. It uses the same GRT1/TICKS1 bounds and exact box, but retains ticks from
+an independently observed full axis span when the other span is unavailable.
+The unavailable side returns `-`; it is not scanned for ticks. A missing origin,
+both spans missing or shared bridge-budget exhaustion still refuse the result.
+Fully observed spans may legitimately contain no ticks. The App selects this
+mode only for current user-defined manual affine geometry; automatic proposals
+and ordinary `--measure-ticks` behavior stay unchanged. Review, missing-value
+completion and all existing calibration checks still apply. See the
+[source and validation record](../docs/MANUAL-AFFINE-PARTIAL-TICKS-20261116.md).
+
 `examples/blocking_test_worker.rs` is a test-only cancellation fixture. It is
 not included in application output. To exercise the process bridge:
 
