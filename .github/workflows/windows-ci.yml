@@ -108,6 +108,12 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass
           -File "${{ github.workspace }}\packaging\tests\Test-HostedInternalPreview.Tests.ps1"
 
+      - name: Test verified internal preview activation
+        shell: pwsh
+        run: >-
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File "${{ github.workspace }}\packaging\tests\Test-ActivateVerifiedInternalPreview.Tests.ps1"
+
       - name: Restore
         shell: pwsh
         run: dotnet restore GraphAutoReader.slnx
