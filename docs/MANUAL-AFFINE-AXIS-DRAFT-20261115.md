@@ -288,3 +288,12 @@ Before removal, recheck resolved target containment, ancestor/reparse safety,
 counts/bytes, live process consumers, retained runtime/fixture hashes and all
 four source-runtime Data files. The completed checks can be regenerated with
 the commands above; future test compilation must restore deleted `obj` assets.
+
+Record `332d256af6ddff88c21c96035177701f5630715c` was pushed and integrated
+before removal. At `2026-11-16T00:53:11.6914182Z`, all listed targets were
+absent: **3,586 files / 845,859,876 bytes retired**. The fresh guard found no
+active target consumer or reparse point. All **36 protected hashes**, including
+twenty runtime libraries, the App/Rust executables, source fixtures, four owned
+native PNGs, the latest pointer and unrelated primary edits, remained equal.
+All four source-runtime Data files remained unchanged. The current compact
+runtime manifest remains; result/TRX hashes above now describe retired files.

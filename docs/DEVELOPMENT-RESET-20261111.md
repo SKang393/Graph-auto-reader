@@ -41,9 +41,10 @@ assertion; the repaired Imaging suite passed and other twelve suites were green.
 Its initial source commit `bb40265` passed exact-head full Windows CI. Review
 then found the same orientation loss when correcting an automatic rectangle;
 that correction now passes four owned regressions and the full 1,310-test App
-suite, pending final integration/CI. Native review remains blocked by the tool's
+suite. Its final source `472b715f` passed exact-head full Windows CI:
+3,180 .NET tests, 30 expected skips, zero failures, and 72 Rust tests. Native review remains blocked by the tool's
 persistent Escape-stop state despite the maintainer confirming no new Escape.
-Prepare one integrated 0.4.56 preview
+One hosted integrated 0.4.56 preview is running from that frozen source
 for the accumulated automatic-frame, rectified-reading, affine-marker and manual
 fallback changes. The
 [printed-X accessibility/language contract](CALIBRATION-LOCALIZATION-20261115.md)
