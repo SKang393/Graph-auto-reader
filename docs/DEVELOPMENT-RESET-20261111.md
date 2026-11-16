@@ -38,7 +38,10 @@ retirement. [REV-013](REVIEW_QUEUE.md#rev-013---name-the-next-original-developme
 requests an existing named original, not permission to repeat the old search.
 Independent work removes only three closed exact-report diagnostic entrypoints
 under the [source retention amendment](AFFINE-DIAGNOSTIC-SOURCE-RETENTION-20261116.md),
-preserving reusable owned helpers and all current CI checks.
+preserving reusable owned helpers and all current CI checks. Source `9eb9ba95`
+passes exact-head full CI with 3,258 .NET passes, 30 explicit skips, 85 Rust
+passes, 68 packaging passes and zero failures. Its completed 88-file diagnostic
+outputs were retired with protected files and the sole package unchanged.
 
 The earlier
 [tilted-axis source checkpoint](NATIVE-AFFINE-AXIS-REVIEW-20261115.md)

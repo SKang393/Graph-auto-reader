@@ -36,12 +36,28 @@ owned self-tests each ran once with exit zero, no timeout and empty stderr:
 
 All use the `--real-dev-affine-` prefix but reported **zero private/source
 payload reads and zero worker calls**. No new tests or private comparisons were
-added. Full source CI remains the integration gate.
+added.
 
-Keep `artifacts/affine-diagnostic-source-retention-check` and probe `bin`/`obj`
-only for this active integration/CI review; retire them after the source and
-concise outcome are pushed and consumers finish. Preserve original data, current
-runtime assets, the sole packaged build and the protected correction checkpoint.
+Source/outcome commit `9eb9ba95f23fc75a7e01d89cb4e847fafd65de28` is integrated
+and pushed to `origin/main`. Exact-head
+[Windows CI 43846734054](https://github.com/SKang393/Graph-auto-reader/actions/runs/43846734054),
+job `133228661798`, passed with `full_product_validation=true` and
+`scope_reason=full_path_status`. It ran **3,258 passing .NET tests**, **30
+explicit skips**, **85 passing Rust tests** and **68 passing packaging checks**,
+with zero failures. Version policy passed 62, portable retention 12, ledger
+generation six and localization self-tests nine. Both release jobs were skipped.
+The job log spans `2026-11-16T10:12:30.5771482Z` to `10:24:54.9135485Z`.
+No application package or workflow retry was created.
+
+After the source/outcome push and full CI, the completed
+`artifacts/affine-diagnostic-source-retention-check` and probe `bin`/`obj` were
+retired at **2026-11-16T10:27:28.9595830Z**: **88 files / 97,004,841 bytes**.
+Exact canonical scope, file hashes/counts, no reparse/tracked files and inactive
+consumers were verified before deletion. All targets were absent afterward;
+all **27 protected file hashes** and the sole **0.4.58 ZIP** were unchanged.
+Tiny retirement receipts remain only until this closeout record is pushed.
+Original data, current runtime assets and the protected correction checkpoint
+remain intact.
 The separate [REV-013](REVIEW_QUEUE.md#rev-013---name-the-next-original-development-graph)
 waits for an exact original input identity for a new changed-stage confirmation;
 no retired private report or twelve-case search was reconstructed.
