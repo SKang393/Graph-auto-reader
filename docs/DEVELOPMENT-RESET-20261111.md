@@ -3,6 +3,15 @@
 
 # Development direction, 2026-11-11
 
+The [busy-footer Cancel repair](CALIBRATION-BUSY-CANCEL-20261116.md) makes the
+existing cancellation command visible during ManualPreview searches and label
+reads. The unshown-window WPF regression and all 1,349 App tests pass, with no
+skips. It changes presentation only and awaits source integration/full CI;
+the delivered 0.4.59 package is unchanged. The [CI scheduling follow-up](WINDOWS-CI-SCOPE-20261116.md#remove-a-measured-repeat-of-unchanged-release-fixtures)
+reuses one costly unchanged fixture suite only for verified documentation
+pushes; the existing 44 scope controls pass. Its measured hosted benefit still
+requires the next necessary documentation run.
+
 The [identical-family fit reuse](AXIS-FINAL-FIT-REUSE-20261116.md) removes repeated
 final fits from the fallback solver without changing candidates, ranking or
 work limits. Four owned before/after payloads match exactly; all 272 Axis tests

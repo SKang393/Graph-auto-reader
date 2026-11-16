@@ -1583,13 +1583,19 @@
             BorderBrush="{DynamicResource App.Brush.Border}"
             BorderThickness="0,1,0,0">
       <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
         <TextBlock VerticalAlignment="Center"
                    Foreground="{DynamicResource App.Brush.TextMuted}"
                    Text="{Binding StatusMessage}"
                    automation:AutomationProperties.AutomationId="Workflow.Status"
                    automation:AutomationProperties.Name="{Binding StatusMessage}"
                    automation:AutomationProperties.LiveSetting="Polite" />
-        <ProgressBar Width="160"
+        <ProgressBar Grid.Column="1"
+                     Width="160"
                      Height="4"
                      HorizontalAlignment="Right"
                      IsIndeterminate="True">
@@ -1604,6 +1610,15 @@
             </Style>
           </ProgressBar.Style>
         </ProgressBar>
+        <Button x:Name="BusyCancelButton"
+                Grid.Column="2"
+                Margin="12,0,0,0"
+                Command="{Binding CancelCommand}"
+                Content="{DynamicResource Workflow.Cancel}"
+                Style="{DynamicResource App.Style.Button}"
+                Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}"
+                automation:AutomationProperties.AutomationId="Workflow.BusyCancel"
+                automation:AutomationProperties.Name="{DynamicResource Workflow.Cancel}" />
       </Grid>
     </Border>
   </Grid>
