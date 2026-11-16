@@ -147,16 +147,38 @@ issue in the runner or integrated support path.
 
 ## Status and retention
 
+Source/outcome commit `d26c6e42f2f974e31a07b8b877837b74e3992032` is verified on
+`origin/main` and fast-forwarded into the main checkout. The two unrelated user
+edits remain byte-identical. Exact-source [Windows CI 43843206008](https://github.com/SKang393/Graph-auto-reader/actions/runs/43843206008)
+passed, job `133216769690`, with `full_product_validation=true` and
+`scope_reason=full_changed_path`. Its log spans `09:49:21.5315579` to
+`09:57:16.1741025 UTC`, about **7m55s**. All **3,258 .NET tests** and **85 Rust
+tests** passed with zero failures. The **30 explicit .NET skips** comprise
+Inference two, Integration seven, Markers three, OCR sixteen, PDF one and
+SuperResolution one. App ran all **1,342** and Axis all **260** tests. Packaging
+passed **68** controls, version policy **62**, portable retention **12**, ledger
+generation **six** and localization self-tests **nine**. Both release jobs were
+skipped. No workflow rerun or dispatch was used.
+
 The bounded repair passes these owned checks. This pair supplies geometry and
 contains no tick labels; it is **not automatic calibration or numeric accuracy
 evidence**. Native desktop QA remains blocked by the tool's stale Escape state
 despite recorded authorization. Production model, representative acceptance,
 installer/clean-machine and final-product gates remain separate.
 
-Keep `artifacts/affine-interior-support-check`,
-`artifacts/affine-original-support-check` and the probe compiler output only for
-the active source integration/CI review. After its concise outcome is pushed and
-those consumers finish, retire these generated receipts, logs and compiler
-outputs. Preserve originals, Data, current runtime assets, the active correction
-checkpoint and the sole verified 0.4.58 package. The comparison command above is
-the historical invocation, not a promise of permanently retained report inputs.
+After the coherent source/outcome push and full CI review, guarded retirement
+completed at **2026-11-16T10:00:55.0142508Z**: **528 files / 270,911,007 bytes**.
+The eight exact scopes were `artifacts/affine-interior-support-check`,
+`artifacts/affine-original-support-check`, the probe's `bin` and `obj`, and the
+App/Axis test projects' `bin` and `obj`. Canonical paths, complete inventories,
+file hashes, absence of tracked files/reparse points and inactive consumers were
+checked before deletion; all targets were confirmed absent afterward.
+
+All **27 protected files** and the sole verified **0.4.58 ZIP** remained
+byte-identical. Originals, shared/source Data, current runtime assets, the
+active correction checkpoint and the four native-QA images remain retained.
+The first read-only consumer check could not access CIM in the sandbox; the
+normal-host check succeeded with zero consumers before any deletion. No process
+was stopped. The comparison command and raw-report hashes above are historical
+records, not promises of retained inputs. Tiny retirement metadata remains only
+until this completion record is pushed, then is also removed.

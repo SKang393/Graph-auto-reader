@@ -93,8 +93,9 @@ OCR and fit counts were zero.
 The owned feasibility check passes. The bounded Rust source-support fallback
 subsequently passed the exact paired controls; see its
 [integrated outcome](AFFINE-ORIGINAL-SUPPORT-20261116.md). Native UI acceptance
-and automatic-accuracy evidence remain incomplete. Preserve this compact report
-and probe through source integration/CI review, then push its
-outcome and retire `artifacts/affine-interior-support-check` and inactive probe
-compiler outputs. No private follow-up or parameter sweep is authorized by this
-result.
+and automatic-accuracy evidence remain incomplete. After the source/outcome
+push and successful full CI, the 12-file, 12,797-byte
+`artifacts/affine-interior-support-check` and inactive probe compiler outputs
+were retired in the documented integrated closeout at
+`2026-11-16T10:00:55.0142508Z`. Its raw report identity above is historical.
+No private follow-up or parameter sweep is authorized by this result.

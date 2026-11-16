@@ -11,6 +11,27 @@ visibly incomplete review choices and preserves tilted geometry in those
 choices. The old 0.4.57 keeper and delivery staging were retired after the
 activation record was pushed. All protected hashes remained unchanged. Native
 UI, clean-machine and production acceptance remain incomplete.
+
+Newer source `d26c6e42f2f974e31a07b8b877837b74e3992032` adds
+[original-pixel support inside the existing affine tick bridge window](AFFINE-ORIGINAL-SUPPORT-20261116.md).
+It is not yet in the packaged preview. The fixed owned connected/disconnected
+pair passed through the actual C# to Rust client in 0.587 seconds overall:
+connected ink supported the exact box with zero invented ticks, while the real
+gap remained refused. Source and rectified pixels matched the cached baseline.
+Local validation passed 85 Rust, 260 Axis and 1,342 App tests; exact-source full
+CI passed 3,258 .NET tests, 85 Rust tests and 68 packaging checks, with 30 explicit
+.NET skips and zero failures. Cancellation now retains the caller's token. No new private
+or sealed read, model change, threshold change or package was performed.
+The current association review found no further supported arithmetic defect;
+ambiguous tiny fragments and competing labels remain visible refusals. Do not
+repeat the closed private comparisons or relax safeguards to fill these gaps.
+The coherent source/outcome push and full CI are followed by retirement of
+528 completed diagnostic/test files, 270,911,007 bytes, with all 27 protected
+hashes and the sole 0.4.58 package unchanged. The next native acceptance slice
+remains REV-011; its authorization is already recorded and the tool stop state
+is the blocker. No additional geometry or association change is supported by
+the current closed diagnostics.
+
 The earlier
 [tilted-axis source checkpoint](NATIVE-AFFINE-AXIS-REVIEW-20261115.md)
 `4fcf0b69e7a39e032fb862327b55d5aad9cdd3d1` has successful full Windows CI.
@@ -38,8 +59,8 @@ possible winners to manufacture coverage. The bounded owned tick diagnostic did
 not reproduce the affine refusal. The subsequent
 [single typed refusal diagnosis](AXIS-BOX-REFUSAL-DIAGNOSTIC-20261116.md)
 identifies an unobserved X-axis span: the origin passes and bridge work does not
-exhaust its cap. Y/tick scanning is unattempted. Its compact local selector is
-retained for the completed one-frame property audit without another twelve-project
+exhaust its cap. Y/tick scanning is unattempted. Its compact local selector was
+retained for the one-frame property audit and has since been retired, without another twelve-project
 geometry or OCR pass. That audit reproduced a three-pixel disconnected gap and
 427 search steps. Relaxing only perpendicular clipping at the same radius did
 not connect it; production clipping and thresholds remain unchanged. The next
