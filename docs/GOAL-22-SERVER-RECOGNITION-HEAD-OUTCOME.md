@@ -51,10 +51,8 @@ Both arms fail the documented dev bars for exact text, CER, role accuracy, and d
 
 The authenticated synthetic panel restoration receipt records 37 panels recreated from the bound request: 28 train and 9 dev, with no inference or optimizer run. Its request SHA-256 is `1586f7fd28ffbc6024e07fb0b12b2fb79f0d4dc2dc790aba2d963813b0686675`; the receipt hash is recorded in the JSON.
 
-Under the user-authorized cache cleanup review, the two completed mobile-pair inference-cache directories were removed. The manifest enumerated 219 files totaling 5,103,930,886 logical bytes; the result records 219 removed files and confirms both evaluation report hashes remained unchanged. The V44 reports and their needed inputs were outside the earlier cleanup scope and remain retained through outcome publication. The review covered regular, non-reparse `.bin` files and found no report or scorer dependency on the cache payloads. The trained ONNX and training outputs remain retained until this outcome is pushed and active consumers close.
+## Decision
 
-## Decision and remaining work
-
-No model is selected, activated, or approved. This synthetic evidence does not satisfy product acceptance and does not replace private/sealed acceptance. The V44 scores and no-promotion decision are recorded. After the outcome is committed and pushed, check active consumers, record actual cleanup totals, and retire remaining disposable run outputs.
+No model is selected, activated, or approved. This synthetic evidence does not satisfy product acceptance and does not replace private/sealed acceptance. The V44 scores and no-promotion decision are recorded.
 
 The companion JSON contains receipt paths and hashes for the training report, model, feature profiles, mobile pair, V44 pair, panel restoration, cache cleanup review, and cleanup result. Source paths in the JSON are relative to the `server-crop-head-20261029` worktree. Run artifact paths are relative to `E:\Graph-auto-reader`. The full OCR evaluation reports do not record an execution-provider field, so this record makes GPU claims only for optimizer training and frozen-trunk extraction, as bound by the training receipt.

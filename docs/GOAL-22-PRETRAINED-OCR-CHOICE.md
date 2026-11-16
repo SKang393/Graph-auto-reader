@@ -3,16 +3,11 @@
 
 # One additional OCR option, 2026-09-21
 
-**Approved on 2026-09-21: test both larger pretrained OCR models locally.**
+Two larger pretrained OCR models were evaluated locally.
 
 Example: test whether the larger reader distinguishes a printed `100` from
 `1.00`, and whether the larger detector finds small labels without treating
 graph lines as text. A better result is possible, not established.
-
-| Choice | What happens |
-| --- | --- |
-| Test the larger models | Download about 174 MB once, convert with the existing local toolchain, and compare on owned synthetic development images. Measure accuracy and CPU time before selecting anything. |
-| Keep the existing models only | Continue repairs with the current detector and English recognizer; do not import either new model. |
 
 The exact models are **PaddlePaddle/PP-OCRv5_server_det** and
 **PaddlePaddle/PP-OCRv5_server_rec**. Both official model cards identify Apache-2.0.
@@ -39,7 +34,5 @@ wrong-phase CSV rows from three to 11, while held-out CSV dev counts do not
 improve. The server detector and combined configuration regress. None meets
 the unchanged development bars, so no production model is replaced.
 
-The maintainer selected "Test both larger models". Import, provenance checks,
-conversion parity and native comparison are complete. No further model-import
-decision is pending. Accuracy repairs continue. Final 2.0.0 activation and release already have conditional
-approval after every required gate passes.
+Import, provenance checks, conversion parity and native comparison are complete.
+No production replacement or release acceptance is established by this comparison.

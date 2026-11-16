@@ -114,7 +114,7 @@ cooperative work/rest. Native validation does not implement cooperative per-core
 work/rest; the protocol's flat work/rest field is clarified in the evidence.
 Do not interpret the aggregate cap as an instantaneous per-core guarantee.
 
-The maintainer identified and approved both imports in REV-009. Official
+Official
 Apache-2.0 licenses, notices and pinned upstream revisions were verified.
 Detector ONNX: 88,045,198 bytes, SHA-256
 `2429e33dcee532d1c61e6ad30cb145995f3e85203cb36e266492ddcec8e531f4`.
@@ -123,10 +123,4 @@ Reader ONNX: 84,483,046 bytes, SHA-256
 No new runtime dependency, committed weights, private/sealed reads, training,
 model approval, packaged build or release. Build 433 remains version 0.4.33.
 
-## Next work
-
-Repair confidence validation so malformed tick evidence is preserved for
-Review and blocks export without an unstructured exception. Continue the
-fixed off-center marker revision under the unchanged current OCR baseline.
-Diagnose the reader's phase regression before considering it for the pipeline.
 Goal 22 acceptance remains **FAIL**.

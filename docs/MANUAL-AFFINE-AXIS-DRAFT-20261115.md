@@ -165,13 +165,7 @@ including **1,306 App** and **31 Imaging** tests. All **72 Rust** tests and
 handoff, upload and packaging audits. Release jobs were skipped. This verifies
 the initial manual-draft batch, not the correction follow-up below.
 
-Status: initial source integration, local validation, actual manual-route check
-and exact-head CI pass. Native QA remains incomplete. After the maintainer
-confirmed no new Escape, a fresh desktop
-connection still reported its Escape stop without usable window state or input;
-REV-011 records this tool blocker. One integrated internal preview is being prepared to deliver the
-automatic tilted-frame, reversible reading, affine marker and manual fallback
-changes together. This is not a production approval or public release.
+Initial source integration, local validation, the manual-route check and exact-head CI passed. Native QA remains incomplete; this is not production acceptance or a public release.
 
 ## Correction-route follow-up
 
@@ -256,44 +250,6 @@ public release jobs were skipped.
 One [hosted internal preview](https://github.com/SKang393/Graph-auto-reader/actions/runs/43782484405)
 was dispatched at `2026-11-16T00:47:47Z`, bound to that exact source and prepared
 version **0.4.56**. Later diagnostic source changes are outside this package.
-The verified delivered keeper remains 0.4.55 until the uploaded replacement is
-downloaded, checked, recorded and activated. Native tilted-graph QA still waits
-for the desktop helper's persistent stop state to clear; the maintainer has
-already authorized it and explicitly reported no new Escape press.
+Native tilted-graph QA remains incomplete.
 
-All local test/integration consumers of the completed manual/correction output
-have finished. A bounded preflight identified these disposable outputs for
-removal after this record is pushed:
-
-| Scope in the active worktree | Files | Bytes |
-| --- | ---: | ---: |
-| `tests/*/bin` and `tests/*/obj`, 26 exact existing directories | 3,520 | 838,797,777 |
-| `artifacts/manual-affine-axis-draft-check` | 40 | 4,929,045 |
-| `artifacts/manual-affine-worker-check` | 4 | 6,252 |
-| `artifacts/axis-correction-affine-check`, except current `runtime-pins.json` | 22 | 2,126,802 |
-| Total | 3,586 | 845,859,876 |
-
-The two CSVs within test output are byte-identical copies of the existing
-Legends and Phases source fixtures; their originals remain. The only runtime
-reference to a test binary is the OpenCV parity script, which builds that
-binary before use. No current consumer needs these compiler outputs. Source
-and probe runtimes, all user Data, original/private inputs, owned native PNGs,
-the current package and the separate active Rust diagnostic target are excluded.
-The compact correction runtime manifest remains an active input for the next
-bounded diagnostic/native handoff and is retired only after that consumer
-finishes or replaces it. Historical result hashes above will then identify
-retired outputs, not promised local files.
-
-Before removal, recheck resolved target containment, ancestor/reparse safety,
-counts/bytes, live process consumers, retained runtime/fixture hashes and all
-four source-runtime Data files. The completed checks can be regenerated with
-the commands above; future test compilation must restore deleted `obj` assets.
-
-Record `332d256af6ddff88c21c96035177701f5630715c` was pushed and integrated
-before removal. At `2026-11-16T00:53:11.6914182Z`, all listed targets were
-absent: **3,586 files / 845,859,876 bytes retired**. The fresh guard found no
-active target consumer or reparse point. All **36 protected hashes**, including
-twenty runtime libraries, the App/Rust executables, source fixtures, four owned
-native PNGs, the latest pointer and unrelated primary edits, remained equal.
-All four source-runtime Data files remained unchanged. The current compact
-runtime manifest remains; result/TRX hashes above now describe retired files.
+Historical result hashes identify completed-run outputs that are no longer retained; this record does not imply those outputs remain available.

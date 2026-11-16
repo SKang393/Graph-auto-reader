@@ -5,14 +5,8 @@
 
 ## Supplied input and scope
 
-The maintainer supplied `C:/Users/Sungwoo/mirage-handoff-20261115/files` for this
-explicitly authorized local diagnostic. The helper files have no supplied
-redistribution license; no redistribution or product inclusion is claimed.
-The lead verified handoff archive SHA-256
+The helper files have no supplied redistribution license; no redistribution or product inclusion is claimed. The adapter archive has SHA-256
 `10bdf93bcb38853881b10e474a3c1c9dcc80bb322f1e0d140023cc6b7968b709`.
-`HANDOFF.md` was read first; originals remain unchanged. Only the two adapter
-files, handoff note and fixed owned synthetic PNG were copied into the ignored
-worktree directory `artifacts/mirage-comparison-20261115/supplied`.
 
 The supplied Linux observation is diagnostic only: six planted label strings
 and two spurious text detections, with a misleading generated narrative. Neither
@@ -140,13 +134,7 @@ nor unknown confidence validates the native response. Historical raw/result,
 supplied adapter and `windows_probe.py` bytes remain unchanged. No native rerun
 or parameter change was used for recovery.
 
-The isolated subtree was [retired](MIRAGE-COMPARISON-RETIREMENT-20261115.md)
-after the owned and paired outcomes were pushed and consumers finished.
-Disposable binaries/model/raw outputs were removed; the C: originals and
-sole packaged application remained unchanged. These owned adapter checks read no private,
-sealed or training inputs. The subsequent authorized fixed development pass
-is recorded separately in the
-[paired pipeline outcome](MIRAGE-PAIRED-PIPELINE-20261115.md).
+Owned adapter checks read no private, sealed or training inputs. The fixed development pass is recorded in the [paired pipeline outcome](MIRAGE-PAIRED-PIPELINE-20261115.md).
 
 ## Authored reproducibility sources
 
@@ -160,3 +148,5 @@ sources; no helper behavior or active run file changed. This permits later
 scratch retirement after the pushed outcome and active paired consumer finish,
 without adding a product dependency or authorizing another run. That scratch
 retirement is now completed.
+
+Historical result hashes identify completed-run outputs that are no longer retained; this record does not imply those outputs remain available.

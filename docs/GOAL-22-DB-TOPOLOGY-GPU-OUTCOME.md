@@ -53,11 +53,6 @@ The paired DEV split is reused diagnostic data: it had already been used by an e
 - V46 baseline score: `E:\Graph-auto-reader\artifacts\goal22-worktrees\resume-20260908\artifacts\goal22-runs\server-rec-head-v46-baseline-score-20261030-v1\score.json`, SHA-256 `15a9d9709baa24f6c70ae395168533cf6d2d4a6923ce66d8601f5e93fc3eb991`.
 - Topology score: `E:\Graph-auto-reader\artifacts\goal22-worktrees\resume-20260908\artifacts\goal22-runs\server-rec-head-v46-topology-score-20261030-v1\score.json`, SHA-256 `832fa7b4848a0cf9ed1dedbf8a52174b3be5197c1541c413ea43f949501be599`.
 
-## Retention and status
+## Status
 
-The training/export/evaluation scripts remain experimental in this worktree pending maintainer disposition; no release is authorized. Per `docs/ARTIFACT-RETENTION.md`, after this record is pushed and no active consumer remains, retire the generated dataset, tensor/feature/target caches, raw logs, prediction and evaluation dumps, temporary reports, screenshots, exported detector model/manifest, rejected final weights, intermediate checkpoints, and duplicate weights. This includes the completed training run directory `artifacts/goal22-runs/db-head-topology-gpu-train-20261029-v1`, export directory `artifacts/goal22-runs/db-head-topology-experimental-export-20261030-v2`, paired preparation directory `artifacts/goal22-runs/server-rec-head-v46-topology-pair-20261030-v1`, and the two baseline/topology score outputs documented above, plus their completed generated input/cache outputs. Do not remove current product models or source inputs still needed by an active consumer. The scripts remain experimental worktree sources pending disposition. Once generated sources/inputs are retired, no executable reproducibility is promised from this outcome record alone. No files are deleted by this record. Goal 22 is not complete.
-
-
-
-
-
+The scripts remain experimental. This outcome record alone does not establish executable reproducibility. Goal 22 is not complete.

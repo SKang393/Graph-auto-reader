@@ -110,19 +110,6 @@ and passed **3,203 .NET tests**, **80 Rust tests**, **68 packaging checks** and
 App passed all 1,322 tests and Axis all 239, including the local fixture skip.
 The existing diagnostic self-tests also passed without private reads or worker
 calls; both release jobs were skipped. The delivered package stays
-**0.4.56**, and native QA remains blocked by the desktop helper's stale Escape
-state despite renewed user authorization. No packaged build is required for
-this source batch. At `2026-11-16T04:26:22.0380266Z`, after that CI and outcome
-commit `19fec01e48ebce2102c33621c954bb6947490ccc` were verified, guarded cleanup
-retired **457 files / 201,797,521 bytes**: `artifacts/manual-partial-ticks-check`
-and the App/Axis test `bin`/`obj` directories. This includes the isolated test
-worker and raw results. All five targets were untracked, unchanged from their
-inventory and free of reparse points; the process check observed no consumer.
-Eleven protected Data, QA-image, checkpoint, pointer and package files retained
-their hashes. In particular, `artifacts/axis-correction-affine-check/runtime-pins.json`
-remains protected and present. The inventory SHA-256 is
-`199b5b2b7074efc2942ecfa1e3996c39ff3f3091ce6dda07433ec55cc5012973`;
-the action journal is
-`b3e2827e3304c3b0cb60ea73dee3ed307edb69e5caa0a9d293a1f978b746c405`.
-Current source/probe compiler dependencies remain active. No paid credits,
-sealed evaluation or reset redemption were used.
+**0.4.56**. Native QA remains incomplete. This source batch does not establish packaged-build or release acceptance.
+
+Historical result hashes identify completed-run outputs that are no longer retained; this record does not imply those outputs remain available.

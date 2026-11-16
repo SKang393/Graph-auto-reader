@@ -3,15 +3,9 @@
 
 # Fixed Mirage development comparison
 
-## Current assignment
+## Diagnostic scope
 
-The maintainer reopened Mirage testing on 2026-11-15, including inspection of
-the invalid `-nan(ind)` response and comparison with the unchanged baseline on
-supplied development examples and owned controls. Reuse the isolated adapter
-being prepared by Dot worker `/root/usage_reset`; do not duplicate or overwrite
-it. This is one fixed diagnostic comparison, not permission to search models,
-thresholds or private answers. No paid credits are authorized. The current task
-stops at 4% weekly usage remaining; the earlier reset instruction is superseded.
+This fixed diagnostic compares malformed responses and unchanged baseline behavior on development examples and owned controls.
 
 Source checkpoint `b6f14f5d8b34b7b3979f61d36332967cf146f222` preserves the
 completed orientation repair and its 85 OCR / 200 App tests. The comparison
@@ -131,17 +125,13 @@ Before a development pass, verify the adapter's exact runtime/model/license
 identities, bounded response buffer, cancellation/deadline, resource cap,
 telemetry disabled, and owned controls. No new runtime is added to the product.
 
-## Coordination and retention
+## Adapter evidence
 
-The maintainer transferred the adapter to
-`C:/Users/Sungwoo/mirage-handoff-20261115/files`. The lead read `HANDOFF.md`
-first, then all supplied source and response files. The 10,378-byte archive
-SHA-256 was independently verified:
+The 10,378-byte adapter archive has SHA-256
 `10bdf93bcb38853881b10e474a3c1c9dcc80bb322f1e0d140023cc6b7968b709`.
 The eight extracted files total 23,263 bytes. The 600-by-400 owned PNG has SHA-256
 `6f1e161799715d031cd8391263df264030dec2a1baecf3b56fff8ea146c00ca2`.
-Keep these supplied originals unchanged. Local diagnostic use is explicitly
-authorized by the transfer; no redistribution of the handoff helpers is claimed.
+The helper redistribution license is not established.
 
 The handoff reports a Linux CPU run, not Windows or paired development
 validation. Its raw response has six planted axis strings, two spurious text
@@ -150,9 +140,7 @@ rows and a false wrench narrative. Its text entries use `string`, `bbox` and
 fresh Windows key and box convention before adapting that boundary. Never use
 the scene narrative to supply scientific values or axes.
 
-The comparison work is split between a Windows runtime/adapter diagnostic and
-the existing C# frozen-baseline orchestrator. Reuse the handoff rather than
-creating a competing adapter. The supplied adapter's five local tests passed.
+The supplied adapter's five local tests passed.
 One Windows default-options call on the unchanged supplied PNG completed with
 strict JSON, eight text rows, no repair and no nonfinite token. It retained the
 six planted strings and two spurious rows; describe time was 13,825.0113 ms
@@ -175,9 +163,4 @@ The [Windows record](MIRAGE-WINDOWS-ADAPTER-20261115.md) carries exact source
 identities and parser evidence. Owned transport, mapping, full-pipeline and the
 single paired development pass are now completed as recorded above.
 
-After the outcome and scope were pushed and consumers finished, the three
-completed probe directories were [retired](MIRAGE-COMPARISON-RETIREMENT-20261115.md):
-120 files / 67,310,655 bytes. This includes the reused corner-worker staging,
-Mirage downloads and disposable results. The 451 package, its model assets,
-shared data, native QA inputs and supplied originals remained unchanged.
-Authored diagnostic source and concise aggregate evidence remain in Git.
+Historical result hashes identify completed-run outputs that are no longer retained; this record does not imply those outputs remain available.
