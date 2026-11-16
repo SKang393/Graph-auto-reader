@@ -129,3 +129,8 @@ After the outcome is pushed and CI/review consumers finish, retire this batch's
 logs, TRX and disposable test compiler outputs, retaining source, the current
 package and protected native-QA inputs. The preceding owned-control cleanup is
 recorded in [its closeout](OWNED-AFFINE-PARTIAL-REVIEW-20261116.md).
+
+The raw outputs and disposable Axis/App test binaries from this batch were
+subsequently retired with the [tilted-choice closeout](TILTED-AXIS-CHOICES-20261116.md#validation-output-retirement),
+after their outcomes were pushed and the superseding full CI passed. Current
+runtime inputs, original images, user Data and the sole package were preserved.

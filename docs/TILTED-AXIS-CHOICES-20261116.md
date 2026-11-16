@@ -102,3 +102,21 @@ No dependency/license changes; project source remains Apache-2.0. Retire logs,
 TRX and disposable compiler output after the coherent outcome is pushed and
 active CI/review consumers close. Current originals, native-QA inputs, selected
 runtime assets, and the sole 457 packaged build stay protected.
+
+## Validation-output retirement
+
+After outcome commit `4279db15b54e6c065ad5bbe0aa6e3a09ad04bf7c` was verified on
+origin/main, guarded cleanup completed `2026-11-16T08:10:20.9534077Z`.
+The completed `artifacts/incomplete-axis-review-check` and
+`artifacts/tilted-axis-choice-check` directories, plus Axis.Tests and App.Tests
+`bin`/`obj` directories, were retired: **440 files / 133,693,020 bytes**.
+Canonical containment, no reparse points, no tracked source or Data descendants,
+exact inventory hashes and absence of process consumers were checked first.
+All 27 protected input/shared-Data hashes and the 457 keeper ZIP stayed unchanged.
+
+The newer chooser-availability result and probe compiler output remain only for
+their active CI/closeout consumer. Source App Data, the protected affine runtime
+checkpoint, current assets and owned native-QA inputs were excluded. Remote
+checkpoint CI uses its own checkout and does not consume the retired files.
+Regenerate local tests from the recorded source and commands when a new change
+requires them; the retired raw TRX/log paths are historical identities.

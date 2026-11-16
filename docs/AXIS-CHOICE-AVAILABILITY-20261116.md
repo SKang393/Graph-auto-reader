@@ -39,6 +39,12 @@ outcome commit, not a new packaged 457 binary. Its separate pin profile binds
 all twenty runtime libraries, loaded managed assemblies and the actual native
 OpenCV module before selection. Historical profiles remain unchanged.
 
+Source/outcome checkpoint `4279db15b54e6c065ad5bbe0aa6e3a09ad04bf7c` is pushed
+and integrated. [Windows CI 43828397926](https://github.com/SKang393/Graph-auto-reader/actions/runs/43828397926),
+job `133167547326`, passed from `08:04:50` to `08:17:20 UTC`: **3,243 .NET
+passes**, **30 explicit skips**, **80 Rust passes**, zero failures, and **68
+packaging checks**. The new owned preflight passed in that exact-source run.
+
 ## Preflight and execution
 
 Initial runtime inspection refused the NuGet default native OpenCV hash
@@ -128,3 +134,13 @@ One 0.4.58 internal preview is prepared to deliver the accumulated incomplete
 and tilted-choice product changes, rather than the diagnostic itself. Its
 exact-source CI, hosted build, upload verification and guarded activation must
 finish before replacing 0.4.57. No private rerun is needed for that delivery.
+
+After the pushed outcome and exact-source CI passed, guarded retirement
+completed `2026-11-16T08:20:30.0788072Z`: **91 files / 49,479,717 bytes** from
+the diagnostic output directory and probe `bin`/`obj`. The temporary runtime
+manifest is retired; its complete twenty-library profile remains in source,
+and the separate protected affine runtime checkpoint is untouched. Exact file
+hashes, containment, no reparse points, no tracked source/Data and no process
+consumers were checked. All 27 protected input/shared-Data hashes and the 457
+keeper ZIP were unchanged. No payload is needed to repeat this closed check;
+another private invocation requires a distinct justified change.
