@@ -123,11 +123,17 @@ The run used full product validation; release jobs skipped. Owned correctness
 and scoped source integration pass.
 The sole delivered package remains 0.4.58. This source optimization adds no
 native UI, clean-machine, model or automatic-calibration acceptance claim.
-After the concise outcome/source is pushed and CI/review consumers finish,
-retire `artifacts/axis-final-fit-check` and the completed Axis.Tests compiler
-outputs. The run scope plus test output remained below its 100-MB temporary
-budget. Preserve the current package/models, source App/Data, owned native-QA
-inputs, original corpus, protected runtime checkpoint and other tasks' work.
+After the outcome/source and full-CI record reached `origin/main` at
+`57b9f1a915241e97c475dcd6bd76a4d4d7adfb73`, guarded retirement completed at
+**2026-11-16T13:19:08.1352960Z**. `artifacts/axis-final-fit-check` and the
+completed Axis.Tests `bin`/`obj` trees are now absent: **238 files,
+75,812,274 bytes** removed. The temporary run plus test output stayed below
+its 100-MB budget. No tracked files, reparse paths, Data descendants or active
+consumers were found. All **507 protected file hashes** remained unchanged,
+including every current-package file, shared and Debug Data, owned native-QA
+inputs, source Debug App/current Rust worker, protected runtime checkpoint
+and the two unrelated primary-checkout edits. Original corpus/model locations
+and other tasks' work were outside the three exact deletion scopes.
 
 The subsequent App status regression check uses a normal Release build. The
 old ordinary Rust baseline's closed consumers no longer require its generated

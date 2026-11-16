@@ -88,11 +88,18 @@ SHA-256 identities before disposable-output retirement:
 | Full TRX | `fef176cc0bb6d0de8823cd2439342c6bdf902fea160eb0d9dcdad921e9fa76f2` |
 
 Local regression and App checks pass with the two explicit skips. Source
-integration and full Windows CI remain pending. No dependency or license
+`57b9f1a915241e97c475dcd6bd76a4d4d7adfb73` is integrated and pushed to
+`origin/main`. [Full Windows CI 43873769828](https://github.com/SKang393/Graph-auto-reader/actions/runs/43873769828)
+passed on that exact head from **2026-11-16T13:13:46Z** to **13:27:05Z**:
+**3,271 .NET passes**, 30 explicit skips, zero failures, including all
+**1,343 App tests** with no skips. All 89 Rust tests, 44 CI-scope assertions,
+68 packaging checks, 62 version checks, six ledger checks, 12 portable checks
+and nine localization checks passed. Scope was `full_changed_path`; release
+jobs skipped. Scoped source integration passes. No dependency or license
 change was made. The sole delivered build is still 0.4.58; this small source
 fix does not justify another package or establish native visual acceptance.
 
-After this source/outcome is pushed and CI consumers finish, retire
+After CI consumers finish, retire
 `artifacts/stale-label-status-check` and closed App/App.Tests Release compiler
 outputs after ownership and consumer checks. Preserve Debug runtimes and Data,
 the current package, owned native-QA inputs, original corpus, independent split,

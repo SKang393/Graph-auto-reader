@@ -18,7 +18,18 @@ benefit and is not being added. The [stale label-read correction](CALIBRATION-ST
 now prevents an old completion from overwriting status after a tab switch.
 Its owned regression failed before the fix and passes afterward; the full
 local App suite passed 1,341 tests with two explicit worker-dependent skips.
-Source integration/full Windows CI for that correction remain pending.
+Source `57b9f1a9` is integrated and pushed; exact-head full CI passed 3,271
+.NET tests (30 explicit skips), including all 1,343 App tests, plus 89 Rust
+tests and all packaging checks. Release jobs skipped.
+The closed Axis profiling/test outputs have been retired: 238 files and
+75,812,274 bytes, with all 507 guarded file hashes unchanged. Recalibration
+already refreshes existing points, provenance and export order; the bounded
+downstream audit found no supported defect. The [label-read cancellation repair](CALIBRATION-LABEL-CANCELLATION-20261116.md)
+now cancels an abandoned read after tab selection changes while preserving
+same-tab and unrelated operations. The owned reproduction fails before the
+change; ten focused checks and all 1,348 App tests pass afterward, with no
+skips. The current Rust worker was enabled for the full suite. Source integration
+and full Windows CI for this responsiveness correction remain pending.
 
 The [content-span routing repair](RUST-CONTENT-SPAN-RECOVERY-20261116.md)
 fixes an owned counterexample where disconnected decoy ink prevented the existing

@@ -16,6 +16,7 @@ public sealed partial class MainWindowViewModel
     private CalibrationLabelRowViewModel? _selectedCalibrationLabel;
     private string _calibrationLabelStatusOverride = string.Empty;
     private int _calibrationLabelGeneration;
+    private CancellationTokenSource? _calibrationLabelReadCancellation;
     private Point[] _calibrationLabelReadAnchors = [];
 
     public ObservableCollection<CalibrationLabelRowViewModel> CalibrationLabelRows { get; } = [];
@@ -96,9 +97,15 @@ public sealed partial class MainWindowViewModel
         OnPropertyChanged(nameof(CalibrationLabelStatusText));
 
         WorkspaceCalibrationLabelSuggestion? result;
+        using var readCancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
+        _calibrationLabelReadCancellation = readCancellation;
         try
         {
-            result = await workspace.ReadCalibrationLabelsAsync(suggestion, token);
+            result = await workspace.ReadCalibrationLabelsAsync(suggestion, readCancellation.Token);
+        }
+        catch (OperationCanceledException) when (!token.IsCancellationRequested && generation != _calibrationLabelGeneration)
+        {
+            return;
         }
         catch (OperationCanceledException)
         {
@@ -128,6 +135,11 @@ public sealed partial class MainWindowViewModel
                 OnPropertyChanged(nameof(CalibrationLabelStatusText));
             }
             throw;
+        }
+        finally
+        {
+            if (ReferenceEquals(_calibrationLabelReadCancellation, readCancellation))
+                _calibrationLabelReadCancellation = null;
         }
         token.ThrowIfCancellationRequested();
         if (generation != _calibrationLabelGeneration || !ReferenceEquals(SelectedTab, tab) ||
@@ -241,6 +253,7 @@ public sealed partial class MainWindowViewModel
     {
         ClearCalibrationTickProposal();
         _calibrationLabelGeneration++;
+        _calibrationLabelReadCancellation?.Cancel();
         _calibrationLabelSuggestion = null;
         _calibrationLabelReadAnchors = [];
         _calibrationLabelStatusOverride = string.Empty;
