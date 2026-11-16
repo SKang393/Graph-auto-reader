@@ -238,4 +238,26 @@ completed raw build/self-test/run logs and redundant receipt copies become
 eligible for retirement after this outcome is pushed. The 0.4.56 package remains
 the sole delivered build. No new dependency or license change is introduced;
 the diagnostic source retains Apache-2.0 notices. Owned and bounded diagnostic
-checks pass; exact-source CI for this new probe route remains pending.
+checks pass. Exact-source Windows CI
+[43789060183](https://github.com/SKang393/Graph-auto-reader/actions/runs/43789060183)
+on `069ae2e1973b8258c0f61e3039431499f8e08d6c` passed in **11 min 43 s**:
+**3,180 .NET tests**, **30 expected skips**, **75 Rust tests**, **68 packaging
+checks** and all **seven** new span controls, zero failures. Release jobs were
+skipped. The sampling investigation continues independently.
+
+After the source/outcome push and successful CI, **42 completed top-level raw
+files / 56,253 bytes** were retired at **2026-11-16T02:23:14.9174578Z**. The exact
+manifest bound each target's name, size and hash. Resolved parents, reparse
+ancestry and process references were rechecked before deletion; the process
+check was point-in-time evidence, not a universal open-handle assertion. The
+initial sandboxed CIM query was denied; the normal-host query succeeded.
+No directory or unlisted file was removed. Fourteen freshly snapshotted keepers,
+including the selected frame, two active reports, all current stroke outputs,
+cache markers and diagnostic executable, were unchanged afterward. Original
+data, source files, runtime pins and the sole 0.4.56 package were outside scope.
+
+Manifest SHA-256: `b86c32b81cb4a0ae674e1f9c1fb56e7a3c0a3c1840b9fe9b05b82f8bbedf3966`;
+deletion journal: `e3162075d87f58fbbb034b39539bb17654850ce2216fb9257ad9d20f8edc5851`.
+These two compact local receipts remain only until this integration record is
+pushed, then can be removed. Earlier raw-build, wire, runner and span receipt
+hashes in this document now identify retired historical outputs.

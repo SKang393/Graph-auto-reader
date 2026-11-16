@@ -486,3 +486,22 @@ controls including a path outside the along-span that must remain refused, plus
 cancellation and metadata tampering. The parent keeps the existing CPU cap,
 30-second cancellation and 35-second watchdog. This is a diagnostic tool only;
 the current application and packaged worker remain unchanged.
+
+`--owned-affine-stroke-sampling-check` observes thirteen fixed in-memory gray
+stroke controls through the current affine rectifier. Source connectivity,
+identity parity, input preservation, frame/planted-point offsets and destination
+connectivity are reported separately. Positive sampling loss remains an
+observation; invalid fixtures, mutations, operational failures or unattempted
+cases return nonzero. The existing X-span replay is separate from the generic
+component check. It uses the capped parent with 30/35-second cancellation and
+watchdog limits, without private inputs, workers, OCR or image writes. The prior
+eleven black-stroke controls are not repeated. See
+[the scope and outcome](../../docs/AFFINE-STROKE-SAMPLING-20261116.md).
+
+`--owned-affine-stroke-mask-check <absolute-frozen-Rust-worker> <absolute-cached-stroke-report>`
+is the separate, closed failed source-mask prototype. It preserves the cached
+grayscale baseline, binds the same thirteen fixtures, classifies source ink with
+the existing predicate before rectification and invokes the actual tick service
+once per case. All refusals, spurious ticks and operational failures remain in
+the result. It changes no App/OCR behavior and authorizes no private comparison.
+Its outcome and limitations are recorded in the same linked document.
