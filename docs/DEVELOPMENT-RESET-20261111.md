@@ -3,6 +3,14 @@
 
 # Development direction, 2026-11-11
 
+The [identical-family fit reuse](AXIS-FINAL-FIT-REUSE-20261116.md) removes repeated
+final fits from the fallback solver without changing candidates, ranking or
+work limits. Four owned before/after payloads match exactly; all 272 Axis tests
+pass. Duplicate-rich allocation falls by about 26%, while distinct-case
+allocation is unchanged and its single timing observations increased. This is
+a bounded allocation improvement, not a private accuracy or general speed claim.
+Source integration/full CI are pending, with no new package or private rerun.
+
 The [content-span routing repair](RUST-CONTENT-SPAN-RECOVERY-20261116.md)
 fixes an owned counterexample where disconnected decoy ink prevented the existing
 strict solver from finding a fully ticked plot. All 89 Rust tests and eight

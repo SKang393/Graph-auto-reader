@@ -660,15 +660,36 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
                 continue;
             }
 
-            fitted = FitFamily(refined, orientation);
             var key = string.Join(
                 '\u001f',
-                fitted.Members
+                refined
                     .Select(member => member.Candidate.CandidateId)
                     .Order(StringComparer.Ordinal));
 
-            if (!byMembers.TryGetValue(key, out var existing) ||
-                fitted.RootMeanSquareError < existing.RootMeanSquareError)
+            byMembers.TryGetValue(key, out var existing);
+            if (existing is not null && existing.Members.Count == refined.Length)
+            {
+                bool identical = true;
+                for (int index = 0; index < refined.Length; index++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (!ReferenceEquals(existing.Members[index], refined[index]))
+                    {
+                        identical = false;
+                        break;
+                    }
+                }
+                if (identical)
+                {
+                    // The same ordered inputs reproduce the existing fit/RMS;
+                    // the original strict comparison would keep that first fit.
+                    cancellationToken.ThrowIfCancellationRequested();
+                    continue;
+                }
+            }
+
+            fitted = FitFamily(refined, orientation);
+            if (existing is null || fitted.RootMeanSquareError < existing.RootMeanSquareError)
             {
                 byMembers[key] = fitted;
             }
