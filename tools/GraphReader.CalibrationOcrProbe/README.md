@@ -468,3 +468,21 @@ The limits are 120 seconds overall, 45 seconds per project and five seconds for
 the diagnostic worker, with the existing capped parent/worker policy. This mode
 does not authorize unchanged historical comparisons, threshold selection or
 sealed reads. See [the outcome](../../docs/AXIS-BOX-REFUSAL-DIAGNOSTIC-20261116.md).
+
+`--real-dev-affine-span-properties <selector-json> <completed-report-json> <corpus-root> <absolute-App-exe> <asset-root> <baseline-Rust-worker> <diagnostic-Rust-worker> --explicit-opt-in`
+uses that retained selector and completed report, both hash-pinned, to read only
+the selected development source. It verifies the source and prepared panel,
+rectifies once and replays the existing horizontal-span predicate. The complete
+first-twelve digest is inherited from the pinned report, not recomputed.
+Properties are withheld unless the result, origin predicate and bridge-work
+count reproduce the saved diagnostic. For a short disconnected gap only, one
+counterfactual search keeps the same radius and supplied along-axis limits while
+relaxing perpendicular clipping to raster bounds. It cannot accept a calibration.
+The aggregate output includes stage failures/unattempted stages, work and timing;
+no absolute coordinates, pixels, OCR or scientific values are emitted. No worker,
+geometry rediscovery, fit, truth/sealed read, Apply, export or image write occurs.
+Run `--real-dev-affine-span-properties-self-test` first. It checks seven owned
+controls including a path outside the along-span that must remain refused, plus
+cancellation and metadata tampering. The parent keeps the existing CPU cap,
+30-second cancellation and 35-second watchdog. This is a diagnostic tool only;
+the current application and packaged worker remain unchanged.

@@ -159,6 +159,83 @@ active input with the runtime manifest and report binding. Its geometry and raw
 pixel samples are not committed. Further diagnosis must use this selector,
 without rediscovering the case through another twelve-project geometry pass.
 
-Owned validation and this bounded diagnosis pass; exact-head CI remains pending
-for the diagnostic source. The horizontal-span cause still needs a selected-frame
-property audit. No additional package is required.
+Owned validation and this bounded diagnosis pass. Exact-source Windows CI
+[43786351072](https://github.com/SKang393/Graph-auto-reader/actions/runs/43786351072)
+on `c286ed72f5a166624192c26b1bbb76cc8547b623` passed in **10 min 48 s**:
+**3,180 .NET tests**, **30 expected skips**, **75 Rust tests** and **68 packaging
+checks**, zero failures. The refusal selector/wire self-test also passed with
+zero private reads and worker calls; release jobs were skipped. The horizontal
+span's cause still needs the selected-frame property audit. No additional
+package is required.
+
+## Selected-frame property audit
+
+The next diagnostic used only the retained, hash-pinned selector and completed
+report. It verified the frozen runtime before reading one locked development
+source, matched the saved source/panel/crop/frame binding, then prepared and
+rectified once. It did not rerun the twelve-project geometry prefix. The earlier
+whole-prefix source digest is inherited from the pinned report, not remeasured.
+The scalar result is withheld unless the existing horizontal-span refusal,
+origin and bridge-work count reproduce exactly.
+
+`RealDevAffineSpanProperties.cs` mirrors the Rust gap guards, BFS traversal and
+work accounting. Only for a short disconnected gap does it perform one bounded
+counterfactual: same pixels, radius and along-axis limits, with perpendicular
+clipping relaxed to the raster boundary. Review caught an initially broader
+window and narrowed it before the first compilation or private invocation.
+This search never accepts geometry, ticks or calibration. No production code,
+threshold, resource cap, model or packaged runtime changed.
+
+One probe-only build, using the command above, passed with zero warnings/errors
+in **12.0030624 s**. The owned self-test passed in **0.3725908 s** with **seven
+controls**: continuous ink, an interior bridge, a bridge below the baseline,
+disconnected ink, a terminal gap, an overlong gap and a route that leaves the
+supplied along-span. The below-baseline route connected only in the diagnostic
+relaxation; the along-span excursion remained refused. Cancellation, metadata
+tampering and unchanged input checks passed. No private reads or worker calls
+occurred. Missing arguments produced the expected sanitized exit 1 in
+**0.2493902 s**. There were no failed build or execution attempts in this batch.
+CI now includes `--real-dev-affine-span-properties-self-test`.
+
+The **single** `--real-dev-affine-span-properties` invocation completed at
+`2026-11-16T01:52:01.2012163Z` through `01:52:04.6028336Z`, exit 0, empty stderr,
+**3.3959477 s** wrapper wall time. All **four stages completed**, zero failed or
+unattempted. The replay matched the prior refusal and **427** search steps. The
+first failure was a **three-pixel disconnected gap**, below the unchanged
+maximum gap length **36**; search radius was **24**. Only the bottom plot clip
+truncated that local search. Relaxing perpendicular clipping while preserving
+the supplied along-span still found no connection, after **51** additional
+steps: **`DISCONNECTED_WITH_PERPENDICULAR_RELAXATION`**.
+
+This result rules out clipping alone as the cause of the first gap. It does not
+support a production clipping relaxation or a different ink threshold. It does
+not establish why the raster is disconnected. The next bounded investigation
+is whether rectification and subpixel sampling preserve thin connected strokes,
+starting with owned controls and the existing raster transform implementation.
+No unchanged private comparison is authorized by this result.
+
+Source, preparation, rectification and replay took **63.1627 / 255.3109 /
+674.0338 / 7.893 ms**. Method wall time **1.0007796 s** excludes preflight.
+Cumulative parent allocation was **24,270,352 bytes**, not peak/resident memory;
+the source/panel were **36,239 bytes** each, with **24,130 encoded / 328,770 gray
+derivative bytes** in memory. The verified CPU allowance remained **0.4992
+logical core**, with 30-second cancellation and a 35-second watchdog. All four
+protected source `Data` files retained their lengths and SHA-256 before/after.
+There were zero worker, OCR, fit, truth, reserved/sealed, image-write, Apply or
+export operations. This is property diagnosis, not calibration accuracy or
+native UI acceptance.
+
+| Identity | SHA-256 |
+| --- | --- |
+| Probe assembly | `97c5a597d8111d78ff1a1f478ee821fd76bdd4588492f7635abdc2eb1d432ad3` |
+| Owned self-test report | `ce0b58907eaaa549f8f4edb1caecf3c126ec78ddc8e7206d7a3209f4939525b5` |
+| Selected-frame property report | `fda891cc12335ba5ca7fe6b42a2f7a7f91f67d11832b907b42e83bcb4e63e31c` |
+
+The local selector, prior refusal report, compact property report and frozen
+runtime pins remain named inputs to the active rectification diagnosis. Remove
+them only after that consumer finishes and its concise result is pushed. The
+completed raw build/self-test/run logs and redundant receipt copies become
+eligible for retirement after this outcome is pushed. The 0.4.56 package remains
+the sole delivered build. No new dependency or license change is introduced;
+the diagnostic source retains Apache-2.0 notices. Owned and bounded diagnostic
+checks pass; exact-source CI for this new probe route remains pending.

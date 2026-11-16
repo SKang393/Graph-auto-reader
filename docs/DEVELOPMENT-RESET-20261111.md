@@ -32,8 +32,12 @@ not reproduce the affine refusal. The subsequent
 [single typed refusal diagnosis](AXIS-BOX-REFUSAL-DIAGNOSTIC-20261116.md)
 identifies an unobserved X-axis span: the origin passes and bridge work does not
 exhaust its cap. Y/tick scanning is unattempted. Its compact local selector is
-retained for a one-frame gap/connectivity property audit without another
-twelve-project geometry or OCR pass. The
+retained for the completed one-frame property audit without another twelve-project
+geometry or OCR pass. That audit reproduced a three-pixel disconnected gap and
+427 search steps. Relaxing only perpendicular clipping at the same radius did
+not connect it; production clipping and thresholds remain unchanged. The next
+bounded investigation checks thin-stroke preservation through rectification on
+owned controls before any further selected-frame diagnosis. The
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
 is implemented in source.
 Its local solution tests and actual one-call worker check now pass, preserving
