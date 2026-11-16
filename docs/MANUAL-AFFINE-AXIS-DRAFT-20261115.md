@@ -238,4 +238,53 @@ EXE `d79bac03aef6e3cb61d110e6506220aabdbfb445d8eda1a9e67361bb9f26b898`.
 All twenty source/test libraries matched; reviewed OpenCV and Rust identities
 were unchanged. No dependency, model, frozen schema, scientific threshold or
 license changed. New code retains Apache-2.0 notices. Source validation passes;
-final integration/CI, the one prepared package, and native QA remain pending.
+final integration/CI, the one prepared package, and native QA were pending at
+that local handoff.
+
+## Final source CI and output closeout
+
+The correction source `472b715f29c5ca54ef268e5d8d7d0b31681d5c1e` reached
+origin/main and both checkouts. Exact-head
+[Windows CI 43781221439](https://github.com/SKang393/Graph-auto-reader/actions/runs/43781221439),
+job `133018623482`, succeeded from **2026-11-16 00:35:00 to 00:46:32 UTC**.
+Its thirteen .NET suites passed **3,180 tests, with 30 expected skips and zero
+failures**, including **1,310 App** and **31 Imaging** tests. All **72 Rust**
+tests and **68 packaging verification** controls passed. Version, ledger,
+retention, localization, evidence, handoff, upload and packaging audits passed;
+public release jobs were skipped.
+
+One [hosted internal preview](https://github.com/SKang393/Graph-auto-reader/actions/runs/43782484405)
+was dispatched at `2026-11-16T00:47:47Z`, bound to that exact source and prepared
+version **0.4.56**. Later diagnostic source changes are outside this package.
+The verified delivered keeper remains 0.4.55 until the uploaded replacement is
+downloaded, checked, recorded and activated. Native tilted-graph QA still waits
+for the desktop helper's persistent stop state to clear; the maintainer has
+already authorized it and explicitly reported no new Escape press.
+
+All local test/integration consumers of the completed manual/correction output
+have finished. A bounded preflight identified these disposable outputs for
+removal after this record is pushed:
+
+| Scope in the active worktree | Files | Bytes |
+| --- | ---: | ---: |
+| `tests/*/bin` and `tests/*/obj`, 26 exact existing directories | 3,520 | 838,797,777 |
+| `artifacts/manual-affine-axis-draft-check` | 40 | 4,929,045 |
+| `artifacts/manual-affine-worker-check` | 4 | 6,252 |
+| `artifacts/axis-correction-affine-check`, except current `runtime-pins.json` | 22 | 2,126,802 |
+| Total | 3,586 | 845,859,876 |
+
+The two CSVs within test output are byte-identical copies of the existing
+Legends and Phases source fixtures; their originals remain. The only runtime
+reference to a test binary is the OpenCV parity script, which builds that
+binary before use. No current consumer needs these compiler outputs. Source
+and probe runtimes, all user Data, original/private inputs, owned native PNGs,
+the current package and the separate active Rust diagnostic target are excluded.
+The compact correction runtime manifest remains an active input for the next
+bounded diagnostic/native handoff and is retired only after that consumer
+finishes or replaces it. Historical result hashes above will then identify
+retired outputs, not promised local files.
+
+Before removal, recheck resolved target containment, ancestor/reparse safety,
+counts/bytes, live process consumers, retained runtime/fixture hashes and all
+four source-runtime Data files. The completed checks can be regenerated with
+the commands above; future test compilation must restore deleted `obj` assets.
