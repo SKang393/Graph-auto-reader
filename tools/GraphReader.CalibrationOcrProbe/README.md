@@ -517,26 +517,12 @@ watchdog limits, without private inputs, workers, OCR or image writes. The prior
 eleven black-stroke controls are not repeated. See
 [the scope and outcome](../../docs/AFFINE-STROKE-SAMPLING-20261116.md).
 
-`--owned-affine-stroke-mask-check <absolute-frozen-Rust-worker> <absolute-cached-stroke-report>`
-is the separate, closed failed source-mask prototype. It preserves the cached
-grayscale baseline, binds the same thirteen fixtures, classifies source ink with
-the existing predicate before rectification and invokes the actual tick service
-once per case. All refusals, spurious ticks and operational failures remain in
-the result. It changes no App/OCR behavior and authorizes no private comparison.
-Its outcome and limitations are recorded in the same linked document.
-
-`--owned-affine-clipped-source-support-check <absolute-owned-baseline-report>`
-is the closed two-control feasibility audit. It recreates only the fixed
-positive/negative two-degree thin-gray128 controls, binds their pixels and replay
-properties to the prior baseline, then observes original endpoint support inside
-the production-clipped window unchanged. Excluded contributors give an uncertain
-completed refusal without searching. The report separates those refusals from
-execution failures and closes the branch when neither control is eligible.
-It uses the existing 30/35-second limits and CPU cap, without a native worker,
-private image, OCR, fit or image write. Both measured controls were ineligible;
-the result does not authorize widening or production integration. The same
-[outcome document](../../docs/AFFINE-STROKE-SAMPLING-20261116.md) records the
-identities, failure accounting and retirement condition.
+The completed stroke-mask, clipped-source-support and original-support-worker
+comparison entrypoints have been retired with their exact-hash report inputs.
+Their source remains in commit `d26c6e42`; see the
+[stroke outcomes](../../docs/AFFINE-STROKE-SAMPLING-20261116.md) and
+[original-support outcome](../../docs/AFFINE-ORIGINAL-SUPPORT-20261116.md).
+Reusable owned controls, shared support helpers and CI self-tests remain.
 
 `--owned-affine-interior-support-check` checks one fixed connected/disconnected
 shallow-shear pair rendered inside the original plot boundary. It keeps the
@@ -547,16 +533,6 @@ No native worker, model, private/sealed input, OCR, fit or image-file write runs
 The existing half-core cap and 30/35-second limits apply. This is a feasibility
 check with supplied synthetic geometry, not automatic calibration. See the
 [fixed controls and outcome](../../docs/AFFINE-INTERIOR-SUPPORT-20261116.md).
-
-`--owned-affine-original-support-worker-check <absolute-worker> <absolute-owned-baseline>`
-uses the exact same pair, verifies both source and derived pixels against the
-cached two-case baseline, and sends one strict GRA1 request per case to the
-hash-pinned worker. The connected case must return an exact box with no ticks;
-the disconnected case must remain refused. It supplies the fixed geometry and
-does not repeat the legacy worker, detect geometry, run OCR or fit calibration.
-Each child has a five-second deadline and its own CPU cap; the parent uses the
-existing verified breakaway job and 30/35-second bounds. See the
-[repair record](../../docs/AFFINE-ORIGINAL-SUPPORT-20261116.md).
 
 `--owned-inference-key-check <expected-loaded-inference-sha256>` measures cache-key
 derivation only. It verifies and locks the loaded Inference DLL, performs one

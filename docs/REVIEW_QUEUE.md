@@ -308,3 +308,23 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 - **Unblocks when:** resolved by verified existing authentication. An
   existing-host smoke is diagnostic only and does not
   establish clean-guest or installer release acceptance
+
+## REV-013 - name the next original development graph
+
+- **Status:** waiting for an exact original graph identity
+- **Blocks:** one changed-stage real-development confirmation of the newly
+  verified original-pixel affine support repair; independent code work continues
+- **Effort:** about one minute to provide an existing `.dig` or image path
+- **Action:** identify one authorized development graph that still needs
+  calibration, using its existing local file path; no upload or new approval is
+  requested
+- **Why:** the prior case's disposable selector and reports were retired after
+  their consumers closed. Retained cohort hashes cannot identify that panel.
+  Repeating the twelve-graph search solely to reconstruct it would duplicate
+  completed private work. A named original permits a bounded changed-stage check
+  without sealed/truth access or model/threshold selection
+- **Files:** [repair and verified evidence](AFFINE-ORIGINAL-SUPPORT-20261116.md),
+  [current development direction](DEVELOPMENT-RESET-20261111.md)
+- **Unblocks when:** an authoritative original path or case/panel locator is
+  available and verified against the authorized development split. A new input
+  will be reported as a new diagnostic, not a paired historical result

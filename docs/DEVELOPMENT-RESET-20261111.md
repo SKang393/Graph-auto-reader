@@ -32,6 +32,14 @@ remains REV-011; its authorization is already recorded and the tool stop state
 is the blocker. No additional geometry or association change is supported by
 the current closed diagnostics.
 
+A changed-stage real-development confirmation is valid in principle, but its
+exact original/panel identity is missing after the historical selector's
+retirement. [REV-013](REVIEW_QUEUE.md#rev-013---name-the-next-original-development-graph)
+requests an existing named original, not permission to repeat the old search.
+Independent work removes only three closed exact-report diagnostic entrypoints
+under the [source retention amendment](AFFINE-DIAGNOSTIC-SOURCE-RETENTION-20261116.md),
+preserving reusable owned helpers and all current CI checks.
+
 The earlier
 [tilted-axis source checkpoint](NATIVE-AFFINE-AXIS-REVIEW-20261115.md)
 `4fcf0b69e7a39e032fb862327b55d5aad9cdd3d1` has successful full Windows CI.
