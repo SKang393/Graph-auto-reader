@@ -85,8 +85,16 @@ The single [hosted 0.4.57 build](INTERNAL-PREVIEW-457-VERIFICATION-20261116.md)
 is uploaded, hash-verified and activated after the delivery ledger was pushed.
 Desktop and existing Flex5 headless checks pass, as do both owned PNG controls
 against its packaged Rust worker and the actual latest-build launcher. All
-sixteen shared Data files are unchanged. Old-build/output retirement follows
-the pushed activation record. The
+sixteen shared Data files are unchanged. After the activation record was pushed,
+the old build and completed local/Flex5 outputs were retired, reclaiming about
+760 MB while preserving the current package, originals and protected checkpoint.
+One [owned partial-axis integration check](OWNED-AFFINE-PARTIAL-REVIEW-20261116.md)
+then exercised actual Rust ticks, CPU OCR and view-model review. OCR read all
+three labels and missing-value/Apply guards passed, but measured ticks were
+refused. The exact property audit found that the supplied X endpoint was already
+white in the original image, invalidating the fixture's intact-span assumption.
+No production sampling change or additional private run follows from that result.
+The
 [marker assistance inside confirmed tilted and printed-X plots](AFFINE-MARKER-ASSISTANCE-20261115.md)
 is implemented in source.
 Its local solution tests and actual one-call worker check now pass, preserving
