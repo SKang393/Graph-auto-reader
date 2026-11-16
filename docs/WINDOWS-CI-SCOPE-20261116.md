@@ -23,9 +23,10 @@ run. API errors, missing authorization, malformed data and all uncertainty
 default to full validation. Deletions, source/config/workflow changes, pull
 requests, tags and manual dispatches also run full validation.
 
-Version, checkpoint, ledger, retention, localization and every existing
-packaging/evidence check remain unconditional. Only product Rust/.NET build,
-test and model-free probe stages are skipped. The existing job/check name is
+Version, checkpoint, ledger, retention, localization and the lightweight
+packaging/evidence checks remain unconditional. Product Rust/.NET build,
+test, model-free probe stages and the unchanged release-artifact fixture suite
+reuse the verified predecessor on eligible documentation pushes. The existing job/check name is
 unchanged. Release-candidate packaging additionally requires this run's
 completed product-validation marker; a documentation-only run cannot package.
 Existing release approvals, tags and distribution gates are unchanged.
@@ -107,3 +108,43 @@ correctly chose `full_changed_path` and passed all **44 classifier assertions**,
 skips and zero failures. The run completed **2026-11-16T12:55:41Z**; release jobs
 skipped. The next eligible documentation push can demonstrate actual reuse of
 this verified predecessor; no skipped product-test result is claimed here.
+
+## Remove a measured repeat of unchanged release fixtures
+
+The actual 0.4.59 delivery documentation commit
+`242462565381bf2314996150237e8f6e11b0ef35` passed
+[CI 43890956151](https://github.com/SKang393/Graph-auto-reader/actions/runs/43890956151),
+job `133381682489`, from **2026-11-16T14:55:48Z** to **15:05:46Z**.
+It correctly reported `full_product_validation=false`,
+`docs_only_verified_parent`, and parent run `43886948510` for exact source
+`d243e5b1d83556bdb3f363821934570c75e1f9ee`. All 44 scope assertions passed;
+product/Rust compilation and tests were skipped. No new product-test count
+is attributed to this documentation run.
+
+Despite that reuse, the run took **9m58s**. Adjacent log step markers attribute
+approximately **460 seconds** to the unconditional `Test release artifact
+validation` fixture suite, versus about 28 seconds for portable retention
+and 23 seconds for version policy. This is an observed hosted-run breakdown,
+not a controlled timing comparison. The large fixture suite repeatedly creates
+owned valid/malformed release trees and executes packaging audit paths. Its
+source, workflow dependencies and fixtures had not changed in this docs-only
+push; its same-source result was already covered by the trusted predecessor.
+
+Only that heavy fixture step now uses the existing
+`steps.scope.outputs.full_product_validation != 'false'` condition. No path
+allowlist, predecessor trust, acceptance bar, fixture, application or release
+gate changes. Any source, test, configuration or workflow change still takes
+full validation and executes the fixture suite. Documentation runs retain
+scope tests, actual central-version/ledger `-CheckHead`, version policy,
+ledger generator, portable retention, reviewed runtime, hosted-preview and
+activation checks, localization, exact-candidate evidence, frozen handoff,
+upload verification, packaging definition validation and the packaging audit.
+
+The existing command
+`pwsh -NoProfile -File packaging/tests/Test-WindowsCiScope.Tests.ps1` passed
+**44 assertions in 1,577.6564 ms**, exit 0, at **2026-11-16T15:12:19.7072707Z**.
+`git diff --check` passed. Its isolated temporary directory was empty and
+removed after the check. This one-line scheduling change adds no redundant
+fixture test or dependency. Actual full-CI execution of the guarded suite and
+the next necessary docs-only run's skip/timing remain pending integration;
+no elapsed-time improvement is claimed before those runs finish.
