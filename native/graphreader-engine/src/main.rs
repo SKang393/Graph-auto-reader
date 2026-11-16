@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 use std::io::{self, Read};
+mod affine_support;
 
 const MAX_PIXELS: usize = 16_777_216;
 // Resource budget only: never search a truncated candidate subset.
@@ -414,6 +415,18 @@ fn observed_axis_span(pixels: &[u8], width: usize, height: usize, channels: usiz
 fn observed_axis_span_clipped(pixels: &[u8], width: usize, height: usize, channels: usize,
     fixed: usize, start: usize, end: usize, horizontal: bool, clip: Option<(usize, usize, usize, usize)>) -> Option<Vec<(usize, usize)>>
 {
+    observed_axis_span_with_support(pixels, width, height, channels, fixed, start, end, horizontal, clip, None)
+}
+
+fn consume_bridge_work() -> bool {
+    if BRIDGE_WORK.with(|work| { let used = work.get(); if used >= MAX_PIXELS { false } else { work.set(used + 1); true } }) { true }
+    else { BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(true)); false }
+}
+
+fn observed_axis_span_with_support(pixels: &[u8], width: usize, height: usize, channels: usize,
+    fixed: usize, start: usize, end: usize, horizontal: bool, clip: Option<(usize, usize, usize, usize)>,
+    support: Option<&affine_support::AffineSupport<'_>>) -> Option<Vec<(usize, usize)>>
+{
     let dark = |along: usize, across: usize| {
         let (x, y) = if horizontal { (along, across) } else { (across, along) };
         is_dark(pixels, (y * width + x) * channels, channels)
@@ -446,10 +459,7 @@ fn observed_axis_span_clipped(pixels: &[u8], width: usize, height: usize, channe
         visited[first] = true;
         let mut queue = std::collections::VecDeque::from([first]);
         while let Some(current) = queue.pop_front() {
-            if !BRIDGE_WORK.with(|work| { let used = work.get(); if used >= MAX_PIXELS { false } else { work.set(used + 1); true } }) {
-                BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(true));
-                return None;
-            }
+            if !consume_bridge_work() { return None; }
             if current == target { break; }
             let along = lo + current / across_len; let across = near + current % across_len;
             for da in -1isize..=1 { for db in -1isize..=1 {
@@ -460,7 +470,12 @@ fn observed_axis_span_clipped(pixels: &[u8], width: usize, height: usize, channe
                 if !visited[next] && dark(a, b) { visited[next] = true; queue.push_back(next); }
             } }
         }
-        if !visited[target] { return None; }
+        if !visited[target] {
+            let window = if horizontal { (lo, near, hi, far) } else { (near, lo, far, hi) };
+            let a = if horizontal { (from, fixed) } else { (fixed, from) };
+            let b = if horizontal { (to, fixed) } else { (fixed, to) };
+            if !support.is_some_and(|s| s.connects(a, b, window)) { return None; }
+        }
         // Omit only the missing run and its adjacent dark endpoints, never the search window.
         bridges.push((from, to));
     }
@@ -668,12 +683,13 @@ fn measure_box_ticks_with_diagnostic(width: usize, height: usize, channels: usiz
     left: usize, bottom: usize, right: usize, top: usize,
     diagnostic: Option<&mut TickMeasureDiagnostic>) -> Result<(Vec<u32>, Vec<u32>), &'static str>
 {
-    measure_box_ticks_mode(width, height, channels, pixels, left, bottom, right, top, diagnostic, false)
+    measure_box_ticks_mode(width, height, channels, pixels, left, bottom, right, top, diagnostic, false, None)
 }
 
 fn measure_box_ticks_mode(width: usize, height: usize, channels: usize, pixels: &[u8],
     left: usize, bottom: usize, right: usize, top: usize,
-    mut diagnostic: Option<&mut TickMeasureDiagnostic>, manual_partial: bool) -> Result<(Vec<u32>, Vec<u32>), &'static str>
+    mut diagnostic: Option<&mut TickMeasureDiagnostic>, manual_partial: bool,
+    support: Option<&affine_support::AffineSupport<'_>>) -> Result<(Vec<u32>, Vec<u32>), &'static str>
 {
     if !(32..=4096).contains(&width) || !(32..=4096).contains(&height) || !matches!(channels, 1 | 3)
         || width.checked_mul(height).filter(|&n| n <= MAX_PIXELS).and_then(|n| n.checked_mul(channels)) != Some(pixels.len())
@@ -706,7 +722,7 @@ fn measure_box_ticks_mode(width: usize, height: usize, channels: usize, pixels: 
     }
     if let Some(trace) = diagnostic.as_deref_mut() { trace.stage = "ORIGIN_OBSERVED"; }
     let (x_bridges, y_bridges) = measure_supplied_spans(pixels, width, height, channels,
-        left, bottom, right, top, &mut diagnostic, manual_partial)?;
+        left, bottom, right, top, &mut diagnostic, manual_partial, support)?;
 
     let mut rows = vec![0usize; height];
     let mut cols = vec![0usize; width];
@@ -743,11 +759,12 @@ fn measure_box_ticks_mode(width: usize, height: usize, channels: usize, pixels: 
 // partial evidence, including when the other full span already passed.
 fn measure_supplied_spans(pixels: &[u8], width: usize, height: usize, channels: usize,
     left: usize, bottom: usize, right: usize, top: usize,
-    diagnostic: &mut Option<&mut TickMeasureDiagnostic>, manual_partial: bool)
+    diagnostic: &mut Option<&mut TickMeasureDiagnostic>, manual_partial: bool,
+    support: Option<&affine_support::AffineSupport<'_>>)
     -> Result<(Option<Vec<(usize, usize)>>, Option<Vec<(usize, usize)>>), &'static str>
 {
     let clip = Some((left, top, right, bottom));
-    let x_bridges = match observed_axis_span_clipped(pixels, width, height, channels, bottom, left, right, true, clip) {
+    let x_bridges = match observed_axis_span_with_support(pixels, width, height, channels, bottom, left, right, true, clip, support) {
         Some(bridges) => Some(bridges),
         None => {
             if let Some(trace) = diagnostic.as_deref_mut() {
@@ -764,7 +781,7 @@ fn measure_supplied_spans(pixels: &[u8], width: usize, height: usize, channels: 
         trace.bridge_work = Some(BRIDGE_WORK.with(|work| work.get()));
         trace.stage = "X_SPAN_OBSERVED";
     }
-    let y_bridges = match observed_axis_span_clipped(pixels, width, height, channels, left, top, bottom, false, clip) {
+    let y_bridges = match observed_axis_span_with_support(pixels, width, height, channels, left, top, bottom, false, clip, support) {
         Some(bridges) => Some(bridges),
         None => {
             if let Some(trace) = diagnostic.as_deref_mut() {
@@ -814,12 +831,40 @@ fn process_measure_ticks_inner(mut input: impl Read, diagnostic: Option<&mut Tic
     let mut trailing = [0];
     if input.read(&mut trailing).map_err(|_| "INVALID_PROTOCOL")? != 0 { return Err("INVALID_PROTOCOL"); }
     let (x, y) = if manual_partial {
-        measure_box_ticks_mode(w, h, c, &pixels, left, bottom, right, top, diagnostic, true)?
+        measure_box_ticks_mode(w, h, c, &pixels, left, bottom, right, top, diagnostic, true, None)?
     } else {
         measure_box_ticks_with_diagnostic(w, h, c, &pixels, left, bottom, right, top, diagnostic)?
     };
     let list = |values: &[u32]| if values.is_empty() { "-".to_string() } else { values.iter().map(u32::to_string).collect::<Vec<_>>().join(",") };
     Ok(format!("TICKS1 {left} {bottom} {right} {top} {} {}\n", list(&x), list(&y)))
+}
+
+fn process_affine_ticks(mut input: impl Read, manual_partial: bool) -> Result<String, &'static str> {
+    let mut header = [0u8; 96];
+    input.read_exact(&mut header).map_err(|_| "INVALID_PROTOCOL")?;
+    if &header[..4] != b"GRA1" { return Err("INVALID_PROTOCOL"); }
+    let get = |i| u32::from_le_bytes(header[i..i + 4].try_into().unwrap()) as usize;
+    let (w,h,c,len,left,bottom,right,top) = (get(4),get(8),get(12),get(16),get(20),get(24),get(28),get(32));
+    let (sw,sh,slen) = (get(36),get(40),get(44));
+    if !(32..=4096).contains(&w) || !(32..=4096).contains(&h) || c != 1 ||
+        w.checked_mul(h).filter(|&n| n <= MAX_PIXELS) != Some(len) ||
+        !(32..=4096).contains(&sw) || !(32..=4096).contains(&sh) ||
+        sw.checked_mul(sh).filter(|&n| n <= MAX_PIXELS) != Some(slen) ||
+        left >= right || top >= bottom || right >= w || bottom >= h { return Err("INVALID_INPUT"); }
+    let mut matrix = [0f64; 6];
+    for (index, value) in matrix.iter_mut().enumerate() {
+        let offset = 48 + index * 8;
+        *value = f64::from_le_bytes(header[offset..offset + 8].try_into().unwrap());
+    }
+    let mut pixels = vec![0; len]; let mut original = vec![0; slen];
+    input.read_exact(&mut pixels).map_err(|_| "INVALID_PROTOCOL")?;
+    input.read_exact(&mut original).map_err(|_| "INVALID_PROTOCOL")?;
+    let mut trailing = [0];
+    if input.read(&mut trailing).map_err(|_| "INVALID_PROTOCOL")? != 0 { return Err("INVALID_PROTOCOL"); }
+    let support = affine_support::AffineSupport::new(&original,sw,sh,matrix,left,bottom,right,top).ok_or("INVALID_INPUT")?;
+    let (x,y) = measure_box_ticks_mode(w,h,c,&pixels,left,bottom,right,top,None,manual_partial,Some(&support))?;
+    let list = |values: &[u32]| if values.is_empty() { "-".to_string() } else { values.iter().map(u32::to_string).collect::<Vec<_>>().join(",") };
+    Ok(format!("TICKS1 {left} {bottom} {right} {top} {} {}\n",list(&x),list(&y)))
 }
 
 fn read_frame(mut input: impl Read) -> Result<(usize, usize, usize, Vec<u8>), &'static str> {
@@ -946,7 +991,9 @@ fn main() {
             println!("{}", diagnostic.line());
             if failed { std::process::exit(1); }
         } else {
-            match set_budget().and_then(|_| if args[0] == "--measure-ticks-manual-partial" {
+            match set_budget().and_then(|_| if args[0] == "--measure-affine-ticks" || args[0] == "--measure-affine-ticks-manual-partial" {
+                process_affine_ticks(io::stdin().lock(), args[0] == "--measure-affine-ticks-manual-partial")
+            } else if args[0] == "--measure-ticks-manual-partial" {
                 process_manual_partial_ticks(io::stdin().lock())
             } else { process_measure_ticks(io::stdin().lock()) }) {
                 Ok(response) => print!("{response}"),
@@ -990,6 +1037,9 @@ fn main() {
 }
 
 fn measure_mode_requested(args: &[std::ffi::OsString]) -> Result<bool, &'static str> {
+    if args.iter().any(|arg| arg == "--measure-affine-ticks" || arg == "--measure-affine-ticks-manual-partial") {
+        return if args.len() == 1 { Ok(true) } else { Err("INVALID_PROTOCOL") };
+    }
     if args.iter().any(|arg| arg == "--measure-ticks-manual-partial") {
         return if args.len() == 1 { Ok(true) } else { Err("INVALID_PROTOCOL") };
     }
@@ -1178,6 +1228,123 @@ mod tests {
         image
     }
 
+    fn affine_tick_frame(derived: &[u8], source: &[u8], matrix: [f64; 6]) -> Vec<u8> {
+        let mut frame = Vec::from(*b"GRA1");
+        for value in [128u32,128,1,derived.len() as u32,20,100,115,10,128,128,source.len() as u32] {
+            frame.extend_from_slice(&value.to_le_bytes());
+        }
+        for value in matrix { frame.extend_from_slice(&value.to_le_bytes()); }
+        frame.extend_from_slice(derived); frame.extend_from_slice(source); frame
+    }
+
+    #[test]
+    fn affine_support_recovers_only_connected_original_evidence_on_each_axis() {
+        let original = simple_supplied_box_pixels();
+        let identity = [1.0,0.0,0.0,0.0,1.0,0.0];
+        let expected = process_measure_ticks(&supplied_box_frame(&original,128,128,1,20,100,115,10)[..]).unwrap();
+        for horizontal in [true,false] {
+            let mut derived = original.clone();
+            let missing = if horizontal { 100 * 128 + 55 } else { 60 * 128 + 20 };
+            derived[missing] = 255;
+            assert_eq!(process_measure_ticks(&supplied_box_frame(&derived,128,128,1,20,100,115,10)[..]), Err("AXIS_BOX_NOT_OBSERVED"));
+            let frame = affine_tick_frame(&derived,&original,identity);
+            assert_eq!(process_affine_ticks(&frame[..],false).unwrap(),expected);
+            assert_eq!(process_affine_ticks(&frame[..],true).unwrap(),expected);
+            let mut disconnected = original.clone(); disconnected[missing] = 255;
+            let refused = affine_tick_frame(&derived,&disconnected,identity);
+            assert_eq!(process_affine_ticks(&refused[..],false),Err("AXIS_BOX_NOT_OBSERVED"));
+            let partial = process_affine_ticks(&refused[..],true).unwrap();
+            assert_eq!(partial, if horizontal { "TICKS1 20 100 115 10 - 20,50,80\n" } else { "TICKS1 20 100 115 10 40,70,100 -\n" });
+        }
+        assert_eq!(process_affine_ticks(&affine_tick_frame(&original,&original,identity)[..],false).unwrap(),expected);
+    }
+
+    #[test]
+    fn affine_tick_protocol_rejects_invalid_frames_and_preserves_empty_ticks() {
+        let mut pixels = vec![255;128*128];
+        for x in 20..=115 { pixels[100*128+x]=0; }
+        for y in 10..=100 { pixels[y*128+20]=0; }
+        let frame=affine_tick_frame(&pixels,&pixels,[1.0,0.0,0.0,0.0,1.0,0.0]);
+        assert_eq!(process_affine_ticks(&frame[..],false).unwrap(),"TICKS1 20 100 115 10 - -\n");
+        assert_eq!(process_affine_ticks(&frame[..95],false),Err("INVALID_PROTOCOL"));
+        assert_eq!(process_affine_ticks(&frame[..frame.len()-1],false),Err("INVALID_PROTOCOL"));
+        let mut extra=frame.clone(); extra.push(0); assert_eq!(process_affine_ticks(&extra[..],false),Err("INVALID_PROTOCOL"));
+        for (offset,value) in [(48,f64::NAN),(48,0.0),(48,-1.0),(64,500.0)] {
+            let mut bad=frame.clone(); bad[offset..offset+8].copy_from_slice(&value.to_le_bytes());
+            assert_eq!(process_affine_ticks(&bad[..],false),Err("INVALID_INPUT"));
+        }
+        let mut wrong=frame.clone(); wrong[36..40].copy_from_slice(&4097u32.to_le_bytes());
+        assert_eq!(process_affine_ticks(&wrong[..],false),Err("INVALID_INPUT"));
+        for flag in ["--measure-affine-ticks","--measure-affine-ticks-manual-partial"] {
+            assert_eq!(measure_mode_requested(&[flag.into()]),Ok(true));
+            for other in ["--measure-ticks","--diagnostics","--measure-ticks-diagnostics","--review-candidates"] {
+                assert_eq!(measure_mode_requested(&[flag.into(),other.into()]),Err("INVALID_PROTOCOL"));
+            }
+        }
+    }
+
+    #[test]
+    fn affine_validation_allows_only_bounded_numerical_roundoff() {
+        let pixels=vec![255;128*128];
+        let build=|m| affine_support::AffineSupport::new(&pixels,128,128,m,0,100,95,10).is_some();
+        assert!(build([1.0,0.0,1e-8,0.0,1.0,0.0]));
+        assert!(!build([1.0,0.0,1e-4,0.0,1.0,0.0]));
+        assert!(build([95.0/95.50000001,0.0,0.0,0.0,1.0,0.0]));
+        assert!(!build([95.0/95.500001,0.0,0.0,0.0,1.0,0.0]));
+    }
+
+    #[test]
+    fn affine_fallback_shares_work_budget_and_does_not_invent_ticks() {
+        let mut source=vec![255;128*128];
+        for x in 20..=115 { source[100*128+x]=0; }
+        for y in 10..=100 { source[y*128+20]=0; }
+        let mut derived=source.clone(); derived[100*128+55]=255;
+        let matrix=[1.0,0.0,0.0,0.0,1.0,0.0];
+        let frame=affine_tick_frame(&derived,&source,matrix);
+        assert_eq!(process_affine_ticks(&frame[..],false).unwrap(),"TICKS1 20 100 115 10 - -\n");
+        let support=affine_support::AffineSupport::new(&source,128,128,matrix,20,100,115,10).unwrap();
+        BRIDGE_WORK.with(|work| work.set(MAX_PIXELS));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+        assert!(!support.connects((54,100),(56,100),(20,76,80,100)));
+        assert!(BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()));
+        // A derived search consuming the final unit leaves no fresh source budget,
+        // and partial mode must not publish the other axis after exhaustion.
+        let mut isolated=vec![255;128*128];
+        isolated[100*128+54]=0; isolated[100*128+56]=0;
+        BRIDGE_WORK.with(|work| work.set(MAX_PIXELS-1));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+        assert_eq!(measure_supplied_spans(&isolated,128,128,1,54,100,56,10,
+            &mut None,true,Some(&support)),Err("AXIS_BOX_NOT_OBSERVED"));
+        assert!(BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()));
+        BRIDGE_WORK.with(|work| work.set(0));
+        BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
+    }
+
+    #[test]
+    fn affine_fixed_interior_shear_distinguishes_connected_and_disconnected_source() {
+        let matrix: [f64;6]=[1.0,0.0,0.0,-1.0/30.0,1.0,65.0/6.0];
+        for disconnected in [false,true] {
+            let mut source=vec![255u8;320*240];
+            for x in 55..=265 { if !disconnected || !(15..=23).contains(&(x-55)) { source[(185+(x-55)/30)*320+x]=192; } }
+            for y in 45..=185 { source[y*320+55]=192; }
+            // Same inverse Gray8 bilinear sampling and positive rounding as the owned rectifier.
+            let mut derived=vec![255u8;320*251];
+            for y in 0..251 { for x in 0..320 {
+                let sy=y as f64+x as f64/30.0-65.0/6.0;
+                let y0=sy.floor() as isize; let frac=sy-y0 as f64;
+                let sample=|row: isize| if (0..240).contains(&row) { source[row as usize*320+x] as f64 } else { 255.0 };
+                derived[y*320+x]=(sample(y0)*(1.0-frac)+sample(y0+1)*frac).round() as u8;
+            } }
+            let mut frame=Vec::from(*b"GRA1");
+            for value in [320u32,251,1,derived.len() as u32,55,194,265,54,320,240,source.len() as u32] { frame.extend_from_slice(&value.to_le_bytes()); }
+            for value in matrix { frame.extend_from_slice(&value.to_le_bytes()); }
+            frame.extend_from_slice(&derived); frame.extend_from_slice(&source);
+            assert_eq!(process_measure_ticks(&supplied_box_frame(&derived,320,251,1,55,194,265,54)[..]),Err("AXIS_BOX_NOT_OBSERVED"));
+            if disconnected { assert_eq!(process_affine_ticks(&frame[..],false),Err("AXIS_BOX_NOT_OBSERVED")); }
+            else { assert_eq!(process_affine_ticks(&frame[..],false).unwrap(),"TICKS1 55 194 265 54 - -\n"); }
+        }
+    }
+
     #[test]
     fn manual_partial_retains_only_ticks_on_independently_observed_spans() {
         for horizontal in [true, false] {
@@ -1243,7 +1410,7 @@ mod tests {
             BRIDGE_WORK.with(|work| work.set(MAX_PIXELS));
             BRIDGE_EXHAUSTED.with(|exhausted| exhausted.set(false));
             assert_eq!(measure_supplied_spans(&pixels, 128, 128, 1, 20, 100, 115, 10,
-                &mut None, true), Err("AXIS_BOX_NOT_OBSERVED"));
+                &mut None, true, None), Err("AXIS_BOX_NOT_OBSERVED"));
             assert!(BRIDGE_EXHAUSTED.with(|exhausted| exhausted.get()));
             assert_eq!(BRIDGE_WORK.with(|work| work.get()), MAX_PIXELS);
             BRIDGE_WORK.with(|work| work.set(0));

@@ -33,6 +33,58 @@ public static class RustAxisTickMeasurement
         CancellationToken cancellationToken = default) =>
         StartAsync(workerPath, width, height, pixels, geometry, channels, "--measure-ticks-manual-partial", cancellationToken);
 
+    /// <summary>Measures one exact derived Gray8 box with bounded original-pixel support.
+    /// Protocol refusal never downgrades to a different measurement mode.</summary>
+    public static Task<RustAxisTickMeasurementResult> RunAffineAsync(string workerPath, int width, int height,
+        ReadOnlyMemory<byte> pixels, RustAxisGeometry geometry, RustAffineTickSource source,
+        bool manualPartial = false, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromCanceled<RustAxisTickMeasurementResult>(cancellationToken);
+        if (!TryAffineSnapshot(width, height, pixels, geometry, source, out RequestSnapshot? request))
+            return Task.FromResult(Failure("INVALID_INPUT"));
+        string mode = manualPartial ? "--measure-affine-ticks-manual-partial" : "--measure-affine-ticks";
+        return Task.Run(() => RunCoreAsync(workerPath, request!, mode, cancellationToken), CancellationToken.None);
+    }
+
+    private static bool TryAffineSnapshot(int width, int height, ReadOnlyMemory<byte> pixels,
+        RustAxisGeometry? geometry, RustAffineTickSource? source, out RequestSnapshot? request)
+    {
+        request = null;
+        if (source is null || source.Width is < 32 or > 4096 || source.Height is < 32 or > 4096 ||
+            (long)source.Width * source.Height > MaximumPixels || (long)source.Width * source.Height != source.Pixels.Length ||
+            !double.IsFinite(source.M11) || !double.IsFinite(source.M12) || !double.IsFinite(source.M13) ||
+            !double.IsFinite(source.M21) || !double.IsFinite(source.M22) || !double.IsFinite(source.M23)) return false;
+        double determinant = source.M11 * source.M22 - source.M12 * source.M21;
+        if (!double.IsFinite(determinant) || determinant <= 0 ||
+            !double.IsFinite(source.M22 / determinant) || !double.IsFinite(source.M12 / determinant) ||
+            !double.IsFinite(source.M21 / determinant) || !double.IsFinite(source.M11 / determinant) ||
+            !TrySnapshot(width, height, 1, pixels, geometry, out RequestSnapshot? derived)) return false;
+        if (!ValidSourceGeometry(source, derived!, determinant)) return false;
+        request = derived! with { Source = new(source.Width, source.Height, source.Pixels.ToArray(),
+            source.M11, source.M12, source.M13, source.M21, source.M22, source.M23) };
+        return true;
+    }
+
+    private static bool ValidSourceGeometry(RustAffineTickSource source, RequestSnapshot box, double determinant)
+    {
+        // Numerical validation only. Never apply this allowance to sampling or support windows.
+        const double roundoff = 1e-7;
+        PixelPoint Inverse(double x, double y) => new(
+            (source.M22 * (x - source.M13) - source.M12 * (y - source.M23)) / determinant,
+            (source.M11 * (y - source.M23) - source.M21 * (x - source.M13)) / determinant);
+        bool Inside(PixelPoint point) => point.IsFinite && point.X >= -roundoff && point.Y >= -roundoff &&
+            point.X <= source.Width - 1 + roundoff && point.Y <= source.Height - 1 + roundoff;
+        PixelPoint origin = Inverse(box.Left, box.Bottom), xEnd = Inverse(box.Right, box.Bottom),
+            yEnd = Inverse(box.Left, box.Top), fourth = Inverse(box.Right, box.Top);
+        if (!Inside(origin) || !Inside(xEnd) || !Inside(yEnd) || !Inside(fourth) ||
+            xEnd.X <= origin.X || yEnd.Y >= origin.Y) return false;
+        static double Length(PixelPoint a, PixelPoint b) => Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
+        double xLength = Length(origin, xEnd), yLength = Length(origin, yEnd);
+        return xLength >= box.Right - box.Left - .5 - roundoff && xLength <= box.Right - box.Left + .5 + roundoff &&
+            yLength >= box.Bottom - box.Top - .5 - roundoff && yLength <= box.Bottom - box.Top + .5 + roundoff;
+    }
+
     private static Task<RustAxisTickMeasurementResult> StartAsync(string workerPath, int width, int height,
         ReadOnlyMemory<byte> pixels, RustAxisGeometry geometry, int channels, string mode,
         CancellationToken cancellationToken)
@@ -101,20 +153,13 @@ public static class RustAxisTickMeasurement
                 process, deadline.Token);
             Task<bool> errorTask = DrainBoundedErrorAsync(process.StandardError.BaseStream, MaximumErrorBytes,
                 process, deadline.Token);
-            byte[] header = new byte[36];
-            "GRT1"u8.CopyTo(header);
-            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(4), checked((uint)request.Width));
-            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(8), checked((uint)request.Height));
-            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(12), checked((uint)request.Channels));
-            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(16), checked((uint)request.Pixels.Length));
-            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(20), checked((uint)request.Left));
-            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(24), checked((uint)request.Bottom));
-            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(28), checked((uint)request.Right));
-            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(32), checked((uint)request.Top));
+            byte[] header = CreateHeader(request);
             try
             {
                 await process.StandardInput.BaseStream.WriteAsync(header, deadline.Token).ConfigureAwait(false);
                 await process.StandardInput.BaseStream.WriteAsync(request.Pixels, deadline.Token).ConfigureAwait(false);
+                if (request.Source is { } source)
+                    await process.StandardInput.BaseStream.WriteAsync(source.Pixels, deadline.Token).ConfigureAwait(false);
                 process.StandardInput.Close();
             }
             catch (IOException)
@@ -130,8 +175,9 @@ public static class RustAxisTickMeasurement
             return ParseResponse(output, process.ExitCode, request.Left, request.Bottom,
                 request.Right, request.Top);
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             return Failure("WORKER_TIMEOUT");
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
@@ -149,6 +195,33 @@ public static class RustAxisTickMeasurement
             catch (InvalidOperationException) { }
             catch (System.ComponentModel.Win32Exception) { }
         }
+    }
+
+    private static byte[] CreateHeader(RequestSnapshot request)
+    {
+        byte[] header = new byte[request.Source is null ? 36 : 96];
+        if (request.Source is null) "GRT1"u8.CopyTo(header); else "GRA1"u8.CopyTo(header);
+        BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(4), checked((uint)request.Width));
+        BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(8), checked((uint)request.Height));
+        BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(12), checked((uint)request.Channels));
+        BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(16), checked((uint)request.Pixels.Length));
+        BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(20), checked((uint)request.Left));
+        BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(24), checked((uint)request.Bottom));
+        BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(28), checked((uint)request.Right));
+        BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(32), checked((uint)request.Top));
+        if (request.Source is { } source)
+        {
+            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(36), checked((uint)source.Width));
+            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(40), checked((uint)source.Height));
+            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(44), checked((uint)source.Pixels.Length));
+            BinaryPrimitives.WriteDoubleLittleEndian(header.AsSpan(48), source.M11);
+            BinaryPrimitives.WriteDoubleLittleEndian(header.AsSpan(56), source.M12);
+            BinaryPrimitives.WriteDoubleLittleEndian(header.AsSpan(64), source.M13);
+            BinaryPrimitives.WriteDoubleLittleEndian(header.AsSpan(72), source.M21);
+            BinaryPrimitives.WriteDoubleLittleEndian(header.AsSpan(80), source.M22);
+            BinaryPrimitives.WriteDoubleLittleEndian(header.AsSpan(88), source.M23);
+        }
+        return header;
     }
 
     private static RustAxisTickMeasurementResult ParseResponse(byte[] response, int exitCode,
@@ -251,6 +324,8 @@ public static class RustAxisTickMeasurement
     private static RustAxisTickMeasurementResult Failure(string errorCode) =>
         new(null, errorCode);
 
+    private sealed record AffineSourceSnapshot(int Width, int Height, byte[] Pixels,
+        double M11, double M12, double M13, double M21, double M22, double M23);
     private sealed record RequestSnapshot(int Width, int Height, int Channels, int Left, int Bottom,
-        int Right, int Top, byte[] Pixels);
+        int Right, int Top, byte[] Pixels, AffineSourceSnapshot? Source = null);
 }

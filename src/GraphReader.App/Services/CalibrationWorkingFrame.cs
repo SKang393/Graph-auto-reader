@@ -16,11 +16,12 @@ namespace GraphReader.App.Services;
 internal sealed class CalibrationWorkingFrame
 {
     private CalibrationWorkingFrame(AffineRasterRectificationResult raster, int originalWidth, int originalHeight,
-        string originalHash, string derivedHash, string binding)
+        string originalHash, string derivedHash, string binding, string originalSupportBinding)
     {
         Width = raster.Width; Height = raster.Height;
         OriginalWidth = originalWidth; OriginalHeight = originalHeight;
         OriginalImageSha256 = originalHash; DerivedImageSha256 = derivedHash;
+        OriginalSupportBinding = originalSupportBinding;
         TransformChain = raster.TransformChain;
         Geometry = new(raster.Left, raster.Bottom, raster.Right, raster.Top, 0);
         Binding = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
@@ -37,11 +38,12 @@ internal sealed class CalibrationWorkingFrame
     internal int OriginalHeight { get; }
     internal string OriginalImageSha256 { get; }
     internal string DerivedImageSha256 { get; }
+    internal string OriginalSupportBinding { get; }
     internal string Binding { get; }
     internal TransformChain TransformChain { get; }
     internal RustAxisGeometry Geometry { get; }
 
-    internal static (CalibrationWorkingFrame Frame, byte[] Image) Create(byte[] original, int width, int height,
+    internal static (CalibrationWorkingFrame Frame, byte[] Image, RustAffineTickSource OriginalSupport) Create(byte[] original, int width, int height,
         RustAffineAxisGeometry axes, string binding, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
@@ -66,8 +68,13 @@ internal sealed class CalibrationWorkingFrame
         token.ThrowIfCancellationRequested();
         byte[] image = output.ToArray();
         if (image.Length > 32 * 1024 * 1024) throw new ArgumentException("Rectified image exceeds the worker limit.", nameof(original));
+        var matrix = raster.TransformChain.OriginalToDerived;
+        var support = new RustAffineTickSource(width, height, pixels,
+            matrix.M11, matrix.M12, matrix.M13, matrix.M21, matrix.M22, matrix.M23);
+        // The pixel buffer is transient. Review keeps its binding, not another full raster.
         return (new(raster, width, height, Convert.ToHexStringLower(SHA256.HashData(original)),
-            Convert.ToHexStringLower(SHA256.HashData(image)), binding), image);
+            Convert.ToHexStringLower(SHA256.HashData(image)), binding,
+            RustAxisTickMeasurementService.BindOriginalSupport(support)), image, support);
     }
 
     internal CalibrationOcrPoint ToOriginal(CalibrationOcrPoint point)

@@ -108,7 +108,7 @@ internal static partial class RealDevCalibrationCheck
             if (!NativeAffineTraceAccepted(proposal, panel.Item2, panel.Item3)) throw new InvalidDataException();
             timings["geometry"] = timer.Elapsed.TotalMilliseconds; timer.Restart();
             Begin("rectification"); stageDetail = null;
-            var (frame, image) = CalibrationWorkingFrame.Create(panel.Item1, panel.Item2, panel.Item3, proposal.AffineGeometry!, hash, deadline.Token);
+            var (frame, image, _) = CalibrationWorkingFrame.Create(panel.Item1, panel.Item2, panel.Item3, proposal.AffineGeometry!, hash, deadline.Token);
             timings["rectification"] = timer.Elapsed.TotalMilliseconds; timer.Restart();
             Begin("tick_measurement");
             AxisTickMeasurementResult measurement = await new RustAxisTickMeasurementService(rust).MeasureAsync(image, frame.Geometry, deadline.Token).ConfigureAwait(false);

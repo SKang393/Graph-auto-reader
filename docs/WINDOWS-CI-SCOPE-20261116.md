@@ -54,6 +54,17 @@ job `133190291302`. It correctly emitted `full_product_validation=true` and
 .NET tests**, **80 Rust tests** and **68 packaging controls** passed, with
 **30 explicit .NET skips** and zero failures. Both release jobs were skipped.
 
-The subsequent necessary documentation-only retention/outcome push remains
-pending. No hosted time saving is claimed before that path completes. Full
-product and native acceptance remain separate.
+The necessary documentation-only retention/outcome push `148a03c5` passed
+[CI 43837679762](https://github.com/SKang393/Graph-auto-reader/actions/runs/43837679762),
+job `133198283609`. It emitted `full_product_validation=false`,
+`docs_only_verified_parent`, and exact predecessor run `43835295159`.
+Exactly the seven scoped product/marker steps were skipped. All **34 scope
+assertions**, **62 version checks**, **six ledger checks**, **12 portable checks**
+and **68 packaging controls** passed; the other retained checks also succeeded.
+Both release jobs were skipped. No product-test count is attributed to this run.
+
+The full run's log spans `08:56:04.8922661` to `09:08:57.8161862 UTC`
+(**12m53s**); the documentation run spans `09:12:41.6721677` to
+`09:21:32.0173908 UTC` (**8m50s**). These are two observed hosted runs, not
+a controlled performance benchmark. The remaining packaging work is deliberate.
+Full product and native acceptance remain separate.

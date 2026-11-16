@@ -538,6 +538,26 @@ the result does not authorize widening or production integration. The same
 [outcome document](../../docs/AFFINE-STROKE-SAMPLING-20261116.md) records the
 identities, failure accounting and retirement condition.
 
+`--owned-affine-interior-support-check` checks one fixed connected/disconnected
+shallow-shear pair rendered inside the original plot boundary. It keeps the
+existing grayscale predicate, rectifier, gap replay and clipped support window.
+Independent source connectivity, complete failure accounting and immutable
+pixel hashes distinguish a source-supported gap from an actual missing stroke.
+No native worker, model, private/sealed input, OCR, fit or image-file write runs.
+The existing half-core cap and 30/35-second limits apply. This is a feasibility
+check with supplied synthetic geometry, not automatic calibration. See the
+[fixed controls and outcome](../../docs/AFFINE-INTERIOR-SUPPORT-20261116.md).
+
+`--owned-affine-original-support-worker-check <absolute-worker> <absolute-owned-baseline>`
+uses the exact same pair, verifies both source and derived pixels against the
+cached two-case baseline, and sends one strict GRA1 request per case to the
+hash-pinned worker. The connected case must return an exact box with no ticks;
+the disconnected case must remain refused. It supplies the fixed geometry and
+does not repeat the legacy worker, detect geometry, run OCR or fit calibration.
+Each child has a five-second deadline and its own CPU cap; the parent uses the
+existing verified breakaway job and 30/35-second bounds. See the
+[repair record](../../docs/AFFINE-ORIGINAL-SUPPORT-20261116.md).
+
 `--owned-inference-key-check <expected-loaded-inference-sha256>` measures cache-key
 derivation only. It verifies and locks the loaded Inference DLL, performs one
 32-value warmup, then one call each for fixed `[1,3,48,320]` and `[16,3,48,320]`

@@ -63,7 +63,7 @@ internal static class OwnedAffineTickObservationCheck
                 var affine = new RustAffineAxisGeometry(new(origin.X, origin.Y), new(xEnd.X, xEnd.Y), new(yEnd.X, yEnd.Y), 0);
                 object source = Observe(pixels, Width, Height, origin, xEnd, yEnd);
                 stage = "rectification";
-                var (frame, derived) = CalibrationWorkingFrame.Create(original, Width, Height, affine, hash, token);
+                var (frame, derived, _) = CalibrationWorkingFrame.Create(original, Width, Height, affine, hash, token);
                 byte[] gray = Decode(derived, frame.Width, frame.Height);
                 var box = frame.Geometry;
                 object rectified = Observe(gray, frame.Width, frame.Height, new(box.Left, box.Bottom), new(box.Right, box.Bottom), new(box.Left, box.Top));

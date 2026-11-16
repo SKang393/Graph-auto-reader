@@ -391,6 +391,7 @@ public sealed partial class RectifiedCalibrationTests
         internal bool StrictRefusePartial { get; set; }
         internal string? EvidenceFault { get; set; }
         internal byte[]? Image { get; private set; }
+        internal RustAffineTickSource? OriginalSupport { get; private set; }
         internal int[] X { get; private set; } = [];
         internal int[] Y { get; private set; } = [];
         internal AxisTickMeasurementResult? Result { get; private set; }
@@ -399,6 +400,15 @@ public sealed partial class RectifiedCalibrationTests
             => MeasureCore(image, box, false);
         public Task<AxisTickMeasurementResult> MeasureManualPartialAsync(byte[] image, RustAxisGeometry box, CancellationToken token)
             => MeasureCore(image, box, true);
+        public async Task<AxisTickMeasurementResult> MeasureAffineManualPartialAsync(byte[] image, RustAxisGeometry box,
+            RustAffineTickSource source, CancellationToken token)
+        {
+            OriginalSupport = source;
+            AxisTickMeasurementResult result = await MeasureManualPartialAsync(image, box, token);
+            Result = result with { OriginalSupportBinding = EvidenceFault == "support" ? new string('f', 64)
+                : RustAxisTickMeasurementService.BindOriginalSupport(source) };
+            return Result;
+        }
         private Task<AxisTickMeasurementResult> MeasureCore(byte[] image, RustAxisGeometry box, bool manualPartial)
         {
             Calls++; if (manualPartial) ManualPartialCalls++; Image = image;

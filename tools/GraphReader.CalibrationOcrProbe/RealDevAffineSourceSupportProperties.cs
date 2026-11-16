@@ -80,7 +80,7 @@ internal static partial class RealDevCalibrationCheck
             Complete(); Begin("rectification");
             byte[] original = DecodeRefusalGray(matches[0].Item1, target.Width, target.Height, token); string originalHash = Program.Hash(original);
             originalGrayBytes = original.Length;
-            var (frame, encoded) = CalibrationWorkingFrame.Create(matches[0].Item1, target.Width, target.Height, target.Frame, target.PanelImageHash, token);
+            var (frame, encoded, _) = CalibrationWorkingFrame.Create(matches[0].Item1, target.Width, target.Height, target.Frame, target.PanelImageHash, token);
             byte[] derived = DecodeRefusalGray(encoded, frame.Width, frame.Height, token); derivedGrayBytes = derived.Length;
             Complete(); Begin("gap_replay");
             SpanReplay replay = ReplayHorizontalSpan(derived, frame.Width, frame.Height, frame.Geometry, token);

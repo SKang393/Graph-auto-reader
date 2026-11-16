@@ -167,7 +167,7 @@ internal static partial class RealDevCalibrationCheck
                 { file.Write(selectorBytes); file.Flush(flushToDisk: true); }
                 selectorHash = Program.Hash(selectorBytes);
                 rectificationAttempted++; var clock = Stopwatch.StartNew();
-                var (frame, image) = CalibrationWorkingFrame.Create(retained.Image, retained.Width, retained.Height,
+                var (frame, image, _) = CalibrationWorkingFrame.Create(retained.Image, retained.Width, retained.Height,
                     retained.Frame, Program.Hash(retained.Image), token);
                 rectificationCompleted++; derivedBytes = image.Length; AddTime("rectification", clock);
                 byte[] gray = DecodeRefusalGray(image, frame.Width, frame.Height, token); grayBytes = gray.Length;

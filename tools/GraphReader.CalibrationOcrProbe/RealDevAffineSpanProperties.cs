@@ -108,7 +108,7 @@ internal static partial class RealDevCalibrationCheck
             if (matches.Length != 1 || Program.Hash(matches[0].Item1) != target.PanelImageHash) throw new InvalidDataException();
             panelMatches = true; panelBytes = matches[0].Item1.Length;
             Complete(); Begin("rectification");
-            var (frame, encoded) = CalibrationWorkingFrame.Create(matches[0].Item1, target.Width, target.Height, target.Frame, target.PanelImageHash, token);
+            var (frame, encoded, _) = CalibrationWorkingFrame.Create(matches[0].Item1, target.Width, target.Height, target.Frame, target.PanelImageHash, token);
             byte[] gray = DecodeRefusalGray(encoded, frame.Width, frame.Height, token);
             derivedBytes = encoded.Length; grayBytes = gray.Length;
             Complete(); Begin("property_replay");

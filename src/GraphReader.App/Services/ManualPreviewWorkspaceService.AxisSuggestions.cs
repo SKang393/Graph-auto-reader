@@ -283,7 +283,7 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
         var original = _originalPanelBytesByTab[suggestion.TabId];
         int width = tab.PixelWidth, height = tab.PixelHeight;
         RustAffineAxisGeometry affine = suggestion.AffineGeometry!;
-        (CalibrationWorkingFrame Frame, byte[] Image) prepared;
+        (CalibrationWorkingFrame Frame, byte[] Image, RustAffineTickSource OriginalSupport) prepared;
         try
         {
             prepared = await Task.Run(() => CalibrationWorkingFrame.Create(original.Copy(), width, height,
@@ -310,11 +310,12 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
             // Keeping independently observed ticks does not approve this frame;
             // automatic provenance and the existing review/Apply gates remain.
             AxisTickMeasurementResult measurement = await _axisTickMeasurementService!
-                .MeasureManualPartialAsync(prepared.Image, geometry, token);
+                .MeasureAffineManualPartialAsync(prepared.Image, geometry, prepared.OriginalSupport, token);
             measurementReceipt = measurement;
             token.ThrowIfCancellationRequested();
             if (!CanReadCalibrationLabels || !IsAxisSuggestionCurrent(suggestion)) return null;
-            if (TryBindMeasuredTicks(measurement, geometry, frame.DerivedImageSha256, frame.Width, frame.Height) is { } measured)
+            if ((measurement.OriginalSupportBinding is null || measurement.OriginalSupportBinding == frame.OriginalSupportBinding) &&
+                TryBindMeasuredTicks(measurement, geometry, frame.DerivedImageSha256, frame.Width, frame.Height) is { } measured)
                 geometry = measured;
             else measurementError = measurement.ErrorCode ?? "INVALID_TICK_EVIDENCE";
         }

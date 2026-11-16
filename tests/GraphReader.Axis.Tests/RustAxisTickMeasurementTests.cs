@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 using System.Reflection;
+using System.Buffers.Binary;
 using System.Text;
 using GraphReader.Axis;
 
@@ -133,6 +134,10 @@ public sealed class RustAxisTickMeasurementTests
         Assert.AreEqual(30, type.GetProperty("Bottom", BindingFlags.Instance | BindingFlags.Public)!.GetValue(snapshot));
         Assert.AreEqual(29, type.GetProperty("Right", BindingFlags.Instance | BindingFlags.Public)!.GetValue(snapshot));
         Assert.AreEqual(2, type.GetProperty("Top", BindingFlags.Instance | BindingFlags.Public)!.GetValue(snapshot));
+        MethodInfo encoder = typeof(RustAxisTickMeasurement).GetMethod("CreateHeader", BindingFlags.NonPublic | BindingFlags.Static)!;
+        byte[] header = (byte[])encoder.Invoke(null, [snapshot])!;
+        Assert.AreEqual(36, header.Length);
+        Assert.AreEqual("GRT1", Encoding.ASCII.GetString(header, 0, 4));
     }
 
     [TestMethod]
@@ -162,6 +167,180 @@ public sealed class RustAxisTickMeasurementTests
             new byte[128 * 128], Plot with { Right = 128 });
         Assert.AreEqual("INVALID_INPUT", bad.ErrorCode);
         Assert.IsNull(bad.Evidence);
+    }
+
+    [TestMethod]
+    public async Task AffineRejectsInvalidSourceMatrixAndDerivedContextBeforeWorkerStart()
+    {
+        byte[] pixels = new byte[128 * 128];
+        var source = new RustAffineTickSource(128, 128, pixels, 1, 0, 0, 0, 1, 0);
+        RustAffineTickSource?[] invalid = [null, source with { Width = 31 }, source with { Height = 4097 },
+            source with { Pixels = new byte[3] }, source with { M11 = double.NaN }, source with { M13 = double.PositiveInfinity },
+            source with { M11 = 0 }, source with { M11 = -1 }, source with { M11 = 2 },
+            source with { M13 = 200 }, source with { M11 = -1, M22 = -1, M13 = 127, M23 = 127 }];
+        foreach (RustAffineTickSource? bad in invalid)
+        {
+            RustAxisTickMeasurementResult result = await RustAxisTickMeasurement.RunAffineAsync("unused", 128, 128, pixels, Plot, bad!);
+            Assert.AreEqual("INVALID_INPUT", result.ErrorCode);
+            Assert.IsNull(result.Evidence);
+        }
+        Assert.AreEqual("INVALID_INPUT", (await RustAxisTickMeasurement.RunAffineAsync("unused", 128, 128,
+            new byte[3], Plot, source)).ErrorCode);
+        Assert.AreEqual("INVALID_INPUT", (await RustAxisTickMeasurement.RunAffineAsync("unused", 128, 128,
+            pixels, Plot with { Right = 128 }, source)).ErrorCode);
+    }
+
+    [TestMethod]
+    public void AffineSnapshotCopiesBothRastersAndWritesExactLittleEndianHeader()
+    {
+        byte[] derived = new byte[128 * 128], original = new byte[128 * 128];
+        original[0] = 192; derived[0] = 64;
+        var source = new RustAffineTickSource(128, 128, original, 1, 0, .25, 0, 1, .5);
+        object snapshot = AffineSnapshot(derived, source)!;
+        derived[0] = 0; original[0] = 0;
+        byte[] copied = (byte[])snapshot.GetType().GetProperty("Pixels")!.GetValue(snapshot)!;
+        object originalSnapshot = snapshot.GetType().GetProperty("Source")!.GetValue(snapshot)!;
+        byte[] sourceCopy = (byte[])originalSnapshot.GetType().GetProperty("Pixels")!.GetValue(originalSnapshot)!;
+        Assert.AreEqual(64, copied[0]); Assert.AreEqual(192, sourceCopy[0]);
+        MethodInfo encoder = typeof(RustAxisTickMeasurement).GetMethod("CreateHeader", BindingFlags.Static | BindingFlags.NonPublic)!;
+        byte[] header = (byte[])encoder.Invoke(null, [snapshot])!;
+        Assert.AreEqual(96, header.Length);
+        Assert.AreEqual("GRA1", Encoding.ASCII.GetString(header, 0, 4));
+        uint[] expected = [128, 128, 1, 16384, 10, 90, 110, 10, 128, 128, 16384];
+        for (int index = 0; index < expected.Length; index++) Assert.AreEqual(expected[index], BinaryPrimitives.ReadUInt32LittleEndian(header.AsSpan(4 + index * 4)));
+        double[] matrix = [1, 0, .25, 0, 1, .5];
+        for (int index = 0; index < matrix.Length; index++) Assert.AreEqual(matrix[index], BinaryPrimitives.ReadDoubleLittleEndian(header.AsSpan(48 + index * 8)));
+    }
+
+    [TestMethod]
+    public void AffineNumericalValidationAllowsOnlyDeclaredBorderAndRoundedLengthRoundoff()
+    {
+        byte[] pixels = new byte[128 * 128];
+        var source = new RustAffineTickSource(128, 128, pixels, 1, 0, 10 + 1e-8, 0, 1, 10 + 1e-8);
+        Assert.IsNotNull(AffineSnapshot(pixels, source));
+        Assert.IsNull(AffineSnapshot(pixels, source with { M13 = 10 + 1e-6 }));
+        var midpoint = source with { M11 = 100 / (100.5 + 5e-8), M13 = 10, M23 = 10 };
+        Assert.IsNotNull(AffineSnapshot(pixels, midpoint));
+        Assert.IsNull(AffineSnapshot(pixels, midpoint with { M11 = 100 / (100.5 + 5e-7) }));
+    }
+
+    [TestMethod]
+    public async Task AffinePrestartCancellationPreservesTokenForBothModes()
+    {
+        byte[] pixels = new byte[128 * 128];
+        var source = new RustAffineTickSource(128, 128, pixels, 1, 0, 0, 0, 1, 0);
+        using var canceled = new CancellationTokenSource(); canceled.Cancel();
+        for (int mode = 0; mode < 2; mode++)
+        {
+            TaskCanceledException error = await Assert.ThrowsExactlyAsync<TaskCanceledException>(async () =>
+                await RustAxisTickMeasurement.RunAffineAsync("unused", 128, 128, pixels, Plot, source, mode != 0, canceled.Token));
+            Assert.AreEqual(canceled.Token, error.CancellationToken);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task BuiltWorkerAffineWireKeepsStrictOrExplicitPartialSemantics(bool partial)
+    {
+        string? worker = Environment.GetEnvironmentVariable("GRAPHREADER_RUST_WORKER");
+        if (string.IsNullOrWhiteSpace(worker)) { Assert.Inconclusive("Set GRAPHREADER_RUST_WORKER to the built Rust worker."); return; }
+        byte[] pixels = PartialFixture();
+        for (int y = 40; y <= 80; y++) pixels[y * 128 + 20] = 255;
+        byte[] before = pixels.ToArray();
+        var source = new RustAffineTickSource(128, 128, pixels, 1, 0, 0, 0, 1, 0);
+        RustAxisTickMeasurementResult result = await RustAxisTickMeasurement.RunAffineAsync(worker, 128, 128, pixels,
+            new(20, 100, 115, 10, 0), source, partial);
+        if (partial)
+        {
+            Assert.IsNull(result.ErrorCode);
+            Assert.IsNotNull(result.Evidence);
+            CollectionAssert.AreEqual(PartialXTicks, result.Evidence.XTickPositions.ToArray());
+            Assert.IsEmpty(result.Evidence.YTickPositions);
+        }
+        else { Assert.AreEqual("AXIS_BOX_NOT_OBSERVED", result.ErrorCode); Assert.IsNull(result.Evidence); }
+        CollectionAssert.AreEqual(before, pixels);
+    }
+
+    [TestMethod]
+    public async Task BuiltWorkerAffineIdentityPreservesFullyObservedStrictEvidence()
+    {
+        string? worker = Environment.GetEnvironmentVariable("GRAPHREADER_RUST_WORKER");
+        if (string.IsNullOrWhiteSpace(worker)) { Assert.Inconclusive("Set GRAPHREADER_RUST_WORKER to the built Rust worker."); return; }
+        byte[] pixels = PartialFixture();
+        var box = new RustAxisGeometry(20, 100, 115, 10, 0);
+        RustAxisTickMeasurementResult strict = await RustAxisTickMeasurement.RunAsync(worker, 128, 128, pixels, box);
+        RustAxisTickMeasurementResult affine = await RustAxisTickMeasurement.RunAffineAsync(worker, 128, 128, pixels, box,
+            new(128, 128, pixels, 1, 0, 0, 0, 1, 0));
+        Assert.IsNull(strict.ErrorCode); Assert.IsNull(affine.ErrorCode);
+        Assert.IsNotNull(strict.Evidence); Assert.IsNotNull(affine.Evidence);
+        CollectionAssert.AreEqual(strict.Evidence.XTickPositions.ToArray(), affine.Evidence.XTickPositions.ToArray());
+        CollectionAssert.AreEqual(strict.Evidence.YTickPositions.ToArray(), affine.Evidence.YTickPositions.ToArray());
+    }
+
+    [TestMethod]
+    [DoNotParallelize]
+    [DataRow(0)]
+    [DataRow(1)]
+    [DataRow(2)]
+    [DataRow(3)]
+    public async Task BlockingWorkerPreservesCallerCancellationAcrossLegacyAndAffineModes(int mode)
+    {
+        string? worker = Environment.GetEnvironmentVariable("GRAPHREADER_RUST_BLOCKING_WORKER");
+        if (string.IsNullOrWhiteSpace(worker)) { Assert.Inconclusive("Set GRAPHREADER_RUST_BLOCKING_WORKER to the existing cancellation fixture."); return; }
+        byte[] pixels = PartialFixture();
+        using var cancellation = new CancellationTokenSource();
+        string ready = Path.Combine(Path.GetTempPath(), "graphreader-affine-worker-" + Guid.NewGuid().ToString("N"));
+        string? previous = Environment.GetEnvironmentVariable("GRAPHREADER_BLOCKING_READY");
+        Task<RustAxisTickMeasurementResult>? operation = null;
+        try
+        {
+            Environment.SetEnvironmentVariable("GRAPHREADER_BLOCKING_READY", ready);
+            var box = new RustAxisGeometry(20, 100, 115, 10, 0);
+            operation = mode switch
+            {
+                0 => RustAxisTickMeasurement.RunAsync(worker, 128, 128, pixels, box, cancellationToken: cancellation.Token),
+                1 => RustAxisTickMeasurement.RunManualPartialAsync(worker, 128, 128, pixels, box, cancellationToken: cancellation.Token),
+                _ => RustAxisTickMeasurement.RunAffineAsync(worker, 128, 128, pixels, box,
+                    new(128, 128, pixels, 1, 0, 0, 0, 1, 0), mode == 3, cancellation.Token),
+            };
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            while (!File.Exists(ready)) await Task.Delay(10, deadline.Token);
+            int pid = int.Parse(await File.ReadAllTextAsync(ready, deadline.Token), System.Globalization.CultureInfo.InvariantCulture);
+            cancellation.Cancel();
+            OperationCanceledException error = await Assert.ThrowsAsync<OperationCanceledException>(async () => await operation);
+            Assert.AreEqual(cancellation.Token, error.CancellationToken);
+            try
+            {
+                using var child = System.Diagnostics.Process.GetProcessById(pid);
+                await child.WaitForExitAsync(deadline.Token);
+                Assert.IsTrue(child.HasExited);
+            }
+            catch (ArgumentException) { /* Already exited. */ }
+        }
+        finally
+        {
+            cancellation.Cancel();
+            try
+            {
+                if (operation is not null)
+                    try { await operation.WaitAsync(TimeSpan.FromSeconds(10)); }
+                    catch (OperationCanceledException) { /* Expected cancellation during fixture cleanup. */ }
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("GRAPHREADER_BLOCKING_READY", previous);
+                File.Delete(ready);
+                File.Delete(Path.ChangeExtension(ready, "tmp"));
+            }
+        }
+    }
+
+    private static object? AffineSnapshot(byte[] derived, RustAffineTickSource source)
+    {
+        MethodInfo method = typeof(RustAxisTickMeasurement).GetMethod("TryAffineSnapshot", BindingFlags.NonPublic | BindingFlags.Static)!;
+        object?[] args = [128, 128, new ReadOnlyMemory<byte>(derived), Plot, source, null];
+        return (bool)method.Invoke(null, args)! ? args[^1] : null;
     }
 
     [TestMethod]
