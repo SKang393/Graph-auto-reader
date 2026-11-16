@@ -18,4 +18,3 @@ It is not a replacement for the applicable Microsoft license terms.
   <https://learn.microsoft.com/en-gb/visualstudio/releases/2022/redistribution>
 - Official supported v14 runtime guidance:
   <https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170>
-
