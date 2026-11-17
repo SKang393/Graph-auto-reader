@@ -715,16 +715,20 @@ public sealed class ExportServiceAcceptanceTests
     }
 
     [TestMethod]
-    public async Task WriteFilesLeavesOnlyReturnedArtifactsWhoseContentsMatch()
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task WriteFilesLeavesOnlyReturnedArtifactsWhoseContentsMatch(bool longNames)
     {
         string outputDirectory = NewTemporaryDirectoryPath();
         try
         {
-            ExportResult result = await ExportAsync(
-                TwoInterventionScenario(),
-                outputDirectory,
-                auditMode: ExportAuditMode.ExtendedCsvAndJson,
-                operation: ExportOperation.WriteFiles);
+            ExportResult result = await new ExportService().ExportAsync(
+                Request(TwoInterventionScenario(),
+                    outputDirectory,
+                    auditMode: ExportAuditMode.ExtendedCsvAndJson,
+                    operation: ExportOperation.WriteFiles,
+                    fileNamePrefix: longNames ? new string('p', 300) : null),
+                CancellationToken.None);
 
             Assert.IsTrue(result.Succeeded, FailureSummary(result));
             var returnedFiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

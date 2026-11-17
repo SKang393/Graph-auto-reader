@@ -767,7 +767,9 @@ public sealed class ExportService : IExportService
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 string finalPath = SafeOutputPath(fullDirectory, fileName);
-                string temporaryPath = finalPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                // Keep staging names short even when the final filename uses the full safe limit.
+                // Staging beside the destination preserves the same-volume atomic move.
+                string temporaryPath = Path.Combine(fullDirectory, Guid.NewGuid().ToString("N") + ".tmp");
                 await using (var stream = new FileStream(
                     temporaryPath,
                     FileMode.CreateNew,
