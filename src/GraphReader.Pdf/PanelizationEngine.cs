@@ -1386,21 +1386,42 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
             width < 1 ||
             height < 1 ||
             pixelCount > MaximumRasterPixels ||
-            bitDepth != 8 ||
+            !(bitDepth == 8 || (colorType is 0 or 3 && bitDepth is 1 or 2 or 4)) ||
             interlace != 0 ||
             channels == 0 ||
             (colorType == 3 &&
-                (palette is null || palette.Length == 0 || palette.Length % 3 != 0)))
+                (palette is null || palette.Length == 0 || palette.Length % 3 != 0 ||
+                    palette.Length / 3 > 1 << bitDepth)))
         {
-            warning = "Rendered page raster evidence requires a dimension-matched, 8-bit, non-interlaced grayscale, indexed, RGB, or RGBA PNG.";
+            warning = "Rendered page raster evidence requires a dimension-matched, non-interlaced PNG with 8-bit samples or 1-, 2-, or 4-bit grayscale or indexed samples.";
             return false;
+        }
+
+        int transparentColor = -1;
+        if (transparency is not null)
+        {
+            // PNG tRNS stores each key sample in the low bits of two network-order bytes.
+            switch (colorType)
+            {
+                case 0 when transparency.Length == 2:
+                    transparentColor = transparency[1] & ((1 << bitDepth) - 1);
+                    break;
+                case 2 when transparency.Length == 6:
+                    transparentColor = (transparency[1] << 16) | (transparency[3] << 8) | transparency[5];
+                    break;
+                case 3 when transparency.Length > 0 && transparency.Length <= palette!.Length / 3:
+                    break;
+                default:
+                    warning = "Rendered page raster evidence was unavailable because the PNG transparency data is invalid.";
+                    return false;
+            }
         }
 
         int rowBytes;
         int expectedLength;
         try
         {
-            rowBytes = checked(width * channels);
+            rowBytes = checked((int)(((long)width * channels * bitDepth + 7) / 8));
             expectedLength = checked((rowBytes + 1) * height);
         }
         catch (OverflowException)
@@ -1478,7 +1499,7 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
             for (int x = 0; x < width; x++)
             {
                 int pixelOffset = x * channels;
-                int luma = ReadLuma(current, pixelOffset, colorType, palette!, transparency);
+                int luma = ReadLuma(current, pixelOffset, colorType, bitDepth, palette!, transparency, transparentColor);
                 if (luma < RasterInkLumaThreshold)
                 {
                     ink[(y * width) + x] = 1;
@@ -1496,8 +1517,10 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
         byte[] row,
         int offset,
         byte colorType,
+        byte bitDepth,
         byte[] palette,
-        byte[]? transparency)
+        byte[]? transparency,
+        int transparentColor)
     {
         int red;
         int green;
@@ -1506,17 +1529,21 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
         switch (colorType)
         {
             case 0:
-                red = green = blue = row[offset];
-                alpha = 255;
-                break;
+                int gray = ReadSingleSample(row, offset, bitDepth);
+                return gray == transparentColor ? 255 : bitDepth == 8 ? gray : gray * 255 / ((1 << bitDepth) - 1);
             case 2:
                 red = row[offset];
                 green = row[offset + 1];
                 blue = row[offset + 2];
+                if (transparentColor >= 0 && ((red << 16) | (green << 8) | blue) == transparentColor)
+                {
+                    return 255;
+                }
+
                 alpha = 255;
                 break;
             case 3:
-                int paletteIndex = row[offset];
+                int paletteIndex = ReadSingleSample(row, offset, bitDepth);
                 int paletteOffset = paletteIndex * 3;
                 if (paletteOffset > palette.Length - 3)
                 {
@@ -1546,6 +1573,18 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
 
         int luma = ((299 * red) + (587 * green) + (114 * blue) + 500) / 1000;
         return ((luma * alpha) + (255 * (255 - alpha)) + 127) / 255;
+    }
+
+    private static int ReadSingleSample(byte[] row, int x, int bitDepth)
+    {
+        if (bitDepth == 8)
+        {
+            return row[x];
+        }
+
+        // Unfilter bytes first, then unpack from the most significant end of each byte.
+        int bit = x * bitDepth;
+        return (row[bit / 8] >> (8 - bitDepth - bit % 8)) & ((1 << bitDepth) - 1);
     }
 
     private static int PaethPredictor(int left, int above, int upperLeft)

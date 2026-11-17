@@ -328,6 +328,101 @@ public sealed class Session04AcceptanceTests
     }
 
     [TestMethod]
+    [DataRow(1, false)]
+    [DataRow(2, false)]
+    [DataRow(4, false)]
+    [DataRow(1, true)]
+    [DataRow(2, true)]
+    [DataRow(4, true)]
+    public async Task PackedPngSamplesPreserveOrderedPanelCrops(int depth, bool indexed)
+    {
+        // An odd width leaves padding at the end of every packed row.
+        const int width = 643, height = 900;
+        byte[] source = CreateStackedGraphScanlines(width, height);
+        PdfPanelizationResult reference = await ProposeRasterAsync(EncodeGrayscalePng(width, height, source), width, height);
+        Assert.HasCount(3, reference.Panels);
+        int maximum = (1 << depth) - 1;
+        byte ink = indexed ? (byte)maximum : (byte)(maximum / 3);
+        byte paper = indexed ? (byte)0 : (byte)maximum;
+        byte[]? palette = indexed ? new byte[(maximum + 1) * 3] : null;
+        // Index zero deliberately has black RGB but is fully transparent.
+        byte[]? transparency = indexed ? [0] : null;
+        int stride = (width * depth + 7) / 8;
+        byte[] packed = new byte[(stride + 1) * height];
+        for (int y = 0; y < height; y++)
+        {
+            int start = y * (stride + 1);
+            for (int x = 0; x < width; x++)
+            {
+                int bit = x * depth;
+                byte sample = source[y * (width + 1) + 1 + x] == 0 ? ink : paper;
+                packed[start + 1 + bit / 8] |= (byte)(sample << (8 - depth - bit % 8));
+            }
+
+            // Sub filters operate on packed bytes, not unpacked pixels.
+            packed[start] = 1;
+            for (int i = stride; i > 1; i--)
+            {
+                packed[start + i] = unchecked((byte)(packed[start + i] - packed[start + i - 1]));
+            }
+        }
+
+        byte[] png = EncodePng(width, height, packed, (byte)depth, indexed ? (byte)3 : (byte)0, palette, transparency);
+        PdfPanelizationResult result = await ProposeRasterAsync(png, width, height);
+        CollectionAssert.AreEqual(reference.Panels.Select(static panel => panel.CropInSourcePixels).ToArray(),
+            result.Panels.Select(static panel => panel.CropInSourcePixels).ToArray());
+        if (!indexed)
+        {
+            byte[] hiddenInk = EncodePng(width, height, packed, (byte)depth, 0, null, [0, ink]);
+            Assert.IsEmpty((await ProposeRasterAsync(hiddenInk, width, height)).Panels,
+                "Match the original grayscale sample before scaling it to eight bits.");
+        }
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task PngColorKeyOnlyRemovesExactInkSamples(bool rgb)
+    {
+        const int width = 640, height = 900;
+        byte[] source = CreateStackedGraphScanlines(width, height);
+        int channels = rgb ? 3 : 1;
+        byte[] rows = new byte[(width * channels + 1) * height];
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                bool ink = source[y * (width + 1) + 1 + x] == 0;
+                int start = y * (width * channels + 1) + 1 + x * channels;
+                rows[start] = ink ? (byte)17 : (byte)255;
+                if (rgb)
+                {
+                    rows[start + 1] = ink ? (byte)33 : (byte)255;
+                    rows[start + 2] = ink ? (byte)65 : (byte)255;
+                }
+            }
+        }
+
+        byte[] key = rgb ? [0, 17, 0, 33, 0, 65] : [0, 17];
+        byte type = rgb ? (byte)2 : (byte)0;
+        PdfPanelizationResult hidden = await ProposeRasterAsync(EncodePng(width, height, rows, 8, type, null, key), width, height);
+        Assert.IsEmpty(hidden.Panels, "Fully transparent axes are not plot evidence.");
+        key[^1]++;
+        PdfPanelizationResult visible = await ProposeRasterAsync(EncodePng(width, height, rows, 8, type, null, key), width, height);
+        Assert.HasCount(3, visible.Panels, "A one-sample difference must keep the original axes visible.");
+    }
+
+    private static async Task<PdfPanelizationResult> ProposeRasterAsync(byte[] png, int width, int height)
+    {
+        var page = new PdfPageSnapshot(1, width / 2d, height / 2d, [], [], []);
+        var rendered = new PdfRenderedPage(new ImmutableByteBuffer(png), width, height);
+        var input = new PdfPanelizationInput(new string('2', 64), page, rendered, new PdfPanelizationOptions());
+        PdfPanelizationResult result = await PanelizationEngine.CreateForStandaloneRasterSource().ProposeAsync(input, CancellationToken.None);
+        Assert.IsTrue(result.Succeeded, PanelizationFailureSummary(result));
+        return result;
+    }
+
+    [TestMethod]
     public async Task ScannedRenderedPageUsesPointMinimumAtRasterDpiAndRejectsShortLegendFrameAxis()
     {
         const int width = 1200;
@@ -1449,7 +1544,10 @@ public sealed class Session04AcceptanceTests
         return EncodeGrayscalePng(width, height, scanlines);
     }
 
-    private static byte[] CreateStackedGraphPng(int width, int height)
+    private static byte[] CreateStackedGraphPng(int width, int height) =>
+        EncodeGrayscalePng(width, height, CreateStackedGraphScanlines(width, height));
+
+    private static byte[] CreateStackedGraphScanlines(int width, int height)
     {
         byte[] scanlines = CreateWhiteScanlines(width, height);
         int[] baselines = [270, 530, 790];
@@ -1463,7 +1561,7 @@ public sealed class Session04AcceptanceTests
             DrawVertical(scanlines, width, height, x: 300, yMin: baseline - 150, yMax: baseline, thickness: 1);
         }
 
-        return EncodeGrayscalePng(width, height, scanlines);
+        return scanlines;
     }
 
     private static byte[] CreateGraphWithShortLegendFramePng(int width, int height)
@@ -1576,7 +1674,11 @@ public sealed class Session04AcceptanceTests
         }
     }
 
-    private static byte[] EncodeGrayscalePng(int width, int height, byte[] scanlines)
+    private static byte[] EncodeGrayscalePng(int width, int height, byte[] scanlines) =>
+        EncodePng(width, height, scanlines, 8, 0, null, null);
+
+    private static byte[] EncodePng(int width, int height, byte[] scanlines, byte depth, byte type,
+        byte[]? palette, byte[]? transparency)
     {
         byte[] compressed;
         using (var compressedStream = new MemoryStream())
@@ -1592,11 +1694,14 @@ public sealed class Session04AcceptanceTests
         using var png = new MemoryStream();
         png.Write([137, 80, 78, 71, 13, 10, 26, 10]);
         Span<byte> header = stackalloc byte[13];
+        header.Clear();
         BinaryPrimitives.WriteInt32BigEndian(header, width);
         BinaryPrimitives.WriteInt32BigEndian(header[4..], height);
-        header[8] = 8;
-        header[9] = 0;
+        header[8] = depth;
+        header[9] = type;
         WritePngChunk(png, "IHDR", header);
+        if (palette is not null) WritePngChunk(png, "PLTE", palette);
+        if (transparency is not null) WritePngChunk(png, "tRNS", transparency);
         WritePngChunk(png, "IDAT", compressed);
         WritePngChunk(png, "IEND", []);
         return png.ToArray();

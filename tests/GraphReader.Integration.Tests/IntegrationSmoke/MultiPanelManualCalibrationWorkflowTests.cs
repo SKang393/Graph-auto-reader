@@ -3,6 +3,8 @@
 
 using System.Buffers.Binary;
 using System.IO.Compression;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Services;
@@ -180,13 +182,26 @@ public sealed class MultiPanelManualCalibrationWorkflowTests
     }
 
     [TestMethod]
-    [DataRow(1, 20)]
-    [DataRow(29, 35)]
-    public async Task UserAnchorsCalibrateEveryLabelFreeRasterPanelThroughProductionWorkflow(int firstSession, int finalSession)
+    [DataRow(1, 20, false)]
+    [DataRow(29, 35, false)]
+    [DataRow(29, 35, true)]
+    public async Task UserAnchorsCalibrateEveryLabelFreeRasterPanelThroughProductionWorkflow(
+        int firstSession, int finalSession, bool monochrome)
     {
         using var directory = new TemporaryDirectory();
         string imagePath = Path.Combine(directory.Path, "synthetic-stacked-graphs.png");
         byte[] sourceBytes = CreateStackedGraphPng();
+        if (monochrome)
+        {
+            using var source = new MemoryStream(sourceBytes);
+            var frame = BitmapFrame.Create(source, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(new FormatConvertedBitmap(frame, PixelFormats.BlackWhite, null, 0)));
+            using var encoded = new MemoryStream();
+            encoder.Save(encoded);
+            sourceBytes = encoded.ToArray();
+            Assert.AreEqual((byte)1, sourceBytes[24], "Exercise a real one-bit Windows PNG encoder.");
+        }
         await File.WriteAllBytesAsync(imagePath, sourceBytes);
 
         var store = new ProductionWorkflowPanelStore();
@@ -216,7 +231,7 @@ public sealed class MultiPanelManualCalibrationWorkflowTests
 
         WorkspaceTabViewModel[] tabs = (await workspace.ImportImagesAsync(
             [imagePath], CancellationToken.None)).ToArray();
-        Assert.IsGreaterThan(1, tabs.Length, "The generated source must panelize into multiple graphs.");
+        Assert.HasCount(3, tabs, "The generated source has three stacked graphs.");
 
         foreach (WorkspaceTabViewModel tab in tabs)
         {
@@ -338,6 +353,8 @@ public sealed class MultiPanelManualCalibrationWorkflowTests
                 Assert.AreEqual(expectedFirst, capture.LastRequest!.Calibration.FirstObservedSession!.Value, 1e-8);
             }
         }
+
+        CollectionAssert.AreEqual(sourceBytes, await File.ReadAllBytesAsync(imagePath));
     }
 
     private static SyntheticPanelGeometry GeometryFor(PanelRecord panel, int width, int height)

@@ -19,6 +19,22 @@ Oversized panels now direct marker assistance users to **Crop panel**. This
 addresses the existing 4096-side and 4,194,304-pixel assistance limits without
 changing those limits.
 
+## Automatic panel detection in PNG figures
+
+In source after 0.4.59, the panel detector can read non-interlaced grayscale
+and indexed PNGs at 1, 2, 4, or 8 bits per sample. It measures visible ink on a
+white background, so transparent grayscale or RGB strokes do not become axes.
+This does not change the source image, panel thresholds, or numeric calibration.
+
+The [raster tests](../tests/GraphReader.Pdf.Tests/Session04AcceptanceTests.cs)
+recover the same three ordered crops from all six low-bit encodings as from the
+8-bit reference. Two color-key tests distinguish transparent axes (no panels)
+from nearly identical opaque axes (three panels).
+The [Windows workflow test](../tests/GraphReader.Integration.Tests/IntegrationSmoke/MultiPanelManualCalibrationWorkflowTests.cs)
+imports a one-bit Windows-encoded PNG, manually calibrates its three panels,
+and checks their coordinates and export audit after reopening. The original
+PNG remains byte-for-byte unchanged.
+
 ## Validation
 
 The initial focused App run reported 83 passed and 3 failed of 86. The three
