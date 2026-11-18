@@ -1251,6 +1251,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 },
             },
             cancellationToken);
+        CheckCompetingReadings(parsedYTicks, calibration.YTransform, confidenceWarnings);
+        CheckCompetingReadings(parsedXTicks, calibration.XTransform, confidenceWarnings);
         if (HasAmbiguousInlierScale(parsedYTicks, calibration.YTransform) ||
             calibration.XTransform is { } xFit && HasAmbiguousInlierScale(parsedXTicks, xFit))
         {
@@ -1466,6 +1468,76 @@ public sealed class ProductionAutomaticDetectionAdapter :
             .Select(tick => (tick.Region.Text, tick.Value)));
     }
 
+    private static void CheckCompetingReadings(ParsedTick[] ticks, LinearTransformFitResult? fit, List<string> warnings)
+    {
+        if (!ticks.Any(t => t.Competing.Count > 0)) return;
+        var inliers = fit?.IsValid == true ? fit.Diagnostics.InlierIds.ToHashSet(StringComparer.Ordinal) : null;
+        // Only unchanged literal readings from a single dominant native CTC path may
+        // corroborate one another. Independent recognizers and edited hypotheses stay in Review.
+        ParsedTick[] supported = ticks.Where(t => inliers?.Contains(t.Region.RegionId) == true &&
+            t.Region.Text.All(char.IsAsciiDigit) && t.Region.SingleCtcRead?.Matches(t.Region) == true &&
+            t.Competing.All(other => IsSingleDigitEdit(t.Region.Text, other.Text))).ToArray();
+        foreach (ParsedTick tick in ticks.Where(t => t.Competing.Count > 0))
+        {
+            if (supported.Contains(tick) && HasIndependentBracket(tick, supported)) continue;
+            warnings.Add($"ocr_tick_sequence_needs_review:{tick.Region.Role}:competing_numeric_readings:{tick.Region.RegionId}");
+        }
+    }
+
+    private static bool IsSingleDigitEdit(string first, string second)
+    {
+        if (!second.All(char.IsAsciiDigit) || Math.Abs(first.Length - second.Length) != 1) return false;
+        var (longer, shorter) = first.Length > second.Length ? (first, second) : (second, first);
+        int i = 0;
+        while (i < shorter.Length && longer[i] == shorter[i]) i++;
+        return longer.AsSpan(i + 1).SequenceEqual(shorter.AsSpan(i));
+    }
+
+    private static bool HasIndependentBracket(ParsedTick target, ParsedTick[] supported)
+    {
+        bool horizontal = target.Region.Role == OcrTextRole.XTick;
+        // Express each crop as an interval along the axis and an interval across it.
+        OcrRectangle Bounds(ParsedTick t)
+        {
+            OcrRectangle box = t.Region.Polygon.Bounds;
+            return horizontal ? box : new OcrRectangle(box.Y, box.X, box.Height, box.Width);
+        }
+
+        var center = Bounds(target);
+        ParsedTick? before = null, after = null;
+        foreach (ParsedTick peer in supported)
+        {
+            if (peer == target) continue;
+            var box = Bounds(peer);
+            if (box.Center.Y < center.Top || box.Center.Y > center.Bottom ||
+                center.Center.Y < box.Top || center.Center.Y > box.Bottom) continue;
+            if (box.Right < center.Left)
+            {
+                if (before is null || box.Right > Bounds(before).Right) before = peer;
+            }
+            else if (box.Left > center.Right)
+            {
+                if (after is null || box.Left < Bounds(after).Left) after = peer;
+            }
+            else return false;
+        }
+        if (before is null || after is null || before.Value == after.Value) return false;
+
+        // Use full crop intervals, not exact centers. If both readings could fit,
+        // or the primary would require extrapolation, preserve the competing reading.
+        var left = Bounds(before);
+        var right = Bounds(after);
+        bool Fits(double value)
+        {
+            double fraction = (value - before.Value) / (after.Value - before.Value);
+            if (fraction is <= 0 or >= 1) return false;
+            double min = (1 - fraction) * left.Left + fraction * right.Left;
+            double max = (1 - fraction) * left.Right + fraction * right.Right;
+            return min <= center.Right && max >= center.Left;
+        }
+        return Fits(target.Value) && target.Competing.All(other => !Fits(other.Value));
+    }
+
     private static IEnumerable<ParsedTick> ParseTicks(
         OcrResult ocr, OcrTextRole role, List<string> confidenceWarnings)
     {
@@ -1481,22 +1553,22 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     // but geometry alone cannot confirm the printed value.
                     confidenceWarnings.Add($"ocr_tick_sequence_needs_review:{role}:nonliteral_numeric_reading:{region.RegionId}");
                 }
-                // Independently run recognizers can be merged after their own
-                // sequence checks. A regular fit must not hide a competing
-                // numeric reading that has not been reviewed by the user.
-                if (region.ReviewStatus == OcrReviewStatus.Unreviewed &&
-                    region.Alternatives.Any(alternative =>
+                var competing = new List<(string Text, double Value)>();
+                if (region.ReviewStatus == OcrReviewStatus.Unreviewed)
+                {
+                    foreach (var alternative in region.Alternatives)
                     {
                         if (!double.IsFinite(alternative.Confidence) || alternative.Confidence is <= 0 or > 1)
-                            return false;
-                        NumericParseResult other = GraphNumericParser.Parse(alternative.Text);
-                        return other.IsSuccess && other.Value is { } otherValue && otherValue != value;
-                    }))
-                {
-                    confidenceWarnings.Add($"ocr_tick_sequence_needs_review:{role}:competing_numeric_readings:{region.RegionId}");
+                            continue;
+                        var other = GraphNumericParser.Parse(alternative.Text);
+                        if (other.IsSuccess && other.Value is { } otherValue && otherValue != value)
+                            competing.Add((alternative.Text, otherValue));
+                    }
                 }
                 if (!double.IsFinite(region.Confidence) || region.Confidence is <= 0 or > 1)
                 {
+                    if (competing.Count > 0)
+                        confidenceWarnings.Add($"ocr_tick_sequence_needs_review:{role}:competing_numeric_readings:{region.RegionId}");
                     // Review retains the reading, but an unweighted tick cannot fit an axis.
                     confidenceWarnings.Add($"ocr_tick_sequence_needs_review:{role}:invalid_confidence");
                     continue;
@@ -1504,7 +1576,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 yield return new ParsedTick(
                     region,
                     value,
-                    Math.Min(region.Confidence, parsed.Confidence));
+                    Math.Min(region.Confidence, parsed.Confidence), competing);
             }
         }
     }
@@ -2179,7 +2251,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
             Recoverable: true,
             suggestedAction));
 
-    private sealed record ParsedTick(OcrRegion Region, double Value, double Confidence);
+    private sealed record ParsedTick(OcrRegion Region, double Value, double Confidence,
+        IReadOnlyList<(string Text, double Value)> Competing);
 
     private sealed record ProjectedPoint(
         ClassifiedMarker Marker,

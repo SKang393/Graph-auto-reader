@@ -310,7 +310,11 @@ public sealed class OcrDualRecognizerPipeline
             .ThenBy(static alternative => alternative.Text, StringComparer.Ordinal)
             .ThenBy(static alternative => alternative.SourceImage)
             .ToArray();
-        return selected with { Alternatives = OcrCollections.Freeze(alternatives) };
+        return selected with
+        {
+            Alternatives = OcrCollections.Freeze(alternatives),
+            SingleCtcRead = other is null ? selected.SingleCtcRead : null,
+        };
     }
 
     private static OcrMask? SelectMask(string regionId, IReadOnlyList<OcrMask> masks) =>

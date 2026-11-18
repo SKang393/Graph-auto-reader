@@ -80,11 +80,15 @@ public sealed record LocalOnnxTextRecognizerOptions(
     public bool BypassCache { get; init; }
 }
 
-public sealed record CtcDecodedAlternative(string Text, double Confidence);
+public sealed record CtcDecodedAlternative(string Text, double Confidence)
+{
+    // Only the greedy transcript carries this conservative lower bound on its CTC mass.
+    internal double GreedyAlignmentMass { get; init; }
+}
 
 public static class CtcRecognitionDecoder
 {
-    internal const string ConfigurationVersion = "ctc-single-path-support-v3";
+    internal const string ConfigurationVersion = "ctc-greedy-alignment-mass-v4";
 
     public static IReadOnlyList<CtcDecodedAlternative> Decode(
         ReadOnlySpan<float> logits,
@@ -111,11 +115,13 @@ public static class CtcRecognitionDecoder
         var secondClasses = new int[timeSteps];
         var bestProbabilities = new double[timeSteps];
         var uncertainty = new double[timeSteps];
+        double greedyMass = 1;
         for (var time = 0; time < timeSteps; time++)
         {
             var row = logits.Slice(time * classCount, classCount);
             double[] probabilities = ToProbabilities(row, outputActivation);
 
+            double rowSum = 0;
             var best = -1;
             var second = -1;
             var bestProbability = double.NegativeInfinity;
@@ -123,6 +129,7 @@ public static class CtcRecognitionDecoder
             for (var classIndex = 0; classIndex < classCount; classIndex++)
             {
                 double probability = probabilities[classIndex];
+                rowSum += probability;
                 if (probability > bestProbability)
                 {
                     second = best;
@@ -137,6 +144,8 @@ public static class CtcRecognitionDecoder
                 }
             }
 
+            // Include blank and repeat frames. Character confidence alone omits both.
+            greedyMass *= bestProbability / rowSum;
             bestClasses[time] = best;
             secondClasses[time] = second;
             bestProbabilities[time] = bestProbability;
@@ -146,7 +155,7 @@ public static class CtcRecognitionDecoder
         var greedy = DecodeClasses(bestClasses, bestProbabilities, alphabetSymbols, blankClassIndex);
         var candidates = new List<CtcDecodedAlternative>
         {
-            greedy,
+            greedy with { GreedyAlignmentMass = greedyMass },
         };
         foreach (var time in Enumerable.Range(0, timeSteps).OrderByDescending(index => uncertainty[index]))
         {
@@ -533,7 +542,14 @@ public sealed class LocalOnnxTextRecognizer : ITextRecognizer
                     alternative.Text,
                     alternative.Confidence,
                     crops[cropIndex].SourceImage))),
-                response.Execution.Timing.InferenceMilliseconds / crops.Count);
+                response.Execution.Timing.InferenceMilliseconds / crops.Count)
+            {
+                SingleCtcRead = crops[cropIndex].SourceImage == OcrSourceImage.Original &&
+                    decoded.Count > 0 && decoded[0].Text.All(char.IsAsciiDigit) &&
+                    decoded[0].GreedyAlignmentMass >= SingleCtcRead.MinimumGreedyMass
+                    ? new SingleCtcRead(crops[cropIndex].RegionId, crops[cropIndex].OriginalPolygon, decoded)
+                    : null,
+            };
         }
 
         return Array.AsReadOnly(results);

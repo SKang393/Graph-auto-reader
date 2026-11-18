@@ -1162,7 +1162,10 @@ public sealed class OcrPipeline
                 role.Role,
                 Math.Clamp(combined, 0, 1),
                 bestAlternative.SourceImage,
-                OcrReviewStatus.Unreviewed));
+                OcrReviewStatus.Unreviewed)
+            {
+                SingleCtcRead = recognized is [var sole] ? sole.SingleCtcRead : null,
+            });
         }
 
         return OcrCollections.Freeze(output);

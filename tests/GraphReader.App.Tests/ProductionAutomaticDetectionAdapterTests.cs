@@ -1543,6 +1543,84 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             [id]);
     }
 
+    [TestMethod]
+    [DataRow("bracketed", true)]
+    [DataRow("independent", false)]
+    [DataRow("near-tie", false)]
+    [DataRow("same-length", false)]
+    [DataRow("off-lane", false)]
+    [DataRow("endpoint", false)]
+    [DataRow("both-fit", false)]
+    public async Task SameCropDigitEditsRequireDominantPathAndIndependentBracket(string scenario, bool valid)
+    {
+        byte[] bytes = [1, 2, 3];
+        var image = new WorkflowImageEvidence("memory:bracket.png", Convert.ToHexStringLower(SHA256.HashData(bytes)),
+            100, 100, WorkflowImageVariant.Original);
+        var panel = new WorkflowImportedPanel(Guid.NewGuid(), Guid.NewGuid(), "bracket.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(panel, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new RasterDecoder(), new AxisAdapter(),
+            new OcrAdapter(transformRegions: AddCtcTicks), new MaskComposer(), new CenterAdapter(),
+            new ClassificationAdapter(), new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(panel, image, null),
+            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+        if (!valid)
+        {
+            var failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(() => adapter.DetectAsync(request, default));
+            StringAssert.Contains(failure.Failure.TechnicalMessage, "competing_numeric_readings");
+            Assert.IsNull(store.Get(panel.PanelId).ExportEvidence);
+            return;
+        }
+
+        var result = await adapter.DetectAsync(request, default);
+        var rows = result.Candidates.OrderBy(t => t.GraphX).ToArray();
+        Assert.HasCount(2, rows);
+        Assert.AreEqual(1d, rows[0].GraphX!.Value, 1e-9);
+        Assert.AreEqual(2d, rows[1].GraphX!.Value, 1e-9);
+        Assert.AreEqual(100d / 6d, rows[0].GraphY!.Value, 1e-9);
+        Assert.AreEqual(500d / 6d, rows[1].GraphY!.Value, 1e-9);
+        Assert.IsNotNull(store.Get(panel.PanelId).ExportEvidence);
+
+        OcrRegion[] AddCtcTicks(OcrRegion[] input)
+        {
+            var mid = input.Single(r => r.RegionId == "y0") with
+            {
+                RegionId = "middle",
+                Polygon = OcrPolygon.FromRectangle(scenario == "both-fit" ? new OcrRectangle(1, 73, 4, 4.8) :
+                    new OcrRectangle(scenario == "off-lane" ? 8 : 1, 48, 4, 4)),
+                Text = scenario == "both-fit" ? "10" : "50",
+            };
+            return input.Append(mid).Select(region =>
+            {
+                if (region.Role != OcrTextRole.YTick) return region;
+                bool disputed = region.RegionId == (scenario == "endpoint" ? "y100" : "middle");
+                // Use the real decoder on known normalized frames. Leave a certain blank
+                // between successive glyphs so repeated digits have distinct alignments.
+                var frames = new float[(2 * region.Text.Length - 1) * 11];
+                for (int i = 0; i < region.Text.Length; i++)
+                {
+                    frames[(2 * i * 11) + region.Text[i] - '0' + 1] = 1;
+                    if (i > 0) frames[(2 * i - 1) * 11] = 1;
+                }
+                if (disputed)
+                {
+                    float runnerUp = scenario == "near-tie" ? 0.49f : 0.001f;
+                    int last = frames.Length - 11;
+                    frames[last + region.Text[^1] - '0' + 1] = 1 - runnerUp;
+                    frames[last + (scenario == "same-length" ? 8 : 0)] = runnerUp;
+                }
+                var paths = CtcRecognitionDecoder.Decode(frames, frames.Length / 11, "0123456789");
+                return region with
+                {
+                    Alternatives = paths.Select(path => new OcrRecognitionAlternative(path.Text,
+                        path.Confidence, OcrSourceImage.Original)).ToArray(),
+                    SingleCtcRead = disputed && scenario == "independent" ? null :
+                        new SingleCtcRead(region.RegionId, region.Polygon, paths),
+                };
+            }).ToArray();
+        }
+    }
+
     private sealed class OcrAdapter : IProductionOcrAdapter
     {
         private readonly string participant;
@@ -1564,6 +1642,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         private readonly string? substitutedText;
         private readonly OcrReviewStatus substitutedReviewStatus;
         private readonly OcrReviewStatus? outlyingTickStatus;
+        private readonly Func<OcrRegion[], OcrRegion[]>? transformRegions;
 
         public OcrAdapter(string participant = "Chandler", bool includeLegendText = false, bool framedLegend = false,
             bool invalidLegendBounds = false, string? warning = null,
@@ -1573,7 +1652,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             OcrReviewStatus competingAlternativeReviewStatus = OcrReviewStatus.Unreviewed,
             bool invalidEvidenceBinding = false, OcrTextRole? substitutedRole = null,
             string? substitutedText = null, OcrReviewStatus substitutedReviewStatus = OcrReviewStatus.Unreviewed,
-            OcrReviewStatus? outlyingTickStatus = null)
+            OcrReviewStatus? outlyingTickStatus = null, Func<OcrRegion[], OcrRegion[]>? transformRegions = null)
         {
             this.participant = participant;
             this.includeLegendText = includeLegendText;
@@ -1594,6 +1673,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             this.substitutedText = substitutedText;
             this.substitutedReviewStatus = substitutedReviewStatus;
             this.outlyingTickStatus = outlyingTickStatus;
+            this.transformRegions = transformRegions;
         }
 
         public string AdapterId => "test-ocr";
@@ -1709,6 +1789,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 regions = [.. regions, legend];
             }
             if (includeMarkerGlyph) regions = [.. regions, Region("marker-glyph", 17, 67, "O", OcrTextRole.Annotation)];
+            if (transformRegions is not null) regions = transformRegions(regions);
             var result = new OcrResult(
                 OcrContract.Version,
                 request.RunId.ToString("D"),

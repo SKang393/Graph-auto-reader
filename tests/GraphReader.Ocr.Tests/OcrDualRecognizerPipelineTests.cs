@@ -227,6 +227,26 @@ public sealed class OcrDualRecognizerPipelineTests
         Assert.IsTrue(asymmetric.Pixels.Span.ToArray().All(float.IsFinite));
     }
 
+    [TestMethod]
+    public async Task IndependentRecognizersCannotRetainSingleTensorEvidenceAfterDeduplication()
+    {
+        var tick = OcrTestFixtures.Region("tick", 46, 89, 10, 6);
+        var paths = CtcRecognitionDecoder.Decode([0f, 1f, 0f, 0.999f, 0f, 0.001f], 2, "12");
+        var recognizer = new StubTextRecognizer((crops, _) =>
+            ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop =>
+                new OcrRecognition(crop.RegionId, crop.SourceImage,
+                    paths.Select(p => new OcrRecognitionAlternative(p.Text, p.Confidence, crop.SourceImage)).ToArray(), 0)
+                {
+                    SingleCtcRead = new SingleCtcRead(crop.RegionId, crop.OriginalPolygon, paths),
+                }).ToArray()));
+        var pipeline = Create(new StubTextRegionDetector([tick]), recognizer, recognizer);
+        var result = await pipeline.RecognizeAsync(OcrTestFixtures.Request(), default);
+        var region = result.Regions.Single();
+        Assert.AreEqual("1", region.Text);
+        Assert.IsTrue(region.Alternatives.Any(a => a.Text == "12"));
+        Assert.IsNull(region.SingleCtcRead);
+    }
+
     private static OcrDualRecognizerPipeline Create(
         ITextRegionDetector detector,
         ITextRecognizer general,

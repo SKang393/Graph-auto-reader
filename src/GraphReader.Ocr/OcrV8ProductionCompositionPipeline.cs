@@ -365,7 +365,11 @@ public sealed class OcrV8ProductionCompositionPipeline
             .ThenBy(static alternative => alternative.Text, StringComparer.Ordinal)
             .ThenBy(static alternative => alternative.SourceImage)
             .ToArray();
-        return selected with { Alternatives = OcrCollections.Freeze(alternatives) };
+        return selected with
+        {
+            Alternatives = OcrCollections.Freeze(alternatives),
+            SingleCtcRead = other is null ? selected.SingleCtcRead : null,
+        };
     }
 
     private static (int Width, int Height) OriginalBounds(OcrImage image)

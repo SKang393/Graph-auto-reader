@@ -9,6 +9,22 @@ namespace GraphReader.Ocr.Tests;
 public sealed class CtcRecognitionDecoderTests
 {
     [TestMethod]
+    public void DominantPathBoundIncludesEveryFrameAndBelongsOnlyToGreedyText()
+    {
+        // The accepted glyph is certain. Six uncertain blanks reduce total alignment
+        // mass below 0.95 even though a single forced edit has little support.
+        var probabilities = new List<float> { 0, 1, 0 };
+        for (int i = 0; i < 6; i++) probabilities.AddRange([0.99f, 0, 0.01f]);
+        var paths = CtcRecognitionDecoder.Decode(probabilities.ToArray(), 7, "12");
+        Assert.AreEqual(1d, paths[0].Confidence);
+        Assert.AreEqual(Math.Pow(0.99, 6), paths[0].GreedyAlignmentMass, 1e-6);
+        Assert.IsTrue(paths[0].GreedyAlignmentMass < SingleCtcRead.MinimumGreedyMass);
+        Assert.AreEqual(0d, paths.Single(path => path.Text == "12").GreedyAlignmentMass);
+        var emptyGreedy = CtcRecognitionDecoder.Decode([0.99f, 0.01f], 1, "1");
+        Assert.AreEqual(0d, emptyGreedy.Single().GreedyAlignmentMass);
+    }
+
+    [TestMethod]
     public void MultiScalarModelClassesPreserveFollowingCharacterIndices()
     {
         string[] tokens = ["1", "\U0001F1E9\U0001F1EA", "A"];

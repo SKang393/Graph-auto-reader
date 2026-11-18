@@ -201,3 +201,51 @@ peers, overlapping or misaligned peers, and explicit or box-derived rotations.
 The local Windows OCR suite passed 943 tests and skipped 16. Seven focused
 application tests passed, including genuine OCR conflicts, printed-coordinate
 review and the native marker overlay.
+
+## Corroborating same-crop digit alternatives
+
+The local CTC decoder generates alternatives by substituting the runner-up at
+one time step of the same recognition tensor. A disagreement between two
+recognizers previously produced the same calibration warning as a weak
+single-frame edit. The decoder now retains the product of the normalized
+greedy probabilities across all frames, including blanks and repeats. Under
+the CTC model this bounds the probability mass of the greedy transcript from
+below. It measures support within one model output.
+
+For unreviewed original-image integer labels, calibration can resolve a
+single-digit insertion or deletion when the greedy alignment has at least 0.95
+mass and two other original label crops bracket it on the same axis. All three
+must have intact single-read evidence and belong to a valid fit. Interpolation
+over the full crop intervals must admit the primary and exclude every disputed
+value. Independent recognizer merges invalidate the single-read evidence.
+Endpoints, uncertain reads and competing scales retain the review gate.
+The raw alternatives remain available.
+
+| One nonsealed development panel | Baseline at `275cb0e9` | With corroboration |
+| --- | ---: | ---: |
+| Matching primary printed X labels | 7 / 7 | 7 / 7 |
+| Measured tick strokes, X / Y | 1 / 2 | 1 / 2 |
+| Fit inliers, X / Y | 7 / 6 | 7 / 6 |
+| Blocking competing readings, X / Y | 8 / 3 | 3 / 1 |
+| Raw hypotheses for 16 tick-role regions, including primaries | 48 | 48 |
+| Valid automatic calibrations | 0 / 1 | 0 / 1 |
+| Matched / extra / missing centers, 5-pixel radius | 4 / 26 / 6 | 4 / 26 / 6 |
+| Matched / extra / missing numeric sessions | 0 / 0 / 10 | 0 / 0 / 10 |
+| OCR / automatic workflow wall time | 17.851 / 26.060 s | 20.568 / 31.202 s |
+
+The remaining disputed readings comprise three axis endpoints and one off-row
+proposal. Marker precision was 13.33% and recall was 40%. Scoring after
+image-only extraction located one missing reference center before the first
+accepted column. It survived center detection and classification, then an OCR
+annotation mask excluded it. The session-first origin gate correctly stopped
+projection. There were zero comparable Y values or phase rows.
+
+On Windows, an inactive WPF Review window bound the actual refusal to the
+imported panel. Toggling the overlay displayed all 30 candidate boxes at the
+reported centers and left calibration empty with zero editable rows. A
+separate controlled adapter test yielded both expected X/Y rows and export
+evidence. Its negative controls covered near ties, independent readings,
+same-length changes, off-lane labels, endpoints and overlapping value
+intervals. The focused Windows runs passed 51 OCR tests and 68 application
+adapter tests, with 12 calibration cases rechecked on the final source.
+The development figures are single-run measurements on one panel.

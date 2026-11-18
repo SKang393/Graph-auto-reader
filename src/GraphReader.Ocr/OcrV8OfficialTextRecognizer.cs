@@ -102,6 +102,7 @@ public sealed class OcrV8OfficialTextRecognizer : ITextRecognizer
             processed[index] = recognition with
             {
                 Alternatives = OcrCollections.Freeze(alternatives),
+                SingleCtcRead = null,
                 InferenceMilliseconds = recognition.InferenceMilliseconds + ambiguityMilliseconds,
             };
         }

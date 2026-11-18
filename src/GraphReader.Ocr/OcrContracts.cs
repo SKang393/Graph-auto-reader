@@ -226,7 +226,10 @@ public sealed record OcrRecognition(
     OcrSourceImage SourceImage,
     IReadOnlyList<OcrRecognitionAlternative> Alternatives,
     double InferenceMilliseconds,
-    OcrFailure? Failure = null);
+    OcrFailure? Failure = null)
+{
+    internal SingleCtcRead? SingleCtcRead { get; init; }
+}
 
 public sealed record OcrRegionFailure(
     string RegionId,
@@ -248,7 +251,23 @@ public sealed record OcrRegion(
     double Confidence,
     OcrSourceImage SourceImage,
     OcrReviewStatus ReviewStatus,
-    string CoordinateSpace = OcrContract.CoordinateSpace);
+    string CoordinateSpace = OcrContract.CoordinateSpace)
+{
+    internal SingleCtcRead? SingleCtcRead { get; init; }
+}
+
+// Runtime-only evidence. Missing, edited or serialized evidence takes the conservative path.
+internal sealed record SingleCtcRead(string RegionId, OcrPolygon Polygon, IReadOnlyList<CtcDecodedAlternative> Paths)
+{
+    internal const double MinimumGreedyMass = 0.95;
+
+    internal bool Matches(OcrRegion region) =>
+        Paths.Count > 0 && Paths[0].GreedyAlignmentMass >= MinimumGreedyMass &&
+        Paths[0].Text == region.Text && RegionId == region.RegionId &&
+        region.SourceImage == OcrSourceImage.Original && Polygon.Points.SequenceEqual(region.Polygon.Points) &&
+        region.Alternatives.Count == Paths.Count && Paths.All(path => region.Alternatives.Any(alt =>
+            alt.SourceImage == OcrSourceImage.Original && alt.Text == path.Text && alt.Confidence == path.Confidence));
+}
 
 public sealed record OcrTiming(
     double PreprocessMilliseconds,
