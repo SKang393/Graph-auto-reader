@@ -146,10 +146,10 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             request.ImageHeight);
 
         var horizontalAxisFamilies = BuildConnectedAxisFamilies(
-            horizontalFamilies, frameFamilies, options, cancellationToken);
+            horizontalFamilies, horizontal, frameFamilies, options, cancellationToken);
         if (work is not null) work.HorizontalAxisFamilyCount = horizontalAxisFamilies.Count;
         var verticalAxisFamilies = BuildConnectedAxisFamilies(
-            verticalFamilies, frameFamilies, options, cancellationToken);
+            verticalFamilies, vertical, frameFamilies, options, cancellationToken);
         if (work is not null) work.VerticalAxisFamilyCount = verticalAxisFamilies.Count;
 
         if (request.MaximumExaminedPairs is <= 0) throw new ArgumentOutOfRangeException(nameof(request));
@@ -648,11 +648,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
 
             var fitted = FitFamily(inliers, orientation);
             var refined = observations
-                .Where(candidate =>
-                    AngleDifferenceDegrees(candidate, fitted.AngleDegrees) <= options.MergeAngleToleranceDegrees &&
-                    fitted.SegmentFits(
-                        candidate.Candidate.Segment,
-                        options.MergeDistancePixels + candidate.Candidate.StrokeWidthPixels))
+                .Where(candidate => FitsFamily(candidate, fitted, options))
                 .ToArray();
 
             if (refined.Length == 0)
@@ -834,6 +830,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
 
     private static List<LineFamily> BuildConnectedAxisFamilies(
         IReadOnlyList<LineFamily> families,
+        IReadOnlyList<Observation> observations,
         IReadOnlySet<LineFamily> frameFamilies,
         AxisGeometryOptions options,
         CancellationToken cancellationToken)
@@ -841,57 +838,90 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         // Axis extent needs observed support, using the same contact tolerance
         // as the corner check. Detached collinear ink must not enlarge a plot.
         // Divider detection keeps the original families, including dotted gaps.
-        var byMembers = new Dictionary<string, LineFamily>(StringComparer.Ordinal);
-        var contactTolerance = options.MergeDistancePixels * 2d;
+        var seeds = new Dictionary<string, LineFamily>(StringComparer.Ordinal);
+        var excluded = new HashSet<string>(StringComparer.Ordinal);
+        double contactTolerance = options.MergeDistancePixels * 2d;
         foreach (var family in families)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (frameFamilies.Contains(family))
+            foreach (var members in ConnectedMembers(family.Members, family, contactTolerance, cancellationToken))
             {
-                continue;
-            }
-
-            var intervals = family.Members.Select(member =>
-            {
-                var start = Project(member.Candidate.Segment.Start, family.Line.Start, family.Direction);
-                var end = Project(member.Candidate.Segment.End, family.Line.Start, family.Direction);
-                return (Member: member, Start: Math.Min(start, end), End: Math.Max(start, end));
-            }).OrderBy(item => item.Start).ThenBy(item => item.End).ToArray();
-            var component = new List<Observation>();
-            var componentEnd = double.NegativeInfinity;
-            foreach (var interval in intervals)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (component.Count > 0 && interval.Start > componentEnd + contactTolerance)
-                {
-                    AddComponent();
-                    component.Clear();
-                    componentEnd = double.NegativeInfinity;
-                }
-
-                component.Add(interval.Member);
-                componentEnd = Math.Max(componentEnd, interval.End);
-            }
-
-            AddComponent();
-
-            void AddComponent()
-            {
-                var connected = component.Count == family.Members.Count
-                    ? family
-                    : FitFamily(component, family.Orientation);
-                var key = string.Join('\u001f', connected.Members
-                    .Select(member => member.Candidate.CandidateId).Order(StringComparer.Ordinal));
-                if (!byMembers.TryGetValue(key, out var existing) ||
-                    connected.RootMeanSquareError < existing.RootMeanSquareError)
-                {
-                    byMembers[key] = connected;
-                }
+                string key = SupportKey(members);
+                if (frameFamilies.Contains(family)) excluded.Add(key);
+                if (seeds.ContainsKey(key)) continue;
+                seeds[key] = members.Length == family.Members.Count ? family : FitFamily(members, family.Orientation);
             }
         }
 
-        return byMembers.Values.ToList();
+        var byMembers = new Dictionary<string, LineFamily>(StringComparer.Ordinal);
+        var excludedFits = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (seedKey, seed) in seeds)
+        {
+            var family = RefineAxisFamily(seed, observations, options, cancellationToken);
+            string key = SupportKey(family.Members);
+            if (excluded.Contains(seedKey)) excludedFits.Add(key);
+            byMembers.TryAdd(key, family);
+        }
+        return byMembers.Where(pair => !excludedFits.Contains(pair.Key)).Select(pair => pair.Value).ToList();
     }
+
+    private static string SupportKey(IReadOnlyList<Observation> members) =>
+        string.Join('\u001f', members.Select(member => member.Candidate.CandidateId).Order(StringComparer.Ordinal));
+
+    private static IEnumerable<Observation[]> ConnectedMembers(IReadOnlyList<Observation> members, LineFamily line,
+        double contactTolerance, CancellationToken cancellationToken)
+    {
+        var intervals = members.Select(member =>
+        {
+            var start = Project(member.Candidate.Segment.Start, line.Line.Start, line.Direction);
+            var end = Project(member.Candidate.Segment.End, line.Line.Start, line.Direction);
+            return (Member: member, Start: Math.Min(start, end), End: Math.Max(start, end));
+        }).OrderBy(item => item.Start).ThenBy(item => item.End);
+        var component = new List<Observation>();
+        double componentEnd = double.NegativeInfinity;
+        foreach (var interval in intervals)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (interval.Start > componentEnd + contactTolerance && component.Count > 0)
+            {
+                yield return component.ToArray();
+                component.Clear();
+                componentEnd = double.NegativeInfinity;
+            }
+            component.Add(interval.Member);
+            componentEnd = Math.Max(componentEnd, interval.End);
+        }
+        if (component.Count > 0) yield return component.ToArray();
+    }
+
+    private static LineFamily RefineAxisFamily(LineFamily seed, IReadOnlyList<Observation> observations,
+        AxisGeometryOptions options, CancellationToken cancellationToken)
+    {
+        // Refitting can admit further observed edges of the same stroke. Only replace
+        // the seed with stable, connected support that still explains its original span.
+        const int maximumRefits = 8;
+        var originalSupport = seed.Members.Where(member => FitsFamily(member, seed, options)).ToHashSet();
+        if (originalSupport.Count == 0) return seed;
+        var current = seed;
+        for (int pass = 0; pass <= maximumRefits; pass++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var inliers = observations.Where(member => FitsFamily(member, current, options)).ToArray();
+            var connected = ConnectedMembers(inliers, current, options.MergeDistancePixels * 2d, cancellationToken)
+                .FirstOrDefault(component => component.Length >= originalSupport.Count && originalSupport.IsSubsetOf(component));
+            if (connected is null) break;
+            if (connected.Length == current.Members.Count && current.Members.ToHashSet().SetEquals(connected))
+            {
+                return DistanceToFiniteSegment(seed.Line.Start, current.Line) <= options.MergeDistancePixels &&
+                       DistanceToFiniteSegment(seed.Line.End, current.Line) <= options.MergeDistancePixels ? current : seed;
+            }
+            if (pass < maximumRefits) current = FitFamily(connected, seed.Orientation);
+        }
+        return seed;
+    }
+
+    private static bool FitsFamily(Observation member, LineFamily fitted, AxisGeometryOptions options) =>
+        AngleDifferenceDegrees(member, fitted.AngleDegrees) <= options.MergeAngleToleranceDegrees &&
+        fitted.SegmentFits(member.Candidate.Segment, options.MergeDistancePixels + member.Candidate.StrokeWidthPixels);
 
     private static LineFamily FitFamily(IReadOnlyList<Observation> members, Orientation orientation)
     {

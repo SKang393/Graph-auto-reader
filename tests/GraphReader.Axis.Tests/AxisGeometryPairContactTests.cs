@@ -8,8 +8,35 @@ namespace GraphReader.Axis.Tests;
 [TestClass]
 public sealed class AxisGeometryPairContactTests
 {
+    private static readonly double[] RepeatedEdgeOffsets = [0, 0, 0, 0, 1, 3, 4.5, 5.1];
     private static readonly string[] LowerAxisIds = ["lower-y-axis"];
     private static readonly string[] ConnectedAxisIds = ["y-bottom", "y-overlap", "y-top"];
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    public async Task OverlappingEdgeFitsConvergeWhileASeparateAxisRemainsAmbiguous(bool reverse, bool secondAxis)
+    {
+        var fixture = new AxisFixtureBuilder().Line(100, 300, 700, 300, id: "x-axis");
+        foreach (int index in Enumerable.Range(0, RepeatedEdgeOffsets.Length))
+        {
+            double x = 100 + RepeatedEdgeOffsets[index];
+            fixture.Line(x, 300, x, 50, id: $"edge-{index}");
+        }
+        if (secondAxis) fixture.Line(118, 300, 118, 50, id: "other-axis");
+        AxisGeometryRequest request = fixture.Build();
+        if (reverse) request = request with { LineCandidates = request.LineCandidates.Reverse().ToArray() };
+
+        AxisGeometryResult result = await new AxisGeometryDetector().DetectAsync(request);
+
+        Assert.AreEqual(secondAxis, result.Uncertainty.Reasons.Contains("axis_pair_ambiguous"));
+        if (!secondAxis)
+        {
+            Assert.HasCount(RepeatedEdgeOffsets.Length, result.YAxis.SupportingCandidateIds);
+            Assert.AreEqual(100 + RepeatedEdgeOffsets.Average(), result.PlotPolygon.BottomLeft.X, 1e-6);
+        }
+    }
 
     [TestMethod]
     public async Task DetachedCollinearInkDoesNotEnlargePlotOrRemoveDottedDivider()

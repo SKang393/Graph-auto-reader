@@ -29,7 +29,7 @@ public sealed class ProductionAxisGeometryAdapter :
     IProductionAxisGeometryAdapter,
     IProductionCandidateAxisGeometryAdapter
 {
-    public const string StageVersion = "axis-opencv-v8-ink-endpoint-tolerance";
+    public const string StageVersion = "axis-opencv-v9-stable-axis-support";
 
     private readonly IAxisGeometryDetector detector;
     private readonly ILineCandidateProvider candidateProvider;

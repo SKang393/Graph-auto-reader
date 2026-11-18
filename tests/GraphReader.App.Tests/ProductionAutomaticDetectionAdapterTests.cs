@@ -38,6 +38,65 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     private static readonly string[] ExpectedPhaseCodes = ["a", "b"];
 
     [TestMethod]
+    public async Task RepeatedAxisEdgesWithConsistentLabelReadingsProduceCalibratedRows()
+    {
+        byte[] bytes = [7, 5, 3, 1];
+        var image = new WorkflowImageEvidence("memory:repeated-edges.png", Convert.ToHexStringLower(SHA256.HashData(bytes)),
+            100, 100, WorkflowImageVariant.Original);
+        var panel = new WorkflowImportedPanel(Guid.NewGuid(), Guid.NewGuid(), "repeated-edges.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(panel, WorkflowSourceKind.Image, bytes));
+        var raster = new RasterDecoder();
+        var axis = new ProductionAxisGeometryAdapter(new string('a', 64), true,
+            candidateProvider: new RepeatedEdgeLineProvider(), frameDecoder: raster);
+        var adapter = new ProductionAutomaticDetectionAdapter(store, raster, axis, new OcrAdapter(),
+            new MaskComposer(), new CenterAdapter(), new ClassificationAdapter(), new LegendAdapter(), new PhaseAdapter(),
+            new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(panel, image, null), image,
+            WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+
+        WorkflowDetectionBatch batch = await adapter.DetectAsync(request, CancellationToken.None);
+
+        var rows = batch.Candidates.OrderBy(point => point.GraphX).ToArray();
+        Assert.HasCount(2, rows);
+        Assert.AreEqual(1d, rows[0].GraphX!.Value, 1e-9);
+        Assert.AreEqual(2d, rows[1].GraphX!.Value, 1e-9);
+        // Labels put Y=0 at pixel 80 and Y=100 at pixel 20. Centers lie at pixels 70 and 30.
+        Assert.AreEqual(100d / 6d, rows[0].GraphY!.Value, 1e-9);
+        Assert.AreEqual(500d / 6d, rows[1].GraphY!.Value, 1e-9);
+        Assert.AreEqual(GraphReader.Domain.CalibrationStatus.Valid,
+            store.Get(panel.PanelId).ExportEvidence!.ProjectionEvidence!.Calibration.Status);
+    }
+
+    private sealed class RepeatedEdgeLineProvider : ILineCandidateProvider
+    {
+        public ValueTask<IReadOnlyList<GeometryLineCandidate>> DetectLinesAsync(
+            GrayscaleLineCandidateFrame frame, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var lines = new List<GeometryLineCandidate>
+            {
+                Line("horizontal", 8, 90, 90, 90),
+                Line("tick-one", 20, 87, 20, 93),
+                Line("tick-two", 80, 87, 80, 93),
+                Line("divider", 50, 14, 50, 82),
+            };
+            double[] offsets = [0, 0, 0, 0, 1, 3, 4.5, 5.1];
+            double center = offsets.Average();
+            for (int i = 0; i < offsets.Length; i++)
+            {
+                double x = 10 + offsets[i] - center;
+                lines.Add(Line($"vertical-{i}", x, 90, x, 10));
+            }
+            return ValueTask.FromResult<IReadOnlyList<GeometryLineCandidate>>(lines);
+        }
+
+        private static GeometryLineCandidate Line(string id, double x1, double y1, double x2, double y2) =>
+            new(id, new GeometryLineSegment(new PixelPoint(x1, y1), new PixelPoint(x2, y2)),
+                LineCandidateSource.RecordedFixture, 1, 1, LinePatternHint.Solid);
+    }
+
+    [TestMethod]
     public async Task MeasuredTicksFlowThroughRealOcrPipelineIntoProductionCalibration()
     {
         byte[] bytes = [1, 9, 2, 1];

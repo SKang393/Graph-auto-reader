@@ -107,3 +107,51 @@ The reduction of 21 extra centers is exploratory evidence on one graph.
 Generalization remains unverified. Marker recall and automatic numeric
 extraction remain below acceptance. The evaluation used zero sealed inputs.
 Only the aggregate record is retained.
+
+## Axis ambiguity and automatic calibration
+
+On the same development panel, several fits of one continuous stroke competed
+as independent axes. The best two pairs shared all 323 horizontal segments.
+The leading vertical fit used 51 segments, all of which also supported the
+56-segment runner-up. Reapplying the existing angle and distance checks to
+the first fit admitted the other five segments.
+
+The fitter now refits each connected candidate until the set of supporting
+segments stabilizes. Substitution requires connected support for the original
+fit and both ends of its span. An unstable or displaced fit retains its original
+candidacy. The 0.08 ambiguity margin still applies to distinct candidates.
+
+| Automatic workflow on one development graph | Baseline at `6dd974f2` | Connected refit |
+| --- | ---: | ---: |
+| Input line segments | 1,920 | 1,920 |
+| Axis pairs within 0.08 of the best, including the best | 23 | 1 |
+| Best score minus runner-up score | 0.000132 | 0.133579 |
+| Axis pairs requiring review, out of one selected pair | 1 | 0 |
+| Measured X / Y tick marks | 1 / 2 | 1 / 2 |
+| OCR X / Y tick labels with competing numeric readings | 8 / 3 | 8 / 3 |
+| Valid calibrations / panels | 0 / 1 | 0 / 1 |
+| Matched / extra / missing marker centers | 4 / 26 / 6 | 4 / 26 / 6 |
+| Matched / extra / missing numeric sessions | 0 / 0 / 10 | 0 / 0 / 10 |
+| Axis stage wall time | 1.328 s | 1.446 s |
+| Automatic workflow wall time | 26.971 s | 25.930 s |
+
+Both runs used the same image, model configuration and detected segments.
+Marker precision was 13.33% and recall was 40.00% within five original
+pixels. The workflow refused calibration because of conflicting OCR evidence
+and an invalid first-session origin. There were zero numeric rows to compare
+against the independent reference, so Y error is undefined. Neither run
+reached phase assignment. Times are single observations and exclude the
+subsequent native Review check.
+
+In an offscreen Windows WPF Review window, the failure exposed all 30
+accepted centers at their original positions, with zero editable rows and
+no calibration. The window stayed inactive. This exercised the source-built
+candidate on one development graph. Generalization and packaged acceptance
+remain unverified.
+
+The project-owned geometry regression reproduced the original ambiguity in
+both input orders. With the refit, both resolve, and a separate competing axis
+still requires review. A production-adapter control with recorded line segments,
+OCR labels and marker centers returned both expected sessions and Y values
+within `1e-9`. The Windows axis suite and all 61 production automatic-detection
+adapter tests passed.
