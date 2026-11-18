@@ -1387,13 +1387,13 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
             height < 1 ||
             pixelCount > MaximumRasterPixels ||
             !(bitDepth == 8 || (colorType is 0 or 3 && bitDepth is 1 or 2 or 4)) ||
-            interlace != 0 ||
+            interlace > 1 ||
             channels == 0 ||
             (colorType == 3 &&
                 (palette is null || palette.Length == 0 || palette.Length % 3 != 0 ||
                     palette.Length / 3 > 1 << bitDepth)))
         {
-            warning = "Rendered page raster evidence requires a dimension-matched, non-interlaced PNG with 8-bit samples or 1-, 2-, or 4-bit grayscale or indexed samples.";
+            warning = "Rendered page raster evidence requires a dimension-matched non-interlaced or Adam7 PNG with 8-bit samples or 1-, 2-, or 4-bit grayscale or indexed samples.";
             return false;
         }
 
@@ -1417,12 +1417,29 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
             }
         }
 
-        int rowBytes;
-        int expectedLength;
+        ReadOnlySpan<(int StartX, int StartY, int StepX, int StepY)> passes = interlace == 0
+            ? [(0, 0, 1, 1)]
+            : [(0, 0, 8, 8), (4, 0, 8, 8), (0, 4, 4, 8), (2, 0, 4, 4),
+               (0, 2, 2, 4), (1, 0, 2, 2), (0, 1, 1, 2)];
+        static int PassLength(int length, int start, int step) => 1 + (length - 1 - start) / step;
+        int RowBytes(int pixelWidth) => checked((int)(((long)pixelWidth * channels * bitDepth + 7) / 8));
+
+        int maximumRowBytes = 0;
+        int expectedLength = 0;
         try
         {
-            rowBytes = checked((int)(((long)width * channels * bitDepth + 7) / 8));
-            expectedLength = checked((rowBytes + 1) * height);
+            foreach (var pass in passes)
+            {
+                if (pass.StartX >= width || pass.StartY >= height)
+                {
+                    continue;
+                }
+
+                int rowBytes = RowBytes(PassLength(width, pass.StartX, pass.StepX));
+                int passHeight = PassLength(height, pass.StartY, pass.StepY);
+                maximumRowBytes = Math.Max(maximumRowBytes, rowBytes);
+                expectedLength = checked(expectedLength + (rowBytes + 1) * passHeight);
+            }
         }
         catch (OverflowException)
         {
@@ -1466,47 +1483,63 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
         }
 
         byte[] ink = new byte[(int)pixelCount];
-        byte[] previous = new byte[rowBytes];
-        byte[] current = new byte[rowBytes];
+        byte[] previous = new byte[maximumRowBytes];
+        byte[] current = new byte[maximumRowBytes];
         int filteredOffset = 0;
-        for (int y = 0; y < height; y++)
+        foreach (var pass in passes)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            byte filter = filtered[filteredOffset++];
-            if (filter > 4)
+            if (pass.StartX >= width || pass.StartY >= height)
             {
-                warning = "Rendered page raster evidence was unavailable because the PNG uses an invalid scanline filter.";
-                return false;
+                continue;
             }
 
-            for (int index = 0; index < rowBytes; index++)
+            int passWidth = PassLength(width, pass.StartX, pass.StepX);
+            int rowBytes = RowBytes(passWidth);
+            if (filteredOffset > 0)
             {
-                int left = index >= channels ? current[index - channels] : 0;
-                int above = previous[index];
-                int upperLeft = index >= channels ? previous[index - channels] : 0;
-                int predictor = filter switch
-                {
-                    0 => 0,
-                    1 => left,
-                    2 => above,
-                    3 => (left + above) / 2,
-                    4 => PaethPredictor(left, above, upperLeft),
-                    _ => 0,
-                };
-                current[index] = unchecked((byte)(filtered[filteredOffset++] + predictor));
+                // PNG filters refer only to the previous scanline in the same pass.
+                Array.Clear(previous, 0, rowBytes);
             }
 
-            for (int x = 0; x < width; x++)
+            for (int y = pass.StartY; y < height; y += pass.StepY)
             {
-                int pixelOffset = x * channels;
-                int luma = ReadLuma(current, pixelOffset, colorType, bitDepth, palette!, transparency, transparentColor);
-                if (luma < RasterInkLumaThreshold)
+                cancellationToken.ThrowIfCancellationRequested();
+                byte filter = filtered[filteredOffset++];
+                if (filter > 4)
                 {
-                    ink[(y * width) + x] = 1;
+                    warning = "Rendered page raster evidence was unavailable because the PNG uses an invalid scanline filter.";
+                    return false;
                 }
-            }
 
-            (previous, current) = (current, previous);
+                for (int index = 0; index < rowBytes; index++)
+                {
+                    int left = index >= channels ? current[index - channels] : 0;
+                    int above = previous[index];
+                    int upperLeft = index >= channels ? previous[index - channels] : 0;
+                    int predictor = filter switch
+                    {
+                        0 => 0,
+                        1 => left,
+                        2 => above,
+                        3 => (left + above) / 2,
+                        4 => PaethPredictor(left, above, upperLeft),
+                        _ => 0,
+                    };
+                    current[index] = unchecked((byte)(filtered[filteredOffset++] + predictor));
+                }
+
+                int destination = y * width + pass.StartX;
+                for (int x = 0; x < passWidth; x++, destination += pass.StepX)
+                {
+                    int luma = ReadLuma(current, x * channels, colorType, bitDepth, palette!, transparency, transparentColor);
+                    if (luma < RasterInkLumaThreshold)
+                    {
+                        ink[destination] = 1;
+                    }
+                }
+
+                (previous, current) = (current, previous);
+            }
         }
 
         analysis = RasterAnalysis.Create(width, height, ink, transform, cancellationToken);

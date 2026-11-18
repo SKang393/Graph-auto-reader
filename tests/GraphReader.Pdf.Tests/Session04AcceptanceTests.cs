@@ -412,6 +412,43 @@ public sealed class Session04AcceptanceTests
         Assert.HasCount(3, visible.Panels, "A one-sample difference must keep the original axes visible.");
     }
 
+    [TestMethod]
+    [DataRow(1, 1, "00FF")]
+    [DataRow(1, 2, "00FF00FF")]
+    [DataRow(2, 1, "00FF00FF")]
+    [DataRow(1, 3, "00FF00FF00FF")]
+    [DataRow(3, 1, "00FF00FF00FF")]
+    public async Task Adam7TinyBlankImagesSkipEmptyPassesBeforeGeometry(int width, int height, string scanlinesHex)
+    {
+        // Each nonempty pass in these dimensions has one white grayscale sample
+        // per row. Empty passes contribute neither a filter byte nor a sample.
+        byte[] png = EncodePng(width, height, Convert.FromHexString(scanlinesHex), 8, 0, null, null, interlace: 1);
+
+        PdfPanelizationResult result = await ProposeRasterAsync(png, width, height);
+
+        Assert.IsEmpty(result.Figures);
+        Assert.IsEmpty(result.Panels);
+        Assert.HasCount(1, result.Warnings);
+        Assert.AreEqual("No graph-like figure met the fixed evidence threshold.", result.Warnings[0]);
+    }
+
+    [TestMethod]
+    [DataRow("00FF00", "unexpected size")]
+    [DataRow("00FF00FF00", "unexpected size")]
+    [DataRow("00FF05FF", "invalid scanline filter")]
+    public async Task Adam7MalformedScanlinesReturnSpecificWarnings(string scanlinesHex, string expectedWarning)
+    {
+        // A 1x2 image has one row in pass 1 and one row in pass 7.
+        byte[] png = EncodePng(1, 2, Convert.FromHexString(scanlinesHex), 8, 0, null, null, interlace: 1);
+
+        PdfPanelizationResult result = await ProposeRasterAsync(png, 1, 2);
+
+        Assert.IsEmpty(result.Figures);
+        Assert.IsEmpty(result.Panels);
+        Assert.IsTrue(result.Warnings.Any(warning => warning.Contains(expectedWarning, StringComparison.Ordinal)),
+            string.Join("; ", result.Warnings));
+    }
+
     private static async Task<PdfPanelizationResult> ProposeRasterAsync(byte[] png, int width, int height)
     {
         var page = new PdfPageSnapshot(1, width / 2d, height / 2d, [], [], []);
@@ -1678,7 +1715,7 @@ public sealed class Session04AcceptanceTests
         EncodePng(width, height, scanlines, 8, 0, null, null);
 
     private static byte[] EncodePng(int width, int height, byte[] scanlines, byte depth, byte type,
-        byte[]? palette, byte[]? transparency)
+        byte[]? palette, byte[]? transparency, byte interlace = 0)
     {
         byte[] compressed;
         using (var compressedStream = new MemoryStream())
@@ -1699,6 +1736,7 @@ public sealed class Session04AcceptanceTests
         BinaryPrimitives.WriteInt32BigEndian(header[4..], height);
         header[8] = depth;
         header[9] = type;
+        header[12] = interlace;
         WritePngChunk(png, "IHDR", header);
         if (palette is not null) WritePngChunk(png, "PLTE", palette);
         if (transparency is not null) WritePngChunk(png, "tRNS", transparency);

@@ -21,7 +21,7 @@ changing those limits.
 
 ## Automatic panel detection in PNG figures
 
-In source after 0.4.59, the panel detector can read non-interlaced grayscale
+In source after 0.4.59, the panel detector can read ordinary and Adam7-interlaced grayscale
 and indexed PNGs at 1, 2, 4, or 8 bits per sample. It measures visible ink on a
 white background, so transparent grayscale or RGB strokes do not become axes.
 This does not change the source image, panel thresholds, or numeric calibration.
@@ -34,6 +34,22 @@ The [Windows workflow test](../tests/GraphReader.Integration.Tests/IntegrationSm
 imports a one-bit Windows-encoded PNG, manually calibrates its three panels,
 and checks their coordinates and export audit after reopening. The original
 PNG remains byte-for-byte unchanged.
+
+The Adam7 regression uses a 639 × 899 synthetic figure with three planted
+axis pairs. On `0a15bf8d`, Windows import returned three distinct crops for
+the ordinary 1-bit and 8-bit controls, but only one full-page review image
+for each interlaced equivalent. With pass decoding enabled, both interlaced
+imports matched all three control crop rectangles and retained their original
+source bytes. Including control import and assertions, the 8-bit regression
+took 299 ms and the 1-bit regression took 77 ms.
+
+On the three prepared 1-bit interlaced crops, the OpenCV axis detector found
+all three axis pairs without supplied geometry. The largest error across the
+nine planted axis endpoints was 0.65 source pixels (rounded). The detector
+found zero ticks. This fixture has no printed tick labels, so these measurements
+cover panel and axis geometry only. The six focused Windows workflow tests
+passed in 3.35 s. The PDF suite passed 75 tests with one optional runner test
+skipped. Real-graph accuracy remains unmeasured for this change.
 
 ## Validation
 

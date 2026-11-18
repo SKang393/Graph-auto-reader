@@ -35,6 +35,58 @@ namespace GraphReader.Integration.Tests.IntegrationSmoke;
 public sealed class MultiPanelManualCalibrationWorkflowTests
 {
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task Adam7ImportPreservesStackedPanelGeometry(bool packed)
+    {
+        using var directory = new TemporaryDirectory();
+        using var original = new MemoryStream(CreateStackedGraphPng());
+        var frame = BitmapFrame.Create(original, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+        // Odd dimensions exercise the partial bytes and unequal rows of the seven passes.
+        var cropped = new CroppedBitmap(frame, new System.Windows.Int32Rect(0, 0, 639, 899));
+        var pixels = new FormatConvertedBitmap(cropped, packed ? PixelFormats.BlackWhite : PixelFormats.Gray8, null, 0);
+        pixels.Freeze();
+        PdfRectD[] reference = await ImportCropsAsync(PngInterlaceOption.Off);
+        PdfRectD[] interlaced = await ImportCropsAsync(PngInterlaceOption.On);
+        CollectionAssert.AreEqual(reference, interlaced);
+
+        async Task<PdfRectD[]> ImportCropsAsync(PngInterlaceOption interlace)
+        {
+            var encoder = new PngBitmapEncoder { Interlace = interlace };
+            encoder.Frames.Add(BitmapFrame.Create(pixels));
+            using var encoded = new MemoryStream();
+            encoder.Save(encoded);
+            byte[] bytes = encoded.ToArray();
+            Assert.AreEqual(packed ? (byte)1 : (byte)8, bytes[24]);
+            Assert.AreEqual(interlace == PngInterlaceOption.On ? (byte)1 : (byte)0, bytes[28]);
+
+            string path = Path.Combine(directory.Path, $"{interlace}.png");
+            await File.WriteAllBytesAsync(path, bytes);
+            var store = new ProductionWorkflowPanelStore();
+            var import = new ProductionWorkflowImportStage(store, new ImageImportService());
+            var request = new WorkflowImportRequest(Guid.NewGuid(),
+                [new WorkflowSourceRequest(Guid.NewGuid(), WorkflowSourceKind.Image, path)]);
+            WorkflowImportSnapshot result = await import.ImportAsync(request, CancellationToken.None);
+            Assert.HasCount(3, result.Panels, $"Planted three plots, PNG interlace {interlace}.");
+            int[] baselines = [270, 530, 790];
+            var crops = new List<PdfRectD>();
+            for (int index = 0; index < baselines.Length; index++)
+            {
+                var source = store.Get(result.Panels[index].PanelId).RasterPanelSource;
+                Assert.IsNotNull(source);
+                CollectionAssert.AreEqual(bytes, source.Source.CopyBytes());
+                int baseline = baselines[index];
+                foreach (PdfPointD endpoint in new PdfPointD[] { new(80, baseline - 180), new(80, baseline), new(580, baseline) })
+                {
+                    Assert.AreEqual(endpoint, source.MapPanelPixelToSource(source.MapSourcePixelToPanel(endpoint)));
+                }
+                crops.Add(source.EncodedCropInSourcePixels);
+            }
+            return crops.ToArray();
+        }
+    }
+
+    [TestMethod]
     public void FailedPanelRecoversThroughViewModelAnchorsRerunExportAndReopen()
     {
         Exception? failure = null;
