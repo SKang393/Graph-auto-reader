@@ -335,12 +335,15 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 .DistinctBy(static marker => marker.Marker.MarkerId)
                 .ToArray();
             ClassifiedMarker[] canonicalMarkers = [.. plotMarkers, .. legendSymbols];
+            OcrImage originalMarkerImage = raster.CreateOcrImage();
             var exclusionTimer = System.Diagnostics.Stopwatch.StartNew();
             TextMarkerExclusionBatch textExclusion;
             try
             {
                 textExclusion = ProductionTextMarkerExclusion.Find(
-                    plotMarkers, ocr.Result.Regions, ocr.Result.Masks, cancellationToken);
+                    plotMarkers, ocr.Result.Regions, ocr.Result.Masks,
+                    originalMarkerImage, markerPlot, legendInputs.OriginalPixelFrameBounds,
+                    ArtifactRejectionThreshold, cancellationToken);
             }
             catch (ArgumentException exception)
             {
@@ -380,7 +383,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             try
             {
                 MarkerTemplateSeedInputs seedInputs = ProductionMarkerTemplateRecovery.PrepareSeedInputs(
-                    raster.CreateOcrImage(), markerPlot,
+                    originalMarkerImage, markerPlot,
                     plotMarkers.Where(marker => !excludedMarkerIds.Contains(marker.Marker.MarkerId)).ToArray(),
                     legendInputs.OriginalPixelContentBounds, cancellationToken);
                 IReadOnlyList<ClassifiedMarker> classifiedSeeds = [];
@@ -415,11 +418,11 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     var recoveryTimer = System.Diagnostics.Stopwatch.StartNew();
                     IReadOnlyList<MarkerCenter> recoveryCandidates = recoveryVersion == ProductionMarkerTemplateRecovery.Version
                         ? ProductionMarkerTemplateRecovery.Find(
-                        raster.CreateOcrImage(), markerPlot, recoveryTextMasks, acceptedMarkers,
+                        originalMarkerImage, markerPlot, recoveryTextMasks, acceptedMarkers,
                         legendInputs.OriginalPixelContentBounds, legendInputs.OriginalPixelFrameBounds, cancellationToken,
                         verifiedTemplates)
                         : ProductionMarkerEnclosedCenterRecovery.Find(
-                            raster.CreateOcrImage(), markerPlot, recoveryTextMasks, acceptedMarkers,
+                            originalMarkerImage, markerPlot, recoveryTextMasks, acceptedMarkers,
                             legendInputs.OriginalPixelFrameBounds, cancellationToken);
                     recoveryTimer.Stop();
                     if (recoveryCandidates.Count > 0)
@@ -614,7 +617,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             try
             {
                 phaseContext = ProductionPhaseGeometryContext.Resolve(
-                    axis.Geometry, raster.CreateOcrImage(), ocr.Result.Regions,
+                    axis.Geometry, originalMarkerImage, ocr.Result.Regions,
                     legendInputs.OriginalPixelFrameBounds,
                     acceptedMarkers.Select(static item => new OcrRectangle(
                         item.Marker.Center.X - item.Marker.Radius, item.Marker.Center.Y - item.Marker.Radius,

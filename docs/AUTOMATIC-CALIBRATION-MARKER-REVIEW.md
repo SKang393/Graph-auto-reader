@@ -249,3 +249,48 @@ same-length changes, off-lane labels, endpoints and overlapping value
 intervals. The focused Windows runs passed 51 OCR tests and 68 application
 adapter tests, with 12 calibration cases rechecked on the final source.
 The development figures are single-run measurements on one panel.
+
+## Filled circles inside mixed-symbol OCR annotations
+
+An OCR annotation can cover a row of plotted symbols. When a recognizer
+renders an open circle as a letter or digit, the mixed reading can acquire
+a text mask. Polygon containment alone then excludes a classified solid
+marker along with the text.
+
+Text exclusion now checks individual filled-circle candidates in unreviewed
+mixed geometric-symbol annotations. The original grayscale patch must contain
+a solid core and a round boundary. The disk must occupy at least half the
+annotation height and agree in radius within one pixel with a separately
+classified disk in the plot. The witness patch must be clear of text masks
+and legend frames. The measured center stays at the detector's original
+position. A retained overlap carries a review warning. Other overlapping text
+remains eligible to exclude the same candidate.
+
+| One nonsealed development panel | Baseline at `09444614` | With disk corroboration |
+| --- | ---: | ---: |
+| Classified centers excluded as text | 62 | 61 |
+| Matched / extra / missing centers within 5 pixels | 4 / 26 / 6 | 5 / 26 / 5 |
+| Reference precision / recall | 13.33% / 40% | 16.13% / 50% |
+| First accepted column satisfies session-one check | No | Yes |
+| Blocking OCR conflicts, X / Y | 3 / 1 | 3 / 1 |
+| Valid automatic calibrations | 0 / 1 | 0 / 1 |
+| Matched / extra / missing numeric sessions | 0 / 0 / 10 | 0 / 0 / 10 |
+| Text-exclusion time | 3.67 ms | 15.65 ms |
+| OCR / workflow wall time | 18.732 / 27.711 s | 17.628 / 26.927 s |
+
+Post-extraction scoring found one new matching center and all prior centers
+at their original positions. The earliest reference center was recovered
+within 1.81 pixels. All OCR polygons, readings, alternatives and masks were
+identical across runs. Three endpoint readings lacked bracketing labels, and
+the off-row proposal contained a fragment of text below the printed tick row.
+The session-column RMS residual was 2.811 pixels against the configured
+2.044-pixel tolerance. Calibration required review. No Y errors or phase
+assignments could be scored.
+
+The Windows regression run passed 53 marker and calibration cases. The final
+text-exclusion suite passed 23 cases, including a masked disk on a
+connecting line, hollow letters, stems, small dots, ordinary text, reviewed
+annotations, and missing, masked, differently sized or framed witnesses. Native
+WPF Review displayed the actual refusal and all 31 candidate centers with zero
+editable rows. These timings and accuracy measurements cover one development
+panel.
