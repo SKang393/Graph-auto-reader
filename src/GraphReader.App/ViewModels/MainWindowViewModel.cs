@@ -1264,7 +1264,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                             new GraphReader.Axis.PixelPoint(_calibrationAnchors[2].X, _calibrationAnchors[2].Y),
                             ManualYMaximum,
                             ManualXMaximum,
-                            firstX) { UsesPrintedXCoordinates = ManualUsesPrintedXCoordinates });
+                            firstX)
+                        {
+                            UsesPrintedXCoordinates = ManualUsesPrintedXCoordinates,
+                            PreserveAffineGeometry = ManualUsesPrintedXCoordinates,
+                        });
                     ClearMarkerExemplarProposals(updateSample: true);
                     EditorMode = ManualEditorMode.Select;
                     SetStatus(FormatLocalizedString(

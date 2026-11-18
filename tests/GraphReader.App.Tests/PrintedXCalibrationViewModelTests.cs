@@ -1,14 +1,62 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 using System.Globalization;
+using System.IO;
 using GraphReader.App.Services;
 using GraphReader.App.ViewModels;
 using GraphReader.Domain;
+using GraphReader.Export;
 
 namespace GraphReader.App.Tests;
 
 public sealed partial class CalibrationTickViewModelTests
 {
+    [TestMethod]
+    public void ManualPrintedXClicksPreserveSkippedSessionsAndSmallAxisTilt()
+    {
+        WithImage(path =>
+        {
+            using var workspace = new ManualPreviewWorkspaceService();
+            var tab = Pump(workspace.ImportImagesAsync([path], CancellationToken.None)).Single();
+            using var vm = new MainWindowViewModel(workspace);
+            Assert.IsFalse(vm.ManualUsesPrintedXCoordinates);
+            vm.ManualUsesPrintedXCoordinates = true;
+            vm.ManualFirstVisibleSessionText = "1";
+            vm.ManualXMaximum = 11;
+            vm.ManualYMaximum = 40;
+            vm.StartCalibrationCommand.Execute(null);
+            Pump(vm.HandleCanvasPointAsync(new(20, 100)));
+            Pump(vm.HandleCanvasPointAsync(new(21, 20)));
+            Pump(vm.HandleCanvasPointAsync(new(120, 101)));
+            string series = workspace.AddSeries(tab.TabId, new("Owned", "O", MarkerShape.Circle,
+                MarkerFill.Filled, SemanticRole.Intervention)).SeriesId;
+            // Original pixels for (1, 10), (4, 30), (10, 20) in this three-anchor basis.
+            workspace.AddPoint(tab.TabId, series, 20.25, 80);
+            workspace.AddPoint(tab.TabId, series, 50.75, 40.3);
+            workspace.AddPoint(tab.TabId, series, 110.5, 60.9);
+            string project = Path.ChangeExtension(path, ".garproj");
+            Assert.IsTrue(Pump(workspace.SaveProjectAsync(project, CancellationToken.None)).IsSuccess);
+            using var reopened = new ManualPreviewWorkspaceService();
+            var restored = Pump(reopened.OpenProjectAsync(project, CancellationToken.None)).Single();
+            var export = Pump(reopened.ExportAsync(restored.TabId, Path.Combine(Path.GetDirectoryName(path)!, "export"), CancellationToken.None));
+            Assert.IsTrue(export.Succeeded);
+            Assert.AreEqual(ExportMode.PrintedSession, export.Mode);
+            double[] expectedX = [1, 4, 10], expectedY = [10, 30, 20];
+            foreach (var audit in export.AuditArtifacts)
+            {
+                var rows = audit.Rows.OrderBy(row => row.XValue).ToArray();
+                Assert.HasCount(3, rows);
+                for (int i = 0; i < rows.Length; i++)
+                {
+                    Assert.AreEqual(expectedX[i], rows[i].XValue, 1e-9);
+                    Assert.AreEqual(expectedY[i], rows[i].YValue, 1e-9);
+                    Assert.AreEqual(ExportXValueSource.Estimated, rows[i].XSource);
+                }
+            }
+            Assert.HasCount(2, export.AuditArtifacts);
+        });
+    }
+
     [TestMethod]
     [DataRow(0d, 5d, 10d)]
     [DataRow(-10d, -5d, 0d)]

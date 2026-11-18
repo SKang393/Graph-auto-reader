@@ -1411,6 +1411,24 @@
                       automation:AutomationProperties.AutomationId="Manual.EditPhaseLabel"
                       automation:AutomationProperties.Name="{DynamicResource Manual.LabelDivider}" />
             </WrapPanel>
+            <CheckBox Margin="0,0,0,6" Content="{DynamicResource Manual.PrintedX.Use}"
+                      IsChecked="{Binding ManualUsesPrintedXCoordinates, Mode=TwoWay}"
+                      automation:AutomationProperties.AutomationId="Manual.Calibration.UsePrintedX"
+                      automation:AutomationProperties.Name="{DynamicResource Manual.PrintedX.Use}"
+                      automation:AutomationProperties.HelpText="{DynamicResource Manual.PrintedX.RangeHelp}">
+              <CheckBox.Style>
+                <Style TargetType="CheckBox" BasedOn="{StaticResource App.Style.CheckBox}">
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding HasAxisSuggestion}" Value="True">
+                      <Setter Property="IsEnabled" Value="False" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                      <Setter Property="IsEnabled" Value="False" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </CheckBox.Style>
+            </CheckBox>
             <Grid Margin="0,0,0,8">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />

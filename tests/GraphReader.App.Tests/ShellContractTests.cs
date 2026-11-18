@@ -107,6 +107,11 @@ public sealed class ShellContractTests
     {
         var document = LoadMainWindow();
         XNamespace automation = AutomationNamespace;
+        XElement mode = document.Descendants(XName.Get("CheckBox", PresentationNamespace))
+            .Single(element => element.Attribute(automation + "AutomationProperties.AutomationId")?.Value
+                == "Manual.Calibration.UsePrintedX");
+        Assert.AreEqual("{Binding ManualUsesPrintedXCoordinates, Mode=TwoWay}", mode.Attribute("IsChecked")?.Value);
+        Assert.AreEqual("{DynamicResource Manual.PrintedX.Use}", mode.Attribute(automation + "AutomationProperties.Name")?.Value);
         XElement input = document.Descendants(XName.Get("TextBox", PresentationNamespace))
             .Single(element => element.Attribute(automation + "AutomationProperties.AutomationId")?.Value
                 == "Manual.FirstVisibleSession");
