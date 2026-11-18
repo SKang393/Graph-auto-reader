@@ -821,7 +821,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         try
         {
             tickGeometry = ProductionTickLabelGeometry.Resolve(
-                axis.Geometry, raster.CreateOcrImage(), ocr.Result.Regions, cancellationToken);
+                axis.Geometry, raster.CreateOcrImage(), ocr.Result.Regions, cancellationToken, ocr.Result.Masks);
         }
         catch (Exception exception) when (exception is ArgumentException or OverflowException)
         {
@@ -1196,7 +1196,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         return new DetectionProjection(export, candidates, warnings);
     }
 
-    private static SessionFirstCalibrationResult FitCalibration(
+    internal static SessionFirstCalibrationResult FitCalibration(
         AxisGeometryResult axis,
         OcrResult ocr,
         TickLabelGeometryResult tickGeometry,
@@ -1212,7 +1212,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 item.Value,
                 item.Confidence))
             .ToArray();
-        ParsedTick[] parsedXTicks = ParseTicks(ocr, OcrTextRole.XTick, confidenceWarnings).ToArray();
+        ParsedTick[] parsedXTicks = ParseTicks(ocr, OcrTextRole.XTick, confidenceWarnings,
+            tickGeometry.PrintedXRow?.NestedTextIds).ToArray();
         foreach (ParsedTick seeded in parsedXTicks.Where(item =>
                      IsSeededXTick(item.Region.RegionId) &&
                      !IsSeededXTickAssociated(axis, item.Region.RegionId, tickGeometry.Positions)))
@@ -1229,7 +1230,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 item.Confidence))
             .ToArray();
         UnlabeledXTickEvidence[] unlabeled = axis.Ticks
-            .Where(static tick => tick.Axis == TickAxis.XAxis)
+            .Where(tick => tick.Axis == TickAxis.XAxis &&
+                tickGeometry.PrintedXRow?.SpineSegmentIds.Contains(tick.TickId) != true)
             .Select(tick => new UnlabeledXTickEvidence(
                 tick.TickId,
                 tick.Center.X,
@@ -1542,10 +1544,11 @@ public sealed class ProductionAutomaticDetectionAdapter :
     }
 
     private static IEnumerable<ParsedTick> ParseTicks(
-        OcrResult ocr, OcrTextRole role, List<string> confidenceWarnings)
+        OcrResult ocr, OcrTextRole role, List<string> confidenceWarnings, IReadOnlySet<string>? nestedTextIds = null)
     {
         foreach (OcrRegion region in ocr.Regions.Where(region => region.Role == role && region.ReviewStatus != OcrReviewStatus.Rejected))
         {
+            if (nestedTextIds?.Contains(region.RegionId) == true) continue;
             NumericParseResult parsed = GraphNumericParser.Parse(region.Text);
             if (parsed.IsSuccess && parsed.Value is { } value)
             {

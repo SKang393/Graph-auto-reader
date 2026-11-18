@@ -11,13 +11,13 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Associates OCR labels with unique outward tick strokes in original pixels.</summary>
 internal static class ProductionTickLabelGeometry
 {
-    internal const string Version = "original-pixel-tick-label-association-v4-adjacent-ink-review";
+    internal const string Version = "original-pixel-tick-label-association-v5-attached-x-row";
     private const double MaximumRelativeYTickLaneGap = 1.25d;
     private static readonly AxisGeometryOptions Options = new();
 
     internal static TickLabelGeometryResult Resolve(
         AxisGeometryResult axis, OcrImage image, IReadOnlyList<OcrRegion> regions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, IReadOnlyList<OcrMask>? masks = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (image.SourceImage != OcrSourceImage.Original || image.OriginalToImage != OcrFrameTransform.Identity ||
@@ -45,12 +45,30 @@ internal static class ProductionTickLabelGeometry
             for (int x = 0; x < image.Width; x++) sum += pixels[y * image.Stride + x];
         }
         int threshold = Math.Clamp((int)Math.Round(sum / ((double)image.Width * image.Height) * 0.80), 32, 224);
+        var row = ProductionPrintedXTickRow.Find(axis, image, labels, regions, masks ?? [], threshold, Options, cancellationToken);
+        if (row is not null)
+        {
+            warnings.Add($"tick_label_attached_x_row:{row.StrokeCount}:{row.Positions.Count}");
+            warnings.AddRange(row.NestedTextIds.Select(id => $"tick_label_nested_off_row_text:{id}"));
+            warnings.AddRange(row.SpineSegmentIds.Select(id => $"tick_label_unlabeled_y_spine_fragment:{id}"));
+            warnings.AddRange(row.AmbiguousStrokeIds.Select(id => $"ocr_tick_sequence_needs_review:XTick:multiple_attached_strokes:{id}"));
+        }
         foreach (OcrRegion label in labels)
         {
             cancellationToken.ThrowIfCancellationRequested();
             bool vertical = label.Role == OcrTextRole.YTick;
             OcrRectangle box = label.Polygon.Bounds;
             GeometryLineSegment line = vertical ? axis.YAxis.Line : axis.XAxis.Line;
+            if (!vertical && row is not null && label.SourceImage == OcrSourceImage.Original)
+            {
+                if (row.Positions.TryGetValue(label.RegionId, out double x))
+                {
+                    measured.Add(label.RegionId, (label.Role, x, box.Center.X));
+                    continue;
+                }
+                // An unreviewed remote crop cannot claim an axis stroke by horizontal position alone.
+                if (label.ReviewStatus == OcrReviewStatus.Unreviewed) continue;
+            }
             if (vertical && label.ReviewStatus == OcrReviewStatus.Unreviewed &&
                 GraphNumericParser.Parse(label.Text).IsSuccess)
             {
@@ -122,7 +140,7 @@ internal static class ProductionTickLabelGeometry
                 value.Center.ToString("R", CultureInfo.InvariantCulture));
         return new(new ReadOnlyDictionary<string, double>(measured.ToDictionary(
             static item => item.Key, static item => item.Value.Center, StringComparer.Ordinal)),
-            Array.AsReadOnly(warnings.ToArray()));
+            Array.AsReadOnly(warnings.ToArray())) { PrintedXRow = row };
     }
 
     private static void AddOutlyingYTickWarnings(
@@ -158,4 +176,7 @@ internal static class ProductionTickLabelGeometry
 }
 
 internal sealed record TickLabelGeometryResult(
-    IReadOnlyDictionary<string, double> Positions, IReadOnlyList<string> Warnings);
+    IReadOnlyDictionary<string, double> Positions, IReadOnlyList<string> Warnings)
+{
+    internal ProductionPrintedXTickRow? PrintedXRow { get; init; }
+}

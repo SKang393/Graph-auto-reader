@@ -3,6 +3,8 @@
 
 using GraphReader.App.Integration.Workflow;
 using GraphReader.Axis;
+using GraphReader.Markers.Classification;
+using GraphReader.Markers.Detection;
 using GraphReader.Ocr;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -240,6 +242,129 @@ public sealed class ProductionTickLabelGeometryTests
         var large = new OcrImage(1200, 1500, 1200, new byte[1200 * 1500], OcrSourceImage.Original, OcrFrameTransform.Identity);
         Assert.IsFalse(ProductionAdjacentTickInkReview.HasAdjacentInk(
             large, new OcrRectangle(1100, 0, 10, 1000), CancellationToken.None));
+    }
+
+    [TestMethod]
+    [DataRow("nested", true)]
+    [DataRow("unmasked-word", false)]
+    [DataRow("partial-overlap", false)]
+    [DataRow("corrected-label", false)]
+    [DataRow("word-has-digit", false)]
+    [DataRow("no-word", false)]
+    [DataRow("staggered", false)]
+    [DataRow("detached", false)]
+    [DataRow("missing-axis", false)]
+    [DataRow("few-anchors", false)]
+    public void AttachedRowPreservesLabelsAndRequiresIndependentEvidenceForANestedFragment(
+        string example, bool shouldExclude)
+    {
+        var image = RowImage(example == "detached", missingAxis: example == "missing-axis");
+        var labels = new List<OcrRegion> { RowLabel("left", 30, "2"), RowLabel("middle", 50, "12") };
+        if (example != "few-anchors") labels.Add(RowLabel("right", 70, "22", example == "staggered" ? 90 : 78));
+        var fragment = XLabel("fragment") with
+        {
+            Polygon = OcrPolygon.FromRectangle(new(46, 118, 4, 4)),
+            ReviewStatus = example == "corrected-label" ? OcrReviewStatus.Corrected : OcrReviewStatus.Unreviewed,
+            Alternatives = [new("1", .7, OcrSourceImage.Original), new("7", .3, OcrSourceImage.Original)],
+        };
+        labels.Add(fragment);
+        var word = XLabel("caption") with
+        {
+            Text = example == "word-has-digit" ? "test 7" : "caption",
+            Polygon = OcrPolygon.FromRectangle(new(example == "partial-overlap" ? 48 : 40, 114, 32, 14)),
+            Role = OcrTextRole.AxisTitle,
+        };
+        if (example != "no-word") labels.Add(word);
+        OcrMask[] masks = example == "unmasked-word" ? [] : [new(word.RegionId, word.Polygon, .95)];
+        var result = ProductionTickLabelGeometry.Resolve(Axis(), image, labels, default, masks);
+        Assert.AreEqual(shouldExclude, result.PrintedXRow?.NestedTextIds.Contains("fragment") == true);
+        if (example is "staggered" or "detached" or "missing-axis" or "few-anchors") Assert.IsNull(result.PrintedXRow);
+        else
+        {
+            Assert.IsNotNull(result.PrintedXRow);
+            Assert.AreEqual(30d, result.Positions["left"]);
+            Assert.AreEqual(50d, result.Positions["middle"]);
+            Assert.AreEqual(70d, result.Positions["right"]);
+            Assert.IsFalse(result.Positions.ContainsKey("fragment"));
+        }
+        Assert.HasCount(2, fragment.Alternatives);
+    }
+
+    [TestMethod]
+    public void TwoStrokesWithinOneLabelRemainAmbiguousAndSpineRequiresSeparateInk()
+    {
+        var labels = new List<OcrRegion> { RowLabel("a",30,"1"), RowLabel("b",50,"11"), RowLabel("c",70,"21") };
+        labels.Add(RowLabel("disputed",40,"6") with { Polygon = OcrPolygon.FromRectangle(new(35, 78, 10, 9)) });
+        var axis = Axis() with
+        {
+            Ticks = [new("spine", TickAxis.XAxis, new(20, 66), new(new(20, 62), new(20, 70)), .9, ["line"]),
+                new("inward", TickAxis.XAxis, new(35, 67), new(new(35, 64), new(35, 70)), .9, ["other"])],
+        };
+        var result = ProductionTickLabelGeometry.Resolve(axis, RowImage(), labels, default);
+        Assert.IsNotNull(result.PrintedXRow);
+        Assert.AreEqual("spine", result.PrintedXRow.SpineSegmentIds.Single());
+        Assert.IsFalse(result.Positions.ContainsKey("disputed"));
+        CollectionAssert.Contains(result.Warnings.ToArray(), "ocr_tick_sequence_needs_review:XTick:multiple_attached_strokes:disputed");
+        var actualCornerTick = ProductionTickLabelGeometry.Resolve(axis, RowImage(corner: true), labels, default);
+        Assert.IsNotNull(actualCornerTick.PrintedXRow);
+        Assert.IsEmpty(actualCornerTick.PrintedXRow.SpineSegmentIds);
+    }
+
+    [TestMethod]
+    [DataRow(true, false, true)]
+    [DataRow(false, false, false)]
+    [DataRow(true, true, false)]
+    public void CalibrationRequiresReviewForUnexplainedNumbersAndGenuineEndpointDisagreements(
+        bool wordHasMask, bool endpointDisputed, bool valid)
+    {
+        var endpoint = RowLabel("origin", 30, "1");
+        if (endpointDisputed) endpoint = endpoint with { Alternatives = [new("7", .8, OcrSourceImage.Original)] };
+        var word = XLabel("word") with { Text = "caption", Role = OcrTextRole.AxisTitle,
+            Polygon = OcrPolygon.FromRectangle(new(40, 114, 32, 14)) };
+        var fragment = RowLabel("fragment", 48, "7") with { Polygon = OcrPolygon.FromRectangle(new(46, 118, 4, 4)),
+            Alternatives = [new("9", .8, OcrSourceImage.Original)] };
+        OcrRegion[] regions = [endpoint, RowLabel("middle", 50, "3"), RowLabel("end", 70, "5"), word, fragment,
+            YLabel("low") with { Text = "0", Polygon = OcrPolygon.FromRectangle(new(4, 65, 8, 10)) },
+            YLabel("high") with { Text = "60", Polygon = OcrPolygon.FromRectangle(new(4, 5, 8, 10)) }];
+        OcrMask[] masks = wordHasMask ? [new("word", word.Polygon, .95)] : [];
+        var ocr = new OcrResult(OcrContract.Version, "run", "project", "panel", "ocr", "test", "hash",
+            OcrContract.CoordinateSpace, regions, masks, new(0, 0, 0, 0), .95, [], new(false, "", 0, 0), null);
+        var markers = Enumerable.Range(0, 5).Select(i => new ClassifiedMarker(
+            new MarkerCenter($"p{i}", new MarkerPoint(30 + 10 * i, 50), 3, 0, .95, MarkerSourceImage.Original),
+            MarkerShape.Circle, MarkerFill.Filled, "circle", "Circle", 0, .95, .95, new float[12])).ToArray();
+        var axis = Axis();
+        var geometry = ProductionTickLabelGeometry.Resolve(axis, RowImage(), regions, default, masks);
+        var calibration = ProductionAutomaticDetectionAdapter.FitCalibration(axis, ocr, geometry, markers, default);
+        Assert.AreEqual(valid, calibration.Validity == CalibrationValidity.Valid);
+        if (valid)
+        {
+            Assert.AreEqual(2d, calibration.XTransform!.Transform!.PixelToGraph(40), 1e-9);
+            Assert.AreEqual(20d, calibration.YTransform.Transform!.PixelToGraph(50), 1e-9);
+            Assert.AreEqual(3, calibration.XTransform.Diagnostics.InputCount);
+        }
+        else
+        {
+            string disputed = endpointDisputed ? "origin" : "fragment";
+            CollectionAssert.Contains(calibration.Reasons.ToArray(), $"ocr_tick_sequence_needs_review:XTick:competing_numeric_readings:{disputed}");
+        }
+    }
+
+    private static OcrRegion RowLabel(string id, int x, string text, int y = 78) => XLabel(id) with
+    {
+        Text = text,
+        Polygon = OcrPolygon.FromRectangle(new(x - 4, y, 9, 9)),
+    };
+
+    private static OcrImage RowImage(bool detached = false, bool corner = false, bool missingAxis = false)
+    {
+        var image = Image([], [], paddedStride: true);
+        byte[] pixels = Enumerable.Repeat((byte)255, 140 * image.Stride).ToArray();
+        if (!missingAxis) image.Pixels.CopyTo(pixels);
+        foreach (int x in new[] { 24, 30, 36, 44, 50, 56, 64, 70, 76 })
+            for (int y = detached ? 72 : 70; y <= 75; y++) pixels[y * image.Stride + x] = 0;
+        if (corner)
+            for (int y = 70; y <= 75; y++) pixels[y * image.Stride + 20] = 0;
+        return image with { Height = 140, Pixels = pixels };
     }
 
     private static OcrRegion XLabel(string id) => new(id,

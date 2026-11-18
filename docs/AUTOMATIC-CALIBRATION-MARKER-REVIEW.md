@@ -294,3 +294,61 @@ annotations, and missing, masked, differently sized or framed witnesses. Native
 WPF Review displayed the actual refusal and all 31 candidate centers with zero
 editable rows. These timings and accuracy measurements cover one development
 panel.
+
+## Binding printed X labels to attached strokes
+
+The calibration stage checks original grayscale pixels for short strokes
+extending continuously from the fitted X axis, with axis ink beside each
+stroke and a visible end below it. A printed row requires three or more
+nonoverlapping numeric label boxes at distinct strokes with a shared vertical
+band relative to the axis. A label can bind a unique stroke inside its own
+horizontal footprint. Multiple strokes under the same label require review.
+
+A small, unreviewed off-row reading enclosed in a larger masked, nonnumeric
+word can be withheld from the fit inside the corroborated row's horizontal
+span. Review retains both OCR regions and all readings. A line proposal wholly
+on the Y spine cannot supply an unlabeled X observation without separate
+outward ink. The scan supplies measured positions to associated printed
+labels. It does not add every minor stroke as a separate RMS observation.
+
+| One nonsealed development panel | Baseline at `fcee2048` | With attached row |
+| --- | ---: | ---: |
+| Printed X labels bound to original strokes | 0 / 7 | 7 / 7 |
+| Off-row labels given stroke positions | 3 | 0 |
+| Measured Y-label associations | 6 | 6 |
+| X fit inputs / inliers | 10 / 7 | 8 / 7 |
+| Blocking numeric conflicts, X / Y | 3 / 1 | 2 / 1 |
+| Pooled column RMS / tolerance (pixels) | 2.811 / 2.044 | 2.345 / 2.046 |
+| Printed-column RMS at selected origin and pitch (pixels) | 0.905 | 0.629 |
+| Marker-column RMS at selected origin and pitch (pixels) | 2.890 | 2.706 |
+| Center matches / extra / missing within 5 pixels | 5 / 26 / 5 | 5 / 26 / 5 |
+| Valid calibrations / numeric sessions matched | 0 / 0 of 10 | 0 / 0 of 10 |
+| Tick association / OCR / workflow time | 41.79 ms / 19.114 s / 28.215 s | 52.24 ms / 17.726 s / 26.557 s |
+
+The new scan found 71 outward stroke candidates. Two off-row readings were
+nested text fragments. One other off-row proposal remained a robust-fit
+outlier. Three endpoint disputes still lacked bracketing observations. The
+lattice included one fewer unlabeled proposal after the spine check.
+
+Rebuilding the scored columns from original-pixel positions, the production
+1.5-pixel duplicate tolerance, and capped confidence weights reproduced both
+RMS results. Original pixels showed 16 accepted centers on dashes of three
+vertical dividers. These formed four alignment groups. They accounted for
+66.5% of baseline weighted squared error, and the spine proposal accounted
+for another 22.3%. The same divider groups accounted for 93.1% after the
+correction. The placement error remained above the unchanged 12%-of-pitch
+limit.
+
+Post-extraction reference scoring gave 16.13% marker precision and 50% recall.
+All 31 centers, OCR readings, and masks agreed across runs. The recovered
+first-session center remained within 1.81 pixels of the reference. Ten numeric
+sessions remained missing, with zero extra sessions and no comparable Y or
+phase rows.
+
+The focused Windows run passed 59 cases. Controls covered detached marks,
+missing axis ink, staggered labels, multiple strokes, genuine corner ticks,
+partial word overlaps, reviewed values, and endpoint conflicts. A controlled
+fit projected the prescribed X and Y values and required review when the
+fragment or endpoint lacked sufficient evidence. Native WPF Review displayed
+the actual refusal with 31 candidate boxes and zero editable rows. These are
+single-panel development measurements.
