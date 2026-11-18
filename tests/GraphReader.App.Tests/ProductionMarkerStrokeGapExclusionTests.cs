@@ -2,6 +2,7 @@
 // Copyright 2026 Sungwoo Kang
 
 using GraphReader.App.Integration.Workflow;
+using GraphReader.Axis;
 using GraphReader.Markers.Classification;
 using GraphReader.Markers.Detection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -140,6 +141,74 @@ public sealed class ProductionMarkerStrokeGapExclusionTests
         var canceled = new CancellationToken(canceled: true);
         Assert.ThrowsExactly<OperationCanceledException>(() => ProductionMarkerStrokeGapExclusion.Find(Frame(Blank()), [], canceled));
         Assert.ThrowsExactly<OperationCanceledException>(() => ProductionMarkerStrokeGapExclusion.Find(Frame(Strokes()), [Marker()], canceled));
+    }
+
+    [TestMethod]
+    [DataRow(DividerStyle.Dotted, 0)]
+    [DataRow(DividerStyle.Dashed, 1)]
+    public void CompleteDashOnMeasuredDividerCannotBecomeAPlotMarker(DividerStyle style, int tilt)
+    {
+        float[] pixels = Blank();
+        for (int y = 8; y < 57; y++)
+        {
+            if (Math.Abs(y - 32) % 20 > 6 && Math.Abs(y - 32) % 20 < 14) continue;
+            int x = 32 + (int)Math.Round(tilt * (y - 32) / 6d);
+            for (int dx = -1; dx <= 1; dx++) pixels[y * 64 + x + dx] = 0.4f;
+        }
+        PhaseDividerGeometry divider = new("line", new(new(32 - 4 * tilt, 8), new(32 + 4 * tilt, 56)),
+            style, 0.9, 1, 0.6, ["measured"]);
+        var marker = Marker(shape: MarkerShape.Cross, fill: MarkerFill.Unknown);
+        var result = ProductionMarkerStrokeGapExclusion.Find(Frame(pixels), [marker], CancellationToken.None, [divider]);
+        Assert.AreEqual("marker_excluded_by_original_pixel_divider_dash:candidate", result.Warnings.SingleOrDefault());
+
+        // A lateral arm supplies independent ink for a real symbol even at the same center.
+        for (int x = 26; x <= 38; x++) pixels[32 * 64 + x] = 0;
+        Assert.IsEmpty(ProductionMarkerStrokeGapExclusion.Find(Frame(pixels), [marker], CancellationToken.None, [divider]).ExcludedMarkerIds);
+    }
+
+    [TestMethod]
+    public void IsolatedInkNeedsAnIntersectingBrokenDividerAndBothStrokeEnds()
+    {
+        float[] pixels = Blank();
+        for (int y = 25; y <= 39; y++) pixels[y * 64 + 32] = 0;
+        var marker = Marker(shape: MarkerShape.Cross, fill: MarkerFill.Filled);
+        PhaseDividerGeometry divider = new("line", new(new(32, 8), new(32, 56)), DividerStyle.Dashed, 0.9, 1, 0.6, []);
+        foreach (PhaseDividerGeometry other in new[]
+        {
+            divider with { Style = DividerStyle.Solid },
+            divider with { Line = new(new(36, 8), new(36, 56)) },
+            divider with { Line = new(new(8, 32), new(56, 32)) },
+            divider with { Line = new(new(32, 2), new(32, 16)) },
+        })
+            Assert.IsEmpty(ProductionMarkerStrokeGapExclusion.Find(Frame(pixels), [marker], CancellationToken.None, [other]).ExcludedMarkerIds);
+        Assert.IsEmpty(Find(pixels, marker).ExcludedMarkerIds);
+        for (int y = 8; y <= 56; y++) pixels[y * 64 + 32] = 0;
+        Assert.IsEmpty(ProductionMarkerStrokeGapExclusion.Find(Frame(pixels), [marker], CancellationToken.None, [divider]).ExcludedMarkerIds);
+    }
+
+    [TestMethod]
+    public void ShortCrossbarOnLongDividerStrokeProtectsAnInkCenteredSymbol()
+    {
+        float[] pixels = Blank();
+        for (int y = 22; y <= 42; y++) pixels[y * 64 + 32] = 0;
+        for (int x = 30; x <= 34; x++) pixels[32 * 64 + x] = 0;
+        var divider = new PhaseDividerGeometry("line", new(new(32, 8), new(32, 56)), DividerStyle.Dotted,
+            0.9, 1, 0.6, ["measured"]);
+        var result = ProductionMarkerStrokeGapExclusion.Find(Frame(pixels),
+            [Marker(shape: MarkerShape.Cross, fill: MarkerFill.Unknown)], CancellationToken.None, [divider]);
+        Assert.IsEmpty(result.ExcludedMarkerIds);
+    }
+
+    [TestMethod]
+    public void TwoDisconnectedStrokesCannotConfirmOneDividerDash()
+    {
+        float[] pixels = Blank();
+        for (int y = 24; y <= 40; y++) pixels[y * 64 + (y <= 32 ? 32 : 35)] = 0;
+        var divider = new PhaseDividerGeometry("line", new(new(32, 8), new(32, 56)), DividerStyle.Dashed,
+            0.9, 1, 0.6, ["measured"]);
+        var result = ProductionMarkerStrokeGapExclusion.Find(Frame(pixels),
+            [Marker(shape: MarkerShape.Cross, fill: MarkerFill.Unknown)], CancellationToken.None, [divider]);
+        Assert.IsEmpty(result.ExcludedMarkerIds);
     }
 
     private static StrokeGapMarkerExclusionBatch Find(float[] pixels, ClassifiedMarker marker) =>

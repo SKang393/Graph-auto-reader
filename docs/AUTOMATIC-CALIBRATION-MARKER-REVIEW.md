@@ -57,3 +57,53 @@ rejected coordinates and preservation of prior review state.
 The automatic numeric result on this graph remains a failure. The change
 recovers visual evidence for a reviewer and leaves model selection, decision
 thresholds and the calibration guard intact.
+
+## Automatic exclusion of divider dashes
+
+On the same development graph, 37 of the 51 accepted marker centers lay along
+three dashed phase boundaries. The classifier called individual strokes crosses
+and other symbols. Its output fed the session lattice. The existing white-gap
+filter protected candidates centered on ink.
+
+The automatic workflow now checks original luminance against the nearest
+measured dashed or dotted divider. Exclusion requires one connected, elongated
+stroke with visible ends. The measured divider must intersect that stroke, and
+a lateral arm or separate ink within the symbol footprint protects the candidate.
+Each exclusion carries a marker-specific audit reason. The detector, classifier,
+operating threshold and calibration checks used the same configuration in both runs.
+
+| One development panel | Baseline at `8c3798d4` | With dash exclusion |
+|---|---:|---:|
+| Detected centers before classification | 104 | 104 |
+| Accepted centers | 51 | 30 |
+| Matched / extra / missing centers | 4 / 47 / 6 | 4 / 26 / 6 |
+| Marker precision / recall | 7.84% / 40% | 13.33% / 40% |
+| Valid calibrations | 0 | 0 |
+| Matched / extra / missing sessions | 0 / 0 / 10 | 0 / 0 / 10 |
+| Exported rows / reference rows | 0 / 10 | 0 / 10 |
+
+One-to-one matching within five original pixels retained the same four centers.
+The scorer compared outputs with the independent reference after inference. The
+candidate measured one X tick and two Y ticks. Both runs stopped at the same
+axis-pair ambiguity, competing readings on eight X and three Y labels, and
+invalid first-session origin. There were zero comparable Y pairs. Phase
+assignment was unreached and the reference supplies no phase labels.
+
+The final run took 39.271 s including the native Review check. The stroke
+exclusion stage took 6.07 ms. An offscreen, nonactivating WPF window received
+the actual failure and drew all 30 accepted centers at their original positions
+through the Review checkbox. The workspace had zero editable points.
+
+Owned regressions cover upright and tilted strokes, crossing symbols,
+disconnected ink, clipped or continuous strokes, and absent or misaligned
+dividers. The upright and tilted controls both reproduced the defect before
+the correction. The focused Windows run passed all 106 tests in two seconds.
+
+```powershell
+dotnet test tests/GraphReader.App.Tests -c Release --filter 'FullyQualifiedName~ProductionMarkerStrokeGapExclusionTests|FullyQualifiedName~ProductionAutomaticDetectionAdapterTests|FullyQualifiedName~ProductionMarkerSuppressionRecoveryTests'
+```
+
+The reduction of 21 extra centers is exploratory evidence on one graph.
+Generalization remains unverified. Marker recall and automatic numeric
+extraction remain below acceptance. The evaluation used zero sealed inputs.
+Only the aggregate record is retained.

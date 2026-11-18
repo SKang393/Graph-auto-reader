@@ -510,7 +510,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
             StrokeGapMarkerExclusionBatch strokeGaps;
             try
             {
-                strokeGaps = ProductionMarkerStrokeGapExclusion.Find(markerFrame, acceptedMarkers, cancellationToken);
+                strokeGaps = ProductionMarkerStrokeGapExclusion.Find(
+                    markerFrame, acceptedMarkers, cancellationToken, axis.Geometry.PhaseDividers);
             }
             catch (Exception exception) when (exception is not
                 (OperationCanceledException or OutOfMemoryException or ProductionWorkflowStageException))
