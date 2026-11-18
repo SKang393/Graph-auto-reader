@@ -1200,7 +1200,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
         CancellationToken cancellationToken)
     {
         var confidenceWarnings = new List<string>();
-        NumericTickEvidence[] yTicks = ParseTicks(ocr, OcrTextRole.YTick, confidenceWarnings)
+        ParsedTick[] parsedYTicks = ParseTicks(ocr, OcrTextRole.YTick, confidenceWarnings).ToArray();
+        NumericTickEvidence[] yTicks = parsedYTicks
             .Select(item => new NumericTickEvidence(
                 item.Region.RegionId,
                 tickGeometry.Positions.GetValueOrDefault(item.Region.RegionId, item.Region.Polygon.Bounds.Center.Y),
@@ -1249,6 +1250,11 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 },
             },
             cancellationToken);
+        if (HasAmbiguousInlierScale(parsedYTicks, calibration.YTransform) ||
+            calibration.XTransform is { } xFit && HasAmbiguousInlierScale(parsedXTicks, xFit))
+        {
+            confidenceWarnings.Add("ocr_tick_sequence_needs_review:ambiguous_numeric_scale");
+        }
         string[] unresolvedTicks = ocr.Warnings.Where(static warning =>
             warning.StartsWith("ocr_tick_sequence_needs_review:", StringComparison.Ordinal))
             .Concat(tickGeometry.Warnings.Where(static warning =>
@@ -1451,6 +1457,13 @@ public sealed class ProductionAutomaticDetectionAdapter :
     private static bool IsAnchorInsideImage(DomainCalibrationAnchor anchor, WorkflowImageEvidence image) =>
         anchor.Screen.X >= 0 && anchor.Screen.X <= image.Width &&
         anchor.Screen.Y >= 0 && anchor.Screen.Y <= image.Height;
+
+    private static bool HasAmbiguousInlierScale(ParsedTick[] ticks, LinearTransformFitResult fit)
+    {
+        var inliers = fit.Diagnostics.InlierIds.ToHashSet(StringComparer.Ordinal);
+        return Services.CalibrationNumericLiteral.HasAmbiguousScale(ticks.Where(tick => inliers.Contains(tick.Region.RegionId))
+            .Select(tick => (tick.Region.Text, tick.Value)));
+    }
 
     private static IEnumerable<ParsedTick> ParseTicks(
         OcrResult ocr, OcrTextRole role, List<string> confidenceWarnings)

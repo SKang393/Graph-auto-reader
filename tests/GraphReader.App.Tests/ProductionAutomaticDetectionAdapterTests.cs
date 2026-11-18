@@ -819,6 +819,27 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     [TestMethod]
+    public async Task AmbiguousCommaScaleCannotGenerateProductionExportEvidence()
+    {
+        byte[] bytes = [1, 2, 3];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        var image = new WorkflowImageEvidence("memory:comma-scale.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(Guid.NewGuid(), Guid.NewGuid(), "comma-scale.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new RasterDecoder(), new AxisAdapter(),
+            new OcrAdapter(finalSessionLabel: "2,000", substitutedRole: OcrTextRole.XTick, substitutedText: "1,000"),
+            new MaskComposer(), new CenterAdapter(), new ClassificationAdapter(), new LegendAdapter(),
+            new PhaseAdapter(), new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(imported, image, null),
+            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+
+        var failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(() => adapter.DetectAsync(request, CancellationToken.None));
+        StringAssert.Contains(failure.Failure.TechnicalMessage, "ocr_tick_sequence_needs_review:ambiguous_numeric_scale");
+        Assert.IsNull(store.Get(imported.PanelId).ExportEvidence);
+    }
+
+    [TestMethod]
     [DataRow(OcrTextRole.XTick, "I", OcrReviewStatus.Unreviewed, true)]
     [DataRow(OcrTextRole.XTick, "l", OcrReviewStatus.Unreviewed, true)]
     [DataRow(OcrTextRole.YTick, "O", OcrReviewStatus.Unreviewed, true)]

@@ -51,6 +51,10 @@ public sealed class GraphNumericParserTests
     [DataRow("\u22120.25", -0.25d, false)]
     [DataRow(".75", 0.75d, false)]
     [DataRow("50%", 50d, true)]
+    [DataRow("0,250", 0.25d, false)]
+    [DataRow("\u22120,125%", -0.125d, true)]
+    [DataRow("1234,125", 1234.125d, false)]
+    [DataRow("1,234,567", 1234567d, false)]
     public void DecimalPercentAndNegativeFormsPreservePrintedMeaning(
         string text,
         double expected,
@@ -80,6 +84,7 @@ public sealed class GraphNumericParserTests
     [TestMethod]
     [DataRow("12,34.5")]
     [DataRow("1.23,456.7")]
+    [DataRow("1,23,456")]
     public void MalformedMixedThousandsGroupingIsRejected(string text)
     {
         NumericParseResult result = GraphNumericParser.Parse(text);
@@ -111,5 +116,14 @@ public sealed class GraphNumericParserTests
         Assert.IsFalse(GraphNumericParser.IsLiteralGraphNumber("O"));
         Assert.IsFalse(GraphNumericParser.IsLiteralGraphNumber("I"));
         Assert.IsFalse(GraphNumericParser.IsLiteralGraphNumber("l"));
+    }
+
+    [TestMethod]
+    public void SingleThousandsGroupPreservesBothReadings()
+    {
+        NumericParseResult result = GraphNumericParser.Parse("1,250");
+        Assert.AreEqual(1250d, result.Value);
+        Assert.HasCount(2, result.Alternatives);
+        Assert.IsTrue(result.Alternatives.Any(candidate => candidate.Value == 1.25d));
     }
 }

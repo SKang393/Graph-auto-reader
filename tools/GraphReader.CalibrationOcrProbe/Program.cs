@@ -119,6 +119,11 @@ internal static class Program
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--reviewed-comma-scale", var scaleMode, var scaleImage, var scaleApp, var scaleAssets, var scaleOutput])
+            {
+                Emit(await ReviewedCommaScaleCheck.RunAsync(scaleMode, scaleImage, scaleApp, scaleAssets, scaleOutput, deadline.Token));
+                return 0;
+            }
             if (args is ["--owned-content-span-calibration-check", var contentApp, var contentAssets,
                 var contentRust, var contentOutput, var contentManifest, var contentManifestHash])
             {

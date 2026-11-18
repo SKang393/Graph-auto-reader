@@ -42,6 +42,7 @@ public static class CalibrationTickProposalReasons
     public const string WrongAxis = "CALIBRATION_TICKS_WRONG_AXIS";
     public const string UnpairedLabel = "CALIBRATION_TICKS_UNPAIRED_LABEL";
     public const string AmbiguousAssociation = "CALIBRATION_TICKS_AMBIGUOUS_ASSOCIATION";
+    public const string AmbiguousNumericScale = "CALIBRATION_TICKS_AMBIGUOUS_NUMERIC_SCALE";
     public const string DuplicateAssociation = "CALIBRATION_TICKS_DUPLICATE_ASSOCIATION";
     public const string MissingEndpoint = "CALIBRATION_TICKS_MISSING_ENDPOINT";
     public const string ObservedZeroRequired = "CALIBRATION_TICKS_OBSERVED_ZERO_REQUIRED";
@@ -306,6 +307,8 @@ public static class CalibrationTickProposal
             : RobustCalibration.FitY(pairs.Select(pair => new NumericTickEvidence(pair.Label.RegionId, pair.PixelPosition, pair.Value, pair.ValidationSupportWeight)).ToArray());
         if (!fit.IsValid || fit.Diagnostics.OutlierIds.Count > 0 || fit.Diagnostics.InlierIds.Count != pairs.Length)
             reasons.Add(CalibrationTickProposalReasons.InconsistentSpacing);
+        if (CalibrationNumericLiteral.HasAmbiguousScale(pairs.Select(pair => (pair.Label.Text, pair.Value))))
+            reasons.Add(CalibrationTickProposalReasons.AmbiguousNumericScale);
     }
 
     private static CalibrationTickProposalResult Failure(List<CalibrationPairedTick> pairs, IEnumerable<string> reasons,

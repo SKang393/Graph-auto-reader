@@ -3,6 +3,48 @@
 
 # Calibration OCR probe
 
+## Reviewed decimal-comma controls
+
+Generate each owned PNG with `New-TickCalibrationFixture.ps1 -CommaScale Fraction`
+or `-CommaScale Ambiguous` and an unused absolute `-OutputPath`. Build the probe
+and supply its matching Release App worker, the reviewed PP-OCRv5 recognizer
+directory, and a separate empty output directory per invocation.
+
+```powershell
+& $probe --reviewed-comma-scale Fraction $fractionPng $app $ocrAssets $fractionOutput
+& $probe --reviewed-comma-scale Ambiguous $ambiguousPng $app $ocrAssets $ambiguousOutput
+```
+
+The probe imports the raster into the manual workspace and drives Suggest,
+Review and Apply through WPF automation peers in its own non-activating,
+off-screen window. Rust measures the geometry and CPU OCR reads the labels.
+On the positive control the probe supplies the three visible marker centers
+and the drawn AB boundary as review edits, saves and reopens the project, and
+checks the written printed-session CSV against independent constants. X must
+match exactly, Y within `1e-9`, and each phase must match. The ambiguous
+control checks the warning, disabled Apply and rejected export.
+
+On the Windows control based on `f7825fe1`, geometry and literal transcription
+matched all six ticks. The previous parser mapped `0,250` and `0,500` to 250
+and 500. Its six numeric tick values had four matches, two errors and no
+misses. The sequence still formed a straight line. After the fix all six
+numeric values matched. The reopened export reproduced (3, 0.125, a),
+(6, 0.3, b) and (9, 0.45, b), with zero incorrect or missing rows.
+The WPF check took 6.012 s. On the other control both decimal and thousands
+interpretations fit the nonzero labels `1,250` and `2,500`. All six strings
+matched and Review withheld the Y scale. The 5.081 s check produced no CSV.
+
+Fixture SHA-256 digests on this host were
+`48fb95b3b4332cf6931606f71a00321a8c264c214f705df641b4645e2c9740d1` (fraction)
+and `c65cb5db702d6e4e632df9dd26d4628214b5f51a795f1c95a78a6aceaf03d64b`
+(ambiguous). The existing Apache-2.0 `en_PP-OCRv5_mobile_rec` model digest
+was `7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743`.
+The Release probe built with zero warnings and errors. The focused App suite
+passed 254 cases in 7 s. The OCR suite passed 936 in 5 s with 16 optional
+runtime cases skipped.
+The temporary PNGs, projects and CSVs can be regenerated with the commands
+above. Measurements cover the two generated graphs and the source build.
+
 `--owned-content-span-calibration-check <absolute-App-exe> <absolute-assets> <absolute-Rust-worker> <absolute-output-directory> <absolute-runtime-manifest> <manifest-sha256>`
 runs the single fixed owned disconnected-decoy graph through workspace
 preparation, one traced automatic Rust proposal, literal OCR and review-only

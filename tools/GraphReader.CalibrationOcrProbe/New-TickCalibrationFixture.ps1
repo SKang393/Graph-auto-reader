@@ -13,9 +13,13 @@ param(
     [switch]$SmallPlotWithCaption,
     [switch]$ZeroOriginXLabels,
     [switch]$OffsetLabelsWithMinorTicks,
+    [ValidateSet('Fraction', 'Ambiguous')][string]$CommaScale,
     [ValidateRange(0, 1700)][int]$WhiteMarginPixels = 0
 )
 $ErrorActionPreference = 'Stop'
+if ($CommaScale -and ($InwardXTicks -or $TransparentBackground -or $LeftAxisContinuation -or $NoTickMarks -or $DenseXTicks -or $JitteredXLabels -or $GridLines -or $SmallPlotWithCaption -or $ZeroOriginXLabels -or $OffsetLabelsWithMinorTicks -or $WhiteMarginPixels)) {
+    throw 'CommaScale uses the standard plot geometry.'
+}
 if ($JitteredXLabels -and (-not $DenseXTicks -or $InwardXTicks -or $TransparentBackground -or $LeftAxisContinuation -or $NoTickMarks -or $GridLines -or $SmallPlotWithCaption -or $ZeroOriginXLabels -or $OffsetLabelsWithMinorTicks -or $WhiteMarginPixels -ne 0)) {
     throw 'JitteredXLabels requires DenseXTicks and cannot be combined with other fixture options.'
 }
@@ -70,6 +74,7 @@ try {
         $graphics.DrawLine($pen, (100 - $tickLength), 220, 100, 220)
     }
     $xLabels = if ($ZeroOriginXLabels) { @('0', '5', '10') } else { @('1', '2', '3') }
+    if ($CommaScale) { $xLabels = @('2', '6', '10') }
     for ($index = 0; $index -lt $xPositions.Count; $index++) {
         $x = $xPositions[$index]
         $tickEnd = if ($InwardXTicks) { $plotBottom - $tickLength } else { $plotBottom + $tickLength }
@@ -78,11 +83,20 @@ try {
             [Drawing.PointF]::new($xLabelPositions[$index], $xLabelYPositions[$index]), $format)
     }
     $yLabels = @('10', '5', '0')
+    $yLabelX = 74
+    if ($CommaScale) {
+        $yLabelX = 61
+        $yLabels = if ($CommaScale -eq 'Fraction') { @('0,500', '0,250', '0') } else { @('2,500', '1,250', '0') }
+        foreach ($point in @(@(190,305), @(340,200), @(490,110))) {
+            $graphics.FillEllipse([Drawing.Brushes]::Black, $point[0]-3, $point[1]-3, 7, 7)
+        }
+        for ($y = 95; $y -lt 370; $y += 10) { $graphics.DrawLine($pen,260,$y,260,($y+4)) }
+    }
     for ($index = 0; $index -lt $yPositions.Count; $index++) {
         $y = $yPositions[$index]
         if (-not $NoTickMarks) { $graphics.DrawLine($pen, (100 - $tickLength), $y, 100, $y) }
         $graphics.DrawString($yLabels[$index], $font, [Drawing.Brushes]::Black,
-            [Drawing.PointF]::new(74, $yLabelPositions[$index]), $format)
+            [Drawing.PointF]::new($yLabelX, $yLabelPositions[$index]), $format)
     }
     if ($SmallPlotWithCaption) {
         for ($x = 0; $x -lt $baseWidth; $x += 2) { $graphics.FillRectangle([Drawing.Brushes]::Black, $x, 400, 1, 1) }

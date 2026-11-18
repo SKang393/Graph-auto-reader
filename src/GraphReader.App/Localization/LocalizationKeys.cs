@@ -116,6 +116,7 @@ public static class LocalizationKeys
     public const string ManualCalibrationTicksIncomplete = "Manual.CalibrationTicks.Incomplete";
     public const string ManualCalibrationTicksPartialX = "Manual.CalibrationTicks.PartialX";
     public const string ManualCalibrationTicksPartialY = "Manual.CalibrationTicks.PartialY";
+    public const string ManualCalibrationTicksAmbiguousScale = "Manual.CalibrationTicks.AmbiguousScale";
     public const string ManualCalibrationTicksPairedRows = "Manual.CalibrationTicks.PairedRows";
     public const string ManualCalibrationTicksPairedRow = "Manual.CalibrationTicks.PairedRow";
     public const string ManualCalibrationTicksPairedPointRow = "Manual.CalibrationTicks.PairedPointRow";
@@ -569,6 +570,7 @@ public static class LocalizationKeys
         ManualCalibrationTicksIncomplete,
         ManualCalibrationTicksPartialX,
         ManualCalibrationTicksPartialY,
+        ManualCalibrationTicksAmbiguousScale,
         ManualCalibrationTicksPairedRows,
         ManualCalibrationTicksPairedRow,
         ManualCalibrationTicksPairedPointRow,

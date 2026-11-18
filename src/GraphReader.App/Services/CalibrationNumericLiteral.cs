@@ -18,4 +18,18 @@ internal static class CalibrationNumericLiteral
 
         return GraphNumericParser.IsLiteralGraphNumber(trimmed);
     }
+
+    // Zero is shared by both interpretations. A fit in pixels cannot distinguish
+    // scales that differ by the same factor for every nonzero supporting tick.
+    internal static bool HasAmbiguousScale(IEnumerable<(string Text, double Value)> ticks)
+    {
+        bool hasNonzero = false;
+        foreach (var (text, value) in ticks)
+        {
+            if (value == 0) continue;
+            if (GraphNumericParser.Parse(text).Alternatives.Count <= 1) return false;
+            hasNonzero = true;
+        }
+        return hasNonzero;
+    }
 }

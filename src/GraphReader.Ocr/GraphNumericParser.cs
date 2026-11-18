@@ -58,7 +58,6 @@ public static partial class GraphNumericParser
             .GroupBy(static candidate => candidate.NormalizedText, StringComparer.Ordinal)
             .Select(static group => group.OrderByDescending(candidate => candidate.Confidence).First())
             .OrderByDescending(static candidate => candidate.Confidence)
-            .ThenBy(static candidate => candidate.NormalizedText, StringComparer.Ordinal)
             .ToArray();
 
         if (alternatives.Length == 0)
@@ -86,6 +85,13 @@ public static partial class GraphNumericParser
             .Replace('\u2044', '/');
 
         AddCandidate(candidates, NormalizeSeparators(normalizedPunctuation), 0.99);
+        // A single well-formed thousands group can also be a decimal comma.
+        // Keep the established grouped reading first and expose the other scale.
+        if (CommaGroupedInteger().IsMatch(normalizedPunctuation) &&
+            normalizedPunctuation.IndexOf(',') == normalizedPunctuation.LastIndexOf(','))
+        {
+            AddCandidate(candidates, normalizedPunctuation.Replace(',', '.'), 0.99);
+        }
 
         var substituted = new StringBuilder(normalizedPunctuation.Length);
         var substitutions = 0;
@@ -160,9 +166,7 @@ public static partial class GraphNumericParser
             return text.Replace(",", string.Empty, StringComparison.Ordinal);
         }
 
-        var commaIndex = text.LastIndexOf(',');
-        var suffixLength = text.Length - commaIndex - 1 - (text.EndsWith('%') ? 1 : 0);
-        return suffixLength == 3 && commaIndex > 0
+        return CommaGroupedInteger().IsMatch(text)
             ? text.Replace(",", string.Empty, StringComparison.Ordinal)
             : text.Replace(',', '.');
     }
@@ -236,4 +240,7 @@ public static partial class GraphNumericParser
 
     [GeneratedRegex(@"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)%?$", RegexOptions.CultureInvariant)]
     private static partial Regex GraphNumberPattern();
+
+    [GeneratedRegex(@"^[+-]?[1-9][0-9]{0,2}(?:,[0-9]{3})+%?$", RegexOptions.CultureInvariant)]
+    private static partial Regex CommaGroupedInteger();
 }

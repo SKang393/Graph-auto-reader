@@ -152,7 +152,8 @@ public sealed partial class MainWindowViewModel
             if (!PopulatePartialCalibrationAxes(proposal)) return;
             _calibrationTickProposal = proposal;
             PopulateCalibrationPairedTickRows(proposal);
-            _calibrationTickProposalStatusText = GetLocalizedString(proposal.PrintedXReviewDraft is not null
+            _calibrationTickProposalStatusText = GetLocalizedString(proposal.Reasons.Contains(CalibrationTickProposalReasons.AmbiguousNumericScale)
+                ? LocalizationKeys.ManualCalibrationTicksAmbiguousScale : proposal.PrintedXReviewDraft is not null
                 ? LocalizationKeys.ManualPrintedXAvailable : proposal.XReviewDraft is not null
                 ? LocalizationKeys.ManualCalibrationTicksPartialX : proposal.YReviewDraft is not null
                     ? LocalizationKeys.ManualCalibrationTicksPartialY : LocalizationKeys.ManualCalibrationTicksIncomplete);

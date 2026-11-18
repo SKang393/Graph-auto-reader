@@ -734,6 +734,23 @@ public sealed class CalibrationTickProposalTests
         Assert.IsFalse(CalibrationTickProposal.CreateReviewDraft(geometry, stale).IsComplete);
     }
 
+    [TestMethod]
+    public void ConsistentButAmbiguousCommaScaleRequiresAnUnambiguousNonzeroLabel()
+    {
+        var labels = Labels();
+        labels[3] = Value(labels[3], 2500) with { Text = "2,500" };
+        labels[4] = Value(labels[4], 1250) with { Text = "1,250" };
+
+        AssertRejected(Geometry(), labels, CalibrationTickProposalReasons.AmbiguousNumericScale);
+        var draft = CalibrationTickProposal.CreateReviewDraft(Geometry(), Response(labels));
+        Assert.IsNull(draft.YReviewDraft);
+        Assert.IsNotNull(draft.XReviewDraft);
+        Assert.IsNull(draft.PrintedXReviewDraft);
+
+        labels[4] = Value(labels[4], 1250);
+        Assert.IsTrue(CalibrationTickProposal.CreateReviewDraft(Geometry(), Response(labels)).IsComplete);
+    }
+
     private static void AssertRejected(RustAxisGeometry geometry, CalibrationOcrProposal[] labels, string reason)
     {
         CalibrationTickProposalResult result = CalibrationTickProposal.Create(geometry, Response(labels));

@@ -7,6 +7,7 @@ using System.Windows.Input;
 using GraphReader.App.Localization;
 using GraphReader.App.Services;
 using GraphReader.App.Integration.Workflow;
+using GraphReader.Ocr;
 
 namespace GraphReader.App.ViewModels;
 
@@ -205,7 +206,8 @@ public sealed partial class MainWindowViewModel
             !result.Response.Proposals.Contains(row.Proposal) || row.Proposal.IsAmbiguousIntervalXLabel)
             return false;
         CalibrationOcrProposal effective = row.EffectiveProposal;
-        if (effective.FailureCode is not null || !effective.NumericLiteral || effective.NumericValue is not double parsed || !double.IsFinite(parsed))
+        if (effective.FailureCode is not null || !effective.NumericLiteral || effective.NumericValue is not double parsed || !double.IsFinite(parsed) ||
+            GraphNumericParser.Parse(effective.Text).Alternatives.Count > 1)
             return false;
         value = parsed;
         return true;

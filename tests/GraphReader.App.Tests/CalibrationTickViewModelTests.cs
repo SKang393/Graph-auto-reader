@@ -742,6 +742,38 @@ public sealed partial class CalibrationTickViewModelTests
     }
 
     [TestMethod]
+    public void AmbiguousCommaScaleRequiresExplicitValuesAndFreshReview()
+    {
+        WithImage(path =>
+        {
+            CalibrationOcrProposal[] proposals = ValidProposals();
+            proposals[3] = Proposal("y-max", "2,500", 2500, "YTick", "Y", 20, 2);
+            proposals[4] = Proposal("y-mid", "1,250", 1250, "YTick", "Y", 60, 2);
+            var reader = new OcrStub(proposals);
+            using var workspace = CreateWorkspace(path, reader, MeasuredGeometry());
+            using var vm = new MainWindowViewModel(workspace);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+
+            var maximum = vm.CalibrationLabelRows.Single(row => row.Proposal.RegionId == "y-max");
+            vm.SelectedCalibrationLabel = maximum;
+            Assert.IsFalse(vm.UseCalibrationLabelForYMaximumCommand.CanExecute(null));
+            Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+
+            maximum.CorrectedText = "2.5";
+            vm.CalibrationLabelRows.Single(row => row.Proposal.RegionId == "y-mid").CorrectedText = "1.25";
+            vm.RefitSelectedCalibrationLabels();
+            Assert.AreEqual("2.5", vm.SuggestedYMaximum);
+            Assert.AreEqual("2,500", maximum.Proposal.Text);
+            Assert.AreEqual(1, reader.CallCount);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+        });
+    }
+
+    [TestMethod]
     public void CorrectedTickRefitsCachedRowsWithoutChangingRawEvidenceAndRequiresReview()
     {
         WithImage(path =>
