@@ -3,9 +3,16 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
 using System.Windows.Controls;
+using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Threading;
+using GraphReader.App.Controls;
+using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Localization;
+using GraphReader.App.Services;
 using GraphReader.App.ViewModels;
 
 namespace GraphReader.App.Tests;
@@ -50,17 +57,7 @@ public sealed partial class CalibrationTickViewModelTests
             string suggestedFinal = vm.SuggestedFinalSession;
             Assert.IsTrue(vm.ApplyAxisSuggestionCommand.CanExecute(null));
 
-            var resources = new ResourceDictionary();
-            foreach (string source in CalibrationResourceSources)
-            {
-                resources.MergedDictionaries.Add(new ResourceDictionary
-                {
-                    Source = new Uri($"/GraphReader.App;component/{source}.xaml", UriKind.Relative),
-                });
-            }
-            var window = new MainWindow(themeService: null, resources);
-            ((MainWindowViewModel)window.DataContext).Dispose();
-            window.DataContext = vm;
+            var window = CreateCalibrationWindow(vm);
             try
             {
                 TextBox first = FindCalibrationElement<TextBox>(window, "Manual.FirstVisibleSession");
@@ -120,6 +117,74 @@ public sealed partial class CalibrationTickViewModelTests
                 window.Close();
             }
         });
+    }
+
+    [TestMethod]
+    public void NativeMarkerPreviewToggleShowsOnlyUncalibratedPixelLocations()
+    {
+        WithImage(path =>
+        {
+            Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+            using var workspace = new ManualPreviewWorkspaceService();
+            var tab = Pump(workspace.ImportImagesAsync([path], CancellationToken.None)).Single();
+            using var vm = new MainWindowViewModel(workspace);
+            var window = CreateCalibrationWindow(vm);
+            window.WindowStartupLocation = WindowStartupLocation.Manual;
+            window.Top = SystemParameters.VirtualScreenTop - window.Height - 100;
+            window.Left = SystemParameters.VirtualScreenLeft - window.Width - 100;
+            window.ShowActivated = false;
+            window.ShowInTaskbar = false;
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+                Assert.AreNotEqual(IntPtr.Zero, new WindowInteropHelper(window).Handle);
+                CheckBox toggle = FindCalibrationElement<CheckBox>(window, "Review.UncalibratedMarkers");
+                Assert.IsFalse(toggle.IsVisible);
+                var evidence = new WorkflowVisionEnvelope(1, Guid.NewGuid(), workspace.CurrentProject.ProjectId.Value,
+                    Guid.Parse(tab.PanelId!), "markers", "1", tab.SourceSha256!, null, new(0, 0, 0, 0), 1);
+                var failure = new ProductionWorkflowStageException(new(ProductionWorkflowFailureCodes.RecalibrationRequired,
+                    "Errors.CalibrationInvalid", "review calibration", true, "calibrate"), [evidence])
+                {
+                    MarkerPreviews = [new(evidence, [new(20, 40), new(80, 60)])],
+                };
+                Assert.IsTrue(vm.SelectCalibrationFailurePanel(failure));
+                FlushCalibrationBindings();
+                Assert.IsTrue(toggle.IsVisible && toggle.IsEnabled);
+                Assert.IsFalse(toggle.IsChecked);
+                var overlay = (ManualReviewOverlay)tab.OverlayContent!;
+                Assert.IsEmpty(Boxes());
+                var peer = (IToggleProvider)new CheckBoxAutomationPeer(toggle).GetPattern(PatternInterface.Toggle)!;
+                peer.Toggle();
+                CollectionAssert.AreEquivalent(new[] { new Rect(14, 34, 12, 12), new Rect(74, 54, 12, 12) }, Boxes());
+                peer.Toggle();
+                Assert.IsEmpty(Boxes());
+                Assert.IsEmpty(tab.Points);
+                Assert.IsNull(tab.Calibration);
+                Assert.IsFalse(window.IsActive);
+
+                Rect[] Boxes()
+                {
+                    FlushCalibrationBindings();
+                    window.UpdateLayout();
+                    return VisualTreeHelper.GetDrawing(overlay)?.Children.OfType<GeometryDrawing>()
+                        .Select(drawing => drawing.Geometry).OfType<RectangleGeometry>()
+                        .Select(geometry => geometry.Rect).ToArray() ?? [];
+                }
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    private static MainWindow CreateCalibrationWindow(MainWindowViewModel vm)
+    {
+        var resources = new ResourceDictionary();
+        foreach (string source in CalibrationResourceSources)
+            resources.MergedDictionaries.Add(new() { Source = new Uri($"/GraphReader.App;component/{source}.xaml", UriKind.Relative) });
+        var window = new MainWindow(themeService: null, resources);
+        ((MainWindowViewModel)window.DataContext).Dispose();
+        window.DataContext = vm;
+        return window;
     }
 
     private static T FindCalibrationElement<T>(DependencyObject root, string id) where T : DependencyObject

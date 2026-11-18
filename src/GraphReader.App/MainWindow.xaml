@@ -646,6 +646,14 @@
                     Style="{DynamicResource App.Style.Button}"
                     automation:AutomationProperties.AutomationId="Canvas.ResetView"
                     automation:AutomationProperties.Name="{DynamicResource Canvas.ResetView}" />
+            <CheckBox Margin="8,0,0,0" VerticalAlignment="Center"
+                       Visibility="{Binding SelectedTab.OverlayContent.HasUncalibratedMarkers, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                       IsChecked="{Binding SelectedTab.OverlayContent.ShowUncalibratedMarkers, Mode=TwoWay}"
+                       Content="{DynamicResource Review.UncalibratedMarkers}"
+                       ToolTip="{DynamicResource Review.UncalibratedMarkers.Help}"
+                       automation:AutomationProperties.AutomationId="Review.UncalibratedMarkers"
+                       automation:AutomationProperties.HelpText="{DynamicResource Review.UncalibratedMarkers.Help}"
+                       automation:AutomationProperties.Name="{DynamicResource Review.UncalibratedMarkers}" />
         </WrapPanel>
 
         <Border Grid.Row="3"

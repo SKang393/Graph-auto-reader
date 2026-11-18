@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using GraphReader.App.Controls;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Models;
 using GraphReader.App.Services;
@@ -244,6 +245,31 @@ public sealed class CalmPrecisionStateTests
             Assert.IsFalse(first.AnalysisNeedsReview);
         });
     }
+
+    [TestMethod]
+    [DataRow("matching", true)]
+    [DataRow("other_image", false)]
+    [DataRow("outside_panel", false)]
+    public void IncompleteCalibrationShowsOnlyPanelBoundPixelHints(string scenario, bool visible) => StaTestHost.Run(() =>
+    {
+        var tab = new WorkspaceTabViewModel("graph", "Graph", [], [], null, null, null,
+            panelId: Guid.NewGuid().ToString("D"), sourceSha256: new string('a', 64), pixelWidth: 200, pixelHeight: 100);
+        using var vm = new MainWindowViewModel(new ControlledWorkspaceService(tab, static (_, _) => Task.CompletedTask));
+        Guid run = Guid.NewGuid(), project = Guid.NewGuid();
+        WorkflowVisionEnvelope MarkerEvidence(string hash) => new(1, run, project, Guid.Parse(tab.PanelId!),
+            "markers", "1", hash, null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
+        var actual = MarkerEvidence(tab.SourceSha256!);
+        var preview = new UncalibratedMarkerPreview(scenario == "other_image" ? MarkerEvidence(new string('b', 64)) : actual,
+            [new(20, 40), new(scenario == "outside_panel" ? 200 : 80, 60)]);
+        var failure = new ProductionWorkflowStageException(new(ProductionWorkflowFailureCodes.RecalibrationRequired,
+            "Errors.CalibrationInvalid", "review the calibration", true, "calibrate"), [actual]) { MarkerPreviews = [preview] };
+        Assert.IsTrue(vm.SelectCalibrationFailurePanel(failure));
+        Assert.AreEqual(visible, tab.OverlayContent is ManualReviewOverlay { HasUncalibratedMarkers: true });
+        Assert.IsEmpty(tab.Points);
+        Assert.IsNull(tab.Calibration);
+        vm.AutoDetectCommand.Execute(null);
+        Assert.IsFalse(tab.OverlayContent is ManualReviewOverlay { HasUncalibratedMarkers: true });
+    });
 
     [TestMethod]
     public void SuccessfulDetectionClearsTheUnfinishedAnalysisIndicator()

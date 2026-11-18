@@ -44,6 +44,8 @@ public static class LocalizationKeys
     public const string PortableDataNotWritable = "Errors.PortableDataNotWritable";
     public const string ProductionWorkflowUnavailable = "Errors.ProductionWorkflowUnavailable";
     public const string DetectionCalibrationRequired = "Errors.DetectionCalibrationRequired";
+    public const string UncalibratedMarkers = "Review.UncalibratedMarkers";
+    public const string UncalibratedMarkersHelp = "Review.UncalibratedMarkers.Help";
     public const string DetectionCalibrationPanelUnknown = "Errors.DetectionCalibrationPanelUnknown";
     public const string DetectionCalibrationPartial = "Errors.DetectionCalibrationPartial";
     public const string DetectionCalibrationPartialPanelUnknown = "Errors.DetectionCalibrationPartialPanelUnknown";
@@ -503,6 +505,8 @@ public static class LocalizationKeys
         PortableDataNotWritable,
         ProductionWorkflowUnavailable,
         DetectionCalibrationRequired,
+        UncalibratedMarkers,
+        UncalibratedMarkersHelp,
         DetectionCalibrationPanelUnknown,
         DetectionCalibrationPartial,
         DetectionCalibrationPartialPanelUnknown,

@@ -2949,25 +2949,35 @@ public sealed class ProductionWorkflowStagesTests
         Guid failureRun = Guid.NewGuid();
         Guid failureProject = workspace.CurrentProject.ProjectId.Value;
         WorkflowVisionEnvelope Evidence(WorkflowReviewPanel panel) => new(
-            1, failureRun, failureProject, panel.PanelId, "axis", "1", panel.PreparedPanel.Original.Sha256,
+            1, failureRun, failureProject, panel.PanelId, "markers", "1", panel.PreparedPanel.Original.Sha256,
             null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
         detector.BeforeDetection = panelId =>
         {
             if (panelId == first.PanelId)
             {
                 store.ClearExportEvidence(panelId);
+                WorkflowVisionEnvelope firstEvidence = Evidence(first);
                 throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
                     scenario == "other_failure" ? ProductionWorkflowFailureCodes.DetectionEvidenceRejected
                         : ProductionWorkflowFailureCodes.RecalibrationRequired,
                     "Errors.CalibrationInvalid", "The first panel requires review.",
-                    scenario != "nonrecoverable", "Review calibration."), [Evidence(first)]);
+                    scenario != "nonrecoverable", "Review calibration."), [firstEvidence])
+                {
+                    MarkerPreviews = [new(firstEvidence, [new(20, 40)])],
+                };
             }
             Assert.AreSame(firstBefore, store.Get(first.PanelId),
                 "A failed panel must be restored before the next panel starts.");
             if (scenario == "both_calibration")
+            {
+                WorkflowVisionEnvelope secondEvidence = Evidence(second);
                 throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
                     ProductionWorkflowFailureCodes.RecalibrationRequired, "Errors.CalibrationInvalid",
-                    "The second panel requires calibration review.", true, "Review calibration."), [Evidence(second)]);
+                    "The second panel requires calibration review.", true, "Review calibration."), [secondEvidence])
+                {
+                    MarkerPreviews = [new(secondEvidence, [new(80, 60)])],
+                };
+            }
         };
 
         ProductionWorkflowStageException failure = await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(() =>
@@ -2989,6 +2999,8 @@ public sealed class ProductionWorkflowStagesTests
             CollectionAssert.AreEqual(
                 bothFailed ? new[] { first.PanelId, second.PanelId } : new[] { first.PanelId },
                 failure.FailedCalibrationPanelEvidence.Select(static evidence => evidence.Single().PanelId).ToArray());
+            CollectionAssert.AreEqual(failure.FailedCalibrationPanelEvidence.Select(chain => chain.Single()).ToArray(),
+                failure.MarkerPreviews.Select(preview => preview.Evidence).ToArray());
             if (bothFailed)
                 Assert.IsNull(workspace.LastAutomaticRun);
             else

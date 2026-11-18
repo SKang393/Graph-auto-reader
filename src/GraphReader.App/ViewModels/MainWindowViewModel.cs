@@ -2495,6 +2495,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         StatusMessageKey = statusMessageKey;
         if (stage == WorkflowStage.Detect)
         {
+            foreach (ManualReviewOverlay overlay in Tabs.Select(tab => tab.OverlayContent).OfType<ManualReviewOverlay>())
+                if (overlay.HasUncalibratedMarkers) overlay.SetUncalibratedMarkers([]);
             SurfaceState = WorkspaceSurfaceState.Analyzing;
         }
         IsBusy = true;
@@ -2641,6 +2643,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             if (tab is not null)
             {
                 tab.AnalysisNeedsReview = true;
+                var previews = failure.MarkerPreviews.Where(preview =>
+                    preview.Evidence.Stage == "markers" && panelEvidence.Contains(preview.Evidence)).ToArray();
+                if (previews.Length == 1 && previews[0].Centers.All(p =>
+                    p.X >= 0 && p.X < tab.PixelWidth && p.Y >= 0 && p.Y < tab.PixelHeight))
+                {
+                    EnsureManualOverlay(tab);
+                    if (tab.OverlayContent is ManualReviewOverlay overlay)
+                        overlay.SetUncalibratedMarkers(previews[0].Centers.Select(p => new Point(p.X, p.Y)).ToArray());
+                }
                 first ??= tab;
             }
         }

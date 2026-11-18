@@ -81,7 +81,13 @@ public sealed class ProductionWorkflowStageException : InvalidOperationException
     public int CompletedPanelCount { get; }
 
     public IReadOnlyList<IReadOnlyList<WorkflowVisionEnvelope>> FailedCalibrationPanelEvidence { get; }
+
+    internal IReadOnlyList<UncalibratedMarkerPreview> MarkerPreviews { get; init; } = [];
 }
+
+internal sealed record UncalibratedMarkerPreview(
+    WorkflowVisionEnvelope Evidence,
+    IReadOnlyList<GraphReader.Markers.Detection.MarkerPoint> Centers);
 
 public sealed class PdfPanelSourceProvenance : IEquatable<PdfPanelSourceProvenance>
 {

@@ -205,7 +205,10 @@ public sealed class WorkflowOrchestrator
                 TechnicalMessage = $"{calibrationFailures.Count} panel(s) require calibration; " +
                     $"{reviewedPanels.Count} panel(s) completed. {first.Failure.TechnicalMessage}",
             }, first.CompletedEvidence, calibrationFailures.Count, reviewedPanels.Count,
-                calibrationFailures.Select(static failure => failure.CompletedEvidence));
+                calibrationFailures.Select(static failure => failure.CompletedEvidence))
+            {
+                MarkerPreviews = calibrationFailures.SelectMany(static failure => failure.MarkerPreviews).ToArray(),
+            };
         }
 
         steps.Add(new WorkflowStepRecord(WorkflowStep.Detect, detectionElapsed, detectionCount));

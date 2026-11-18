@@ -22,6 +22,29 @@ public sealed class ManualReviewOverlay : FrameworkElement
     private Point[] _axisProposal = [];
     private MarkerExemplarRectangle? _markerExemplar;
     private Point[] _markerCandidates = [];
+    private Point[] _uncalibratedMarkers = [];
+    private static readonly DependencyPropertyKey HasUncalibratedMarkersPropertyKey =
+        DependencyProperty.RegisterReadOnly(nameof(HasUncalibratedMarkers), typeof(bool),
+            typeof(ManualReviewOverlay), new PropertyMetadata(false));
+    public static readonly DependencyProperty HasUncalibratedMarkersProperty = HasUncalibratedMarkersPropertyKey.DependencyProperty;
+    public bool HasUncalibratedMarkers => (bool)GetValue(HasUncalibratedMarkersProperty);
+
+    public static readonly DependencyProperty ShowUncalibratedMarkersProperty = DependencyProperty.Register(
+        nameof(ShowUncalibratedMarkers), typeof(bool), typeof(ManualReviewOverlay),
+        new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
+    public bool ShowUncalibratedMarkers
+    {
+        get => (bool)GetValue(ShowUncalibratedMarkersProperty);
+        set => SetValue(ShowUncalibratedMarkersProperty, value);
+    }
+
+    internal void SetUncalibratedMarkers(Point[] centers)
+    {
+        _uncalibratedMarkers = centers;
+        ShowUncalibratedMarkers = false;
+        SetValue(HasUncalibratedMarkersPropertyKey, centers.Length > 0);
+        InvalidateVisual();
+    }
     private MarkerExemplarRectangle? _panelCrop;
     private bool _panelCropIsValid;
 
@@ -80,6 +103,12 @@ public sealed class ManualReviewOverlay : FrameworkElement
     protected override void OnRender(DrawingContext drawingContext)
     {
         base.OnRender(drawingContext);
+        if (ShowUncalibratedMarkers && HasUncalibratedMarkers)
+        {
+            var boxPen = new Pen(Brushes.DarkOrange, 2) { DashStyle = DashStyles.Dash };
+            foreach (Point center in _uncalibratedMarkers)
+                drawingContext.DrawRectangle(null, boxPen, new Rect(center.X - 6, center.Y - 6, 12, 12));
+        }
         if (_axisProposal.Length == 3)
         {
             var axisPen = new Pen(Brushes.DeepSkyBlue, 2) { DashStyle = DashStyles.Dash };

@@ -809,6 +809,11 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             StringAssert.Contains(failure.Failure.TechnicalMessage,
                 $"ocr_tick_sequence_needs_review:{role}:competing_numeric_readings:");
             Assert.IsTrue(failure.CompletedEvidence.Any(static item => item.Stage == "ocr"));
+            var preview = failure.MarkerPreviews.Single();
+            Assert.AreEqual("markers", preview.Evidence.Stage);
+            Assert.Contains(preview.Evidence, failure.CompletedEvidence);
+            CollectionAssert.AreEquivalent(new[] { new MarkerPoint(20, 70), new MarkerPoint(80, 30) },
+                preview.Centers.ToArray());
             Assert.IsNull(store.Get(panelId).ExportEvidence);
         }
         else

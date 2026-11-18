@@ -587,7 +587,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                         centers.CandidateDiagnostics?.AboveThresholdDecodedPoints ?? [],
                         centers.CandidateDiagnostics?.PreNmsCandidates ?? [])));
             }
-            RequireCompleteCalibration(calibration, chain);
+            RequireCompleteCalibration(calibration, chain, acceptedMarkers);
 
             MarkerGroupingState grouping = await GroupMarkersAsync(
                     request,
@@ -1510,7 +1510,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
 
     private static void RequireCompleteCalibration(
         SessionFirstCalibrationResult calibration,
-        ProductionDetectionEvidenceChain chain)
+        ProductionDetectionEvidenceChain chain,
+        IReadOnlyList<ClassifiedMarker> markers)
     {
         bool complete = calibration.Validity == CalibrationValidity.Valid &&
             calibration.YTransform.IsValid &&
@@ -1520,12 +1521,16 @@ public sealed class ProductionAutomaticDetectionAdapter :
             calibration.Anchors.All(static anchor => anchor.GraphX.HasValue);
         if (!complete)
         {
-            throw chain.Reject(new ProductionWorkflowFailure(
+            var evidence = chain.Snapshot;
+            throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
                 ProductionWorkflowFailureCodes.RecalibrationRequired,
                 "Errors.CalibrationInvalid",
                 $"Automatic calibration is incomplete: {string.Join(" | ", calibration.Reasons)}",
                 Recoverable: true,
-                "Retain detected evidence and complete the three required calibration anchors manually."));
+                "Retain detected evidence and complete the three required calibration anchors manually."), evidence)
+            {
+                MarkerPreviews = [new(evidence[^1], Array.AsReadOnly(markers.Select(marker => marker.Marker.Center).ToArray()))],
+            };
         }
     }
 
@@ -2159,7 +2164,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 item.Model?.Sha256), StringComparer.Ordinal)
             .Select(static group => group.First())
             .ToArray();
-        return new ProductionWorkflowStageException(exception.Failure, evidence);
+        return new ProductionWorkflowStageException(exception.Failure, evidence) { MarkerPreviews = exception.MarkerPreviews };
     }
 
     private static ProductionWorkflowStageException Failure(
