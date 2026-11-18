@@ -624,6 +624,7 @@ public sealed class LocalOnnxTextRegionDetectorTests
 
             Assert.HasCount(1, regions);
             Assert.HasCount(4, regions[0].Polygon.Points);
+            Assert.IsTrue(regions[0].OrientationFromBoxLongEdge);
             Assert.IsTrue(Math.Abs(regions[0].OrientationDegrees) is > 15 and < 45);
             Assert.IsTrue(regions[0].Polygon.Points.Select(static point => point.X).Distinct().Count() > 2);
             Assert.IsTrue(regions[0].Polygon.Points.Select(static point => point.Y).Distinct().Count() > 2);

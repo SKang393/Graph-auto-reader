@@ -155,3 +155,49 @@ still requires review. A production-adapter control with recorded line segments,
 OCR labels and marker centers returned both expected sessions and Y values
 within `1e-9`. The Windows axis suite and all 61 production automatic-detection
 adapter tests passed.
+
+## Narrow glyph orientation in the printed X row
+
+The detector uses the long edge of a text box to estimate orientation. An
+upright digit can have a nearly vertical long edge. On one development panel,
+the recognizer sampled such a digit sideways even though it lay in the same
+horizontal text row as six other printed X labels. Refining the box against
+the original pixels had discarded the distinction between a box-derived angle
+and a specified text direction.
+
+The proposal now retains the source of its angle through refinement. A
+narrow X-lane crop can stay upright when two disjoint horizontal peers contain
+its vertical extent. Explicit rotations retain their specified direction.
+The recognizer still reports alternative strings, and the calibration stage
+continues to check competing readings and session origin.
+
+| Image-only development run | Baseline at `df38136d` | With row orientation |
+| --- | ---: | ---: |
+| Primary X readings matching the seven visible printed labels | 6 / 7 | 7 / 7 |
+| X-role proposals outside the printed row | 3 | 3 |
+| X / Y numerical fit inliers | 6 / 6 | 7 / 6 |
+| Measured X / Y strokes | 1 / 2 | 1 / 2 |
+| X / Y labels with competing numeric readings | 8 / 3 | 8 / 3 |
+| Valid automatic calibrations / panels | 0 / 1 | 0 / 1 |
+| Matched / extra / missing marker centers | 4 / 26 / 6 | 4 / 26 / 6 |
+| Matched / extra / missing numeric sessions | 0 / 0 / 10 | 0 / 0 / 10 |
+| OCR wall time | 18.070 s | 17.116 s |
+| Automatic workflow wall time | 26.143 s | 26.444 s |
+
+Printed-label agreement was checked against the visible axis. Numeric rows
+were scored separately against the independent CSV after extraction. The
+first detected marker column still conflicted with the automatic session-one
+policy. The entered first-visible session and literal printed-X workflows
+require explicit review. No origin override was supplied.
+
+There were zero comparable Y values and no phase assignments. In native
+Windows Review the actual refusal showed all 30 candidate centers at their
+original positions, zero editable rows and no calibration. The window stayed
+inactive. General OCR and numeric accuracy remain unverified beyond this
+single development panel.
+
+Owned regressions checked the recognizer's actual crop bytes for horizontal
+peers, overlapping or misaligned peers, and explicit or box-derived rotations.
+The local Windows OCR suite passed 943 tests and skipped 16. Seven focused
+application tests passed, including genuine OCR conflicts, printed-coordinate
+review and the native marker overlay.

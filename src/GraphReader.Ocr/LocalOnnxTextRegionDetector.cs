@@ -732,7 +732,10 @@ public sealed class LocalOnnxTextRegionDetector : IAtomicDbGeometryTextRegionDet
                     TextLikelihood: candidate.Confidence,
                     StructureLikelihood: 1 - candidate.Confidence,
                     LikelyGraphStructure: false,
-                    Reasons: Array.AsReadOnly(["onnx_db_text_probability"])));
+                    Reasons: Array.AsReadOnly(["onnx_db_text_probability"])))
+            {
+                OrientationFromBoxLongEdge = true,
+            };
             observations.Add(new OcrDbAcceptedContourGeometry(
                 regionId,
                 candidate.InitialPolygon,

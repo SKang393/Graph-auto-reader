@@ -101,6 +101,7 @@ public static class OcrCacheKeyDeriver
         yield return detectorConfigurationFingerprint;
         yield return options.StageVersion;
         yield return OcrPipeline.TickAlternativeResolutionVersion;
+        yield return "x-tick-row-crop-orientation-v1";
         yield return ContainedTextFragmentResolver.CompositionVersion;
         yield return SingleGlyphTextMaskReview.Version;
         yield return GraphTextRoleClassifier.Version;
@@ -194,7 +195,7 @@ public static class OcrCacheKeyDeriver
         {
             yield return region.RegionId;
             yield return region.CoordinateSpace;
-            yield return FormattableString.Invariant($"{region.OrientationDegrees:R},{region.DetectionConfidence:R}");
+            yield return FormattableString.Invariant($"{region.OrientationDegrees:R},{region.DetectionConfidence:R},{region.OrientationFromBoxLongEdge}");
             foreach (var point in region.Polygon.Points)
             {
                 yield return FormattableString.Invariant($"{point.X:R},{point.Y:R}");

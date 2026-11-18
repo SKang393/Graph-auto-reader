@@ -185,7 +185,12 @@ public sealed record OcrDetectedRegion(
     double DetectionConfidence,
     OcrRegionContext? Context = null,
     string CoordinateSpace = OcrContract.CoordinateSpace,
-    OcrRegionEvidence? Evidence = null);
+    OcrRegionEvidence? Evidence = null)
+{
+    // The long edge of a detector box measures geometry, not character direction.
+    // Keep that distinction when pixel refinement replaces the box and its density evidence.
+    internal bool OrientationFromBoxLongEdge { get; init; }
+}
 
 public sealed record OcrCrop(
     string RegionId,

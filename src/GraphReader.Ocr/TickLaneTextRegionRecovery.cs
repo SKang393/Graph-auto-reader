@@ -481,7 +481,7 @@ public static class TickLaneTextRegionRecovery
              lane.LeadingEdge is { } leading && Math.Abs(bounds.Left - leading) <= lane.Height / 2);
     }
 
-    private static bool IsSeedTextCandidate(OcrRectangle bounds, OcrRectangle plot)
+    internal static bool IsSeedTextCandidate(OcrRectangle bounds, OcrRectangle plot)
     {
         double tolerance = Math.Max(4d, plot.Width * 0.05d);
         return bounds.IsValid && bounds.Top > plot.Bottom && bounds.Center.X >= plot.Left - tolerance &&

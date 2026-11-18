@@ -42,6 +42,47 @@ public sealed class OcrPipelineAcceptanceTests
     }
 
     [TestMethod]
+    [DataRow(0d, false, 105, 87, true)]
+    [DataRow(-90d, true, 105, 87, true)]
+    [DataRow(78d, true, 105, 87, true)]
+    [DataRow(78d, false, 105, 87, false)]
+    [DataRow(-90d, false, 105, 87, false)]
+    [DataRow(0d, false, 105, 92, false)]
+    [DataRow(0d, false, 65, 87, false)]
+    public async Task NarrowTickCropUsesItsObservedTextRow(double angle, bool dbBox, int secondPeerX,
+        int secondPeerY, bool upright)
+    {
+        var tick = OcrTestFixtures.Region("tick", 32, 88, 4, 9, angle) with { OrientationFromBoxLongEdge = dbBox };
+        var peers = new[]
+        {
+            tick,
+            OcrTestFixtures.Region("peer-one", 63, 87, 16, 11),
+            OcrTestFixtures.Region("peer-two", secondPeerX, secondPeerY, 16, 11),
+        };
+        var request = OcrTestFixtures.Request(peers);
+        var cropOptions = new OcrCropBatcherOptions { TargetWidth = 128, TargetHeight = 32, BatchSize = 16 };
+        string ExpectedHash(double orientation) => OcrCropBatcher.CreateBatches(request.OriginalImage,
+            [tick with { OrientationDegrees = orientation }], cropOptions)[0][0].CropSha256;
+        string horizontal = ExpectedHash(0);
+        string vertical = ExpectedHash(angle == 0 ? -90 : angle);
+        Assert.AreNotEqual(horizontal, vertical);
+        string? actual = null;
+        var recognizer = new StubTextRecognizer((crops, _) =>
+        {
+            actual = crops.Single(crop => crop.RegionId == "tick").CropSha256;
+            return ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop => new OcrRecognition(
+                crop.RegionId, crop.SourceImage, [new("1", 1, crop.SourceImage)], 0)).ToArray());
+        });
+        var pipeline = new OcrPipeline(new StubTextRegionDetector([]), recognizer, new InMemoryOcrResultCache(),
+            new OcrPipelineOptions { CropWidth = 128, CropHeight = 32, BatchSize = 16 });
+
+        OcrResult result = await pipeline.RecognizeAsync(request, CancellationToken.None);
+
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.AreEqual(upright ? horizontal : vertical, actual);
+    }
+
+    [TestMethod]
     public async Task TallHorizontalRegionCanPreserveDetectorOrientation()
     {
         OcrDetectedRegion region = OcrTestFixtures.Region(

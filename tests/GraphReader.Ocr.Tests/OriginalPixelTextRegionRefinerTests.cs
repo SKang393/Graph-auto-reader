@@ -18,6 +18,7 @@ public sealed class OriginalPixelTextRegionRefinerTests
         OcrDetectedRegion region = OcrTestFixtures.Region("text", 40, 30, 20, 15, context: context) with
         {
             Evidence = new OcrRegionEvidence(1, 0.1, 0.9, 0, false, ["fixture"]),
+            OrientationFromBoxLongEdge = true,
         };
         OcrImage original = OcrTestFixtures.Image() with { Pixels = pixels };
         OcrDetectedRegion result = OriginalPixelTextRegionRefiner.Refine(original, [region]).Single();
@@ -26,6 +27,7 @@ public sealed class OriginalPixelTextRegionRefinerTests
         Assert.AreEqual(region.DetectionConfidence, result.DetectionConfidence);
         Assert.AreSame(context, result.Context);
         Assert.IsNull(result.Evidence);
+        Assert.IsTrue(result.OrientationFromBoxLongEdge);
         Assert.AreEqual((byte)255, pixels[30 * 160 + 40]);
     }
 

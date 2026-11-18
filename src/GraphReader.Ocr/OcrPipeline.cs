@@ -39,8 +39,9 @@ public sealed record OcrPipelineOptions
     public int MaximumTickCombinationEvaluations { get; init; } = 4096;
 
     /// <summary>
-    /// Infers a vertical orientation for detector regions whose height is more
-    /// than 1.4 times their width. Disable this for proposal models that emit
+    /// Infers a vertical orientation for regions taller than 1.4 times their width,
+    /// except narrow glyphs aligned with an observed horizontal X-tick row.
+    /// Disable this for proposal models that emit
     /// tight horizontal graph-label boxes, where a single digit can be tall
     /// without being rotated text.
     /// </summary>
@@ -332,7 +333,7 @@ public sealed class OcrPipeline
                     $"ocr_role_needs_review:{region.RegionId}:original_pixel_framed_legend_assembly"));
                 detectedRegions = assembled;
             }
-            detectedRegions = EnrichGeometry(detectedRegions, request.PlotBounds, _options);
+            detectedRegions = EnrichGeometry(detectedRegions, request.PlotBounds, _options, cancellationToken);
             diagnosticCollector?.SetDetectedRegionCount(detectedRegions.Count);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -1170,15 +1171,35 @@ public sealed class OcrPipeline
     private static IReadOnlyList<OcrDetectedRegion> EnrichGeometry(
         IReadOnlyList<OcrDetectedRegion> regions,
         OcrRectangle plotBounds,
-        OcrPipelineOptions options) =>
-        OcrCollections.Freeze(regions.Select(region =>
+        OcrPipelineOptions options,
+        CancellationToken cancellationToken)
+    {
+        OcrRectangle[] horizontalPeers = options.InferVerticalOrientationForTallRegions
+            ? regions.Where(region => CanBeXTick(region, plotBounds) &&
+                      GraphTextRoleClassifier.GetOrientation(region.OrientationDegrees) == OcrOrientation.Horizontal)
+                .Select(region => region.Polygon.Bounds)
+                .Where(box => box.Width >= box.Height)
+                .OrderBy(box => box.Left).ToArray()
+            : [];
+        return OcrCollections.Freeze(regions.Select(region =>
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var bounds = region.Polygon.Bounds;
-            var orientation = options.InferVerticalOrientationForTallRegions &&
-                Math.Abs(region.OrientationDegrees) <= double.Epsilon &&
-                bounds.Height > bounds.Width * 1.4
-                ? -90d
-                : region.OrientationDegrees;
+            double orientation = region.OrientationDegrees;
+            if (options.InferVerticalOrientationForTallRegions && bounds.Height > bounds.Width * 1.4)
+            {
+                bool angleUnspecified = Math.Abs(orientation) <= double.Epsilon;
+                // DB's angle comes from the long edge of its box, not from a reading of the glyph.
+                bool verticalBoxEdge = region.OrientationFromBoxLongEdge &&
+                    GraphTextRoleClassifier.GetOrientation(orientation) is
+                        OcrOrientation.RotatedClockwise or OcrOrientation.RotatedCounterClockwise;
+                if ((angleUnspecified || verticalBoxEdge) && CanBeXTick(region, plotBounds) &&
+                    FitsHorizontalTextRow(bounds, horizontalPeers))
+                    orientation = 0;
+                else if (angleUnspecified)
+                    orientation = -90d;
+            }
+
             var context = region.Context ?? new OcrRegionContext();
             if (GraphTextRoleClassifier.GetOrientation(orientation) is
                     OcrOrientation.RotatedClockwise or OcrOrientation.RotatedCounterClockwise &&
@@ -1189,6 +1210,29 @@ public sealed class OcrPipeline
 
             return region with { OrientationDegrees = orientation, Context = context };
         }));
+    }
+
+    private static bool CanBeXTick(OcrDetectedRegion region, OcrRectangle plot) =>
+        region.Context is not ({ AxisTitleExpected: true } or { NearLegendGlyph: true } or
+            { InParticipantBand: true } or { NearAnnotationArrow: true } or { NearPhaseDivider: true }) &&
+        region.Context?.ExplicitRoleHint is null or OcrTextRole.XTick &&
+        TickLaneTextRegionRecovery.IsSeedTextCandidate(region.Polygon.Bounds, plot);
+
+    private static bool FitsHorizontalTextRow(OcrRectangle box, IReadOnlyList<OcrRectangle> peers)
+    {
+        // Two separate boxes must contain the glyph's vertical extent on the same
+        // text row. Allow one original pixel for quantization at either edge.
+        double firstRight = double.PositiveInfinity;
+        foreach (var peer in peers)
+        {
+            if ((peer.Right > box.Left && peer.Left < box.Right) ||
+                box.Top < peer.Top - 1 || box.Bottom > peer.Bottom + 1 ||
+                peer.Center.Y < box.Top || peer.Center.Y > box.Bottom) continue;
+            if (peer.Left > firstRight) return true;
+            firstRight = Math.Min(firstRight, peer.Right);
+        }
+        return false;
+    }
 
     private static IReadOnlyList<OcrRegionFailure> ExtractRegionFailures(
         IReadOnlyList<OcrRecognition> recognitions,
