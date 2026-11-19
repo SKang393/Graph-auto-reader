@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 
+using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -1619,6 +1620,153 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 };
             }).ToArray();
         }
+    }
+
+    [TestMethod]
+    [DataRow("confirmed", true)]
+    [DataRow("independent-recognizer", false)]
+    [DataRow("uncertain-origin", false)]
+    [DataRow("detached", false)]
+    [DataRow("competing-interior", false)]
+    [DataRow("monotone-alternative", false)]
+    [DataRow("displaced-endpoint", false)]
+    [DataRow("no-held-out-peer", false)]
+    [DataRow("unassociated", false)]
+    public async Task MeasuredInteriorScaleChecksEndpointBeforeProjectingNumericRows(string scenario, bool valid)
+    {
+        var dir = Directory.CreateTempSubdirectory("graphreader-tick-endpoint-");
+        try
+        {
+            string path = Path.Combine(dir.FullName, "control.png");
+            WriteMeasuredTickControl(path, scenario == "detached");
+            using var workspace = new MeasuredTickWorkspace();
+            await workspace.ImportImagesAsync([path], CancellationToken.None);
+            var project = workspace.CurrentProject;
+            var store = new ProductionWorkflowPanelStore();
+            var adapter = new ProductionAutomaticDetectionAdapter(store, new ProductionRasterFrameDecoder(),
+                new AxisAdapter(), new OcrAdapter(originalIsBlack: false, transformRegions: regions => MeasuredTickLabels(regions, scenario)), new MaskComposer(),
+                new CenterAdapter(), new ClassificationAdapter(), new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+            var workflow = new WorkflowOrchestrator(new WorkflowServiceSet(
+                new ProductionWorkflowImportStage(store, new ImageImportService()), new ProductionWorkflowPrepareStage(store),
+                new ProductionWorkflowDetectionStage(store, adapter), new ProductionWorkflowExportStage(store, new ExportService())));
+            var request = new WorkflowRunRequest(Guid.NewGuid(), new WorkflowImportRequest(project.ProjectId.Value,
+                [new WorkflowSourceRequest(project.Sources.Single().SourceId.Value, WorkflowSourceKind.Image, path)], false));
+            if (!valid)
+            {
+                var failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(() => workflow.RunThroughReviewAsync(request, null, CancellationToken.None));
+                StringAssert.Contains(failure.Failure.TechnicalMessage, "competing_numeric_readings");
+                Assert.IsNull(store.Get(failure.MarkerPreviews.Single().Evidence.PanelId).ExportEvidence);
+                return;
+            }
+            var run = await workflow.RunThroughReviewAsync(request, null, CancellationToken.None);
+            var projection = workspace.Apply(run, store);
+            Assert.IsTrue(projection.Succeeded, projection.Failure?.TechnicalMessage);
+            var review = projection.ProjectedRun!.Review;
+            var rows = review.Panels.Single().Points.OrderBy(p => p.GraphX).ToArray();
+            Assert.HasCount(2, rows);
+            Assert.AreEqual(1d, rows[0].GraphX!.Value, 1e-9);
+            Assert.AreEqual(2d, rows[1].GraphX!.Value, 1e-9);
+            Assert.AreEqual(100d / 6, rows[0].GraphY!.Value, 1e-9);
+            Assert.AreEqual(500d / 6, rows[1].GraphY!.Value, 1e-9);
+            var export = await workflow.ExportAsync(review, new WorkflowExportRequest(Guid.NewGuid(), dir.FullName)
+                { Operation = ExportOperation.Preview }, CancellationToken.None);
+            Assert.IsTrue(export.Succeeded, string.Join(" | ", export.Warnings));
+            var csv = export.Artifacts.Single(a => a.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) &&
+                !a.FileName.Contains("audit", StringComparison.OrdinalIgnoreCase));
+            var lines = System.Text.Encoding.UTF8.GetString(csv.CopyContentBytes()).Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            Assert.AreEqual(ExportContract.MinimalCsvHeader, lines[0]);
+            Assert.HasCount(3, lines);
+            for (int i = 0; i < rows.Length; i++)
+            {
+                string[] cells = lines[i + 1].Split(',');
+                Assert.AreEqual(rows[i].GraphX!.Value, double.Parse(cells[0], CultureInfo.InvariantCulture), 1e-9);
+                Assert.AreEqual(rows[i].GraphY!.Value, double.Parse(cells[1], CultureInfo.InvariantCulture), 1e-9);
+                Assert.IsFalse(string.IsNullOrWhiteSpace(cells[2]));
+            }
+        }
+        finally
+        {
+            dir.Delete(recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void ReviewedExportPreservesDeclaredBaselineAndProbeLinksForValidation()
+    {
+        static GraphReader.Domain.SeriesRecord Series(GraphReader.Domain.SemanticRole role) => new(
+            new(Guid.NewGuid()), "o", GraphReader.Domain.MarkerShape.Circle, GraphReader.Domain.MarkerFill.Open,
+            "Control series", role, null, [], 1, null, [], false);
+        var baseline = Series(GraphReader.Domain.SemanticRole.Baseline);
+        var probe = Series(GraphReader.Domain.SemanticRole.Generalization);
+        var intervention = Series(GraphReader.Domain.SemanticRole.Intervention) with
+        {
+            SharedBaselineSeriesId = baseline.SeriesId, ApplicableProbeSeriesIds = [probe.SeriesId],
+        };
+        var malformed = Series(GraphReader.Domain.SemanticRole.Unknown) with { SharedBaselineSeriesId = baseline.SeriesId };
+        var links = GraphReader.App.Services.ManualPreviewWorkspaceService.ToExportRelations(
+            [baseline, probe, intervention, malformed]).ToDictionary(link => link.InterventionSeriesId);
+        Assert.HasCount(2, links);
+        Assert.AreEqual(baseline.SeriesId.Value, links[intervention.SeriesId.Value].SharedBaselineSeriesId);
+        Assert.AreEqual(probe.SeriesId.Value, links[intervention.SeriesId.Value].ApplicableProbeSeriesIds.Single());
+        Assert.AreEqual(baseline.SeriesId.Value, links[malformed.SeriesId.Value].SharedBaselineSeriesId);
+    }
+
+    private sealed class MeasuredTickWorkspace : GraphReader.App.Services.ManualPreviewWorkspaceService
+    {
+        internal ProductionReviewProjectionResult Apply(WorkflowRunResult run, ProductionWorkflowPanelStore store) =>
+            ProjectProductionReview(run, store);
+    }
+
+    private static OcrRegion[] MeasuredTickLabels(OcrRegion[] regions, string scenario)
+    {
+        var template = regions.Single(r => r.RegionId == "y0");
+        var labels = regions.Where(r => r.Role != OcrTextRole.YTick).ToList();
+        for (int value = 0; value <= 100; value += 20)
+        {
+            if (scenario == "no-held-out-peer" && value is 40 or 80) continue;
+            string literal = value.ToString(CultureInfo.InvariantCulture);
+            if (scenario == "displaced-endpoint" && value == 100) literal = "110";
+            var region = template with
+            {
+                Text = literal, RegionId = "level-" + literal,
+                Polygon = OcrPolygon.FromRectangle(new(1, 78 - 3 * value / 5, 4, 4)),
+            };
+            bool competing = value == 100 || (scenario == "competing-interior" && value > 0);
+            var frames = new float[(2 * literal.Length + 2) * 11];
+            for (int j = 0; j < frames.Length / 11; j++)
+                frames[j * 11 + (j < 2 * literal.Length && j % 2 == 0 ? 1 + literal[j / 2] - '0' : 0)] = 1;
+            if (competing)
+            {
+                bool insertion = scenario == "monotone-alternative";
+                int start = insertion ? frames.Length - 11 : 22 * (literal.Length - 1);
+                int digit = 1 + literal[^1] - '0';
+                frames[start + (insertion ? 0 : digit)] = .999f;
+                frames[start + (insertion ? digit : 0)] = .001f;
+            }
+            var paths = CtcRecognitionDecoder.Decode(frames, frames.Length / 11, "0123456789");
+            labels.Add(region with
+            {
+                Alternatives = paths.Select(path => new OcrRecognitionAlternative(path.Text, path.Confidence, OcrSourceImage.Original)).ToArray(),
+                SingleCtcRead = (scenario == "independent-recognizer" && value == 100) ||
+                    (scenario == "uncertain-origin" && value is > 0 and < 100) ? null :
+                    new SingleCtcRead(region.RegionId, region.Polygon, paths),
+            });
+        }
+        if (scenario == "unassociated") labels.Add(template with { RegionId = "extra", Text = "72",
+            Polygon = OcrPolygon.FromRectangle(new(1, 35, 4, 2)) });
+        return labels.ToArray();
+    }
+
+    private static void WriteMeasuredTickControl(string path, bool detached)
+    {
+        byte[] pixels = Enumerable.Repeat(byte.MaxValue, 10_000).ToArray();
+        for (int y = 10; y <= 90; y++) pixels[y * 100 + 10] = 0;
+        for (int y = 20; y <= 80; y += 12) Array.Fill(pixels, (byte)0, y * 100 + 6, 5);
+        if (detached) pixels[20 * 100 + 9] = byte.MaxValue;
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(BitmapSource.Create(100, 100, 96, 96, PixelFormats.Gray8, null, pixels, 100)));
+        using var output = File.Create(path);
+        encoder.Save(output);
     }
 
     private sealed class OcrAdapter : IProductionOcrAdapter

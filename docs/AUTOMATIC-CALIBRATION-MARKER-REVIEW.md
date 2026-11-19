@@ -394,3 +394,63 @@ patterns, tapered ends, missing or displaced neighbors, and filled, open and
 crossing symbols. A separate inactive native WPF window displayed the actual
 calibration refusal. Toggling the candidate overlay drew all 23 boxes at
 their expected positions while the panel had zero editable points.
+
+## Checking endpoint readings against measured interior ticks
+
+A fitted axis can agree with an endpoint because that endpoint contributed
+to the fit. The additional check withholds both measured endpoints. Two
+uncontested, original-image interior readings establish a linear scale, and
+at least one further measured interior reading must agree. All interior
+strokes and the endpoint under test must attach to the fitted axis in the
+original pixels. Overlapping label boxes, mixed lanes, missing associations,
+and contradictory interior readings leave the endpoint open for review.
+
+For an endpoint with the existing dominant single-crop CTC evidence, its
+primary must agree with the independent scale within the existing 2-pixel
+fit tolerance. Each competing numeric reading must be a single digit insertion
+or deletion, lie outside the projection interval including anchor uncertainty,
+and violate the order of an uncontested interior reading. The transform
+diagnostics retain the measured positions, readings, alternatives, anchor
+identities and decision. The failure details expose that evidence locally.
+
+| One nonsealed development panel | Baseline at `59261966` | With independent endpoint check |
+| --- | ---: | ---: |
+| Measured X / Y label associations | 7 / 6 | 7 / 6 |
+| Blocking endpoint conflicts, X / Y | 2 / 1 | 2 / 0 |
+| Retained / matched / extra / missing centers, 5-pixel radius | 23 / 5 / 18 / 5 | 23 / 5 / 18 / 5 |
+| Marker precision / recall | 21.74% / 50% | 21.74% / 50% |
+| First observed session / center error (pixels) | 1 / 1.801 | 1 / 1.801 |
+| Pooled column RMS / tolerance (pixels) | 2.233 / 2.046 | 2.233 / 2.046 |
+| Valid calibrations / correct / incorrect / missing numeric sessions | 0 / 0 / 0 / 10 | 0 / 0 / 0 / 10 |
+| Full image-only workflow time | 28.686 s | 26.666 s |
+
+On Y, two uncontested interior labels established the scale. The other two
+interior strokes each lay 0.5 pixels from their predicted positions. The
+endpoint primary lay 1.0 pixel from its prediction, and both alternatives
+reversed the established order. On X, the five measured interior crops had
+no uncontested numeric readings. Enumerating their literal alternatives with
+both endpoints withheld admitted two monotone scales a factor of ten apart.
+Both fit with 0.566 pixels RMS. The marker candidates and raw OCR regions
+agreed across runs. Independent scoring had no numeric Y or phase rows to
+compare. These single-run timings do not establish a performance trend.
+
+The eight surviving divider dashes occupied four groups. One lacked an
+intersecting measured divider segment. Three had offset or incompatible
+stroke profiles, one had a widened center, two had interfering ink at a
+neighboring stroke, and one had multiple central ink runs. Those groups
+accounted for 92.3% of weighted squared alignment error. As a diagnostic
+only, omitting the eight at the fixed pitch and origin reduced RMS to 0.673
+pixels. The runtime retained all eight.
+
+On a project-owned control with scripted recognition and marker proposals,
+the production workflow imported a PNG, measured its ticks, projected two
+calibrated points into Review, and produced two phase-labeled CSV rows.
+Native Review exposed an export defect when projecting a series with no
+intervention role or declared links created an invalid intervention
+relation. The reviewed workspace now emits relations for intervention series
+and explicit links. Malformed explicit links still reach export validation.
+An inactive WPF window showed both expected coordinate pairs in the expanded
+data preview and passed CSV preview after projection. The development-panel
+refusal retained both X disputes in its technical details. Its native Review
+overlay drew 23 candidate boxes with zero editable rows. The focused Windows
+suite passed 124 tests. Real-graph numeric acceptance remains open.

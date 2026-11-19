@@ -11,7 +11,7 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Associates OCR labels with unique outward tick strokes in original pixels.</summary>
 internal static class ProductionTickLabelGeometry
 {
-    internal const string Version = "original-pixel-tick-label-association-v5-attached-x-row";
+    internal const string Version = "original-pixel-tick-label-association-v6-attached-axes";
     private const double MaximumRelativeYTickLaneGap = 1.25d;
     private static readonly AxisGeometryOptions Options = new();
 
@@ -138,9 +138,24 @@ internal static class ProductionTickLabelGeometry
             warnings.Add($"tick_label_original_pixel_association:{id}:" +
                 value.Original.ToString("R", CultureInfo.InvariantCulture) + ":" +
                 value.Center.ToString("R", CultureInfo.InvariantCulture));
+        var attached = row?.Positions.Keys.ToHashSet(StringComparer.Ordinal) ?? new HashSet<string>(StringComparer.Ordinal);
+        if (labels.Count(label => label.Role == OcrTextRole.YTick && measured.ContainsKey(label.RegionId)) >= 5)
+        {
+            var strokes = ProductionAttachedTickStroke.Find(axis, image, false, threshold, Options, cancellationToken);
+            foreach (var label in labels.Where(label => label.Role == OcrTextRole.YTick && label.SourceImage == OcrSourceImage.Original))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!measured.TryGetValue(label.RegionId, out var association)) continue;
+                var box = label.Polygon.Bounds;
+                var beside = strokes.Where(s => s.Position >= box.Top && s.Position <= box.Bottom &&
+                    s.Tip > box.Right && s.Tip - box.Right <= 2 * box.Height).Take(2).ToArray();
+                if (beside.Length == 1 && association.Center >= beside[0].First - 0.5 && association.Center <= beside[0].Last + 0.5)
+                    attached.Add(label.RegionId);
+            }
+        }
         return new(new ReadOnlyDictionary<string, double>(measured.ToDictionary(
             static item => item.Key, static item => item.Value.Center, StringComparer.Ordinal)),
-            Array.AsReadOnly(warnings.ToArray())) { PrintedXRow = row };
+            Array.AsReadOnly(warnings.ToArray())) { PrintedXRow = row, AttachedStrokeIds = attached };
     }
 
     private static void AddOutlyingYTickWarnings(
@@ -179,4 +194,5 @@ internal sealed record TickLabelGeometryResult(
     IReadOnlyDictionary<string, double> Positions, IReadOnlyList<string> Warnings)
 {
     internal ProductionPrintedXTickRow? PrintedXRow { get; init; }
+    internal IReadOnlySet<string> AttachedStrokeIds { get; init; } = new HashSet<string>(StringComparer.Ordinal);
 }

@@ -1996,10 +1996,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             panel.Phases.Select(ToExportPhase),
             panel.Series.Select(ToExportSeries),
             panel.Points.Select(ToExportPoint),
-            interventions.Select(series => new ExportSeriesRelation(
-                series.SeriesId.Value,
-                series.SharedBaselineSeriesId?.Value,
-                series.ApplicableProbeSeriesIds.Select(static id => id.Value))),
+            ToExportRelations(interventions),
             interventions.Select(static series => series.SeriesId.Value));
         return await _exportService.ExportAsync(request, cancellationToken).ConfigureAwait(false);
     }
@@ -2977,10 +2974,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             currentCalibration,
             workspacePanel.Phases.Select(ToExportPhase),
             workspacePanel.Series.Select(ToExportSeries),
-            workspacePanel.Series.Select(series => new ExportSeriesRelation(
-                series.SeriesId.Value,
-                series.SharedBaselineSeriesId?.Value,
-                series.ApplicableProbeSeriesIds.Select(static id => id.Value))),
+            ToExportRelations(workspacePanel.Series),
             workspacePanel.Points.Select(point => new ProductionPointExportEvidence(
                 point.PointId.Value,
                 point.MarkerId?.Value,
@@ -5241,6 +5235,14 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         phase.ScreenXMin,
         phase.ScreenXMax,
         phase.Confidence);
+
+    // Preserve explicit links, including malformed ones, for the export validator.
+    // Ordinary series with no links do not declare an intervention relation.
+    internal static IEnumerable<ExportSeriesRelation> ToExportRelations(IEnumerable<SeriesRecord> series) =>
+        series.Where(item => item.SemanticRole == SemanticRole.Intervention ||
+                item.SharedBaselineSeriesId.HasValue || item.ApplicableProbeSeriesIds.Count > 0)
+            .Select(item => new ExportSeriesRelation(item.SeriesId.Value, item.SharedBaselineSeriesId?.Value,
+                item.ApplicableProbeSeriesIds.Select(static id => id.Value)));
 
     private static ExportSeries ToExportSeries(SeriesRecord series) => new(
         series.SeriesId.Value,

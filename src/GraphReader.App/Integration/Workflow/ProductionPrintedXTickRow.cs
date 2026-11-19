@@ -15,8 +15,7 @@ internal sealed record ProductionPrintedXTickRow(
     IReadOnlySet<string> AmbiguousStrokeIds,
     int StrokeCount)
 {
-    private sealed record Stroke(double X, int Tip);
-    private sealed record Anchor(OcrRegion Label, Stroke Stroke, double AxisY);
+    private sealed record Anchor(OcrRegion Label, ProductionAttachedTickStroke Stroke, double AxisY);
 
     internal static ProductionPrintedXTickRow? Find(AxisGeometryResult axis, OcrImage image,
         IReadOnlyList<OcrRegion> labels, IReadOnlyList<OcrRegion> regions, IReadOnlyList<OcrMask> masks, int threshold,
@@ -30,60 +29,7 @@ internal sealed record ProductionPrintedXTickRow(
         double AxisY(double x) => line.Start.Y + (x - line.Start.X) *
             (line.End.Y - line.Start.Y) / (line.End.X - line.Start.X);
 
-        var strokes = new List<Stroke>();
-        int first = (int)Math.Clamp(Math.Ceiling(Math.Min(line.Start.X, line.End.X)), 0, image.Width);
-        int last = (int)Math.Clamp(Math.Floor(Math.Max(line.Start.X, line.End.X)), -1, image.Width - 1);
-        int maxLength = (int)Math.Ceiling(axis.YAxis.Line.Length * options.TickMaximumLengthFraction);
-        int start = -1, tip = -1, depth = 0;
-        for (int x = first; x <= last + 1; x++)
-        {
-            token.ThrowIfCancellationRequested();
-            int axisY = (int)Math.Round(AxisY(x));
-            int end = axisY;
-            if (x <= last && axisY >= 1 && axisY + 3 < image.Height &&
-                image.Pixels.Span[axisY * image.Stride + x] <= threshold)
-            {
-                while (end + 1 < image.Height && end - axisY <= maxLength &&
-                    image.Pixels.Span[(end + 1) * image.Stride + x] <= threshold) end++;
-            }
-            // Require continuous ink from the axis and a visible end before the label.
-            if (end - axisY >= 3 && end - axisY <= maxLength && end + 1 < image.Height)
-            {
-                if (start < 0) start = x;
-                tip = Math.Max(tip, end);
-                depth = Math.Max(depth, end - axisY);
-            }
-            else if (start >= 0)
-            {
-                if (x - start <= depth && HasAxisFlanks(start, x - 1))
-                    strokes.Add(new Stroke((start + x - 1) / 2d, tip));
-                start = -1;
-                depth = 0;
-                tip = -1;
-            }
-        }
-        // A detached row of short vertical marks can cross the fitted line numerically.
-        // Check the axis ink on both available sides of each protrusion.
-        bool HasAxisFlanks(int left, int right)
-        {
-            int samples = 0;
-            for (int offset = 1; offset <= 2; offset++)
-            {
-                if (left - offset >= first && !AxisInk(left - offset)) return false;
-                if (right + offset <= last && !AxisInk(right + offset)) return false;
-            }
-            return samples >= 2;
-
-            bool AxisInk(int x)
-            {
-                int y = (int)Math.Round(AxisY(x));
-                if (y < 1 || y >= image.Height - 1) return false;
-                samples++;
-                return image.Pixels.Span[(y - 1) * image.Stride + x] <= threshold ||
-                    image.Pixels.Span[y * image.Stride + x] <= threshold ||
-                    image.Pixels.Span[(y + 1) * image.Stride + x] <= threshold;
-            }
-        }
+        var strokes = ProductionAttachedTickStroke.Find(axis, image, true, threshold, options, token);
         if (strokes.Count < 3) return null;
         var anchors = new List<Anchor>();
         var ambiguous = new List<OcrRegion>();
@@ -91,7 +37,7 @@ internal sealed record ProductionPrintedXTickRow(
         {
             token.ThrowIfCancellationRequested();
             var box = label.Polygon.Bounds;
-            var under = strokes.Where(s => s.X >= box.Left && s.X <= box.Right &&
+            var under = strokes.Where(s => s.Position >= box.Left && s.Position <= box.Right &&
                 s.Tip < box.Top && box.Top - s.Tip <= 2 * box.Height).Take(2).ToArray();
             if (under.Length == 1) anchors.Add(new Anchor(label, under[0], AxisY(box.Center.X)));
             if (under.Length == 2) ambiguous.Add(label);
@@ -104,7 +50,7 @@ internal sealed record ProductionPrintedXTickRow(
         double bottom = anchors.Min(a => a.Label.Polygon.Bounds.Bottom - a.AxisY);
         if (top > bottom) return null; // Multiple or staggered label rows need their existing review path.
 
-        var positions = anchors.ToDictionary(a => a.Label.RegionId, a => a.Stroke.X, StringComparer.Ordinal);
+        var positions = anchors.ToDictionary(a => a.Label.RegionId, a => a.Stroke.Position, StringComparer.Ordinal);
         var ambiguousIds = ambiguous.Where(r => r.Polygon.Bounds.Top - AxisY(r.Polygon.Bounds.Center.X) <= bottom &&
             r.Polygon.Bounds.Bottom - AxisY(r.Polygon.Bounds.Center.X) >= top)
             .Select(r => r.RegionId).ToHashSet(StringComparer.Ordinal);
@@ -135,7 +81,7 @@ internal sealed record ProductionPrintedXTickRow(
         }
         var spineIds = axis.Ticks.Where(t => t.Axis == TickAxis.XAxis &&
             OnSpine(t.Line.Start) && OnSpine(t.Line.End) &&
-            !strokes.Any(s => Math.Abs(s.X - t.Center.X) <= options.MergeDistancePixels))
+            !strokes.Any(s => Math.Abs(s.Position - t.Center.X) <= options.MergeDistancePixels))
             .Select(t => t.TickId).ToHashSet(StringComparer.Ordinal);
         return new(positions, nested, spineIds, ambiguousIds, strokes.Count);
     }
