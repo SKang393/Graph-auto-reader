@@ -2968,7 +2968,11 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             workspacePanel.Markers,
             workspacePanel.Participant);
         ExportCalibration sourceCalibration = source.Calibration;
-        ExportCalibration currentCalibration = source.SessionOriginPolicy.HasExplicitOverride
+        // A confirmed manual session scale stays fixed when the reviewer moves a point or
+        // changes a series link. Its first observed session belongs to the current export rows.
+        bool useReviewedOrigin = source.SessionOriginPolicy.HasExplicitOverride ||
+            IsConfirmedManualThreeAnchorCalibration(workspacePanel.Calibration);
+        ExportCalibration currentCalibration = useReviewedOrigin
             ? new ExportCalibration(
                 sourceCalibration.Status,
                 sourceCalibration.HasYCalibration,

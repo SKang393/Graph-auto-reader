@@ -1732,6 +1732,55 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     });
 
     [TestMethod]
+    public async Task ConfirmedSessionOriginFollowsTheReviewedExportPoints()
+    {
+        var directory = Directory.CreateTempSubdirectory("graphreader-reviewed-origin-");
+        try
+        {
+            string image = Path.Combine(directory.FullName, "control.png");
+            WriteMeasuredTickControl(image, false);
+            var store = new ProductionWorkflowPanelStore();
+            string[] stages = ["axis", "ocr", "markers", "legends", "phases"];
+            using var workspace = new ProductionWorkspaceService(panelStore: store,
+                workflowOrchestrator: MeasuredTickWorkflow(store, "confirmed"),
+                automaticStages: stages.Select(stage => new AutomaticStageStatus(stage, AutomaticStageState.Available, "fixture")).ToArray());
+            var token = CancellationToken.None;
+            var tab = (await workspace.ImportImagesAsync([image], token)).Single();
+            workspace.Calibrate(tab.TabId, new(new(21, 85), new(21, 15), new(81, 85), 70, 7));
+            await workspace.RunAutomaticDetectionAsync(token);
+            var first = tab.Points.OrderBy(point => point.PixelX).First();
+            double originalEstimate = first.GraphX;
+            Assert.AreNotEqual(1d, originalEstimate);
+            var intervention = tab.SeriesCards.Single(series => series.SemanticRole == GraphReader.Domain.SemanticRole.Intervention);
+            var baseline = tab.SeriesCards.Single(series => series.SemanticRole == GraphReader.Domain.SemanticRole.Baseline);
+            workspace.SetSeriesRelations(tab.TabId, intervention.SeriesId, baseline.SeriesId, []);
+
+            var before = await workspace.ExportAsync(tab.TabId, Path.Combine(directory.FullName, "before"), token);
+            Assert.IsTrue(before.Failures.Any(failure => failure.Code == "INVALID_SESSION_ORIGIN"));
+            workspace.MovePoint(tab.TabId, first.PointId, 21, first.PixelY);
+            Assert.AreEqual(1d, first.GraphX);
+            var history = workspace.CurrentProject.Panels.Single().Points.Single(p => p.PointId.Value.ToString("D") == first.PointId).ModificationHistory;
+            Assert.AreEqual(originalEstimate, history[^1].PreviousGraph!.X);
+
+            string project = Path.Combine(directory.FullName, "reviewed.garproj");
+            Assert.IsTrue((await workspace.SaveProjectAsync(project, token)).IsSuccess);
+            using var reopened = new ProductionWorkspaceService();
+            var restored = (await reopened.OpenProjectAsync(project, token)).Single();
+            var exact = await reopened.ExportAsync(restored.TabId, Path.Combine(directory.FullName, "exact"), token);
+            Assert.IsTrue(exact.Succeeded, string.Join(" | ", exact.Failures.Select(failure => failure.TechnicalMessage)));
+            var restoredPoint = restored.Points.Single(point => point.PointId == first.PointId);
+            reopened.MovePoint(restored.TabId, restoredPoint.PointId, 21.01, restoredPoint.PixelY);
+            var near = await reopened.ExportAsync(restored.TabId, Path.Combine(directory.FullName, "near"), token);
+            Assert.IsTrue(near.Failures.Any(failure => failure.Code == "INVALID_SESSION_ORIGIN"));
+            Assert.IsEmpty(near.MinimalArtifacts);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [TestMethod]
     public void ReviewedExportPreservesDeclaredBaselineAndProbeLinksForValidation()
     {
         static GraphReader.Domain.SeriesRecord Series(GraphReader.Domain.SemanticRole role) => new(
