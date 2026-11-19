@@ -32,6 +32,21 @@ public sealed class ProductionTickLabelGeometryTests
     }
 
     [TestMethod]
+    public void RecoveredYLabelWithoutIndependentStrokeCannotCalibrateFromItsBox()
+    {
+        var seed = YLabel(TickLaneTextRegionRecovery.YStrokeSeedPrefix + "glyph");
+        var second = seed with { RegionId = "other", Text = "0",
+            Polygon = OcrPolygon.FromRectangle(new OcrRectangle(4, 56, 8, 8)) };
+        var geometry = ProductionTickLabelGeometry.Resolve(Axis(), Image([], []), [seed, second], default);
+        var ocr = new OcrResult(OcrContract.Version, "run", "project", "panel", "ocr", "test", "hash",
+            OcrContract.CoordinateSpace, [seed, second], [], new(0, 0, 0, 0), .95, [], new(false, "", 0, 0), null);
+        var calibration = ProductionAutomaticDetectionAdapter.FitCalibration(Axis(), ocr, geometry, [], default);
+        Assert.IsFalse(calibration.YTransform.IsValid);
+        CollectionAssert.Contains(calibration.Reasons.ToArray(),
+            $"ocr_tick_sequence_needs_review:YTick:seeded_label_unassociated:{seed.RegionId}");
+    }
+
+    [TestMethod]
     public void MissingTicksDoNotManufacturePositionEvidence()
     {
         TickLabelGeometryResult result = ProductionTickLabelGeometry.Resolve(

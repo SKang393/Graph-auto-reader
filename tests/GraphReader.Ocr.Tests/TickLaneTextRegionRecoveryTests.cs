@@ -8,6 +8,40 @@ namespace GraphReader.Ocr.Tests;
 [TestClass]
 public sealed class TickLaneTextRegionRecoveryTests
 {
+    [TestMethod]
+    [DataRow(true, true, 2)]
+    [DataRow(false, true, 0)]
+    [DataRow(true, false, 0)]
+    public async Task ZeroAnchorYCropsRequireGlyphsOnTwoDistinctTickRows(bool labels, bool strokes, int expected)
+    {
+        const int width = 160, height = 100;
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
+        void Ink(int x, int y) => pixels[y * width + x] = 0;
+        for (int y = 15; y <= 85; y++) Ink(30, y);
+        foreach (int row in new[] { 32, 64 })
+        {
+            if (strokes)
+                for (int x = 25; x <= 30; x++) Ink(x, row);
+            if (labels) DrawGlyph(row);
+        }
+        DrawGlyph(48); // A character in the same margin, between measured ticks.
+        void DrawGlyph(int row)
+        {
+            for (int y = row - 3; y <= row + 3; y++)
+                for (int x = 15; x <= 19; x++)
+                    if (x is 15 or 19 || Math.Abs(row - y) == 3) Ink(x, y);
+        }
+        var image = new OcrImage(width, height, width, pixels, OcrSourceImage.Original, OcrFrameTransform.Identity);
+        var proposals = await TickLaneTextRegionRecovery.FindAsync(image, [], [], Plot);
+        Assert.HasCount(expected, proposals);
+        foreach (var proposal in proposals)
+        {
+            Assert.StartsWith(TickLaneTextRegionRecovery.YStrokeSeedPrefix, proposal.RegionId);
+            Assert.IsNull(proposal.Context);
+            Assert.IsTrue(proposal.Polygon.Bounds.Top is 29 or 61);
+        }
+    }
+
     private static readonly OcrRectangle Plot = new(30, 15, 110, 70);
 
     [TestMethod]

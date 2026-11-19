@@ -9,7 +9,7 @@ namespace GraphReader.Ocr;
 /// </summary>
 public static class TickLaneTextRegionRecovery
 {
-    public const string CompositionVersion = "original-pixel-tick-lane-recovery-v5-axis-stroke-seed-binding";
+    public const string CompositionVersion = "original-pixel-tick-lane-recovery-v6-original-y-stroke-seeds";
     private const double AxisStrokeAgreementPixels = 3d;
 
     public static ValueTask<IReadOnlyList<OcrDetectedRegion>> FindAsync(
@@ -68,6 +68,9 @@ public static class TickLaneTextRegionRecovery
                 image, components, detected, result, plot, xAxisTickStrokes!,
                 diagnosticObserver is null ? null : selection => zeroAnchorSelection = selection, cancellationToken));
         }
+        if (!anchors.Any(static region => region.Role == OcrTextRole.YTick))
+            result.AddRange(SelectZeroAnchorYTickCandidates(image, components, detected, plot, cancellationToken));
+
         diagnosticObserver?.Invoke(new OcrTickLaneRecoveryDiagnostic(
             zeroAnchorSeedAttempted,
             existingXAxisAnchorCount,
@@ -106,6 +109,50 @@ public static class TickLaneTextRegionRecovery
         return OcrCollections.Freeze(result.OrderBy(static region => region.Polygon.Bounds.Top)
             .ThenBy(static region => region.Polygon.Bounds.Left)
             .ThenBy(static region => region.RegionId, StringComparer.Ordinal));
+    }
+
+    public const string YStrokeSeedPrefix = "tick-lane-y-stroke:";
+
+    private static List<OcrDetectedRegion> SelectZeroAnchorYTickCandidates(
+        OcrImage image, IReadOnlyList<OcrDetectedRegion> components, IReadOnlyList<OcrDetectedRegion> detected,
+        OcrRectangle plot, CancellationToken token)
+    {
+        var proposals = new List<(OcrDetectedRegion Region, double Tick)>();
+        foreach (var component in components)
+        {
+            token.ThrowIfCancellationRequested();
+            var box = component.Polygon.Bounds;
+            if (box.Right >= plot.Left || box.Bottom < plot.Top || box.Top >= plot.Bottom ||
+                box.Height < 3 || box.Width < 2 || box.Width > 4 * box.Height ||
+                plot.Left - box.Right > 3 * box.Height || detected.Any(region => Covered(box, region.Polygon.Bounds)))
+                continue;
+            // The tick must intersect the glyph's row and be separated from its ink.
+            double? tick = UniqueOutwardTick(image, box, plot, OcrTextRole.YTick, token);
+            if (tick is { } y && y >= box.Top && y <= box.Bottom)
+                proposals.Add((component, y));
+        }
+
+        // A lone annotation, or two fragments claiming one stroke, cannot establish a lane.
+        var unique = proposals.GroupBy(item => item.Tick).Where(group => group.Count() == 1)
+            .Select(group => group.Single()).ToArray();
+        var result = new List<OcrDetectedRegion>();
+        foreach (var item in unique)
+        {
+            token.ThrowIfCancellationRequested();
+            var box = item.Region.Polygon.Bounds;
+            bool alignedPeer = unique.Any(other =>
+            {
+                var peer = other.Region.Polygon.Bounds;
+                double height = Math.Min(box.Height, peer.Height);
+                return Math.Abs(item.Tick - other.Tick) > Math.Max(box.Height, peer.Height) &&
+                    Math.Max(box.Height, peer.Height) <= 2 * height &&
+                    (Math.Abs(box.Right - peer.Right) <= height / 2 || Math.Abs(box.Left - peer.Left) <= height / 2);
+            });
+            if (alignedPeer)
+                result.Add(item.Region with { RegionId = YStrokeSeedPrefix + item.Region.RegionId,
+                    OrientationDegrees = 0, Context = null });
+        }
+        return result;
     }
 
     /// <summary>

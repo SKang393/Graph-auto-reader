@@ -404,7 +404,27 @@ public sealed class OcrPipeline
         preprocessStopwatch.Stop();
         bool mayRecoverFromMeasuredXAxisTicks = _options.EnableTickLaneRecovery &&
             TickLaneTextRegionRecovery.HasUsableXAxisTickStrokeSeeds(request.XAxisTickStrokes, request.PlotBounds);
-        if (detectedRegions.Count == 0 && !mayRecoverFromMeasuredXAxisTicks)
+        IReadOnlyList<OcrDetectedRegion>? emptyDetectorSeeds = null;
+        if (detectedRegions.Count == 0 && _options.EnableTickLaneRecovery && !mayRecoverFromMeasuredXAxisTicks)
+        {
+            preprocessStopwatch.Start();
+            try
+            {
+                emptyDetectorSeeds = await TickLaneTextRegionRecovery.FindAsync(
+                    request.OriginalImage, [], [], request.PlotBounds, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+            catch (Exception exception)
+            {
+                return FailureResult(request, Error("OCR_TICK_LANE_RECOVERY_FAILED", exception.Message, "retry"),
+                    totalStopwatch.Elapsed.TotalMilliseconds, warnings);
+            }
+            finally
+            {
+                preprocessStopwatch.Stop();
+            }
+        }
+        if (detectedRegions.Count == 0 && !mayRecoverFromMeasuredXAxisTicks && !(emptyDetectorSeeds?.Count > 0))
         {
             warnings.Add("no_text_regions_detected");
             return await CacheAndReturnAsync(
@@ -553,7 +573,7 @@ public sealed class OcrPipeline
                 IReadOnlyList<OcrDetectedRegion> headingSuffixes = Array.Empty<OcrDetectedRegion>();
                 IReadOnlyList<OcrDetectedRegion> participantWords = Array.Empty<OcrDetectedRegion>();
                 recovered = _options.EnableTickLaneRecovery
-                    ? await TickLaneTextRegionRecovery.FindAsync(
+                    ? emptyDetectorSeeds ?? await TickLaneTextRegionRecovery.FindAsync(
                         request.OriginalImage, detectedRegions, regions, request.PlotBounds,
                         request.XAxisTickStrokes,
                         diagnosticCollector is null ? null : diagnosticCollector.SetRecovery,

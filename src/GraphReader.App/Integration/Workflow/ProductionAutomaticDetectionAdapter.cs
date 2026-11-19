@@ -1205,7 +1205,12 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
     {
         var confidenceWarnings = new List<string>();
         ParsedTick[] parsedYTicks = ParseTicks(ocr, OcrTextRole.YTick, confidenceWarnings).ToArray();
-        NumericTickEvidence[] yTicks = parsedYTicks
+        bool UnassociatedYSeed(ParsedTick item) =>
+            item.Region.RegionId.StartsWith(TickLaneTextRegionRecovery.YStrokeSeedPrefix, StringComparison.Ordinal) &&
+            (!tickGeometry.AttachedStrokeIds.Contains(item.Region.RegionId) || !tickGeometry.Positions.ContainsKey(item.Region.RegionId));
+        foreach (var item in parsedYTicks.Where(UnassociatedYSeed))
+            confidenceWarnings.Add($"ocr_tick_sequence_needs_review:YTick:seeded_label_unassociated:{item.Region.RegionId}");
+        NumericTickEvidence[] yTicks = parsedYTicks.Where(item => !UnassociatedYSeed(item))
             .Select(item => new NumericTickEvidence(
                 item.Region.RegionId,
                 tickGeometry.Positions.GetValueOrDefault(item.Region.RegionId, item.Region.Polygon.Bounds.Center.Y),

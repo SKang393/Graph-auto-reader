@@ -11,7 +11,7 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Associates OCR labels with unique outward tick strokes in original pixels.</summary>
 internal static class ProductionTickLabelGeometry
 {
-    internal const string Version = "original-pixel-tick-label-association-v6-attached-axes";
+    internal const string Version = "original-pixel-tick-label-association-v7-verify-y-stroke-seeds";
     private const double MaximumRelativeYTickLaneGap = 1.25d;
     private static readonly AxisGeometryOptions Options = new();
 
@@ -139,13 +139,15 @@ internal static class ProductionTickLabelGeometry
                 value.Original.ToString("R", CultureInfo.InvariantCulture) + ":" +
                 value.Center.ToString("R", CultureInfo.InvariantCulture));
         var attached = row?.Positions.Keys.ToHashSet(StringComparer.Ordinal) ?? new HashSet<string>(StringComparer.Ordinal);
-        if (labels.Count(label => label.Role == OcrTextRole.YTick && measured.ContainsKey(label.RegionId)) >= 5)
+        bool establishedY = labels.Count(label => label.Role == OcrTextRole.YTick && measured.ContainsKey(label.RegionId)) >= 5;
+        bool IsSeed(OcrRegion label) => label.RegionId.StartsWith(TickLaneTextRegionRecovery.YStrokeSeedPrefix, StringComparison.Ordinal);
+        if (establishedY || labels.Any(IsSeed))
         {
             var strokes = ProductionAttachedTickStroke.Find(axis, image, false, threshold, Options, cancellationToken);
             foreach (var label in labels.Where(label => label.Role == OcrTextRole.YTick && label.SourceImage == OcrSourceImage.Original))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!measured.TryGetValue(label.RegionId, out var association)) continue;
+                if ((!establishedY && !IsSeed(label)) || !measured.TryGetValue(label.RegionId, out var association)) continue;
                 var box = label.Polygon.Bounds;
                 var beside = strokes.Where(s => s.Position >= box.Top && s.Position <= box.Bottom &&
                     s.Tip > box.Right && s.Tip - box.Right <= 2 * box.Height).Take(2).ToArray();
