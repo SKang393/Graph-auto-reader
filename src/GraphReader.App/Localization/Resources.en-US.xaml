@@ -191,6 +191,7 @@
   <sys:String x:Key="Manual.CalibrationLabels.UseFinalSession">Use as final session</sys:String>
   <sys:String x:Key="Manual.CalibrationLabels.Row">{0}; {2}; {1}; confidence {3}</sys:String>
   <sys:String x:Key="Manual.CalibrationLabels.RowWithFailure">{0}; {2}; {1}; confidence {3}; recognition failure: {4}</sys:String>
+  <sys:String x:Key="Manual.CalibrationLabels.SplitReading">{0}. Separate crop agrees with the combined reading “{1}”.</sys:String>
   <sys:String x:Key="Manual.CalibrationLabels.AmbiguousInterval">X-axis label grouping is unclear. Exclude this row before refitting.</sys:String>
   <sys:String x:Key="Manual.CalibrationLabels.Position">source pixels ({0}, {1})</sys:String>
   <sys:String x:Key="Manual.CalibrationLabels.PositionUnknown">source position unavailable</sys:String>

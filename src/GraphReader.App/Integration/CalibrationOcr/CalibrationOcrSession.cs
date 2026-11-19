@@ -70,11 +70,19 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             stage.Restart();
             // A narrow upright digit is not evidence of a quarter-turn text row.
             // Keep rotation only when the detector actually grouped vertical glyphs.
+            var reviewPairs = new Dictionary<string, OcrDetectedRegion[]>(StringComparer.Ordinal);
             IReadOnlyList<OcrDetectedRegion> components = await new ConnectedComponentTextRegionDetector(new()
                 { UseObservedVerticalGroupingOrientation = true })
-                .DetectAsync(image, CreateMeasuredTickGrouping(item.Request), token).ConfigureAwait(false);
+                .DetectAsync(image, CreateMeasuredTickGrouping(item.Request), reviewPairs, token).ConfigureAwait(false);
             OcrDetectedRegion[] candidates = components.Where(region => AxisFor(region, bounds) is "X" or "Y").ToArray();
             if (candidates.Length > 128) throw new CalibrationOcrException(CalibrationOcrReasonCodes.TooManyCandidates);
+            var extra = candidates.Where(c => reviewPairs.ContainsKey(c.RegionId)).SelectMany(c => reviewPairs[c.RegionId]).ToArray();
+            if (candidates.Length + extra.Length > 128)
+            {
+                // Preserve the ordinary read when optional crops would exceed the worker budget.
+                reviewPairs.Clear();
+                extra = [];
+            }
             double component = stage.Elapsed.TotalMilliseconds;
 
             stage.Restart();
@@ -108,6 +116,8 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             };
             stage.Restart();
             IReadOnlyList<IReadOnlyList<OcrCrop>> batches = OcrCropBatcher.CreateBatches(image, candidates, cropOptions, token);
+            if (extra.Length > 0)
+                batches = batches.Concat(OcrCropBatcher.CreateBatches(image, extra, cropOptions, token)).ToArray();
             double crop = stage.Elapsed.TotalMilliseconds;
             List<OcrRecognition> readings;
             var attemptTiming = new RecognitionAttemptTiming();
@@ -127,12 +137,31 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
                 readings = await RecognizeBatchesAsync(reader, batches, attemptTiming, token).ConfigureAwait(false);
             }
             token.ThrowIfCancellationRequested();
-            if (readings.Count != candidates.Length || readings.Select(row => row.RegionId).Distinct(StringComparer.Ordinal).Count() != candidates.Length)
+            int requestedCount = candidates.Length + extra.Length;
+            if (readings.Count != requestedCount || readings.Select(row => row.RegionId).Distinct(StringComparer.Ordinal).Count() != requestedCount)
                 throw new CalibrationOcrException(CalibrationOcrReasonCodes.RecognitionFailed);
             var byId = readings.ToDictionary(row => row.RegionId, StringComparer.Ordinal);
-            if (candidates.Any(candidate => !byId.ContainsKey(candidate.RegionId)))
+            if (candidates.Concat(extra).Any(candidate => !byId.ContainsKey(candidate.RegionId)))
                 throw new CalibrationOcrException(CalibrationOcrReasonCodes.RecognitionFailed);
-            CalibrationOcrProposal[] proposals = candidates.Select(candidate => Proposal(candidate, byId[candidate.RegionId], bounds)).ToArray();
+            var proposals = new List<CalibrationOcrProposal>(candidates.Length);
+            foreach (OcrDetectedRegion candidate in candidates)
+            {
+                CalibrationOcrProposal parent = Proposal(candidate, byId[candidate.RegionId], bounds);
+                if (reviewPairs.TryGetValue(candidate.RegionId, out var pair))
+                {
+                    var left = Proposal(pair[0], byId[pair[0].RegionId], bounds);
+                    var right = Proposal(pair[1], byId[pair[1].RegionId], bounds);
+                    if (parent.IsAmbiguousIntervalXLabel && parent.SuggestedAxis == "X" && parent.FailureCode is null &&
+                        parent.Confidence > 0 && CorroboratesIntervalPair(parent.Text, left, right))
+                    {
+                        var source = new CalibrationOcrParentReading(parent.RegionId, parent.Text, parent.Confidence, parent.Polygon);
+                        proposals.Add(left with { ParentReading = source });
+                        proposals.Add(right with { ParentReading = source });
+                        continue;
+                    }
+                }
+                proposals.Add(parent);
+            }
             var after = MemorySnapshot();
             var memory = new CalibrationOcrProcessMemory(before.Private, after.Private, before.Working, after.Working, before.Managed, after.Managed);
             return new(item.Request, proposals, CheckSequence(proposals, "X"), CheckSequence(proposals, "Y"),
@@ -143,6 +172,19 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
                     AdapterName = reader.AdapterName, FallbackReason = reader.FallbackReason, PacingRatio = reader.Provider == "DirectMl" ? 1 : 0 }, null);
         }
         finally { gate.Release(); }
+    }
+
+    internal static bool CorroboratesIntervalPair(string parentText, CalibrationOcrProposal left, CalibrationOcrProposal right)
+    {
+        if (!IsRead(left) || !IsRead(right)) return false;
+        string[] tokens = parentText.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        // Whitespace can group thousands in a single number. Keep that interpretation open.
+        return tokens.Length == 2 && tokens[1].Length != 3 && tokens[0] == left.Text && tokens[1] == right.Text;
+
+        static bool IsRead(CalibrationOcrProposal row) => row.IsIntervalXLabel && !row.IsAmbiguousIntervalXLabel &&
+            row.SuggestedAxis == "X" && row.Role == "XTick" &&
+            row.NumericLiteral && row.FailureCode is null && row.Confidence > 0 &&
+            row.Text.Length > 0 && row.Text.All(char.IsAsciiDigit);
     }
 
     internal static CalibrationOcrSequenceCheck CheckSequence(IReadOnlyList<CalibrationOcrProposal> proposals, string axis)

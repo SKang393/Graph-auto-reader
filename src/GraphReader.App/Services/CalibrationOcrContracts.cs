@@ -44,11 +44,17 @@ public sealed record CalibrationOcrRequest(string RequestId, string Binding, str
 
 }
 
+public sealed record CalibrationOcrParentReading(string RegionId, string Text, double Confidence,
+    IReadOnlyList<CalibrationOcrPoint> Polygon);
+
 public sealed record CalibrationOcrProposal(string RegionId, IReadOnlyList<CalibrationOcrPoint> Polygon,
     string Text, double Confidence, double? NumericValue, string? NormalizedText, bool NumericLiteral,
     string Role, string SuggestedAxis, string? FailureCode)
 {
     public bool RequiresReview { get; init; } = true;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CalibrationOcrParentReading? ParentReading { get; init; }
 
     // Optional private worker provenance, never a measured calibration tick.
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

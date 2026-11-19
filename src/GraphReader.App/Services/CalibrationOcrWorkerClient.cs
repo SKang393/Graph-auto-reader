@@ -163,6 +163,42 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
         plot.Left < plot.Right && plot.Top < plot.Bottom && request.ValidMeasuredXTicks() && request.ValidMeasuredYTicks() &&
         string.Equals(Convert.ToHexString(SHA256.HashData(image.Span)), request.PanelImageSha256, StringComparison.OrdinalIgnoreCase);
 
+    internal static bool ValidParentReadings(CalibrationOcrRequest request, IReadOnlyList<CalibrationOcrProposal> rows)
+    {
+        foreach (var group in rows.Where(row => row.ParentReading is not null).GroupBy(row => row.ParentReading!.RegionId))
+        {
+            var pair = group.OrderBy(row => row.Polygon.Min(p => p.X)).ToArray();
+            var parent = pair[0].ParentReading!;
+            if (pair.Length != 2 || string.IsNullOrWhiteSpace(parent.RegionId) || parent.Text is null ||
+                rows.Any(row => row.RegionId == parent.RegionId) || parent.Polygon is not { Count: 4 } ||
+                !double.IsFinite(parent.Confidence) || parent.Confidence is <= 0 or > 1 ||
+                parent.Polygon.Any(p => p is null || !double.IsFinite(p.X) || !double.IsFinite(p.Y)) ||
+                pair[1].ParentReading is not { } other || other.Polygon is null || !other.Polygon.SequenceEqual(parent.Polygon) ||
+                other.Text != parent.Text || other.Confidence != parent.Confidence ||
+                !CalibrationOcrSession.CorroboratesIntervalPair(parent.Text, pair[0], pair[1])) return false;
+
+            // The parent must enclose exactly these two crops in neighboring measured intervals.
+            var points = pair.SelectMany(row => row.Polygon).ToArray();
+            if (parent.Polygon.Min(p => p.X) != points.Min(p => p.X) || parent.Polygon.Max(p => p.X) != points.Max(p => p.X) ||
+                parent.Polygon.Min(p => p.Y) != points.Min(p => p.Y) || parent.Polygon.Max(p => p.Y) != points.Max(p => p.Y) ||
+                request.MeasuredXTicks is not { Length: >= 4 } ticks) return false;
+            int left = Cell(pair[0]), right = Cell(pair[1]);
+            if (left < 0 || right != left + 1) return false;
+
+            int Cell(CalibrationOcrProposal row)
+            {
+                double start = row.Polygon.Min(p => p.X), end = row.Polygon.Max(p => p.X);
+                for (int i = 1; i < ticks.Length; i++)
+                {
+                    double midpoint = (ticks[i - 1] + (double)ticks[i]) / 2;
+                    if (ticks[i - 1] < start && start <= midpoint && midpoint < end && end <= ticks[i]) return i - 1;
+                }
+                return -1;
+            }
+        }
+        return true;
+    }
+
     internal static bool IsValidResponse(CalibrationOcrRequest request, CalibrationOcrResponse? response,
         CalibrationOcrDeviceSelection? selection = null)
     {
@@ -195,6 +231,7 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
                     string.IsNullOrWhiteSpace(proposal.NormalizedText) || proposal.NormalizedText != parsed.NormalizedText) return false;
             }
         }
+        if (!ValidParentReadings(request, response.Proposals)) return false;
         CalibrationOcrRuntime runtime = response.Runtime;
         if (runtime.ModelSha256 != CalibrationOcrSession.ModelSha256 || runtime.ManifestSha256 != CalibrationOcrSession.ManifestSha256 ||
             runtime.Provider is not ("Cpu" or "DirectMl") || runtime.RequestedProvider is not ("Cpu" or "DirectMl") ||

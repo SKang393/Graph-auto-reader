@@ -242,6 +242,11 @@ public sealed partial class MainWindowViewModel
                     confidence = proposal.Confidence, interval_label = proposal.IsIntervalXLabel, failure_code = proposal.FailureCode,
                     edited_text = row.HasCorrection ? row.CorrectedText : null, included = row.IsIncluded,
                     original_polygon = source.OriginalPolygon(proposal),
+                    parent_reading = proposal.ParentReading is not { } parent ? null : new
+                    {
+                        region_id = parent.RegionId, raw_text = parent.Text, confidence = parent.Confidence,
+                        original_polygon = parent.Polygon.Select(p => source.WorkingFrame?.ToOriginal(p) ?? p),
+                    },
                     pair = pair is null ? null : new
                     {
                         value = pair.Value, estimated_position = pair.IsEstimated,

@@ -211,6 +211,37 @@ public sealed class IntervalCenteredLabelGroupingTests
         Assert.IsTrue(grouped.All(region => !HasIntervalProvenance(region)));
     }
 
+    [TestMethod]
+    public async Task OnlyCenteredNeighborsOfferSeparateReviewCropsAndPreserveTheParent()
+    {
+        int[] ticks = [20, 40, 60, 80, 100, 120];
+        var grouping = new OcrMeasuredTickGrouping(ticks, 65);
+        (int, int, int, int)[] ink =
+        [
+            (26, 75, 4, 8), (32, 75, 6, 8), (42, 75, 6, 8), (50, 75, 5, 8),
+            (69, 75, 3, 8), (89, 75, 3, 8), (109, 75, 3, 8),
+        ];
+        var detector = new ConnectedComponentTextRegionDetector();
+        var pairs = new Dictionary<string, OcrDetectedRegion[]>();
+        OcrImage image = Raster(ticks, ink);
+        var ordinary = await detector.DetectAsync(image, grouping, CancellationToken.None);
+        var review = await detector.DetectAsync(image, grouping, pairs, CancellationToken.None);
+        CollectionAssert.AreEqual(ordinary.Select(r => r.RegionId).ToArray(), review.Select(r => r.RegionId).ToArray());
+        var parent = review.Single(HasAmbiguousIntervalProvenance);
+        Assert.HasCount(1, pairs);
+        CollectionAssert.AreEqual(new[] { new OcrRectangle(26, 75, 12, 8), new OcrRectangle(42, 75, 13, 8) },
+            pairs[parent.RegionId].Select(r => r.Polygon.Bounds).ToArray());
+        Assert.IsTrue(pairs[parent.RegionId].All(HasIntervalProvenance));
+
+        // A compact number straddling a tick leaves white space at the tick, but does not occupy both midpoints.
+        pairs.Clear();
+        await detector.DetectAsync(Raster(ticks, [(36, 75, 3, 8), (42, 75, 3, 8), .. ink[4..]]),
+            grouping, pairs, CancellationToken.None);
+        Assert.IsEmpty(pairs);
+        await detector.DetectAsync(Raster(ticks, [.. ink, (39, 75, 3, 8)]), grouping, pairs, CancellationToken.None);
+        Assert.IsEmpty(pairs);
+    }
+
     private static bool HasIntervalProvenance(OcrDetectedRegion region) =>
         region.Evidence?.Reasons.Contains(ConnectedComponentTextRegionDetector.IntervalXLabelReason) == true;
 

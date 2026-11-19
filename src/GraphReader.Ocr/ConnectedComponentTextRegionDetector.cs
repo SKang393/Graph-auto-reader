@@ -63,6 +63,10 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
 
     public ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
         OcrImage image, OcrMeasuredTickGrouping? grouping, CancellationToken cancellationToken)
+        => DetectAsync(image, grouping, null, cancellationToken);
+
+    internal ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(OcrImage image, OcrMeasuredTickGrouping? grouping,
+        Dictionary<string, OcrDetectedRegion[]>? reviewPairs, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(image);
         ValidateImage(image);
@@ -70,7 +74,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
 
         var threshold = _options.ForegroundThreshold ?? EstimateThreshold(image, cancellationToken);
         var components = FindComponents(image, threshold, cancellationToken);
-        var lines = (_options.GroupComponentsIntoLines ? GroupIntoLines(components, image, grouping, cancellationToken) : components).ToArray();
+        var lines = (_options.GroupComponentsIntoLines ? GroupIntoLines(components, image, grouping, reviewPairs, cancellationToken) : components).ToArray();
         var regions = lines
             .OrderBy(static line => line.Top)
             .ThenBy(static line => line.Left)
@@ -163,7 +167,8 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
         return components;
     }
 
-    private List<ComponentBounds> GroupIntoLines(List<ComponentBounds> components, OcrImage image, OcrMeasuredTickGrouping? grouping, CancellationToken cancellationToken)
+    private List<ComponentBounds> GroupIntoLines(List<ComponentBounds> components, OcrImage image, OcrMeasuredTickGrouping? grouping,
+        Dictionary<string, OcrDetectedRegion[]>? reviewPairs, CancellationToken cancellationToken)
     {
         // Invalid or non-identity context cannot safely describe these pixel components.
         (int Left, int Right, double Position)[] cuts = grouping is not null && image.OriginalToImage == OcrFrameTransform.Identity &&
@@ -313,7 +318,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                 }
             }
 
-            if (TrySplitIntervalLabels(line, members, grouping, cuts.Length > 0, cancellationToken) is { } split)
+            if (TrySplitIntervalLabels(line, members, grouping, cuts.Length > 0, image, reviewPairs, cancellationToken) is { } split)
                 lines.AddRange(split);
             else
                 lines.Add(line);
@@ -326,7 +331,8 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
     // unsupported or boundary-crossing component leaves the original line intact.
     // An uncertain gap joins neighboring bins without suppressing independent bins.
     private List<ComponentBounds>? TrySplitIntervalLabels(ComponentBounds line, List<ComponentBounds> members,
-        OcrMeasuredTickGrouping? grouping, bool validContext, CancellationToken token)
+        OcrMeasuredTickGrouping? grouping, bool validContext, OcrImage image,
+        Dictionary<string, OcrDetectedRegion[]>? reviewPairs, CancellationToken token)
     {
         if (!validContext || grouping is null || line.Top <= grouping.PlotBottom || members.Count < 3) return null;
         IReadOnlyList<int> ticks = grouping.XTicks;
@@ -364,6 +370,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             }
         }).ToArray();
         var clusters = new List<(ComponentBounds Bounds, int IntervalCount)>(ordered.Length);
+        var parts = reviewPairs is null ? null : new ComponentBounds[ordered.Length];
         for (int groupIndex = 0; groupIndex < ordered.Length; groupIndex++)
         {
             token.ThrowIfCancellationRequested();
@@ -377,6 +384,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             int overlap = Math.Min(part.Bottom, line.Bottom) - Math.Max(part.Top, line.Top) + 1;
             int union = Math.Max(part.Bottom, line.Bottom) - Math.Min(part.Top, line.Top) + 1;
             if (overlap <= 0 || overlap / (double)union < _options.MinimumVerticalOverlapFraction) return null;
+            if (parts is not null) parts[groupIndex] = part;
             if (groupIndex > 0)
             {
                 ComponentBounds previous = ordered[groupIndex - 1].MaxBy(RightWithCancellation);
@@ -394,6 +402,35 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
         // independent labels to split it. Preserve both its pixels and ambiguity.
         if (clusters.Count(static cluster => cluster.IntervalCount == 1) < 3)
             return [line with { AmbiguousIntervalXLabel = true }];
+        if (parts is not null && reviewPairs is not null)
+        {
+            int[] cells = intervals.Keys.ToArray();
+            int index = 0;
+            foreach (var cluster in clusters)
+            {
+                token.ThrowIfCancellationRequested();
+                if (cluster.IntervalCount == 2 && cells[index + 1] == cells[index] + 1 &&
+                    CoversMidpoint(index) && CoversMidpoint(index + 1) &&
+                    Math.Max(parts[index].Top, parts[index + 1].Top) <= Math.Min(parts[index].Bottom, parts[index + 1].Bottom))
+                {
+                    // Keep the parent as the detected region. Only the review reader may
+                    // compare these two alternative crops against the uncut reading.
+                    reviewPairs[ToRegion(image, cluster.Bounds).RegionId] =
+                    [
+                        ToRegion(image, parts[index] with { IntervalXLabel = true }),
+                        ToRegion(image, parts[index + 1] with { IntervalXLabel = true }),
+                    ];
+                }
+                index += cluster.IntervalCount;
+            }
+
+            bool CoversMidpoint(int partIndex)
+            {
+                int cell = cells[partIndex];
+                double middle = (ticks[cell] + (double)ticks[cell + 1]) / 2;
+                return parts[partIndex].Left <= middle && middle < parts[partIndex].Right + 1;
+            }
+        }
         return clusters.Select(static cluster => cluster.Bounds with
         {
             IntervalXLabel = cluster.IntervalCount == 1,

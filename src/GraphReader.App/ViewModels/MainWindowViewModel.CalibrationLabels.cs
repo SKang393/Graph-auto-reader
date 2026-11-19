@@ -302,11 +302,13 @@ public sealed partial class MainWindowViewModel
             string warning = GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsAmbiguousInterval);
             detail = detail is null ? warning : $"{detail} {warning}";
         }
-        return detail is not null
+        string row = detail is not null
             ? FormatLocalizedString(LocalizationKeys.ManualCalibrationLabelsRowWithFailure,
                 proposal.Text, position, role, confidence, detail)
             : FormatLocalizedString(LocalizationKeys.ManualCalibrationLabelsRow,
                 proposal.Text, position, role, confidence);
+        return proposal.ParentReading is { } parent
+            ? FormatLocalizedString(LocalizationKeys.ManualCalibrationLabelsSplitReading, row, parent.Text) : row;
     }
 
     private string GetCalibrationLabelFailure(string failureCode)
