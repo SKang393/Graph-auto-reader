@@ -257,6 +257,7 @@ public sealed partial class MainWindowViewModel
         _calibrationLabelGeneration++;
         _calibrationLabelReadCancellation?.Cancel();
         _calibrationLabelSuggestion = null;
+        _displayedLabelEvidence = default;
         _calibrationLabelReadAnchors = [];
         _calibrationLabelStatusOverride = string.Empty;
         CalibrationLabelRows.Clear();

@@ -2,6 +2,7 @@
 // Copyright 2026 Sungwoo Kang
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Text.Json;
 using System.Windows.Input;
 using GraphReader.App.Localization;
 using GraphReader.App.Services;
@@ -11,6 +12,8 @@ namespace GraphReader.App.ViewModels;
 public sealed partial class MainWindowViewModel
 {
     private CalibrationTickProposalResult? _calibrationTickProposal;
+    // Editing the numeric fields invalidates Apply until review. Keep the last displayed pairs for the audit only.
+    private (WorkspaceCalibrationLabelSuggestion? Source, CalibrationTickProposalResult? Fit) _displayedLabelEvidence;
     private string _calibrationTickProposalStatusText = string.Empty;
     private bool _hasEstimatedCalibrationPositions;
     private bool _refittingCalibrationLabels;
@@ -132,6 +135,7 @@ public sealed partial class MainWindowViewModel
 
     private void ClearCalibrationLabelComputedValues()
     {
+        _displayedLabelEvidence = default;
         SetSuggestedPrintedXCoordinates(false);
         ClearCalibrationTickProposal();
         SuggestedYMaximum = SuggestedFirstSession = SuggestedFinalSession = string.Empty;
@@ -211,8 +215,52 @@ public sealed partial class MainWindowViewModel
         return true;
     }
 
+    private JsonElement? CreateReviewedLabelAudit(ManualCalibrationRequest confirmed)
+    {
+        if (confirmed.ReviewedTickEvidence is not null || _displayedLabelEvidence.Fit is not { } draft ||
+            _calibrationLabelSuggestion is not { Response.Request: { } request } source ||
+            !ReferenceEquals(_displayedLabelEvidence.Source, source) || !CanRefitCalibrationLabelsCore())
+            return null;
+
+        var pairs = draft.PairedTicks.ToLookup(pair => pair.Label.RegionId, StringComparer.Ordinal);
+        var included = CalibrationLabelRows.Where(row => row.IsIncluded).ToLookup(row => row.Proposal.RegionId, StringComparer.Ordinal);
+        return JsonSerializer.SerializeToElement(new
+        {
+            method = "reviewed_ocr_labels", request_id = request.RequestId,
+            source_sha256 = request.SourceFileSha256, ocr_frame_sha256 = request.PanelImageSha256,
+            model_sha256 = source.Response.Runtime?.ModelSha256, rectified = source.IsRectified,
+            fit_reasons = draft.Reasons, fit_current_at_apply = ReferenceEquals(draft, _calibrationTickProposal),
+            readings = CalibrationLabelRows.Select(row =>
+            {
+                var proposal = row.Proposal;
+                // Several candidates with the same identity cannot identify a unique fitted sample.
+                var matches = pairs[proposal.RegionId];
+                var pair = row.IsIncluded && included[proposal.RegionId].Count() == 1 && matches.Count() == 1 ? matches.First() : null;
+                return new
+                {
+                    region_id = proposal.RegionId, axis = proposal.SuggestedAxis, role = proposal.Role, raw_text = proposal.Text,
+                    confidence = proposal.Confidence, interval_label = proposal.IsIntervalXLabel, failure_code = proposal.FailureCode,
+                    edited_text = row.HasCorrection ? row.CorrectedText : null, included = row.IsIncluded,
+                    original_polygon = source.OriginalPolygon(proposal),
+                    pair = pair is null ? null : new
+                    {
+                        value = pair.Value, estimated_position = pair.IsEstimated,
+                        original_position = source.OriginalTickPoint(pair.Axis, pair.PixelPosition),
+                    },
+                };
+            }),
+            confirmed = new
+            {
+                first_x = confirmed.FirstVisibleSession, last_x = confirmed.XMaximum, upper_y = confirmed.YMaximum,
+                printed_x_coordinates = confirmed.UsesPrintedXCoordinates,
+                anchors = new[] { confirmed.Session1Y0, confirmed.Session1YMaximum, confirmed.SessionMaximumY0 },
+            },
+        });
+    }
+
     private void PopulateCalibrationPairedTickRows(CalibrationTickProposalResult proposal)
     {
+        _displayedLabelEvidence = (_calibrationLabelSuggestion, proposal);
         CalibrationPairedTickRows.Clear();
         foreach (CalibrationPairedTick pair in proposal.PairedTicks)
         {

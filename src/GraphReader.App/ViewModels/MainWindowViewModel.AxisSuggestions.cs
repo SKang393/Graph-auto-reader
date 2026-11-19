@@ -245,11 +245,12 @@ public sealed partial class MainWindowViewModel
         WorkspaceTabSnapshot before = CaptureTabSnapshot(tab);
         bool printedX = SuggestedUsesPrintedXCoordinates;
         var measured = _axisSuggestion?.MeasuredDraft;
-        _manualWorkspaceService.Calibrate(tab.TabId, new ManualCalibrationRequest(
+        var request = new ManualCalibrationRequest(
             new(_suggestedAnchors[0].X, _suggestedAnchors[0].Y),
             new(_suggestedAnchors[1].X, _suggestedAnchors[1].Y),
             new(_suggestedAnchors[2].X, _suggestedAnchors[2].Y), y, final, first)
-            { UsesPrintedXCoordinates = printedX, PreserveAffineGeometry = HasAffineAxisSuggestion, ReviewedTickEvidence = measured });
+            { UsesPrintedXCoordinates = printedX, PreserveAffineGeometry = HasAffineAxisSuggestion, ReviewedTickEvidence = measured };
+        _manualWorkspaceService.Calibrate(tab.TabId, request with { ReviewedLabelAudit = CreateReviewedLabelAudit(request) });
         if (measured is not null) tab.MeasuredSuggestion = null;
         ClearMarkerExemplarProposals(updateSample: true);
         ManualUsesPrintedXCoordinates = printedX;

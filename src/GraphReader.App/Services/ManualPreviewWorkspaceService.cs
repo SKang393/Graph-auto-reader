@@ -923,7 +923,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                         upper_reading = draft.UpperValue, left_readings = draft.LeftReadings, right_readings = draft.RightReadings },
                     confirmed = new { first_x = request.FirstVisibleSession, last_x = request.XMaximum, upper_y = request.YMaximum,
                         anchors = new[] { request.Session1Y0, request.Session1YMaximum, request.SessionMaximumY0 } },
-                }) : null);
+                }) : request.ReviewedLabelAudit);
         }
         finally
         {

@@ -50,6 +50,7 @@ public sealed record ManualCalibrationRequest(
 {
     public bool UsesPrintedXCoordinates { get; init; }
     internal MeasuredCalibrationDraft? ReviewedTickEvidence { get; init; }
+    internal System.Text.Json.JsonElement? ReviewedLabelAudit { get; init; }
     /// <summary>Retain an explicitly supplied nonaligned basis instead of the legacy two-pixel click tolerance.</summary>
     public bool PreserveAffineGeometry { get; init; }
 }
