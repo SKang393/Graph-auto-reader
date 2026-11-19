@@ -43,6 +43,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 {
     private const string ProductionProjectionAuditKind = "production_review_projection";
     private const string ProductionAddAuditKind = "production_point_added";
+    private const string ManualPointMoveReason = "Manual point moved";
     private const string ProductionMoveAuditKind = "production_point_moved";
     private const string ProductionDeleteAuditKind = "production_point_deleted";
     private const string ProductionCorrectionStateAuditKind = "production_point_correction_state_restored";
@@ -1113,7 +1114,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         point.PixelY = pixelY;
         UpdatePointCoordinates(tab, point);
         MarkPointXAsManualEstimate(tab, point);
-        AppendPointModification(point, previousPixel, previousGraph, "Manual point moved");
+        AppendPointModification(point, previousPixel, previousGraph, ManualPointMoveReason);
         ReindexSeries(tab, point.SeriesId);
         _ = GetProductionDetectionKeys(tab.TabId).TryGetValue(point.PointId, out string? detectionKey);
         PanelRecord panel = CurrentProject.Panels.Single(candidate =>
@@ -1128,7 +1129,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             DomainEventKind.PointEdited,
             Guid.Parse(tab.PanelId!),
             point.PointId,
-            "Manual point moved",
+            ManualPointMoveReason,
             JsonSerializer.SerializeToElement(new
             {
                 kind = ProductionMoveAuditKind,
@@ -2011,6 +2012,12 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     protected static double? FirstObservedSession(PanelRecord panel)
     {
+        PointRecord? first = FirstExportedPointWithSession(panel);
+        return first?.PrintedXValue ?? first?.EstimatedXValue;
+    }
+
+    private static PointRecord? FirstExportedPointWithSession(PanelRecord panel)
+    {
         bool affine = FromDomainCalibration(panel.Calibration) is { } calibration &&
             !ManualCalibrationMapper.IsAxisAligned(calibration);
         SeriesRecord[] interventions = panel.Series.Where(static series =>
@@ -2025,8 +2032,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             .SelectMany(static series => series.PointIds).ToHashSet();
         return panel.Points.Where(point => includedPoints.Contains(point.PointId))
             .OrderBy(point => affine ? point.PrintedXValue ?? point.EstimatedXValue ?? double.PositiveInfinity : point.OriginalPixel.X)
-            .Select(static point => point.PrintedXValue ?? point.EstimatedXValue)
-            .FirstOrDefault(static value => value.HasValue);
+            .FirstOrDefault(static point => point.PrintedXValue.HasValue || point.EstimatedXValue.HasValue);
     }
 
     public virtual Task RunStageAsync(WorkflowStage stage, CancellationToken cancellationToken)
@@ -2968,10 +2974,11 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             workspacePanel.Markers,
             workspacePanel.Participant);
         ExportCalibration sourceCalibration = source.Calibration;
-        // A confirmed manual session scale stays fixed when the reviewer moves a point or
-        // changes a series link. Its first observed session belongs to the current export rows.
+        // Keep the detector's origin evidence until an explicit point move affects the
+        // first observation. A series link or an unrelated edit cannot replace that evidence.
         bool useReviewedOrigin = source.SessionOriginPolicy.HasExplicitOverride ||
-            IsConfirmedManualThreeAnchorCalibration(workspacePanel.Calibration);
+            (IsConfirmedManualThreeAnchorCalibration(workspacePanel.Calibration) &&
+             HasReviewedOriginMove(workspacePanel, source));
         ExportCalibration currentCalibration = useReviewedOrigin
             ? new ExportCalibration(
                 sourceCalibration.Status,
@@ -3008,6 +3015,33 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             source.AuditMode,
             source.SessionOriginPolicy,
             projection);
+    }
+
+    private static bool HasReviewedOriginMove(PanelRecord panel, ProductionPanelExportEvidence source)
+    {
+        if (source.ProjectionEvidence is not { } prior || source.Calibration.FirstObservedSession is not double origin)
+            return false;
+
+        static bool MovedHorizontally(PointRecord? point, double? fromSession = null) => point is not null &&
+            point.ModificationHistory.Any(change =>
+                change.Reason == ManualPointMoveReason && change.PreviousPixel is { } pixel &&
+                pixel.X != point.OriginalPixel.X && change.PreviousGraph is { } graph &&
+                graph.X != point.GraphX && (!fromSession.HasValue || graph.X == fromSession));
+
+        PointRecord? first = FirstExportedPointWithSession(panel);
+        // The move may precede the baseline link. Its persisted history ties the retained
+        // origin value to the same point even if an autosave already captured the new pixel.
+        if (first is not null && prior.Points.Any(point => point.PointId == first.PointId) &&
+            MovedHorizontally(first, origin)) return true;
+
+        // Revoke a reviewed session one if its point was deleted, unlinked or moved past another.
+        if (origin != 1 || (first?.PrintedXValue ?? first?.EstimatedXValue) == origin) return false;
+        foreach (PointRecord retained in prior.Points.Where(point => (point.PrintedXValue ?? point.EstimatedXValue) == origin))
+        {
+            PointRecord? current = panel.Points.FirstOrDefault(point => point.PointId == retained.PointId);
+            if (MovedHorizontally(retained) || MovedHorizontally(current, origin)) return true;
+        }
+        return false;
     }
 
     private bool TryReconcilePromotedPoints(

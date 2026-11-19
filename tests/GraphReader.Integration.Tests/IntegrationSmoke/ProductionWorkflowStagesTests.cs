@@ -286,7 +286,8 @@ public sealed class ProductionWorkflowStagesTests
             tab.TabId,
             Path.Combine(directory.Path, "bound-pdf-production-export"),
             CancellationToken.None);
-        Assert.IsTrue(validPdfExport.Succeeded);
+        Assert.IsTrue(validPdfExport.Succeeded,
+            string.Join(" | ", validPdfExport.Failures.Select(static failure => failure.TechnicalMessage)));
 
         var calibrationFailure = new ProductionWorkflowFailure(ProductionWorkflowFailureCodes.RecalibrationRequired,
             "Errors.CalibrationInvalid", "Synthetic PDF calibration review failure.", true, "Review calibration.");

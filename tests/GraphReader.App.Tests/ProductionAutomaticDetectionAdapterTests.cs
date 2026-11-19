@@ -1753,7 +1753,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             Assert.AreNotEqual(1d, originalEstimate);
             var intervention = tab.SeriesCards.Single(series => series.SemanticRole == GraphReader.Domain.SemanticRole.Intervention);
             var baseline = tab.SeriesCards.Single(series => series.SemanticRole == GraphReader.Domain.SemanticRole.Baseline);
-            workspace.SetSeriesRelations(tab.TabId, intervention.SeriesId, baseline.SeriesId, []);
+            workspace.SetSeriesRelations(tab.TabId, intervention.SeriesId, null, []);
 
             var before = await workspace.ExportAsync(tab.TabId, Path.Combine(directory.FullName, "before"), token);
             Assert.IsTrue(before.Failures.Any(failure => failure.Code == "INVALID_SESSION_ORIGIN"));
@@ -1761,6 +1761,10 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             Assert.AreEqual(1d, first.GraphX);
             var history = workspace.CurrentProject.Panels.Single().Points.Single(p => p.PointId.Value.ToString("D") == first.PointId).ModificationHistory;
             Assert.AreEqual(originalEstimate, history[^1].PreviousGraph!.X);
+
+            string checkpoint = Path.Combine(directory.FullName, "unlinked.garproj");
+            Assert.IsTrue((await workspace.SaveProjectAsync(checkpoint, token)).IsSuccess);
+            workspace.SetSeriesRelations(tab.TabId, intervention.SeriesId, baseline.SeriesId, []);
 
             string project = Path.Combine(directory.FullName, "reviewed.garproj");
             Assert.IsTrue((await workspace.SaveProjectAsync(project, token)).IsSuccess);
@@ -1773,6 +1777,10 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             var near = await reopened.ExportAsync(restored.TabId, Path.Combine(directory.FullName, "near"), token);
             Assert.IsTrue(near.Failures.Any(failure => failure.Code == "INVALID_SESSION_ORIGIN"));
             Assert.IsEmpty(near.MinimalArtifacts);
+
+            reopened.DeletePoint(restored.TabId, restoredPoint.PointId);
+            var deleted = await reopened.ExportAsync(restored.TabId, Path.Combine(directory.FullName, "deleted"), token);
+            Assert.IsTrue(deleted.Failures.Any(failure => failure.Code == "INVALID_SESSION_ORIGIN"));
         }
         finally
         {
