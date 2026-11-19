@@ -20,8 +20,12 @@ internal sealed record ProductionAttachedTickStroke(int First, int Last, int Tip
         var strokes = new List<ProductionAttachedTickStroke>();
         if (endAlong == startAlong) return strokes;
         int extent = horizontal ? image.Width : image.Height, acrossExtent = horizontal ? image.Height : image.Width;
-        int first = (int)Math.Clamp(Math.Ceiling(Math.Min(startAlong, endAlong)), 0, extent);
-        int last = (int)Math.Clamp(Math.Floor(Math.Max(startAlong, endAlong)), -1, extent - 1);
+        // Sample the source pixel containing each fitted endpoint, as for the rail across the axis.
+        double lower = Math.Min(startAlong, endAlong), upper = Math.Max(startAlong, endAlong);
+        int first = (int)Math.Clamp(Math.Round(lower), 0, extent);
+        int last = (int)Math.Clamp(Math.Round(upper), -1, extent - 1);
+        // Only pixels centered inside the fitted segment can provide or contradict flank support.
+        double firstFlank = Math.Max(first, lower), lastFlank = Math.Min(last, upper);
         int outward = horizontal ? 1 : -1;
         int maxLength = (int)Math.Ceiling((horizontal ? axis.YAxis.Line : axis.XAxis.Line).Length * options.TickMaximumLengthFraction);
         int start = -1, tip = 0, depth = 0;
@@ -58,8 +62,8 @@ internal sealed record ProductionAttachedTickStroke(int First, int Last, int Tip
             int samples = 0;
             for (int offset = 1; offset <= 2; offset++)
             {
-                if (lo - offset >= first && !AxisInk(lo - offset)) return false;
-                if (hi + offset <= last && !AxisInk(hi + offset)) return false;
+                if (lo - offset >= firstFlank && !AxisInk(lo - offset)) return false;
+                if (hi + offset <= lastFlank && !AxisInk(hi + offset)) return false;
             }
             return samples >= 2;
             bool AxisInk(int i)

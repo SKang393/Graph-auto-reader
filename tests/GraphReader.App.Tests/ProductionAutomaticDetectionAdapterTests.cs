@@ -1626,6 +1626,11 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     [TestMethod]
+    [DataRow("bracket-substitution", true)]
+    [DataRow("bracket-near", false)]
+    [DataRow("bracket-independent", false)]
+    [DataRow("bracket-insufficient", false)]
+    [DataRow("bracket-wrong-primary", false)]
     [DataRow("confirmed", true)]
     [DataRow("independent-recognizer", false)]
     [DataRow("uncertain-origin", false)]
@@ -1657,6 +1662,16 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 return;
             }
             var run = await workflow.RunThroughReviewAsync(request, null, CancellationToken.None);
+            if (scenario == "bracket-substitution")
+            {
+                string diagnostic = run.Review.Warnings.Single(w => w.StartsWith("measured_tick_interior:", StringComparison.Ordinal));
+                using var evidence = System.Text.Json.JsonDocument.Parse(diagnostic[(diagnostic.IndexOf(':') + 1)..]);
+                var reading = evidence.RootElement.GetProperty("reading");
+                Assert.AreEqual("60", reading.GetProperty("primary").GetString());
+                Assert.AreEqual("69", reading.GetProperty("alternatives")[0].GetString());
+                Assert.IsTrue(reading.GetProperty("attached").GetBoolean());
+                Assert.AreEqual(5, evidence.RootElement.GetProperty("anchors").GetArrayLength());
+            }
             var projection = workspace.Apply(run, store);
             Assert.IsTrue(projection.Succeeded, projection.Failure?.TechnicalMessage);
             var review = projection.ProjectedRun!.Review;
@@ -1897,14 +1912,17 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         for (int value = 0; value <= 100; value += 20)
         {
             if (scenario == "no-held-out-peer" && value is 40 or 80) continue;
+            if (scenario == "bracket-insufficient" && value is 20 or 40 or 80) continue;
             string literal = value.ToString(CultureInfo.InvariantCulture);
+            if (scenario == "bracket-wrong-primary" && value == 60) literal = "69";
             if (scenario == "displaced-endpoint" && value == 100) literal = "110";
             var region = template with
             {
                 Text = literal, RegionId = "level-" + literal,
                 Polygon = OcrPolygon.FromRectangle(new(1, 78 - 3 * value / 5, 4, 4)),
             };
-            bool competing = value == 100 || (scenario == "competing-interior" && value > 0);
+            bool bracket = scenario.StartsWith("bracket-", StringComparison.Ordinal);
+            bool competing = bracket ? value == 60 : value == 100 || (scenario == "competing-interior" && value > 0);
             var frames = new float[(2 * literal.Length + 2) * 11];
             for (int j = 0; j < frames.Length / 11; j++)
                 frames[j * 11 + (j < 2 * literal.Length && j % 2 == 0 ? 1 + literal[j / 2] - '0' : 0)] = 1;
@@ -1914,13 +1932,20 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 int start = insertion ? frames.Length - 11 : 22 * (literal.Length - 1);
                 int digit = 1 + literal[^1] - '0';
                 frames[start + (insertion ? 0 : digit)] = .999f;
-                frames[start + (insertion ? digit : 0)] = .001f;
+                int alternative = bracket ? scenario switch
+                {
+                    "bracket-near" => 2, // 60 versus 61, separated by less than a pixel
+                    "bracket-wrong-primary" => 1, // measured stroke agrees with 60, not 69
+                    _ => 10, // 60 versus 69
+                } : insertion ? digit : 0;
+                frames[start + alternative] = .001f;
             }
             var paths = CtcRecognitionDecoder.Decode(frames, frames.Length / 11, "0123456789");
             labels.Add(region with
             {
                 Alternatives = paths.Select(path => new OcrRecognitionAlternative(path.Text, path.Confidence, OcrSourceImage.Original)).ToArray(),
-                SingleCtcRead = (scenario == "independent-recognizer" && value == 100) ||
+                SingleCtcRead = (scenario == "bracket-independent" && value == 60) ||
+                    (scenario == "independent-recognizer" && value == 100) ||
                     (scenario == "uncertain-origin" && value is > 0 and < 100) ? null :
                     new SingleCtcRead(region.RegionId, region.Polygon, paths),
             });

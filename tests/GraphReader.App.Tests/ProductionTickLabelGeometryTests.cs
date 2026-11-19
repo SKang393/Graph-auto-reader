@@ -14,6 +14,52 @@ namespace GraphReader.App.Tests;
 public sealed class ProductionTickLabelGeometryTests
 {
     [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void InsetStrokeAtEndOfRailRequiresTwoInteriorFlankSamples(bool railPresent)
+    {
+        var axis = Axis();
+        axis = axis with { YAxis = axis.YAxis with { Line = new(new(20, 39.1), new(20, 65)) } };
+        var image = Image([], [40]);
+        byte[] pixels = image.Pixels.ToArray();
+        pixels[40 * image.Stride + 14] = byte.MaxValue; // Five-pixel outward tick.
+        pixels[39 * image.Stride + 20] = byte.MaxValue; // Outside the fit.
+        if (!railPresent) pixels[42 * image.Stride + 20] = byte.MaxValue;
+        var strokes = ProductionAttachedTickStroke.Find(axis, image with { Pixels = pixels }, false, 128, new(), default);
+        Assert.AreEqual(railPresent, strokes.Any(s => s.Position == 40));
+    }
+
+    [TestMethod]
+    [DataRow(true, false, 0.25, true, true)]
+    [DataRow(true, true, 0.25, true, true)]
+    [DataRow(false, false, 0.25, true, true)]
+    [DataRow(false, true, 0.25, true, true)]
+    [DataRow(false, false, 0.75, true, false)]
+    [DataRow(true, true, 0.75, true, false)]
+    [DataRow(false, false, 0.25, false, false)]
+    public void AttachedStrokeUsesSourcePixelContainingFittedEndpoint(bool horizontal, bool reverse,
+        double inset, bool continuous, bool expected)
+    {
+        var axis = Axis();
+        var image = Image(horizontal ? [50] : [], horizontal ? [] : [40], paddedStride: true);
+        if (!horizontal)
+        {
+            byte[] pixels = image.Pixels.ToArray();
+            pixels[40 * image.Stride + 14] = byte.MaxValue;
+            if (!continuous) pixels[40 * image.Stride + 19] = byte.MaxValue;
+            image = image with { Pixels = pixels };
+        }
+        // Place the stroke at the upper horizontal or lower vertical sampling bound.
+        var start = horizontal ? new PixelPoint(20, 70) : new PixelPoint(20, 40 + inset);
+        var end = horizontal ? new PixelPoint(50 - inset, 70) : new PixelPoint(20, 70);
+        var axisLine = reverse ? new GeometryLineSegment(end, start) : new GeometryLineSegment(start, end);
+        axis = horizontal ? axis with { XAxis = axis.XAxis with { Line = axisLine } }
+            : axis with { YAxis = axis.YAxis with { Line = axisLine } };
+        var strokes = ProductionAttachedTickStroke.Find(axis, image, horizontal, 128, new(), default);
+        Assert.AreEqual(expected, strokes.Any(s => s.Position == (horizontal ? 50 : 40)));
+    }
+
+    [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public void NarrowGlyphCentersAreAlignedToOriginalTickPixels(bool paddedStride)

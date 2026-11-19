@@ -1524,23 +1524,23 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
         TickLabelGeometryResult geometry, List<string> warnings)
     {
         if (!ticks.Any(t => t.Competing.Count > 0)) return fit;
-        var endpointEvidence = new List<string>();
+        var measuredEvidence = new List<string>();
         var inliers = fit?.IsValid == true ? fit.Diagnostics.InlierIds.ToHashSet(StringComparer.Ordinal) : null;
         // Only unchanged literal readings from a single dominant native CTC path may
         // corroborate one another. Independent recognizers and edited hypotheses stay in Review.
         ParsedTick[] supported = ticks.Where(t => inliers?.Contains(t.Region.RegionId) == true &&
             t.Region.Text.All(char.IsAsciiDigit) && t.Region.SingleCtcRead?.Matches(t.Region) == true &&
             t.Competing.All(other => IsSingleDigitEdit(t.Region.Text, other.Text))).ToArray();
-        var verifiedEnds = CheckMeasuredEndpoints(ticks, geometry, inliers, endpointEvidence);
+        var measuredReadings = CheckMeasuredReadings(ticks, geometry, inliers, measuredEvidence);
         foreach (ParsedTick tick in ticks.Where(t => t.Competing.Count > 0))
         {
-            if (verifiedEnds.Contains(tick.Region.RegionId) ||
+            if (measuredReadings.Contains(tick.Region.RegionId) ||
                 (supported.Contains(tick) && HasIndependentBracket(tick, supported))) continue;
             warnings.Add($"ocr_tick_sequence_needs_review:{tick.Region.Role}:competing_numeric_readings:{tick.Region.RegionId}");
         }
-        return fit is null || endpointEvidence.Count == 0 ? fit : fit with
+        return fit is null || measuredEvidence.Count == 0 ? fit : fit with
         {
-            Diagnostics = fit.Diagnostics with { Warnings = [.. fit.Diagnostics.Warnings, .. endpointEvidence] },
+            Diagnostics = fit.Diagnostics with { Warnings = [.. fit.Diagnostics.Warnings, .. measuredEvidence] },
         };
     }
 
@@ -1664,7 +1664,8 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
                 "Errors.CalibrationInvalid",
                 $"Automatic calibration is incomplete: {string.Join(" | ", calibration.Reasons.Concat(
                     calibration.YTransform.Diagnostics.Warnings.Concat(calibration.XTransform?.Diagnostics.Warnings ?? [])
-                        .Where(w => w.StartsWith("measured_tick_endpoint:", StringComparison.Ordinal))))}",
+                        .Where(w => w.StartsWith("measured_tick_endpoint:", StringComparison.Ordinal) ||
+                            w.StartsWith("measured_tick_interior:", StringComparison.Ordinal))))}",
                 Recoverable: true,
                 "Retain detected evidence and complete the three required calibration anchors manually."), evidence)
             {
