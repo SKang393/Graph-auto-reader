@@ -15,11 +15,11 @@ internal sealed record ProductionPrintedXTickRow(
     IReadOnlySet<string> AmbiguousStrokeIds,
     int StrokeCount)
 {
-    private sealed record Anchor(OcrRegion Label, ProductionAttachedTickStroke Stroke, double AxisY);
+    private sealed record Anchor(OcrRegion Label, AttachedTickStroke Stroke, double AxisY);
 
     internal static ProductionPrintedXTickRow? Find(AxisGeometryResult axis, OcrImage image,
         IReadOnlyList<OcrRegion> labels, IReadOnlyList<OcrRegion> regions, IReadOnlyList<OcrMask> masks,
-        IReadOnlyList<ProductionAttachedTickStroke> strokes,
+        IReadOnlyList<AttachedTickStroke> strokes,
         AxisGeometryOptions options, CancellationToken token)
     {
         var line = axis.XAxis.Line;

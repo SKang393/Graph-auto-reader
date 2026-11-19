@@ -9,7 +9,7 @@ namespace GraphReader.Ocr;
 /// </summary>
 public static class TickLaneTextRegionRecovery
 {
-    public const string CompositionVersion = "original-pixel-tick-lane-recovery-v6-original-y-stroke-seeds";
+    public const string CompositionVersion = "original-pixel-tick-lane-recovery-v7-original-interval-x-crops";
     private const double AxisStrokeAgreementPixels = 3d;
 
     public static ValueTask<IReadOnlyList<OcrDetectedRegion>> FindAsync(
@@ -47,11 +47,6 @@ public static class TickLaneTextRegionRecovery
         {
             throw new ArgumentException("Tick recovery requires aligned original pixels.", nameof(image));
         }
-        var components = await new ConnectedComponentTextRegionDetector()
-            .DetectAsync(image, cancellationToken).ConfigureAwait(false);
-        IReadOnlyList<OcrDetectedRegion> established = SelectCandidates(
-            components, detected, recognized, plot, cancellationToken);
-        var result = established.ToList();
         var byId = detected.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);
         OcrRegion[] anchors = recognized.Where(region =>
             region.SourceImage == OcrSourceImage.Original && region.ReviewStatus != OcrReviewStatus.Rejected &&
@@ -60,6 +55,18 @@ public static class TickLaneTextRegionRecovery
             byId.TryGetValue(region.RegionId, out OcrDetectedRegion? source) &&
             source.Polygon.Points.SequenceEqual(region.Polygon.Points)).ToArray();
         int existingXAxisAnchorCount = anchors.Count(static region => region.Role == OcrTextRole.XTick);
+        var intervalAnchors = anchors.Where(anchor => anchor.Role == OcrTextRole.XTick &&
+            anchor.ReviewStatus == OcrReviewStatus.Unreviewed &&
+            // A DB quadrilateral's longest edge can run diagonally through an upright digit.
+            // Only an explicit text direction can contradict the independently measured row.
+            (byId[anchor.RegionId].OrientationFromBoxLongEdge ||
+                GraphTextRoleClassifier.GetOrientation(byId[anchor.RegionId].OrientationDegrees) == OcrOrientation.Horizontal))
+            .Select(anchor => anchor.Polygon.Bounds).ToArray();
+        var intervalRow = intervalAnchors.Length >= 2 && intervalAnchors.Length == existingXAxisAnchorCount
+            ? new IntervalLabelRow(plot, intervalAnchors, detected) : null;
+        var components = await new ConnectedComponentTextRegionDetector()
+            .DetectAsync(image, null, null, cancellationToken, intervalRow).ConfigureAwait(false);
+        var result = SelectCandidates(components, detected, recognized, plot, cancellationToken).ToList();
         bool zeroAnchorSeedAttempted = xAxisTickStrokes is { Count: > 0 } && existingXAxisAnchorCount == 0;
         OcrTickLaneSelectionDiagnostic? zeroAnchorSelection = null;
         if (zeroAnchorSeedAttempted)
@@ -106,11 +113,15 @@ public static class TickLaneTextRegionRecovery
                     OrientationDegrees = 0, Context = null });
             }
         }
+        if (intervalRow is not null)
+            result.AddRange(intervalRow.Proposals.Where(proposal =>
+                !result.Any(existing => Covered(proposal.Polygon.Bounds, existing.Polygon.Bounds))));
         return OcrCollections.Freeze(result.OrderBy(static region => region.Polygon.Bounds.Top)
             .ThenBy(static region => region.Polygon.Bounds.Left)
             .ThenBy(static region => region.RegionId, StringComparer.Ordinal));
     }
 
+    internal const string XIntervalPrefix = "tick-lane-x-interval:";
     public const string YStrokeSeedPrefix = "tick-lane-y-stroke:";
 
     private static List<OcrDetectedRegion> SelectZeroAnchorYTickCandidates(

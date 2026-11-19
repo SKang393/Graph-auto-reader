@@ -38,7 +38,7 @@ public sealed record OcrMeasuredTickGrouping(IReadOnlyList<int> XTicks, double P
 /// Finds bounded dark connected components and groups nearby glyphs into text
 /// lines. Recognition remains a separate region-first stage.
 /// </summary>
-public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
+public sealed partial class ConnectedComponentTextRegionDetector : ITextRegionDetector
 {
     internal const string IntervalXLabelReason = "x_label_between_measured_ticks";
     internal const string AmbiguousIntervalXLabelReason = "x_label_spans_measured_tick_intervals";
@@ -66,7 +66,8 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
         => DetectAsync(image, grouping, null, cancellationToken);
 
     internal ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(OcrImage image, OcrMeasuredTickGrouping? grouping,
-        Dictionary<string, OcrDetectedRegion[]>? reviewPairs, CancellationToken cancellationToken)
+        Dictionary<string, OcrDetectedRegion[]>? reviewPairs, CancellationToken cancellationToken,
+        IntervalLabelRow? intervalRow = null)
     {
         ArgumentNullException.ThrowIfNull(image);
         ValidateImage(image);
@@ -74,6 +75,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
 
         var threshold = _options.ForegroundThreshold ?? EstimateThreshold(image, cancellationToken);
         var components = FindComponents(image, threshold, cancellationToken);
+        if (intervalRow is not null) RecoverIntervalLabels(image, threshold, components, intervalRow, cancellationToken);
         var lines = (_options.GroupComponentsIntoLines ? GroupIntoLines(components, image, grouping, reviewPairs, cancellationToken) : components).ToArray();
         var regions = lines
             .OrderBy(static line => line.Top)

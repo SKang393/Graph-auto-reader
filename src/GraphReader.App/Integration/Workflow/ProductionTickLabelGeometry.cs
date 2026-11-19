@@ -11,7 +11,7 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Associates OCR labels with unique outward tick strokes in original pixels.</summary>
 internal static class ProductionTickLabelGeometry
 {
-    internal const string Version = "original-pixel-tick-label-association-v9-measured-endpoint-pixels";
+    internal const string Version = "original-pixel-tick-label-association-v10-recheck-interval-crops";
     private const double MaximumRelativeYTickLaneGap = 1.25d;
     private static readonly AxisGeometryOptions Options = new();
 
@@ -49,6 +49,10 @@ internal static class ProductionTickLabelGeometry
             ? ProductionAttachedTickStroke.Find(axis, image, true, threshold, Options, cancellationToken) : [];
         var row = ProductionPrintedXTickRow.Find(axis, image, labels, regions, masks ?? [], xStrokes, Options, cancellationToken);
         var intervalLabels = FindIntervalLabels(image, labels, xStrokes, threshold, cancellationToken);
+        foreach (var label in labels.Where(label => label.Role == OcrTextRole.XTick &&
+            label.RegionId.StartsWith(TickLaneTextRegionRecovery.XIntervalPrefix, StringComparison.Ordinal) &&
+            !intervalLabels.ContainsKey(label.RegionId)))
+            warnings.Add($"ocr_tick_sequence_needs_review:XTick:interval_crop_unassociated:{label.RegionId}");
         if (intervalLabels.Count > 0)
         {
             var intervalBoxes = labels.Where(label => intervalLabels.ContainsKey(label.RegionId))
@@ -185,7 +189,7 @@ internal static class ProductionTickLabelGeometry
     }
 
     private static Dictionary<string, (double Left, double Right, bool ExtraInk)> FindIntervalLabels(
-        OcrImage image, IReadOnlyList<OcrRegion> labels, List<ProductionAttachedTickStroke> strokes,
+        OcrImage image, IReadOnlyList<OcrRegion> labels, List<AttachedTickStroke> strokes,
         int threshold, CancellationToken token)
     {
         var result = new Dictionary<string, (double, double, bool)>(StringComparer.Ordinal);

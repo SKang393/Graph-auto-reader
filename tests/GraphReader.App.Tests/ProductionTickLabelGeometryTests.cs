@@ -496,6 +496,15 @@ public sealed class ProductionTickLabelGeometryTests
     }
 
 
+    [TestMethod]
+    public void IntervalCropRequiresVisibleBoundariesOnTheFittedAxis()
+    {
+        var cropped = RowLabel(TickLaneTextRegionRecovery.XIntervalPrefix + "crop", 48, "4");
+        var geometry = ProductionTickLabelGeometry.Resolve(Axis(), Image([], []), [cropped], default);
+        CollectionAssert.Contains(geometry.Warnings.ToArray(),
+            $"ocr_tick_sequence_needs_review:XTick:interval_crop_unassociated:{cropped.RegionId}");
+    }
+
     private static OcrRegion RowLabel(string id, int x, string text, int y = 78) => XLabel(id) with
     {
         Text = text,
