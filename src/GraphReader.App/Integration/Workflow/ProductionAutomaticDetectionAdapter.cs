@@ -567,6 +567,42 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
                 classification.Markers.Where(marker => legendInputs.SymbolCropInputIds.Contains(marker.Marker.MarkerId) &&
                     marker.ArtifactProbability < ArtifactRejectionThreshold),
                 ProductionLegendSymbolInputs.Version);
+            var centerTimer = System.Diagnostics.Stopwatch.StartNew();
+            var measuredCenters = new Dictionary<string, ClassifiedMarker>(StringComparer.Ordinal);
+            foreach (ClassifiedMarker accepted in acceptedMarkers)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                MarkerCenter marker = accepted.Marker;
+                if (ProductionMarkerVerticalCenter.Measure(originalMarkerImage, accepted) is not double y || y == marker.Center.Y)
+                    continue;
+                var measured = new MarkerPoint(marker.Center.X, y);
+                if (!markerPlot.Contains(measured)) continue;
+                measuredCenters.Add(marker.MarkerId, WithMarker(accepted, marker with { Center = measured }));
+            }
+            if (measuredCenters.Count > 0)
+            {
+                // Keep every rejection at the original location. A measurement that would
+                // enter a text, frame or structural exclusion falls back to the accepted center.
+                ClassifiedMarker[] measured = measuredCenters.Values.ToArray();
+                var text = ProductionTextMarkerExclusion.Find(measured, ocr.Result.Regions, ocr.Result.Masks,
+                    originalMarkerImage, markerPlot, legendInputs.OriginalPixelFrameBounds, ArtifactRejectionThreshold, cancellationToken);
+                var frames = ProductionLegendSymbolInputs.FindFrameExclusions(measured, legendInputs.OriginalPixelFrameBounds, cancellationToken);
+                var strokes = ProductionMarkerStrokeGapExclusion.Find(markerFrame, measured, cancellationToken, axis.Geometry.PhaseDividers);
+                foreach (string id in text.ExcludedMarkerIds.Concat(frames).Concat(strokes.ExcludedMarkerIds))
+                    measuredCenters.Remove(id);
+            }
+            if (measuredCenters.Count > 0)
+            {
+                ClassifiedMarker MeasuredOrOriginal(ClassifiedMarker marker) => measuredCenters.GetValueOrDefault(marker.Marker.MarkerId, marker);
+                acceptedMarkers = acceptedMarkers.Select(MeasuredOrOriginal).ToArray();
+                canonicalMarkers = canonicalMarkers.Select(MeasuredOrOriginal).ToArray();
+                centerTimer.Stop();
+                AppendEvidence(chain, new WorkflowVisionEnvelope(
+                    1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
+                    "markers", ProductionMarkerVerticalCenter.Version, request.Image.Sha256, null,
+                    new WorkflowVisionTiming(0, 0, centerTimer.Elapsed.TotalMilliseconds, centerTimer.Elapsed.TotalMilliseconds),
+                    classification.Envelope.Confidence, transforms: request.Transforms));
+            }
             SessionFirstCalibrationResult automaticCalibration = FitCalibration(
                 axis.Geometry,
                 ocr.Result,
@@ -1786,18 +1822,12 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
             source.Center.X.ToString("R", CultureInfo.InvariantCulture),
             source.Center.Y.ToString("R", CultureInfo.InvariantCulture),
             source.Radius.ToString("R", CultureInfo.InvariantCulture));
-        var center = source with { MarkerId = stableId.ToString("D") };
-        return new ClassifiedMarker(
-            center,
-            marker.Shape,
-            marker.Fill,
-            marker.Symbol,
-            marker.AccessibleName,
-            marker.ArtifactProbability,
-            marker.ShapeConfidence,
-            marker.FillConfidence,
-            marker.Embedding);
+        return WithMarker(marker, source with { MarkerId = stableId.ToString("D") });
     }).ToArray();
+
+    private static ClassifiedMarker WithMarker(ClassifiedMarker marker, MarkerCenter center) => new(
+        center, marker.Shape, marker.Fill, marker.Symbol, marker.AccessibleName, marker.ArtifactProbability,
+        marker.ShapeConfidence, marker.FillConfidence, marker.Embedding);
 
     private static CalibrationRecord ToDomainCalibration(
         ProductionWorkflowDetectionRequest request,
