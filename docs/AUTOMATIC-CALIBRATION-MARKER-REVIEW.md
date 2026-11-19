@@ -352,3 +352,45 @@ fit projected the prescribed X and Y values and required review when the
 fragment or endpoint lacked sufficient evidence. Native WPF Review displayed
 the actual refusal with 31 candidate boxes and zero editable rows. These are
 single-panel development measurements.
+
+## Repeated divider ink in marker proposals
+
+Of the 16 retained dash centers identified above, 14 lay on complete, isolated
+strokes that failed the projected aspect-ratio check. A few edge pixels or
+a small slope difference can increase the projected width of an otherwise
+uniform stroke. One remaining candidate lacked a measured divider through the
+center, and the other had multiple ink runs on one scanline.
+
+The additional original-pixel check uses the median scanline width only when
+the candidate and the two nearest flanking strokes follow the same measured
+dashed or dotted divider. It requires blank gaps, comparable lengths and
+spacing on both sides, contiguous ink and a matching stroke width. A narrower
+terminal row can taper into its neighbor. Split runs, disconnected tips,
+off-axis bodies and widened symbols remain eligible for Review.
+
+| One nonsealed development panel | Baseline at `ab0e5844` | With repeated-stroke check |
+| --- | ---: | ---: |
+| Retained dash centers / occupied column groups | 16 / 4 | 8 / 4 |
+| All retained centers | 31 | 23 |
+| One-to-one matches / extra / missing within 5 pixels | 5 / 26 / 5 | 5 / 18 / 5 |
+| Marker precision / recall | 16.13% / 50% | 21.74% / 50% |
+| First observed session / center error (pixels) | 1 / 1.801 | 1 / 1.801 |
+| Printed X-label stroke associations / measured Y-label associations | 7 / 6 | 7 / 6 |
+| Blocking endpoint conflicts, X / Y | 2 / 1 | 2 / 1 |
+| Column RMS / tolerance (pixels) | 2.345 / 2.046 | 2.233 / 2.046 |
+| Valid calibrations / matched numeric sessions | 0 / 0 of 10 | 0 / 0 of 10 |
+| Stroke exclusion / full workflow time | 3.81 ms / 26.342 s | 8.93 ms / 28.295 s |
+
+Extraction received only the image. All eight removed centers coincided with
+previously identified divider dashes. Independent reference scoring found
+the same five matched centers in both runs.
+All four affected column groups still had at least one retained dash. The
+lattice pitch stayed at 17.05 pixels, with the same 12%-of-pitch tolerance.
+Ten reference sessions remained missing, with zero extra sessions and no
+comparable Y or phase values. Timings are single observations.
+
+The 99 focused Windows cases passed, including straight and tilted dash-dot
+patterns, tapered ends, missing or displaced neighbors, and filled, open and
+crossing symbols. A separate inactive native WPF window displayed the actual
+calibration refusal. Toggling the candidate overlay drew all 23 boxes at
+their expected positions while the panel had zero editable points.

@@ -211,6 +211,108 @@ public sealed class ProductionMarkerStrokeGapExclusionTests
         Assert.IsEmpty(result.ExcludedMarkerIds);
     }
 
+    [TestMethod]
+    [DataRow(0)]
+    [DataRow(1)]
+    public void RepeatedRasterizedStrokeHasSameWidthAsItsTwoFlankingDots(int tilted)
+    {
+        var (pixels, axis) = DashDotPattern(tilted);
+        var marker = Marker(radius: 4.5, shape: MarkerShape.Cross, fill: MarkerFill.Filled);
+        var result = ProductionMarkerStrokeGapExclusion.Find(Frame(pixels), [marker], CancellationToken.None, [axis]);
+        Assert.AreEqual("marker_excluded_by_original_pixel_divider_dash:candidate", result.Warnings.SingleOrDefault());
+    }
+
+    [TestMethod]
+    [DataRow(20, 33, true)]
+    [DataRow(23, 31, true)]
+    [DataRow(28, 31, true)]
+    [DataRow(42, 33, true)]
+    [DataRow(20, 35, false)]
+    [DataRow(21, 33, false)]
+    public void OnlyConnectedTerminalInkCanTaperOffTheMeasuredLine(int row, int x, bool excluded)
+    {
+        var (pixels, axis) = DashDotPattern();
+        Array.Fill(pixels, 1f, row * 64 + 31, 3);
+        pixels[row * 64 + x] = 0.4f;
+        var marker = Marker(radius: 4.5, shape: MarkerShape.Cross, fill: MarkerFill.Filled);
+        var result = ProductionMarkerStrokeGapExclusion.Find(Frame(pixels), [marker], CancellationToken.None, [axis]);
+        Assert.AreEqual(excluded, result.ExcludedMarkerIds.Contains("candidate"));
+    }
+
+    [TestMethod]
+    [DataRow("one-sided")]
+    [DataRow("unequal-gaps")]
+    [DataRow("unequal-lengths")]
+    [DataRow("offset-dot")]
+    [DataRow("wider-dot")]
+    [DataRow("split-dot")]
+    [DataRow("short-divider")]
+    [DataRow("solid-divider")]
+    public void RepeatedStrokeNeedsIndependentDividerAndTwoAlignedSimilarNeighbors(string defect)
+    {
+        var (pixels, axis) = DashDotPattern();
+        switch (defect)
+        {
+            case "one-sided": Array.Fill(pixels, 1f, 20 * 64, 4 * 64); break;
+            case "unequal-gaps":
+                Array.Fill(pixels, 1f, 20 * 64, 4 * 64);
+                for (int row = 16; row <= 19; row++) Array.Fill(pixels, 0f, row * 64 + 31, 3);
+                break;
+            case "unequal-lengths":
+                for (int row = 16; row <= 19; row++) Array.Fill(pixels, 0f, row * 64 + 31, 3);
+                break;
+            case "offset-dot":
+                for (int row = 20; row <= 23; row++)
+                {
+                    Array.Fill(pixels, 1f, row * 64 + 31, 3);
+                    Array.Fill(pixels, 0f, row * 64 + 34, 3);
+                }
+                break;
+            case "wider-dot":
+                for (int row = 20; row <= 23; row++) Array.Fill(pixels, 0f, row * 64 + 30, 5);
+                break;
+            case "split-dot": pixels[21 * 64 + 36] = 0; break;
+            case "short-divider": axis = axis with { Line = new(new(32, 24), new(32, 48)) }; break;
+            case "solid-divider": axis = axis with { Style = DividerStyle.Solid }; break;
+        }
+        var marker = Marker(radius: 4.5, shape: MarkerShape.Cross, fill: MarkerFill.Filled);
+        Assert.IsEmpty(ProductionMarkerStrokeGapExclusion.Find(Frame(pixels), [marker], CancellationToken.None, [axis]).ExcludedMarkerIds);
+    }
+
+    [TestMethod]
+    [DataRow(MarkerShape.Square, MarkerFill.Filled, 32)]
+    [DataRow(MarkerShape.Square, MarkerFill.Open, 32)]
+    [DataRow(MarkerShape.Square, MarkerFill.Filled, 38)]
+    [DataRow(MarkerShape.Square, MarkerFill.Open, 38)]
+    [DataRow(MarkerShape.Cross, MarkerFill.Unknown, 32)]
+    public void TwoFlankingDotsCannotEraseGenuineMarkerInk(MarkerShape shape, MarkerFill fill, int x)
+    {
+        var (pixels, axis) = DashDotPattern();
+        for (int dy = -3; dy <= 3; dy++)
+        for (int dx = -3; dx <= 3; dx++)
+        {
+            bool ink = shape == MarkerShape.Cross ? dx == 0 || dy == 0 :
+                fill == MarkerFill.Filled || Math.Abs(dx) == 3 || Math.Abs(dy) == 3;
+            if (ink) pixels[(32 + dy) * 64 + x + dx] = 0;
+        }
+        var marker = Marker(x: x, radius: 4.5, shape: shape, fill: fill);
+        Assert.IsEmpty(ProductionMarkerStrokeGapExclusion.Find(Frame(pixels), [marker], CancellationToken.None, [axis]).ExcludedMarkerIds);
+    }
+
+    private static (float[] Pixels, PhaseDividerGeometry Axis) DashDotPattern(int tilted = 0)
+    {
+        float[] pixels = Blank();
+        for (int row = 20; row <= 45; row++)
+        {
+            if (row is (> 23 and < 28) or (> 37 and < 42)) continue;
+            int x = 32 + (int)Math.Round(tilted * (row - 32) / 8d);
+            Array.Fill(pixels, 0.4f, row * 64 + x - 1, row == 30 ? 4 : 3);
+        }
+        var axis = new PhaseDividerGeometry("line", new(new(32 - 3 * tilted, 8), new(32 + 3 * tilted, 56)),
+            DividerStyle.Dashed, 0.9, 1, 0.6, ["measured"]);
+        return (pixels, axis);
+    }
+
     private static StrokeGapMarkerExclusionBatch Find(float[] pixels, ClassifiedMarker marker) =>
         ProductionMarkerStrokeGapExclusion.Find(Frame(pixels), [marker], CancellationToken.None);
 

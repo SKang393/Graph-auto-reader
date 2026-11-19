@@ -11,7 +11,7 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Checks original-pixel support for stroke gaps and isolated divider dashes.</summary>
 internal static class ProductionMarkerStrokeGapExclusion
 {
-    internal const string Version = "original-pixel-marker-stroke-exclusion-v2-divider-dash";
+    internal const string Version = "original-pixel-marker-stroke-exclusion-v3-repeated-divider-ink";
 
     // Stay within the existing enclosed-outline support search. Larger or clipped
     // candidates lack enough local evidence for this conservative exclusion.
@@ -134,9 +134,102 @@ internal static class ProductionMarkerStrokeGapExclusion
         // Use the full projection of a unit pixel square in each direction.
         double unit = Math.Abs(ux) + Math.Abs(uy);
         double lengthAlong = maxAlong - minAlong + unit, widthAcross = maxAcross - minAcross + unit;
-        return minAlong >= 0 && maxAlong <= axis.Length &&
-            minAcross <= unit / 2 && maxAcross >= -unit / 2 &&
-            widthAcross <= radius && lengthAlong >= 2 * radius && lengthAlong >= 3 * widthAcross;
+        if (minAlong < 0 || maxAlong > axis.Length || minAcross > unit / 2 || maxAcross < -unit / 2 ||
+            lengthAlong < 2 * radius) return false;
+        if (widthAcross <= radius && lengthAlong >= 3 * widthAcross) return true;
+
+        // The projected bounding box includes raster stair-steps and isolated edge
+        // pixels. Use the typical cross section only if the adjacent broken ink
+        // independently confirms a repeating stroke on this same measured line.
+        int thickness = widths[widths.Length / 2];
+        if (Math.Abs(uy) < Math.Abs(ux) || thickness > radius || lengthAlong < 3 * thickness ||
+            widths[^1] > thickness + 1) return false;
+        int height = bottom - top + 1;
+        Span<DividerRun> central = stackalloc DividerRun[height];
+        for (int row = top; row <= bottom; row++)
+            if (!TryReadRun(pixels, frame.Width, frame.Height, axis, row, reach, out central[row - top])) return false;
+        if (!HasStrokeProfile(central, thickness)) return false;
+        var above = ReadNeighbor(pixels, frame.Width, frame.Height, axis, top, -1, reach, height, thickness);
+        if (above.Length == 0) return false;
+        var below = ReadNeighbor(pixels, frame.Width, frame.Height, axis, bottom, 1, reach, height, thickness);
+        // Two quantized endpoints can shift a measured interval by up to two pixels.
+        return below.Length > 0 && Math.Abs(above.Length - below.Length) <= 2 &&
+            Math.Abs(above.Gap - below.Gap) <= 2;
+    }
+
+    private static (int Gap, int Length) ReadNeighbor(ReadOnlySpan<float> pixels, int width, int height,
+        GeometryLineSegment axis, int endRow, int step, int reach, int dashHeight, int thickness)
+    {
+        int gap = 0, length = 0;
+        Span<DividerRun> runs = stackalloc DividerRun[2 * dashHeight + 2];
+        for (int offset = 1; offset <= runs.Length; offset++)
+        {
+            if (!TryReadRun(pixels, width, height, axis, endRow + step * offset, reach, out var run)) break;
+            if (run.Width == 0)
+            {
+                if (length > 0) return HasStrokeProfile(runs[..length], thickness) ? (gap, length) : default;
+                if (++gap > dashHeight) break;
+                continue;
+            }
+            if (gap == 0 || run.Width > thickness + 1) break;
+            runs[length++] = run;
+        }
+        return default;
+    }
+
+    private readonly record struct DividerRun(int Left, int Width, bool Aligned)
+    {
+        internal int Right => Left + Width - 1;
+
+        internal bool IsTaperedEndOf(DividerRun body) =>
+            body.Aligned && Width < body.Width && Left >= body.Left - 1 && Right <= body.Right + 1;
+    }
+
+    private static bool HasStrokeProfile(ReadOnlySpan<DividerRun> runs, int thickness)
+    {
+        if (runs.Length < thickness - 1) return false;
+        bool matchesWidth = false;
+        for (int i = 0; i < runs.Length; i++)
+        {
+            DividerRun run = runs[i];
+            if (run.Width <= 0 || run.Width > thickness + 1) return false;
+            if (i > 0 && (run.Left > runs[i - 1].Right + 1 || run.Right < runs[i - 1].Left - 1)) return false;
+            if (run.Aligned && run.Width >= thickness - 1)
+            {
+                matchesWidth |= run.Width == thickness;
+                continue;
+            }
+            // A fractional end may rasterize as a narrower row on one side of
+            // the centerline. It must taper directly into the adjacent ink.
+            bool tapered = runs.Length > 1 && ((i == 0 && run.IsTaperedEndOf(runs[1])) ||
+                (i == runs.Length - 1 && run.IsTaperedEndOf(runs[^2])));
+            if (!tapered) return false;
+        }
+        return matchesWidth;
+    }
+
+    // Blank rows establish the gaps. Clipped windows and split runs are
+    // inconclusive. Follow the measured slope on each scanline.
+    private static bool TryReadRun(ReadOnlySpan<float> pixels, int width, int height,
+        GeometryLineSegment axis, int row, int reach, out DividerRun run)
+    {
+        run = default;
+        if ((uint)row >= (uint)height || row < Math.Min(axis.Start.Y, axis.End.Y) ||
+            row > Math.Max(axis.Start.Y, axis.End.Y)) return false;
+        double axisX = axis.Start.X + (row - axis.Start.Y) * (axis.End.X - axis.Start.X) /
+            (axis.End.Y - axis.Start.Y);
+        if (axisX < reach || axisX >= width - reach - 1) return false;
+        int middle = (int)Math.Round(axisX), left = middle - reach, right = middle + reach;
+        int first = -1, last = -1;
+        for (int col = left; col <= right; col++)
+        {
+            if (pixels[row * width + col] > ForegroundLuminance) continue;
+            if (col == left || col == right || (last >= 0 && col != last + 1)) return false;
+            if (first < 0) first = col;
+            last = col;
+        }
+        if (first >= 0) run = new(first, last - first + 1, axisX >= first - 0.5 && axisX <= last + 0.5);
+        return true;
     }
 
     private static bool HasInk(ReadOnlySpan<float> row)
