@@ -261,7 +261,12 @@ public sealed record ExportPoint(
     double PointConfidence,
     ExportReviewStatus ReviewStatus,
     string SourceStage,
-    string? ModelVersion);
+    string? ModelVersion)
+{
+    public ExportReviewEvidence? ReviewEvidence { get; init; }
+}
+
+public sealed record ExportReviewEvidence(string PointActions, string PhaseSource, string PhaseLabelReview);
 
 /// <summary>
 /// Complete immutable input snapshot for preview or final file generation.
@@ -377,7 +382,8 @@ public sealed record ExtendedAuditRow(
     string SeriesSymbol,
     string SeriesName,
     string SourceStage,
-    string? ModelVersion);
+    string? ModelVersion,
+    ExportReviewEvidence? ReviewEvidence = null);
 
 public sealed class ExportPreviewFile
 {

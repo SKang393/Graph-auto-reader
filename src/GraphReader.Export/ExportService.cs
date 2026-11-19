@@ -608,7 +608,8 @@ public sealed class ExportService : IExportService
                         source.Symbol,
                         source.DisplayName,
                         point.SourceStage,
-                        point.ModelVersion);
+                        point.ModelVersion,
+                        point.ReviewEvidence);
                     rows.Add(new PreparedRow(
                         phase.Order,
                         xValue,

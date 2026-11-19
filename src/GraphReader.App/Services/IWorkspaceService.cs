@@ -163,7 +163,11 @@ public sealed record WorkspaceDeletedPointCorrection(string CorrectionId, string
 
 public sealed record WorkspacePointCorrectionState(
     IReadOnlyDictionary<string, string?> DetectionKeys,
-    IReadOnlyList<WorkspaceDeletedPointCorrection> DeletedPoints);
+    IReadOnlyList<WorkspaceDeletedPointCorrection> DeletedPoints)
+{
+    // In-memory undo state. Only detection keys and tombstones belong in the replay journal.
+    internal PanelRecord? ReviewSnapshot { get; init; }
+}
 
 public interface IWorkspaceEditStateSink
 {

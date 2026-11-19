@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 
+using GraphReader.App.Services;
 using GraphReader.Export;
 using GraphReader.Pdf;
 
@@ -29,6 +30,7 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
         cancellationToken.ThrowIfCancellationRequested();
 
         var exportRequests = new List<ExportRequest>(review.Panels.Count);
+        var corrections = review.CorrectionJournal.ToDictionary(correction => correction.CorrectionId, StringComparer.Ordinal);
         foreach (WorkflowReviewPanel panel in review.Panels
             .OrderBy(static panel => panel.PreparedPanel.ImportedPanel.DisplayName, StringComparer.OrdinalIgnoreCase)
             .ThenBy(static panel => panel.PreparedPanel.ImportedPanel.PageNumber)
@@ -37,7 +39,7 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
             string? fileNamePrefix = review.Panels.Count > 1
                 ? FormattableString.Invariant($"panel-{exportRequests.Count + 1:D3}")
                 : null;
-            if (!TryBuildRequest(review.ProjectId, panel, request, fileNamePrefix, out ExportRequest? exportRequest))
+            if (!TryBuildRequest(review.ProjectId, panel, request, corrections, fileNamePrefix, out ExportRequest? exportRequest))
             {
                 return RecalibrationRequired();
             }
@@ -109,10 +111,28 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
             warnings.Distinct(StringComparer.Ordinal));
     }
 
+    private static string ReviewActions(WorkflowPoint point, Guid panelId, IReadOnlyDictionary<string, WorkflowCorrection> journal)
+    {
+        bool Matches(string id, string? key) => id == point.PointId || (key is not null && key == point.DetectionKey);
+        var actions = point.CorrectionIds.Select(id => journal.GetValueOrDefault(id))
+            .Where(correction => correction?.PanelId == panelId)
+            .Select(correction => correction switch
+            {
+                AddWorkflowPointCorrection add when add.Point.PointId == point.PointId => "point_added",
+                MoveWorkflowPointCorrection move when Matches(move.TargetPointId, move.TargetDetectionKey) => "point_moved_axes_unspecified",
+                ReassignWorkflowPointCorrection series when Matches(series.TargetPointId, series.TargetDetectionKey) => "series_reassigned",
+                AssignWorkflowPointPhaseCorrection phase when Matches(phase.TargetPointId, phase.TargetDetectionKey) => "point_phase_assigned",
+                _ => null,
+            }).OfType<string>().Distinct(StringComparer.Ordinal).ToArray();
+        return actions.Length > 0 ? string.Join("|", actions) :
+            point.ReviewStatus == WorkflowReviewStatus.Unreviewed ? "none_recorded" : "recorded_status_only";
+    }
+
     private bool TryBuildRequest(
         Guid projectId,
         WorkflowReviewPanel reviewPanel,
         WorkflowExportRequest workflowRequest,
+        IReadOnlyDictionary<string, WorkflowCorrection> corrections,
         string? fileNamePrefix,
         out ExportRequest? request)
     {
@@ -189,7 +209,12 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
                 point.Confidence,
                 MapReviewStatus(point.ReviewStatus),
                 point.SourceStage,
-                point.ModelVersion));
+                point.ModelVersion)
+            {
+                ReviewEvidence = ReviewAuditEvidence.ForPhase(
+                    ReviewActions(point, reviewPanel.PanelId, corrections),
+                    evidence.ProjectionEvidence?.Phases.FirstOrDefault(item => item.PhaseId.Value == phaseId), []),
+            });
         }
 
         if (points.Count == 0)

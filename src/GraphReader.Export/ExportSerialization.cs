@@ -15,7 +15,8 @@ internal static class ExportSerialization
         "phase_id,original_pixel_x,original_pixel_y,x_source,x_confidence,y_confidence," +
         "point_confidence,review_status,inclusion,export_mode,calibration_status," +
         "session_origin_override_applied,session_origin_override_reason," +
-        "session_origin_override_confirmed_at_utc,series_symbol,series_name,source_stage,model_version";
+        "session_origin_override_confirmed_at_utc,series_symbol,series_name,source_stage,model_version," +
+        "point_review_actions,phase_source,phase_label_review";
 
     public static string MinimalCsv(
         IReadOnlyList<MinimalExportRow> rows,
@@ -91,6 +92,13 @@ internal static class ExportSerialization
             AppendCsvField(csv, row.SourceStage);
             csv.Append(',');
             AppendCsvField(csv, row.ModelVersion);
+            ExportReviewEvidence evidence = ReviewEvidence(row);
+            csv.Append(',');
+            AppendCsvField(csv, evidence.PointActions);
+            csv.Append(',');
+            AppendCsvField(csv, evidence.PhaseSource);
+            csv.Append(',');
+            AppendCsvField(csv, evidence.PhaseLabelReview);
             csv.Append('\n');
         }
 
@@ -196,6 +204,10 @@ internal static class ExportSerialization
         writer.WriteNumber("y_confidence", row.YConfidence);
         writer.WriteNumber("point_confidence", row.PointConfidence);
         writer.WriteString("review_status", ReviewStatus(row.ReviewStatus));
+        ExportReviewEvidence evidence = ReviewEvidence(row);
+        writer.WriteString("point_review_actions", evidence.PointActions);
+        writer.WriteString("phase_source", evidence.PhaseSource);
+        writer.WriteString("phase_label_review", evidence.PhaseLabelReview);
         writer.WriteString("inclusion", Inclusion(row.Inclusion));
         writer.WriteString("export_mode", ExportModeName(row.ExportMode));
         writer.WriteString("calibration_status", CalibrationStatus(row.CalibrationStatus));
@@ -234,6 +246,9 @@ internal static class ExportSerialization
 
         writer.WriteEndObject();
     }
+
+    private static ExportReviewEvidence ReviewEvidence(ExtendedAuditRow row) => row.ReviewEvidence ??
+        new(row.ReviewStatus == ExportReviewStatus.Unreviewed ? "none_recorded" : "recorded_status_only", "unknown", "unknown");
 
     private static void AppendDouble(StringBuilder destination, double value) =>
         destination.Append(value.ToString("R", CultureInfo.InvariantCulture));

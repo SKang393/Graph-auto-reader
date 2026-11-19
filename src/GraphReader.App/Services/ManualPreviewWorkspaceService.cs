@@ -248,7 +248,10 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         return new WorkspacePointCorrectionState(
             new Dictionary<string, string?>(GetProductionDetectionKeys(tab.TabId), StringComparer.OrdinalIgnoreCase),
             GetDeletedPointTombstones(tab.TabId).Values.Select(item =>
-                new WorkspaceDeletedPointCorrection(item.CorrectionId, item.PointId, item.DetectionKey)).ToArray());
+                new WorkspaceDeletedPointCorrection(item.CorrectionId, item.PointId, item.DetectionKey)).ToArray())
+        {
+            ReviewSnapshot = CurrentProject.Panels.SingleOrDefault(panel => panel.PanelId.Value.ToString("D") == tab.PanelId),
+        };
     }
 
     public virtual void SynchronizeRestoredTab(string tabId, IReadOnlyDictionary<string, ReviewStatus>? reviewStatuses = null,
@@ -273,6 +276,22 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         }
         PanelRecord? priorPanel = CurrentProject.Panels.SingleOrDefault(panel =>
             panel.PanelId.Value == Guid.Parse(tab.PanelId!));
+        if (correctionState?.ReviewSnapshot is { } snapshot && priorPanel is not null &&
+            snapshot.PanelId == priorPanel.PanelId && snapshot.SourceId == priorPanel.SourceId && snapshot.Crop == priorPanel.Crop)
+        {
+            priorPanel = priorPanel with { Points = snapshot.Points, Phases = snapshot.Phases };
+            CurrentProject = CurrentProject with
+            {
+                Panels = CurrentProject.Panels.Select(panel => panel.PanelId == priorPanel.PanelId ? priorPanel : panel).ToArray(),
+            };
+            foreach (PointRecord saved in snapshot.Points)
+            {
+                string id = saved.PointId.Value.ToString("D");
+                _pointModificationHistories[id] = saved.ModificationHistory
+                    .Select(change => MapModificationSourceToPanel(priorPanel, change)).ToList();
+                _pointXStates[id] = new(saved.PrintedXValue, saved.EstimatedXValue, saved.XSource, saved.XConfidence, saved.GraphX.HasValue);
+            }
+        }
         foreach (AppGraphPoint point in tab.Points)
         {
             PointRecord? prior = priorPanel?.Points.SingleOrDefault(item =>
@@ -795,7 +814,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             _pointModificationHistories.Remove(point.PointId);
         }
 
-        PanelRecord[] remainingPanels = _tabs.Select(ToPanelRecord).ToArray();
+        PanelRecord[] remainingPanels = _tabs.Select(tab => ToPanelRecord(tab)).ToArray();
         HashSet<SourceId> remainingSourceIds = remainingPanels
             .Select(static panel => panel.SourceId)
             .ToHashSet();
@@ -1110,11 +1129,19 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         AppGraphPoint point = RequirePoint(tab, pointId);
         DomainPixelPoint previousPixel = new(point.PixelX, point.PixelY);
         DomainGraphPoint? previousGraph = GetPreviousGraph(tab, point);
+        if (point.PixelX == pixelX && point.PixelY == pixelY) return;
         point.PixelX = pixelX;
         point.PixelY = pixelY;
-        UpdatePointCoordinates(tab, point);
-        MarkPointXAsManualEstimate(tab, point);
-        AppendPointModification(point, previousPixel, previousGraph, ManualPointMoveReason);
+        bool independentAxes = tab.Calibration is null || ManualCalibrationMapper.IsAxisAligned(tab.Calibration);
+        if (tab.Calibration is { } calibration)
+        {
+            AxisPixelPoint graph = ManualCalibrationMapper.Map(calibration, pixelX, pixelY);
+            if (!independentAxes || previousPixel.X != pixelX) point.GraphX = graph.X;
+            if (!independentAxes || previousPixel.Y != pixelY) point.GraphY = graph.Y;
+        }
+        UpdatePointPhase(tab, point);
+        if (!independentAxes || previousPixel.X != pixelX) MarkPointXAsManualEstimate(tab, point);
+        AuditEventId moveId = AppendPointModification(point, previousPixel, previousGraph, ManualPointMoveReason);
         ReindexSeries(tab, point.SeriesId);
         _ = GetProductionDetectionKeys(tab.TabId).TryGetValue(point.PointId, out string? detectionKey);
         PanelRecord panel = CurrentProject.Panels.Single(candidate =>
@@ -1133,6 +1160,9 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             JsonSerializer.SerializeToElement(new
             {
                 kind = ProductionMoveAuditKind,
+                modification_event_id = moveId.Value,
+                moved_pixel_x = previousPixel.X != pixelX,
+                moved_pixel_y = previousPixel.Y != pixelY,
                 correction_id = Guid.NewGuid().ToString("D"),
                 target_point_id = point.PointId,
                 target_detection_key = detectionKey,
@@ -1216,7 +1246,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         DomainPixelPoint previousPixel = new(point.PixelX, point.PixelY);
         DomainGraphPoint? previousGraph = GetPreviousGraph(tab, point);
         point.SeriesId = target.SeriesId;
-        UpdatePointCoordinates(tab, point);
+        UpdatePointPhase(tab, point);
         AppendPointModification(
             point,
             previousPixel,
@@ -1266,7 +1296,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             Guid.Parse(tab.PanelId!),
             dividerId,
             "Manual phase divider added",
-            CreatePhaseCorrectionDetails("add", dividerId));
+            CreatePhaseCorrectionDetails("add", dividerId, divider.Code, divider.Label));
         return divider;
     }
 
@@ -1352,7 +1382,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             Guid.Parse(tab.PanelId!),
             dividerId,
             "Manual phase divider labeled",
-            CreatePhaseCorrectionDetails("label", dividerId));
+            CreatePhaseCorrectionDetails("label", dividerId, divider.Code, divider.Label));
     }
 
     public async Task<DomainResult<ProjectSnapshotReceipt>> AutosaveAsync(
@@ -1991,6 +2021,19 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             throw new InvalidOperationException("Create at least one intervention series before export.");
         }
 
+        var phasesById = panel.Phases.ToDictionary(phase => phase.PhaseId);
+        var eventsByEntity = CurrentProject.Audit.Events.Where(entry => entry.PanelId == panel.PanelId)
+            .ToLookup(entry => entry.EntityId, StringComparer.OrdinalIgnoreCase);
+        ExportPoint WithReviewEvidence(PointRecord point)
+        {
+            PhaseRecord? phase = point.PhaseId is { } id ? phasesById.GetValueOrDefault(id) : null;
+            return ToExportPoint(point) with
+            {
+                ReviewEvidence = ReviewAuditEvidence.ForPoint(point, phase,
+                    eventsByEntity[point.PointId.Value.ToString("D")],
+                    phase?.BoundaryLeftId is { } divider ? eventsByEntity[divider.Value.ToString("D")] : []),
+            };
+        }
         var request = new ExportRequest(
             Guid.NewGuid(),
             CurrentProject.ProjectId.Value,
@@ -2004,7 +2047,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             sessionOriginPolicy,
             panel.Phases.Select(ToExportPhase),
             panel.Series.Select(ToExportSeries),
-            panel.Points.Select(ToExportPoint),
+            panel.Points.Select(WithReviewEvidence),
             ToExportRelations(interventions),
             interventions.Select(static series => series.SeriesId.Value));
         return await _exportService.ExportAsync(request, cancellationToken).ConfigureAwait(false);
@@ -2240,7 +2283,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         EditablePhaseDivider[] Dividers,
         Dictionary<Guid, ProductionPointExportEvidence> PointEvidence,
         Dictionary<Guid, PhaseRecord> Phases,
-        bool WasBlank,
+        bool HadNoSeriesOrPoints,
         bool PreserveManualPhases,
         WorkflowCorrection[] Corrections,
         WorkflowReviewPanel CorrectedReviewPanel);
@@ -2422,8 +2465,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 exportEvidence.Points.ToDictionary(static point => point.PointId),
                 projection.Phases.ToDictionary(static phase => phase.PhaseId.Value),
                 projectPanels[0].Series.Count == 0 &&
-                    projectPanels[0].Points.Count == 0 &&
-                    projectPanels[0].Calibration is null,
+                    projectPanels[0].Points.Count == 0,
                 preserveManualPhases,
                 corrections,
                 correctedReviewPanel));
@@ -2577,9 +2619,13 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                     Markers = persisted.Markers,
                     Points = MergeProjectedPoints(panel.Points, persisted.Points),
                 };
-                if (plan.WasBlank)
+                if (plan.HadNoSeriesOrPoints)
                 {
-                    updated = updated with { Phases = persisted.Phases, Series = persisted.Series };
+                    updated = updated with
+                    {
+                        Phases = plan.PreserveManualPhases ? panel.Phases : persisted.Phases,
+                        Series = persisted.Series,
+                    };
                 }
 
                 ProductionPanelExportEvidence alignedEvidence = AlignExportEvidenceToProject(
@@ -3236,13 +3282,15 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             .FirstOrDefault(static correctionId => correctionId is not null);
     }
 
-    private static JsonElement CreatePhaseCorrectionDetails(string action, string dividerId) =>
+    private static JsonElement CreatePhaseCorrectionDetails(string action, string dividerId, string? code = null, string? label = null) =>
         JsonSerializer.SerializeToElement(new
         {
             kind = ProductionPhaseAuditKind,
             correction_id = Guid.NewGuid().ToString("D"),
             action,
             divider_id = dividerId,
+            code,
+            label,
         });
 
     private static JsonElement CreateProductionProjectionAuditDetails(
@@ -3569,10 +3617,10 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             }
             else
             {
-                bool sameReviewedPoint = existing is { ReviewStatus: ReviewStatus.Accepted } &&
+                bool sameReviewedPoint = existing is { ReviewStatus: not ReviewStatus.Unreviewed } &&
                     existing.OriginalPixel == point.OriginalPixel && existing.SeriesId == point.SeriesId &&
                     existing.PhaseId == point.PhaseId && existing.GraphX == point.GraphX && existing.GraphY == point.GraphY;
-                merged.Add(sameReviewedPoint ? point with { ReviewStatus = ReviewStatus.Accepted } : point);
+                merged.Add(sameReviewedPoint ? point with { ReviewStatus = existing!.ReviewStatus } : point);
             }
         }
 
@@ -4219,7 +4267,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         CurrentProject = CurrentProject with
         {
             ModifiedUtc = now,
-            Panels = _tabs.Select(ToPanelRecord).ToArray(),
+            Panels = _tabs.Select(tab => ToPanelRecord(tab, tab.PanelId == panelId?.ToString("D") ? auditEvent : null)).ToArray(),
             Audit = CurrentProject.Audit with
             {
                 Events = CurrentProject.Audit.Events.Append(auditEvent).ToArray(),
@@ -4227,7 +4275,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         };
     }
 
-    private PanelRecord ToPanelRecord(WorkspaceTabViewModel tab)
+    private PanelRecord ToPanelRecord(WorkspaceTabViewModel tab, AuditEvent? operation = null)
     {
         PanelId panelId = PanelId.FromGuid(Guid.Parse(tab.PanelId!));
         SourceId sourceId = SourceId.FromGuid(Guid.Parse(tab.SourceId!));
@@ -4241,20 +4289,15 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             .Concat(workspaceSemanticProbePhases)
             .Select(phase => MapPhasePanelToSource(existingPanel, phase))
             .ToArray();
-        bool preservePhaseEvidence = existingPanel is not null &&
-            PhaseLayoutMatches(existingPanel.Phases, generatedPhases);
-        PhaseRecord[] phases = preservePhaseEvidence
-            ? existingPanel!.Phases.ToArray()
-            : generatedPhases;
-        PhaseRecord[] workspacePhasesForPointResolution = preservePhaseEvidence
-            ? phases.Select(phase => MapPhaseSourceToPanel(existingPanel, phase)).ToArray()
-            : workspaceRegionPhases.Concat(workspaceSemanticProbePhases).ToArray();
-        PhaseRecord[] workspaceRegionPhasesForPointResolution = workspacePhasesForPointResolution
-            .Take(workspaceRegionPhases.Length)
-            .ToArray();
-        PhaseRecord[] workspaceSemanticProbePhasesForPointResolution = workspacePhasesForPointResolution
-            .Skip(workspaceRegionPhases.Length)
-            .ToArray();
+        string? confirmedDividerId = operation is { Kind: DomainEventKind.PhaseEdited, Details: { } edit } &&
+            TryReadString(edit, "action", out string? action) && action is "add" or "label" ? operation.EntityId : null;
+        PhaseRecord[] phases = generatedPhases.Select(phase => RetainPhaseEvidence(
+            existingPanel?.Phases, phase, confirmedDividerId)).ToArray();
+        // Point membership uses the editable divider intervals, including the image margins.
+        // The persisted phases keep the detector's IDs and measured plot extents.
+        PhaseRecord[] workspaceRegionPhasesForPointResolution = workspaceRegionPhases
+            .Select((phase, index) => phase with { PhaseId = phases[index].PhaseId, Code = phases[index].Code }).ToArray();
+        PhaseRecord[] workspaceSemanticProbePhasesForPointResolution = workspaceSemanticProbePhases;
         Dictionary<SeriesId, SeriesRecord> existingSeries = existingPanel?
             .Series.ToDictionary(static series => series.SeriesId)
             ?? new Dictionary<SeriesId, SeriesRecord>();
@@ -4331,17 +4374,10 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 prior?.ModificationHistory.Count > 0
                     ? prior.ModificationHistory.ToArray()
                     : workspaceModificationHistory;
-            bool manuallyCorrected = prior is null ||
-                !modificationHistory.SequenceEqual(prior.ModificationHistory) ||
-                prior.SeriesId != seriesId ||
-                prior.PhaseId != phase.PhaseId ||
-                prior.OriginalPixel != originalPixel ||
-                prior.GraphX != graphX ||
-                prior.GraphY != graphY ||
-                prior.ObservationIndex != point.ObservationIndex ||
-                prior.PrintedXValue != xState.PrintedXValue ||
-                prior.EstimatedXValue != xState.EstimatedXValue ||
-                prior.XSource != xState.Source;
+            bool pointEdited = prior is null
+                ? operation is { Kind: DomainEventKind.PointEdited, Note: "Manual point added" } && operation.EntityId == point.PointId
+                : !modificationHistory.SequenceEqual(prior.ModificationHistory);
+            bool movedVertically = pointEdited && prior is not null && prior.OriginalPixel.Y != originalPixel.Y;
             return new PointRecord(
                 pointId,
                 prior?.MarkerId,
@@ -4355,15 +4391,15 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 xState.EstimatedXValue,
                 xState.Source,
                 xState.Confidence,
-                manuallyCorrected
+                prior is null || movedVertically
                     ? tab.Calibration?.Confidence ?? 0
-                    : prior!.YConfidence,
+                    : prior.YConfidence,
                 prior?.PointConfidence ?? 1,
                 prior?.SourceStage ?? "manual",
                 prior?.ModelVersion,
-                manuallyCorrected
+                pointEdited
                     ? ReviewStatus.Corrected
-                    : prior!.ReviewStatus,
+                    : prior?.ReviewStatus ?? ReviewStatus.Unreviewed,
                 modificationHistory);
         }).ToArray();
         CalibrationRecord? generatedCalibration = MapCalibrationPanelToSource(
@@ -4597,33 +4633,36 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         }
     }
 
-    private static bool PhaseLayoutMatches(
-        IReadOnlyList<PhaseRecord> retained,
-        PhaseRecord[] current)
+    private static PhaseRecord RetainPhaseEvidence(
+        IReadOnlyList<PhaseRecord>? retained, PhaseRecord current, string? confirmedDividerId)
     {
-        if (retained.Count != current.Length)
-        {
-            return false;
-        }
+        // Region IDs and divider IDs are independent in detected projects.
+        PhaseRecord? prior = current.Order == 1
+            ? retained?.FirstOrDefault(phase => phase.Order == 1)
+            : current.BoundaryLeftId is { } boundary
+                ? retained?.FirstOrDefault(phase => phase.BoundaryLeftId == boundary)
+                : retained?.FirstOrDefault(phase => phase.PhaseId == current.PhaseId);
+        bool confirmed = current.BoundaryLeftId is { } left && left.Value.ToString("D") == confirmedDividerId;
+        if (prior is null)
+            return confirmed ? current with { Source = PhaseSource.Manual, Confidence = 1, UserConfirmed = true } : current;
 
-        for (int index = 0; index < current.Length; index++)
+        PhaseRecord? nextRegion = retained?.FirstOrDefault(phase => phase.Order == prior.Order + 1 && phase.BoundaryLeftId is not null);
+        bool sameRightBoundary = nextRegion is not null && current.BoundaryRightId == nextRegion.BoundaryLeftId;
+        var phase = prior with
         {
-            PhaseRecord left = retained[index];
-            PhaseRecord right = current[index];
-            if (left.Order != right.Order ||
-                !string.Equals(left.Code, right.Code, StringComparison.Ordinal) ||
-                left.NormalizedType != right.NormalizedType ||
-                !string.Equals(left.LabelText, right.LabelText, StringComparison.Ordinal) ||
-                left.ScreenXMin != right.ScreenXMin ||
-                left.ScreenXMax != right.ScreenXMax ||
-                left.BoundaryLeftId != right.BoundaryLeftId ||
-                left.BoundaryRightId != right.BoundaryRightId)
-            {
-                return false;
-            }
-        }
-
-        return true;
+            Order = current.Order,
+            BoundaryLeftId = current.BoundaryLeftId,
+            BoundaryRightId = sameRightBoundary ? prior.BoundaryRightId : current.BoundaryRightId,
+            ScreenXMin = current.BoundaryLeftId is null && prior.BoundaryLeftId is null ? prior.ScreenXMin : current.ScreenXMin,
+            ScreenXMax = (current.BoundaryRightId is null && prior.BoundaryRightId is null) ||
+                (sameRightBoundary && current.ScreenXMax == nextRegion!.ScreenXMin) ? prior.ScreenXMax : current.ScreenXMax,
+        };
+        if (confirmed)
+            return phase with { Code = current.Code, NormalizedType = current.NormalizedType, LabelText = current.LabelText,
+                Confidence = 1, Source = PhaseSource.Manual, UserConfirmed = true };
+        if (current.Order != 1 && (current.Code != prior.Code || current.LabelText != (prior.LabelText ?? prior.Code)))
+            return current with { PhaseId = prior.PhaseId };
+        return phase;
     }
 
     private static CalibrationRecord? ToDomainCalibration(ManualCalibrationState? calibration)
@@ -5089,9 +5128,9 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 right,
                 preceding is null ? null : PhaseId.FromGuid(Guid.Parse(preceding.DividerId)),
                 following is null ? null : PhaseId.FromGuid(Guid.Parse(following.DividerId)),
-                1,
-                PhaseSource.Manual,
-                UserConfirmed: true));
+                0,
+                PhaseSource.ProfilePrior,
+                UserConfirmed: false));
             left = right;
         }
 
@@ -5119,9 +5158,9 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                     tab.PixelWidth,
                     BoundaryLeftId: null,
                     BoundaryRightId: null,
-                    Confidence: 1,
-                    PhaseSource.Manual,
-                    UserConfirmed: true);
+                    Confidence: series.Confidence,
+                    PhaseSource.ProfilePrior,
+                    UserConfirmed: false);
             })
             .ToArray();
     }
@@ -5152,6 +5191,11 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             point.GraphY = graph.Y;
         }
 
+        UpdatePointPhase(tab, point);
+    }
+
+    private static void UpdatePointPhase(WorkspaceTabViewModel tab, AppGraphPoint point)
+    {
         SeriesCardViewModel series = RequireSeries(tab, point.SeriesId);
         string? probePhaseCode = ProbePhaseCode(series.SemanticRole);
         if (probePhaseCode is not null)
@@ -5181,7 +5225,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
     {
         foreach (AppGraphPoint point in tab.Points)
         {
-            UpdatePointCoordinates(tab, point);
+            UpdatePointPhase(tab, point);
         }
     }
 
@@ -5211,7 +5255,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
     private static DomainGraphPoint? GetPreviousGraph(WorkspaceTabViewModel tab, AppGraphPoint point) =>
         tab.Calibration is null ? null : new DomainGraphPoint(point.GraphX, point.GraphY);
 
-    private void AppendPointModification(
+    private AuditEventId AppendPointModification(
         AppGraphPoint point,
         DomainPixelPoint previousPixel,
         DomainGraphPoint? previousGraph,
@@ -5223,12 +5267,14 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             _pointModificationHistories[point.PointId] = history;
         }
 
+        AuditEventId eventId = AuditEventId.New();
         history.Add(new PointModification(
-            AuditEventId.New(),
+            eventId,
             DateTimeOffset.UtcNow,
             previousPixel,
             previousGraph,
             reason));
+        return eventId;
     }
 
     private PointModification[] GetPointModificationHistory(string pointId) =>

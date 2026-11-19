@@ -986,6 +986,9 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
 
         LinearAxisTransform yTransform = calibration.YTransform.Transform ??
             throw new InvalidOperationException("Validated calibration lost its y transform.");
+        // Project boundary references must resolve to phase records. The native editor
+        // identifies each region after a divider by that divider's stable ID.
+        var phaseRecords = phases.Phases.ToDictionary(region => region.PhaseId, ToDomainPhase, StringComparer.Ordinal);
         var pointRows = new List<ProjectedPoint>(projectedMarkers.Length);
         foreach (ClassifiedMarker marker in projectedMarkers)
         {
@@ -1019,7 +1022,7 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
                 pointId,
                 markerId,
                 Guid.Parse(series.SeriesId),
-                Guid.Parse(phase.PhaseId),
+                phaseRecords[phase.PhaseId].PhaseId.Value,
                 xEvidence.Ordinal,
                 xEvidence.PrintedX,
                 xEvidence.EstimatedX,
@@ -1032,7 +1035,7 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
         }
 
         CalibrationRecord domainCalibration = ToDomainCalibration(request, calibration);
-        PhaseRecord[] domainPhases = phases.Phases.Select(ToDomainPhase).ToArray();
+        PhaseRecord[] domainPhases = phases.Phases.Select(region => phaseRecords[region.PhaseId]).ToArray();
         Dictionary<string, LegendSeriesResolution> legendSeries = legend.Series
             .ToDictionary(static series => series.SeriesId, StringComparer.Ordinal);
         SeriesRecord[] domainSeries = grouping.Series.Select(series =>
@@ -1879,7 +1882,7 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
     };
 
     private static PhaseRecord ToDomainPhase(PhaseRegion phase) => new(
-        PhaseId.FromGuid(Guid.Parse(phase.PhaseId)),
+        ParsePhaseId(phase.BoundaryLeftId) ?? PhaseId.FromGuid(Guid.Parse(phase.PhaseId)),
         phase.Order,
         phase.Code,
         phase.NormalizedType switch

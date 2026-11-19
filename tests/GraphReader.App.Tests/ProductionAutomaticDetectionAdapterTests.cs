@@ -14,6 +14,7 @@ using GraphReader.App.Integration.Workflow;
 using GraphReader.Axis;
 using GraphReader.Export;
 using GraphReader.Inference;
+using Domain = GraphReader.Domain;
 using ImageImportService = GraphReader.Imaging.ImageImportService;
 using GraphReader.Legends;
 using GraphReader.Markers.Classification;
@@ -1781,6 +1782,80 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             reopened.DeletePoint(restored.TabId, restoredPoint.PointId);
             var deleted = await reopened.ExportAsync(restored.TabId, Path.Combine(directory.FullName, "deleted"), token);
             Assert.IsTrue(deleted.Failures.Any(failure => failure.Code == "INVALID_SESSION_ORIGIN"));
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task CalibrationAndPersistencePreserveIndividualReviewEvidence()
+    {
+        var directory = Directory.CreateTempSubdirectory("graphreader-review-evidence-");
+        try
+        {
+            var token = CancellationToken.None;
+            string image = Path.Combine(directory.FullName, "control.png");
+            WriteMeasuredTickControl(image, false);
+            var store = new ProductionWorkflowPanelStore();
+            string[] stages = ["axis", "ocr", "markers", "legends", "phases"];
+            using var workspace = new ProductionWorkspaceService(panelStore: store,
+                workflowOrchestrator: MeasuredTickWorkflow(store, "confirmed"),
+                automaticStages: stages.Select(stage => new AutomaticStageStatus(stage, AutomaticStageState.Available, "fixture")).ToArray());
+            var tab = (await workspace.ImportImagesAsync([image], token)).Single();
+            workspace.Calibrate(tab.TabId, new(new(21, 85), new(21, 15), new(81, 85), 70, 7));
+            await workspace.RunAutomaticDetectionAsync(token);
+            string project = Path.Combine(directory.FullName, "detected.garproj");
+            Assert.IsTrue((await workspace.SaveProjectAsync(project, token)).IsSuccess);
+            using var review = new ProductionWorkspaceService();
+            var restored = (await review.OpenProjectAsync(project, token)).Single();
+            var panel = review.CurrentProject.Panels.Single();
+            Assert.IsTrue(panel.Points.Count >= 2);
+            Assert.IsTrue(panel.Points.All(point => point.ReviewStatus == Domain.ReviewStatus.Unreviewed));
+            Assert.IsTrue(panel.Phases.All(phase => !phase.UserConfirmed && phase.Source != Domain.PhaseSource.Manual));
+            var first = restored.Points.OrderBy(point => point.PixelX).First();
+            var last = restored.Points.OrderBy(point => point.PixelX).Last();
+            var origin = panel.Points.Single(point => point.PointId.Value.ToString("D") == first.PointId);
+            var end = panel.Points.Single(point => point.PointId.Value.ToString("D") == last.PointId);
+            review.MovePoint(restored.TabId, first.PointId, 21, first.PixelY);
+            review.SetPointReviewStatus(restored.TabId, last.PointId, Domain.ReviewStatus.Accepted);
+            var baseline = restored.SeriesCards.Single(series => series.SemanticRole == Domain.SemanticRole.Baseline);
+            var intervention = restored.SeriesCards.Single(series => series.SemanticRole == Domain.SemanticRole.Intervention);
+            review.SetSeriesRelations(restored.TabId, intervention.SeriesId, baseline.SeriesId, []);
+            Assert.IsTrue((await review.SaveProjectAsync(project, token)).IsSuccess);
+            var output = await review.ExportAsync(restored.TabId, Path.Combine(directory.FullName, "audit"), token);
+            Assert.IsTrue(output.Succeeded, string.Join(" | ", output.Failures.Select(failure => failure.TechnicalMessage)));
+            var rows = output.AuditArtifacts[0].Rows;
+            var moved = rows.Single(row => row.PointId == origin.PointId.Value);
+            Assert.AreEqual(ExportReviewStatus.Corrected, moved.ReviewStatus);
+            Assert.AreEqual("pixel_x_moved", moved.ReviewEvidence!.PointActions);
+            Assert.AreEqual(origin.YConfidence, moved.YConfidence);
+            Assert.AreEqual(origin.GraphY, moved.YValue);
+            Assert.AreEqual("point_accepted", rows.Single(row => row.PointId == end.PointId.Value).ReviewEvidence!.PointActions);
+            Assert.IsTrue(rows.All(row => row.ReviewEvidence!.PhaseLabelReview == "unconfirmed"));
+
+            var divider = restored.PhaseDividers.Single();
+            review.LabelPhaseDivider(restored.TabId, divider.DividerId, divider.Code, divider.Label);
+            review.MovePhaseDivider(restored.TabId, divider.DividerId, divider.OriginalX + 1);
+            var labeled = review.CurrentProject.Panels.Single();
+            Assert.IsFalse(labeled.Phases[0].UserConfirmed);
+            Assert.IsTrue(labeled.Phases[1].UserConfirmed);
+            Assert.AreEqual(panel.Phases[0].PhaseId, labeled.Phases[0].PhaseId);
+            Assert.AreEqual(panel.Phases[1].PhaseId, labeled.Phases[1].PhaseId);
+            Assert.AreEqual(Domain.ReviewStatus.Accepted, labeled.Points.Single(point => point.PointId == end.PointId).ReviewStatus);
+
+            review.MovePoint(restored.TabId, first.PointId, first.PixelX, first.PixelY + 1);
+            review.ReassignPoint(restored.TabId, first.PointId, intervention.SeriesId);
+            var updated = review.CurrentProject.Panels.Single().Points.Single(point => point.PointId == origin.PointId);
+            Assert.AreEqual(1d, updated.GraphX);
+            var changes = ReviewAuditEvidence.ForPoint(updated, null,
+                review.CurrentProject.Audit.Events.Where(entry => entry.EntityId == first.PointId), []);
+            Assert.AreEqual("pixel_x_moved|pixel_y_moved|series_reassigned", changes.PointActions);
+
+            var historical = ReviewAuditEvidence.ForPoint(origin with { ReviewStatus = Domain.ReviewStatus.Corrected },
+                panel.Phases[0] with { Source = Domain.PhaseSource.Manual, UserConfirmed = true }, [], []);
+            Assert.AreEqual(new ExportReviewEvidence("recorded_status_only", "manual", "recorded_confirmation_only"), historical);
         }
         finally
         {

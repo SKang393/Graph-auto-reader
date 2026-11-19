@@ -3661,9 +3661,11 @@ public sealed class ProductionWorkflowStagesTests
                     YConfidence: 1)],
                 [provenance],
                 participant: "Local Test"));
-        var review = new WorkflowReviewState(
-            projectId,
-            [new WorkflowReviewPanel(prepared, [point], [provenance])]);
+        var seriesEdit = new ReassignWorkflowPointCorrection("series-edit", imported.PanelId, point.PointId, point.DetectionKey, seriesId.ToString("D"));
+        var unrelated = new MoveWorkflowPointCorrection("different-point", imported.PanelId, "other", "other-key", 1, 1);
+        point = point with { CorrectionIds = [seriesEdit.CorrectionId, unrelated.CorrectionId] };
+        var review = new WorkflowReviewState(projectId,
+            [new WorkflowReviewPanel(prepared, [point], [provenance])], [seriesEdit, unrelated]);
         var stage = new ProductionWorkflowExportStage(store, new ExportService());
         Guid exportRunId = Guid.Parse("70000000-0000-0000-0000-000000000004");
 
@@ -3682,6 +3684,11 @@ public sealed class ProductionWorkflowStagesTests
         Assert.AreEqual(
             minimal.Sha256,
             Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(minimal.WrittenPath))).ToLowerInvariant());
+
+        var audit = result.Artifacts.Single(item => item.FileName.EndsWith(".audit.csv", StringComparison.Ordinal));
+        string[] auditLines = await File.ReadAllLinesAsync(audit.WrittenPath!);
+        Assert.EndsWith(",point_review_actions,phase_source,phase_label_review", auditLines[0]);
+        Assert.EndsWith(",series_reassigned,unknown,unknown", auditLines[1]);
 
         ProductionPanelExportEvidence retained = store.Get(imported.PanelId).ExportEvidence!;
         store.SetExportEvidence(
