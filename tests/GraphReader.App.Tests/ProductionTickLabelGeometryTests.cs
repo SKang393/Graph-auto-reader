@@ -411,6 +411,45 @@ public sealed class ProductionTickLabelGeometryTests
         }
     }
 
+    [TestMethod]
+    [DataRow("whole")]
+    [DataRow("partial")]
+    [DataRow("disputed")]
+    [DataRow("mixed")]
+    public void IntervalLabelsCannotSnapToTheirBoundaryOrSuppressDisagreement(string example)
+    {
+        var image = Image([24, 40, 56, 72], []);
+        byte[] pixels = image.Pixels.ToArray();
+        for (int y = 80; y < 86; y++)
+            foreach (int x in new[] { 30, 31, 46, 47 }) pixels[y * image.Stride + x] = 0;
+        if (example == "partial") pixels[82 * image.Stride + 53] = 0;
+        image = image with { Pixels = pixels };
+        var left = XLabel("one") with { Polygon = OcrPolygon.FromRectangle(new(29, 80, 6, 6)) };
+        var next = XLabel("two") with { Text = "2", Polygon = OcrPolygon.FromRectangle(new(45, 79, 7, 7)),
+            Alternatives = example == "disputed" ? [new("20", .8, OcrSourceImage.Original)] : [] };
+        var labels = new List<OcrRegion> { left, next, YLabel("upper"), YLabel("zero") with
+            { Text = "0", Polygon = OcrPolygon.FromRectangle(new(4, 54, 10, 12)) } };
+        if (example == "mixed") labels.Add(RowLabel("on-stroke", 72, "4"));
+        var axis = Axis();
+        var geometry = ProductionTickLabelGeometry.Resolve(axis, image, labels, default);
+        Assert.IsFalse(geometry.Positions.ContainsKey("two"), "A boundary must not become the point location of the interval's printed label.");
+        Assert.IsFalse(geometry.AttachedStrokeIds.Contains("one"));
+        var ocr = new OcrResult(OcrContract.Version, "run", "project", "panel", "ocr", "test", "hash",
+            OcrContract.CoordinateSpace, labels, [], new(0, 0, 0, 0), .95, [], new(false, "", 0, 0), null);
+        // Two series share the first and last session. One skips the middle session.
+        var markers = new[] { (32, 45, true), (48, 43, true), (64, 42, true), (32, 51, false), (64, 49, false) }
+            .Select((point, i) => new ClassifiedMarker(
+                new MarkerCenter($"p{i}", new MarkerPoint(point.Item1, point.Item2), 3, 0, .95, MarkerSourceImage.Original),
+                point.Item3 ? MarkerShape.Circle : MarkerShape.Square, point.Item3 ? MarkerFill.Filled : MarkerFill.Open,
+                "symbol", "Symbol", 0, .95, .95, new float[12])).ToArray();
+        var fit = ProductionAutomaticDetectionAdapter.FitCalibration(axis, ocr, geometry, markers, default);
+        Assert.AreEqual(3, fit.Lattice.Diagnostics.UniqueColumnCount);
+        Assert.AreEqual(example == "whole", fit.Validity == CalibrationValidity.Valid, string.Join(" | ", fit.Reasons));
+        if (example == "whole")
+            CollectionAssert.AreEqual(new double?[] { 1, 2, 3 }, fit.Lattice.Assignments.Select(a => a.PrintedX ?? a.EstimatedX).ToArray());
+    }
+
+
     private static OcrRegion RowLabel(string id, int x, string text, int y = 78) => XLabel(id) with
     {
         Text = text,

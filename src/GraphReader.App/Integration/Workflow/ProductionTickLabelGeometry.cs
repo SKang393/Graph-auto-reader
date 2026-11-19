@@ -11,7 +11,7 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Associates OCR labels with unique outward tick strokes in original pixels.</summary>
 internal static class ProductionTickLabelGeometry
 {
-    internal const string Version = "original-pixel-tick-label-association-v7-verify-y-stroke-seeds";
+    internal const string Version = "original-pixel-tick-label-association-v8-interval-centered-x-labels";
     private const double MaximumRelativeYTickLaneGap = 1.25d;
     private static readonly AxisGeometryOptions Options = new();
 
@@ -45,7 +45,22 @@ internal static class ProductionTickLabelGeometry
             for (int x = 0; x < image.Width; x++) sum += pixels[y * image.Stride + x];
         }
         int threshold = Math.Clamp((int)Math.Round(sum / ((double)image.Width * image.Height) * 0.80), 32, 224);
-        var row = ProductionPrintedXTickRow.Find(axis, image, labels, regions, masks ?? [], threshold, Options, cancellationToken);
+        var xStrokes = labels.Any(label => label.Role == OcrTextRole.XTick)
+            ? ProductionAttachedTickStroke.Find(axis, image, true, threshold, Options, cancellationToken) : [];
+        var row = ProductionPrintedXTickRow.Find(axis, image, labels, regions, masks ?? [], xStrokes, Options, cancellationToken);
+        var intervalLabels = FindIntervalLabels(image, labels, xStrokes, threshold, cancellationToken);
+        if (intervalLabels.Count > 0)
+        {
+            var intervalBoxes = labels.Where(label => intervalLabels.ContainsKey(label.RegionId))
+                .Select(label => label.Polygon.Bounds).ToArray();
+            bool consistentRow = intervalBoxes.Length >= 2 &&
+                intervalBoxes.Max(box => box.Top) < intervalBoxes.Min(box => box.Bottom) &&
+                intervalLabels.Values.Select(pair => (pair.Left, pair.Right)).Distinct().Count() == intervalBoxes.Length &&
+                labels.Where(label => label.Role == OcrTextRole.XTick && label.SourceImage == OcrSourceImage.Original &&
+                    GraphNumericParser.IsLiteralGraphNumber(label.Text)).All(label => intervalLabels.ContainsKey(label.RegionId));
+            if (!consistentRow)
+                warnings.Add("ocr_tick_sequence_needs_review:XTick:unconfirmed_interval_layout");
+        }
         if (row is not null)
         {
             warnings.Add($"tick_label_attached_x_row:{row.StrokeCount}:{row.Positions.Count}");
@@ -59,6 +74,15 @@ internal static class ProductionTickLabelGeometry
             bool vertical = label.Role == OcrTextRole.YTick;
             OcrRectangle box = label.Polygon.Bounds;
             GeometryLineSegment line = vertical ? axis.YAxis.Line : axis.XAxis.Line;
+            if (intervalLabels.TryGetValue(label.RegionId, out var interval))
+            {
+                if (interval.ExtraInk) warnings.Add($"ocr_tick_sequence_needs_review:XTick:incomplete_interval_crop:{label.RegionId}");
+                // The observed glyph is between ticks. Preserve its existing center estimate;
+                // neither physical boundary is a measured coordinate for this printed value.
+                warnings.Add(FormattableString.Invariant(
+                    $"tick_label_estimated_interval_center:{label.RegionId}:{interval.Left:R}:{box.Center.X:R}:{interval.Right:R}"));
+                continue;
+            }
             if (!vertical && row is not null && label.SourceImage == OcrSourceImage.Original)
             {
                 if (row.Positions.TryGetValue(label.RegionId, out double x))
@@ -158,6 +182,47 @@ internal static class ProductionTickLabelGeometry
         return new(new ReadOnlyDictionary<string, double>(measured.ToDictionary(
             static item => item.Key, static item => item.Value.Center, StringComparer.Ordinal)),
             Array.AsReadOnly(warnings.ToArray())) { PrintedXRow = row, AttachedStrokeIds = attached };
+    }
+
+    private static Dictionary<string, (double Left, double Right, bool ExtraInk)> FindIntervalLabels(
+        OcrImage image, IReadOnlyList<OcrRegion> labels, List<ProductionAttachedTickStroke> strokes,
+        int threshold, CancellationToken token)
+    {
+        var result = new Dictionary<string, (double, double, bool)>(StringComparer.Ordinal);
+        foreach (var label in labels)
+        {
+            token.ThrowIfCancellationRequested();
+            var box = label.Polygon.Bounds;
+            if (label.Role != OcrTextRole.XTick || label.SourceImage != OcrSourceImage.Original ||
+                label.ReviewStatus != OcrReviewStatus.Unreviewed || !GraphNumericParser.IsLiteralGraphNumber(label.Text) ||
+                !box.IsValid || box.Left < 0 || box.Top < 0 || box.Right > image.Width || box.Bottom > image.Height) continue;
+            for (int i = 1; i < strokes.Count; i++)
+            {
+                token.ThrowIfCancellationRequested();
+                var left = strokes[i - 1];
+                var right = strokes[i];
+                double middle = (left.Position + right.Position) / 2;
+                if (box.Left <= left.Last || box.Right >= right.First || middle < box.Left || middle > box.Right ||
+                    box.Top <= Math.Max(left.Tip, right.Tip) || box.Top - Math.Min(left.Tip, right.Tip) > 2 * box.Height)
+                    continue;
+                // Check the original label band, including both edges of the cell. An OCR
+                // fragment inside a wider number cannot establish an interval on its own.
+                bool glyphInk = false, outsideInk = false;
+                for (int y = (int)Math.Ceiling(box.Top); y < box.Bottom && !(glyphInk && outsideInk); y++)
+                {
+                    token.ThrowIfCancellationRequested();
+                    for (int x = left.Last; x <= right.First; x++)
+                    {
+                        if (image.Pixels.Span[y * image.Stride + x] > threshold) continue;
+                        if (x < box.Left || x >= box.Right) outsideInk = true;
+                        else glyphInk = true;
+                    }
+                }
+                if (glyphInk) result.Add(label.RegionId, (left.Position, right.Position, outsideInk));
+                break;
+            }
+        }
+        return result;
     }
 
     private static void AddOutlyingYTickWarnings(

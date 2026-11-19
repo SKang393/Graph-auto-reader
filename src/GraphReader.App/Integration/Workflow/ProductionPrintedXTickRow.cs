@@ -18,7 +18,8 @@ internal sealed record ProductionPrintedXTickRow(
     private sealed record Anchor(OcrRegion Label, ProductionAttachedTickStroke Stroke, double AxisY);
 
     internal static ProductionPrintedXTickRow? Find(AxisGeometryResult axis, OcrImage image,
-        IReadOnlyList<OcrRegion> labels, IReadOnlyList<OcrRegion> regions, IReadOnlyList<OcrMask> masks, int threshold,
+        IReadOnlyList<OcrRegion> labels, IReadOnlyList<OcrRegion> regions, IReadOnlyList<OcrMask> masks,
+        IReadOnlyList<ProductionAttachedTickStroke> strokes,
         AxisGeometryOptions options, CancellationToken token)
     {
         var line = axis.XAxis.Line;
@@ -29,7 +30,6 @@ internal sealed record ProductionPrintedXTickRow(
         double AxisY(double x) => line.Start.Y + (x - line.Start.X) *
             (line.End.Y - line.Start.Y) / (line.End.X - line.Start.X);
 
-        var strokes = ProductionAttachedTickStroke.Find(axis, image, true, threshold, options, token);
         if (strokes.Count < 3) return null;
         var anchors = new List<Anchor>();
         var ambiguous = new List<OcrRegion>();
