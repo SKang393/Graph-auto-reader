@@ -8,6 +8,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
+using GraphReader.App.Services;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.Axis;
 using GraphReader.Export;
@@ -1643,12 +1645,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             await workspace.ImportImagesAsync([path], CancellationToken.None);
             var project = workspace.CurrentProject;
             var store = new ProductionWorkflowPanelStore();
-            var adapter = new ProductionAutomaticDetectionAdapter(store, new ProductionRasterFrameDecoder(),
-                new AxisAdapter(), new OcrAdapter(originalIsBlack: false, transformRegions: regions => MeasuredTickLabels(regions, scenario)), new MaskComposer(),
-                new CenterAdapter(), new ClassificationAdapter(), new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
-            var workflow = new WorkflowOrchestrator(new WorkflowServiceSet(
-                new ProductionWorkflowImportStage(store, new ImageImportService()), new ProductionWorkflowPrepareStage(store),
-                new ProductionWorkflowDetectionStage(store, adapter), new ProductionWorkflowExportStage(store, new ExportService())));
+            var workflow = MeasuredTickWorkflow(store, scenario);
             var request = new WorkflowRunRequest(Guid.NewGuid(), new WorkflowImportRequest(project.ProjectId.Value,
                 [new WorkflowSourceRequest(project.Sources.Single().SourceId.Value, WorkflowSourceKind.Image, path)], false));
             if (!valid)
@@ -1689,6 +1686,50 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             dir.Delete(recursive: true);
         }
     }
+
+    private static WorkflowOrchestrator MeasuredTickWorkflow(ProductionWorkflowPanelStore store, string scenario)
+    {
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new ProductionRasterFrameDecoder(),
+            new AxisAdapter(), new OcrAdapter(originalIsBlack: false, transformRegions: regions => MeasuredTickLabels(regions, scenario)), new MaskComposer(),
+            new CenterAdapter(), new ClassificationAdapter(), new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+        return new WorkflowOrchestrator(new WorkflowServiceSet(
+            new ProductionWorkflowImportStage(store, new ImageImportService()), new ProductionWorkflowPrepareStage(store),
+            new ProductionWorkflowDetectionStage(store, adapter), new ProductionWorkflowExportStage(store, new ExportService())));
+    }
+
+    [TestMethod]
+    public void DetectionCheckpointsProjectPointsAndDividersOnTheWorkspaceDispatcher() => StaTestHost.Run(() =>
+    {
+        var dispatcher = Dispatcher.CurrentDispatcher;
+        var frame = new DispatcherFrame();
+        Task run = VerifyAsync();
+        run.GetAwaiter().OnCompleted(() => frame.Continue = false);
+        if (!run.IsCompleted) Dispatcher.PushFrame(frame);
+        run.GetAwaiter().GetResult();
+
+        async Task VerifyAsync()
+        {
+            var dir = Directory.CreateTempSubdirectory("graphreader-dispatcher-review-");
+            try
+            {
+                string path = Path.Combine(dir.FullName, "control.png");
+                WriteMeasuredTickControl(path, false);
+                var store = new ProductionWorkflowPanelStore();
+                string[] stages = ["axis", "ocr", "markers", "legends", "phases"];
+                using var workspace = new ProductionWorkspaceService(panelStore: store,
+                    workflowOrchestrator: MeasuredTickWorkflow(store, "confirmed"),
+                    automaticStages: stages.Select(stage => new AutomaticStageStatus(stage, AutomaticStageState.Available, "fixture")).ToArray());
+                var tab = (await workspace.ImportImagesAsync([path], CancellationToken.None)).Single();
+                int pointUpdates = 0, dividerUpdates = 0;
+                tab.Points.CollectionChanged += (_, _) => { dispatcher.VerifyAccess(); pointUpdates++; };
+                tab.PhaseDividers.CollectionChanged += (_, _) => { dispatcher.VerifyAccess(); dividerUpdates++; };
+                var result = await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+                Assert.IsTrue(tab.Points.Count > 0 && pointUpdates > 0 && dividerUpdates > 0);
+                Assert.AreSame(result, workspace.LastAutomaticRun);
+            }
+            finally { dir.Delete(recursive: true); }
+        }
+    });
 
     [TestMethod]
     public void ReviewedExportPreservesDeclaredBaselineAndProbeLinksForValidation()

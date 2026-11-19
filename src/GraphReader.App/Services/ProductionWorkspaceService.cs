@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using System.Security.Cryptography;
 using System.IO;
 using System.Text.Json.Serialization;
+using System.Windows.Threading;
 
 using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Localization;
@@ -766,6 +767,10 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                 "Automatic detection is not composed with approved production adapters.");
         }
 
+        // Model stages run off the UI thread. Project their checkpoints on the caller's
+        // WPF dispatcher because the workspace collections already have live visual subscribers.
+        var dispatcher = SynchronizationContext.Current is DispatcherSynchronizationContext
+            ? Dispatcher.CurrentDispatcher : null;
         WorkflowRunResult result;
         if (_automaticWorkflow is not null)
         {
@@ -773,7 +778,7 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
             {
                 result = await _automaticWorkflow(
                     LastAutomaticRun?.Review,
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(dispatcher is not null);
                 cancellationToken.ThrowIfCancellationRequested();
             }
             catch (ProductionWorkflowStageException exception)
@@ -801,41 +806,56 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
             };
             WorkflowRunResult? accumulated = LastAutomaticRun;
             var completedPanelIds = new HashSet<Guid>();
-            try
+            void ProjectCheckpoint(WorkflowRunResult checkpoint)
             {
-            result = await _workflowOrchestrator!.RunThroughReviewAsync(
-                request,
-                LastAutomaticRun?.Review,
-                (checkpoint, _) =>
+                ProductionReviewProjectionResult checkpointProjection =
+                    ProjectProductionReview(checkpoint, _panelStore);
+                if (!checkpointProjection.Succeeded)
                 {
-                    ProductionReviewProjectionResult checkpointProjection =
-                        ProjectProductionReview(checkpoint, _panelStore);
-                    if (!checkpointProjection.Succeeded)
-                    {
-                        throw new ProductionWorkflowStageException(
-                            checkpointProjection.Failure ?? new ProductionWorkflowFailure(
-                                ProductionWorkflowFailureCodes.ReviewProjectionRejected,
-                                "Errors.ProductionReviewProjectionRejected",
-                                "A completed production batch panel could not be checkpointed.",
-                                Recoverable: true,
-                                "Keep prior completed panels and rerun automatic detection."));
-                    }
+                    throw new ProductionWorkflowStageException(
+                        checkpointProjection.Failure ?? new ProductionWorkflowFailure(
+                            ProductionWorkflowFailureCodes.ReviewProjectionRejected,
+                            "Errors.ProductionReviewProjectionRejected",
+                            "A completed production batch panel could not be checkpointed.",
+                            Recoverable: true,
+                            "Keep prior completed panels and rerun automatic detection."));
+                }
 
-                    WorkflowRunResult projectedCheckpoint = checkpointProjection.ProjectedRun ??
-                        throw new InvalidOperationException(
-                            "A successful production batch checkpoint returned no projected run.");
-                    MarkCurrentProductionPanels(projectedCheckpoint.Review.Panels);
-                    accumulated = MergeCheckpoint(accumulated, projectedCheckpoint);
-                    LastAutomaticRun = accumulated;
-                    completedPanelIds.Add(projectedCheckpoint.Review.Panels.Single().PanelId);
-                    return Task.CompletedTask;
-                },
-                cancellationToken,
-                panelId =>
+                WorkflowRunResult projectedCheckpoint = checkpointProjection.ProjectedRun ??
+                    throw new InvalidOperationException(
+                        "A successful production batch checkpoint returned no projected run.");
+                MarkCurrentProductionPanels(projectedCheckpoint.Review.Panels);
+                accumulated = MergeCheckpoint(accumulated, projectedCheckpoint);
+                LastAutomaticRun = accumulated;
+                completedPanelIds.Add(projectedCheckpoint.Review.Panels.Single().PanelId);
+            }
+
+            Task ApplyCheckpointAsync(WorkflowRunResult checkpoint, CancellationToken token)
+            {
+                token.ThrowIfCancellationRequested();
+                if (dispatcher is not null && !dispatcher.CheckAccess())
+                    return dispatcher.InvokeAsync(() => ProjectCheckpoint(checkpoint),
+                        DispatcherPriority.Normal, token).Task;
+                ProjectCheckpoint(checkpoint);
+                return Task.CompletedTask;
+            }
+
+            void RecordFailure(Guid panelId)
+            {
+                void MarkForReview()
                 {
                     RestoreFailedPanelEvidence(priorEvidence, panelId);
                     SetAnalysisReviewWarning(panelId, needsReview: true);
-                }).ConfigureAwait(false);
+                }
+                if (dispatcher is not null && !dispatcher.CheckAccess()) dispatcher.Invoke(MarkForReview);
+                else MarkForReview();
+            }
+
+            try
+            {
+                result = await _workflowOrchestrator!.RunThroughReviewAsync(
+                    request, LastAutomaticRun?.Review, ApplyCheckpointAsync, cancellationToken, RecordFailure)
+                    .ConfigureAwait(dispatcher is not null);
             }
             catch (ProductionWorkflowStageException exception) when (
                 exception.Failure.UserMessageKey == LocalizationKeys.PromotedMarkerAnalysisBlocked)
