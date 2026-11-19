@@ -427,6 +427,7 @@ public sealed class ExportServiceAcceptanceTests
         {
             SourceStage = "@manual",
             ModelVersion = "-candidate",
+            ReviewEvidence = new ExportReviewEvidence("+action", "=source", "@label"),
         };
         var scenario = new Scenario(
             [Phase(PhaseB, 1, phaseCode, ExportPhaseType.Intervention)],
@@ -453,7 +454,7 @@ public sealed class ExportServiceAcceptanceTests
         StringAssert.Contains(
             auditCsv.Content,
             "\"' \t-HYPERLINK(\"\"https://example.invalid\"\",\"\"label\"\")\"");
-        StringAssert.Contains(auditCsv.Content, ",'@manual,'-candidate\n");
+        StringAssert.Contains(auditCsv.Content, ",'@manual,'-candidate,'+action,'=source,'@label\n");
         StringAssert.Contains(auditCsv.Content, "1,-1E-12,");
 
         ExtendedAuditArtifact auditJson = Audit(result, InterventionOneId, ExportAuditArtifactFormat.Json);
@@ -464,6 +465,9 @@ public sealed class ExportServiceAcceptanceTests
         Assert.AreEqual(seriesName, jsonRow.GetProperty("series_name").GetString());
         Assert.AreEqual("@manual", jsonRow.GetProperty("source_stage").GetString());
         Assert.AreEqual("-candidate", jsonRow.GetProperty("model_version").GetString());
+        Assert.AreEqual("+action", jsonRow.GetProperty("point_review_actions").GetString());
+        Assert.AreEqual("=source", jsonRow.GetProperty("phase_source").GetString());
+        Assert.AreEqual("@label", jsonRow.GetProperty("phase_label_review").GetString());
     }
 
     [TestMethod]
