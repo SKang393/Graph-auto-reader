@@ -895,7 +895,15 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 DomainEventKind.CalibrationChanged,
                 Guid.Parse(tab.PanelId!),
                 entityId: null,
-                "Manual three-anchor calibration");
+                "Manual three-anchor calibration",
+                request.ReviewedTickEvidence is { } draft ? JsonSerializer.SerializeToElement(new
+                {
+                    method = "reviewed_measured_ticks", run_id = draft.Evidence.RunId, original_sha256 = draft.Evidence.InputSha256,
+                    measured = new { left_x = draft.LeftX, right_x = draft.RightX, zero_y = draft.ZeroY, upper_y = draft.UpperY,
+                        upper_reading = draft.UpperValue, left_readings = draft.LeftReadings, right_readings = draft.RightReadings },
+                    confirmed = new { first_x = request.FirstVisibleSession, last_x = request.XMaximum, upper_y = request.YMaximum,
+                        anchors = new[] { request.Session1Y0, request.Session1YMaximum, request.SessionMaximumY0 } },
+                }) : null);
         }
         finally
         {

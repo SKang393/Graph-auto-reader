@@ -1068,6 +1068,10 @@
                       automation:AutomationProperties.AutomationId="Manual.AxisDraft.Dismiss"
                       automation:AutomationProperties.Name="{DynamicResource Manual.AxisDismiss}" />
             </StackPanel>
+            <Button Margin="0,0,0,8" Visibility="{Binding SelectedTab.HasMeasuredSuggestion, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                    Command="{Binding ReviewMeasuredTicksCommand}" Content="{DynamicResource Review.MeasuredTicks}"
+                    Style="{DynamicResource App.Style.Button}" automation:AutomationProperties.AutomationId="Review.MeasuredTicks"
+                    automation:AutomationProperties.Name="{DynamicResource Review.MeasuredTicks}" />
             <StackPanel Visibility="{Binding HasAxisSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
               <TextBlock Margin="0,0,0,6" Text="{DynamicResource Manual.AxisDraft.Ready}" TextWrapping="Wrap"
                          Visibility="{Binding IsManualAxisDraft, Converter={StaticResource BooleanToVisibilityConverter}}" />

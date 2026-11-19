@@ -22,6 +22,7 @@ public sealed partial class MainWindowViewModel
     private int _axisSuggestionGeneration;
     private bool _suggestedUsesPrintedXCoordinates;
     public ICommand SuggestAxesCommand { get; private set; } = null!;
+    public ICommand ReviewMeasuredTicksCommand { get; private set; } = null!;
     public ICommand ApplyAxisSuggestionCommand { get; private set; } = null!;
     public ICommand DismissAxisSuggestionCommand { get; private set; } = null!;
     public bool HasAxisSuggestion => _axisSuggestion is not null;
@@ -121,15 +122,25 @@ public sealed partial class MainWindowViewModel
             RelayCommand.RaiseCanExecuteChanged();
         }
     }
-    public string AxisSuggestionSummary => _suggestedAnchors.Length == 3
+    public string AxisSuggestionSummary => (_axisSuggestion?.MeasuredDraft is { } measured
+        ? FormatLocalizedString(LocalizationKeys.MeasuredTickReviewHelp, measured.LeftReadings, measured.RightReadings) + "\n"
+        : string.Empty) + (_suggestedAnchors.Length == 3
         ? FormatLocalizedString(SuggestedUsesPrintedXCoordinates ? LocalizationKeys.ManualPrintedXPositions : LocalizationKeys.ManualAxisPositions,
             _suggestedAnchors[0].X.ToString("0.##", CultureInfo.CurrentCulture), _suggestedAnchors[0].Y.ToString("0.##", CultureInfo.CurrentCulture),
             _suggestedAnchors[1].X.ToString("0.##", CultureInfo.CurrentCulture), _suggestedAnchors[1].Y.ToString("0.##", CultureInfo.CurrentCulture),
-            _suggestedAnchors[2].X.ToString("0.##", CultureInfo.CurrentCulture), _suggestedAnchors[2].Y.ToString("0.##", CultureInfo.CurrentCulture)) : "";
+            _suggestedAnchors[2].X.ToString("0.##", CultureInfo.CurrentCulture), _suggestedAnchors[2].Y.ToString("0.##", CultureInfo.CurrentCulture)) : "");
 
     private void InitializeAxisSuggestionCommands()
     {
         InitializeAxisCandidateCommands();
+        ReviewMeasuredTicksCommand = new RelayCommand(_ =>
+        {
+            if (SelectedTab?.MeasuredSuggestion is not { } suggestion ||
+                _workspaceService is not IAxisSuggestionWorkspace workspace || !workspace.IsAxisSuggestionCurrent(suggestion)) return;
+            ClearAxisSuggestion();
+            SetAxisSuggestion(suggestion);
+        }, _ => !IsBusy && SelectedTab?.MeasuredSuggestion is { } s && _workspaceService is IAxisSuggestionWorkspace w &&
+            w.IsAxisSuggestionCurrent(s));
         BeginManualAxisDraftCommand = new RelayCommand(_ => BeginManualAxisDraft(),
             _ => !IsBusy && SelectedTab is not null && _manualWorkspaceService is not null &&
                 _workspaceService is IManualAxisDraftWorkspace { CanCreateManualAxisDraft: true } &&
@@ -179,7 +190,15 @@ public sealed partial class MainWindowViewModel
     private void SetAxisSuggestion(WorkspaceAxisSuggestion suggestion)
     {
         _axisSuggestion = suggestion;
-        if (suggestion.AffineGeometry is { } frame && suggestion.Geometry is null)
+        if (suggestion.MeasuredDraft is { } draft)
+        {
+            _suggestedAnchors = [new(draft.LeftX, draft.ZeroY), new(draft.LeftX, draft.UpperY), new(draft.RightX, draft.ZeroY)];
+            SetSuggestedPrintedXCoordinates(true);
+            SuggestedFirstSession = SuggestedFinalSession = string.Empty;
+            SuggestedYMaximum = draft.UpperValue.ToString("R", CultureInfo.InvariantCulture);
+            AxisSuggestionReviewed = false;
+        }
+        else if (suggestion.AffineGeometry is { } frame && suggestion.Geometry is null)
         {
             _calibrationAnchors.Clear();
             _suggestedAnchors = [new(frame.Origin.X, frame.Origin.Y), new(frame.YEnd.X, frame.YEnd.Y), new(frame.XEnd.X, frame.XEnd.Y)];
@@ -225,11 +244,13 @@ public sealed partial class MainWindowViewModel
 
         WorkspaceTabSnapshot before = CaptureTabSnapshot(tab);
         bool printedX = SuggestedUsesPrintedXCoordinates;
+        var measured = _axisSuggestion?.MeasuredDraft;
         _manualWorkspaceService.Calibrate(tab.TabId, new ManualCalibrationRequest(
             new(_suggestedAnchors[0].X, _suggestedAnchors[0].Y),
             new(_suggestedAnchors[1].X, _suggestedAnchors[1].Y),
             new(_suggestedAnchors[2].X, _suggestedAnchors[2].Y), y, final, first)
-            { UsesPrintedXCoordinates = printedX, PreserveAffineGeometry = HasAffineAxisSuggestion });
+            { UsesPrintedXCoordinates = printedX, PreserveAffineGeometry = HasAffineAxisSuggestion, ReviewedTickEvidence = measured });
+        if (measured is not null) tab.MeasuredSuggestion = null;
         ClearMarkerExemplarProposals(updateSample: true);
         ManualUsesPrintedXCoordinates = printedX;
         ManualYMaximum = y;

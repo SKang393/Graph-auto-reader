@@ -14,6 +14,7 @@ public sealed record WorkspaceAxisSuggestion(string TabId, string Binding, RustA
 {
     public RustAffineAxisGeometry? AffineGeometry { get; init; }
     internal object? OriginalImageIdentity { get; init; }
+    internal MeasuredCalibrationDraft? MeasuredDraft { get; init; }
     public bool IsUserDefined { get; init; }
     public string Provider { get; init; } = "rust";
     public IReadOnlyList<string> ReviewReasons { get; init; } = Array.Empty<string>();
@@ -198,6 +199,20 @@ public partial class ManualPreviewWorkspaceService : IManualAxisDraftWorkspace
                 "The detected axis geometry is rotated beyond the review representation.", true, "Mark axes manually and review the calibration."),
             _ => null,
         };
+    }
+
+    internal WorkspaceAxisSuggestion? BindMeasuredDraft(WorkspaceTabViewModel tab, MeasuredCalibrationDraft draft)
+    {
+        if (tab.Calibration is not null || !_tabs.Contains(tab) || !_originalPanelBytesByTab.TryGetValue(tab.TabId, out var image) ||
+            draft.Evidence.ProjectId != CurrentProject.ProjectId.Value || draft.Evidence.PanelId.ToString() != tab.PanelId ||
+            !string.Equals(draft.Evidence.InputSha256, tab.SourceSha256, StringComparison.OrdinalIgnoreCase) ||
+            !(draft.LeftX >= 0 && draft.RightX > draft.LeftX && draft.RightX <= tab.PixelWidth - 1 &&
+              draft.UpperY >= 0 && draft.ZeroY > draft.UpperY && draft.ZeroY <= tab.PixelHeight - 1 &&
+              double.IsFinite(draft.UpperValue) && draft.UpperValue > 0)) return null;
+        var bounds = new RustAxisGeometry((int)Math.Floor(draft.LeftX), (int)Math.Ceiling(draft.ZeroY),
+            (int)Math.Ceiling(draft.RightX), (int)Math.Floor(draft.UpperY), 0);
+        return new(tab.TabId, AxisSuggestionBinding(tab), bounds)
+            { OriginalImageIdentity = image, Provider = "measured-review", MeasuredDraft = draft };
     }
 
     public bool IsAxisSuggestionCurrent(WorkspaceAxisSuggestion suggestion)

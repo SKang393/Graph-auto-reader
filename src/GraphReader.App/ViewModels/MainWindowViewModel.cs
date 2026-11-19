@@ -2495,6 +2495,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         StatusMessageKey = statusMessageKey;
         if (stage == WorkflowStage.Detect)
         {
+            if (_axisSuggestion?.MeasuredDraft is not null) ClearAxisSuggestion();
+            foreach (var tab in Tabs) tab.MeasuredSuggestion = null;
             foreach (ManualReviewOverlay overlay in Tabs.Select(tab => tab.OverlayContent).OfType<ManualReviewOverlay>())
                 if (overlay.HasUncalibratedMarkers) overlay.SetUncalibratedMarkers([]);
             SurfaceState = WorkspaceSurfaceState.Analyzing;
@@ -2564,6 +2566,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                     ? identified ? LocalizationKeys.DetectionCalibrationPartial : LocalizationKeys.DetectionCalibrationPartialPanelUnknown
                     : !identified ? LocalizationKeys.DetectionCalibrationPanelUnknown
                     : productionFailure.FailedCalibrationPanelCount > 1 ? LocalizationKeys.DetectionCalibrationMultiple
+                    : SelectedTab?.HasMeasuredSuggestion == true ? LocalizationKeys.MeasuredTickRecovery
                     : LocalizationKeys.DetectionCalibrationRequired;
                 LastOperationStatus = LastOperationStatus! with
                 {
@@ -2652,6 +2655,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                     if (tab.OverlayContent is ManualReviewOverlay overlay)
                         overlay.SetUncalibratedMarkers(previews[0].Centers.Select(p => new Point(p.X, p.Y)).ToArray());
                 }
+                var drafts = failure.CalibrationDrafts.Where(d => panelEvidence.Contains(d.Evidence)).ToArray();
+                tab.MeasuredSuggestion = drafts.Length == 1 && _manualWorkspaceService is ManualPreviewWorkspaceService workspace
+                    ? workspace.BindMeasuredDraft(tab, drafts[0]) : null;
                 first ??= tab;
             }
         }

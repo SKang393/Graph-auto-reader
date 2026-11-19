@@ -45,6 +45,9 @@ public static class LocalizationKeys
     public const string ProductionWorkflowUnavailable = "Errors.ProductionWorkflowUnavailable";
     public const string DetectionCalibrationRequired = "Errors.DetectionCalibrationRequired";
     public const string UncalibratedMarkers = "Review.UncalibratedMarkers";
+    public const string MeasuredTickReview = "Review.MeasuredTicks";
+    public const string MeasuredTickRecovery = "Review.MeasuredTicks.Recovery";
+    public const string MeasuredTickReviewHelp = "Review.MeasuredTicks.Help";
     public const string UncalibratedMarkersHelp = "Review.UncalibratedMarkers.Help";
     public const string DetectionCalibrationPanelUnknown = "Errors.DetectionCalibrationPanelUnknown";
     public const string DetectionCalibrationPartial = "Errors.DetectionCalibrationPartial";
@@ -506,6 +509,9 @@ public static class LocalizationKeys
         ProductionWorkflowUnavailable,
         DetectionCalibrationRequired,
         UncalibratedMarkers,
+        MeasuredTickReview,
+        MeasuredTickRecovery,
+        MeasuredTickReviewHelp,
         UncalibratedMarkersHelp,
         DetectionCalibrationPanelUnknown,
         DetectionCalibrationPartial,

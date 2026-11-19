@@ -83,6 +83,7 @@ public sealed class ProductionWorkflowStageException : InvalidOperationException
     public IReadOnlyList<IReadOnlyList<WorkflowVisionEnvelope>> FailedCalibrationPanelEvidence { get; }
 
     internal IReadOnlyList<UncalibratedMarkerPreview> MarkerPreviews { get; init; } = [];
+    internal IReadOnlyList<MeasuredCalibrationDraft> CalibrationDrafts { get; init; } = [];
 }
 
 internal sealed record UncalibratedMarkerPreview(

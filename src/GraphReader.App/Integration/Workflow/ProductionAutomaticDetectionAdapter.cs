@@ -591,7 +591,7 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
                         centers.CandidateDiagnostics?.AboveThresholdDecodedPoints ?? [],
                         centers.CandidateDiagnostics?.PreNmsCandidates ?? [])));
             }
-            RequireCompleteCalibration(calibration, chain, acceptedMarkers);
+            RequireCompleteCalibration(calibration, chain, acceptedMarkers, axis.Geometry, ocr.Result, tickGeometry, request.ImageVariant);
 
             MarkerGroupingState grouping = await GroupMarkersAsync(
                     request,
@@ -1601,7 +1601,8 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
     private static void RequireCompleteCalibration(
         SessionFirstCalibrationResult calibration,
         ProductionDetectionEvidenceChain chain,
-        IReadOnlyList<ClassifiedMarker> markers)
+        IReadOnlyList<ClassifiedMarker> markers, AxisGeometryResult axis, OcrResult ocr, TickLabelGeometryResult tickGeometry,
+        WorkflowImageVariant imageVariant)
     {
         bool complete = calibration.Validity == CalibrationValidity.Valid &&
             calibration.YTransform.IsValid &&
@@ -1612,6 +1613,8 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
         if (!complete)
         {
             var evidence = chain.Snapshot;
+            var draft = imageVariant == WorkflowImageVariant.Original
+                ? MeasuredCalibrationDraft.From(evidence[^1], axis, ocr, tickGeometry, calibration) : null;
             throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
                 ProductionWorkflowFailureCodes.RecalibrationRequired,
                 "Errors.CalibrationInvalid",
@@ -1622,6 +1625,7 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
                 "Retain detected evidence and complete the three required calibration anchors manually."), evidence)
             {
                 MarkerPreviews = [new(evidence[^1], Array.AsReadOnly(markers.Select(marker => marker.Marker.Center).ToArray()))],
+                CalibrationDrafts = draft is null ? [] : [draft],
             };
         }
     }
@@ -2256,7 +2260,7 @@ public sealed partial class ProductionAutomaticDetectionAdapter :
                 item.Model?.Sha256), StringComparer.Ordinal)
             .Select(static group => group.First())
             .ToArray();
-        return new ProductionWorkflowStageException(exception.Failure, evidence) { MarkerPreviews = exception.MarkerPreviews };
+        return new ProductionWorkflowStageException(exception.Failure, evidence) { MarkerPreviews = exception.MarkerPreviews, CalibrationDrafts = exception.CalibrationDrafts };
     }
 
     private static ProductionWorkflowStageException Failure(

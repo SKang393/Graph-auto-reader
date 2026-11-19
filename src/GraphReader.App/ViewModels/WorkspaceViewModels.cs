@@ -193,6 +193,13 @@ public sealed class SeriesCardViewModel : ObservableObject
 
 public sealed class WorkspaceTabViewModel : ObservableObject
 {
+    private WorkspaceAxisSuggestion? _measuredSuggestion;
+    internal WorkspaceAxisSuggestion? MeasuredSuggestion
+    {
+        get => _measuredSuggestion;
+        set { _measuredSuggestion = value; OnPropertyChanged(nameof(HasMeasuredSuggestion)); }
+    }
+    public bool HasMeasuredSuggestion => _measuredSuggestion is not null;
     private object? _overlayContent;
     private double _zoomLevel = 1;
     private bool _isDirty;

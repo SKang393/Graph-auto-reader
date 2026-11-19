@@ -46,6 +46,9 @@
   <sys:String x:Key="Errors.ProductionWorkflowUnavailable">Production digitization is unavailable in this internal build because approved workflow adapters and models are missing.</sys:String>
   <sys:String x:Key="Errors.DetectionCalibrationRequired">Automatic calibration needs review. Calibrate the selected graph, then run Analyze again.</sys:String>
   <sys:String x:Key="Review.UncalibratedMarkers">Show uncalibrated marker candidates</sys:String>
+  <sys:String x:Key="Review.MeasuredTicks">Review measured tick positions</sys:String>
+  <sys:String x:Key="Review.MeasuredTicks.Recovery">Choose “Review measured tick positions” in the inspector to confirm the printed scale. Then add the points and phase dividers for your series.</sys:String>
+  <sys:String x:Key="Review.MeasuredTicks.Help">Check the horizontal and vertical alignment and the zero and upper Y labels on the image. Enter the printed X values at the marked left and right positions. OCR readings at left: {0}. At right: {1}.</sys:String>
   <sys:String x:Key="Review.UncalibratedMarkers.Help">Dashed boxes show pixel locations for review only.</sys:String>
   <sys:String x:Key="Errors.DetectionCalibrationPanelUnknown">Automatic calibration needs review, but the affected graph could not be identified. Review the graph tabs before running Analyze again.</sys:String>
   <sys:String x:Key="Errors.DetectionCalibrationPartial">Some graphs completed and were kept. Calibrate the selected graph, then run Analyze again. Other graphs may also need calibration.</sys:String>

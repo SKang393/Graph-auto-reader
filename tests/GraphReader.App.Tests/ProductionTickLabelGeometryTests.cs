@@ -349,6 +349,53 @@ public sealed class ProductionTickLabelGeometryTests
         }
     }
 
+    [TestMethod]
+    [DataRow("measured", true)]
+    [DataRow("detached", false)]
+    [DataRow("disputed-y", false)]
+    [DataRow("skew", false)]
+    [DataRow("uncertain-geometry", false)]
+    public void MeasuredCalibrationDraftRequiresAttachedOriginalTicksAndVerifiedVerticalScale(string example, bool offered)
+    {
+        var axis = Axis();
+        var image = RowImage();
+        byte[] pixels = image.Pixels.ToArray();
+        var labels = new List<OcrRegion> { RowLabel("left", 30, "1") with
+            { Alternatives = [new("10", .8, OcrSourceImage.Original)] }, RowLabel("mid", 50, "3"), RowLabel("right", 70, "5") };
+        for (int y = 20; y <= 60; y += 10)
+        {
+            if (example != "detached")
+                for (int x = 15; x <= 20; x++) pixels[y * image.Stride + x] = 0;
+            labels.Add(YLabel($"y{y}") with
+            {
+                Text = (60 - y).ToString(System.Globalization.CultureInfo.InvariantCulture),
+                Polygon = OcrPolygon.FromRectangle(new(3, y - 3, 9, 6)),
+                Alternatives = example == "disputed-y" && y == 60 ? [new("70", .9, OcrSourceImage.Original)] : [],
+            });
+        }
+        var geometry = ProductionTickLabelGeometry.Resolve(axis, image with { Pixels = pixels }, labels, default);
+        if (example == "skew") axis = axis with { PlotPolygon = axis.PlotPolygon with { TopLeft = new(29, 10) } };
+        if (example == "uncertain-geometry") axis = axis with { Uncertainty = axis.Uncertainty with { NeedsReview = true } };
+        var ocr = new OcrResult(OcrContract.Version, "run", "project", "panel", "ocr", "test", "hash",
+            OcrContract.CoordinateSpace, labels, [], new(0, 0, 0, 0), .95, [], new(false, "", 0, 0), null);
+        var fit = ProductionAutomaticDetectionAdapter.FitCalibration(axis, ocr, geometry, [], default);
+        var envelope = new WorkflowVisionEnvelope(1, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            "markers", "test", new string('c', 64), null, new(0, 0, 0, 0), .95);
+        var draft = MeasuredCalibrationDraft.From(envelope, axis, ocr, geometry, fit);
+        Assert.AreEqual(offered, draft is not null,
+            $"Y fit {fit.YTransform.Validity}, strokes {string.Join(",", geometry.AttachedStrokeIds)}, reasons {string.Join(" | ", fit.Reasons)}");
+        if (draft is not null)
+        {
+            Assert.AreEqual(30, draft.LeftX);
+            Assert.AreEqual(70, draft.RightX);
+            Assert.AreEqual(60, draft.ZeroY);
+            Assert.AreEqual(20, draft.UpperY);
+            Assert.AreEqual(40, draft.UpperValue);
+            Assert.AreEqual("1 / 10", draft.LeftReadings);
+            Assert.AreNotEqual(CalibrationValidity.Valid, fit.Validity);
+        }
+    }
+
     private static OcrRegion RowLabel(string id, int x, string text, int y = 78) => XLabel(id) with
     {
         Text = text,

@@ -208,6 +208,7 @@ public sealed class WorkflowOrchestrator
                 calibrationFailures.Select(static failure => failure.CompletedEvidence))
             {
                 MarkerPreviews = calibrationFailures.SelectMany(static failure => failure.MarkerPreviews).ToArray(),
+                CalibrationDrafts = calibrationFailures.SelectMany(static failure => failure.CalibrationDrafts).ToArray(),
             };
         }
 
