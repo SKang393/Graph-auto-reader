@@ -27,8 +27,7 @@ series with filled-square and cross distractors, transparency and a color annota
 ## Native reproduction
 
 Use the repository's development setup. Stage the four reviewed OCR files
-described in `models/review-assistance/ocr/README.md`, or use the verified
-`reader` directory from the cloud review handoff.
+described in `models/review-assistance/ocr/README.md` in a local `reader` directory.
 
 ```powershell
 $env:GRAPHREADER_CALIBRATION_OCR_ASSET_ROOT = (Resolve-Path .\reader).Path
@@ -37,6 +36,10 @@ dotnet test tests/GraphReader.Integration.Tests -c Release --filter "FullyQualif
 
 A missing asset directory makes this opt-in OCR case inconclusive. The reader
 validates model, manifest, notice and license hashes before inference.
+The Windows CI manual dispatch option `review_assistance` recreates and verifies
+the reader and runs the image export and child-process checks. The OCR
+child-process probe supplies a known synthetic crop and plot to test reader
+reuse, cancellation and restart. The image-to-export test derives its own plot.
 
 On native Windows, import the PNG into manual preview, run axis and label
 suggestion with the actual worker processes, and inspect both the measured-tick
