@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 
+using System.Globalization;
 using GraphReader.App.Models;
 using GraphReader.App.Localization;
 using GraphReader.App.ViewModels;
@@ -125,6 +126,25 @@ public static class WorkspaceReviewProjectionService
             issues.Add(Create(tab, $"phase-unknown-{phaseId}", phaseId,
                 ReviewIssueKind.Phase, ReviewIssueSeverity.Warning,
                 "Review.PhaseUnknown", localize));
+        }
+
+        var eventsByEntity = project!.Audit.Events.Where(e => e.PanelId == panel.PanelId)
+            .ToLookup(e => e.EntityId, StringComparer.OrdinalIgnoreCase);
+        var assigned = panel.Points.ToLookup(p => p.PhaseId);
+        foreach (var phase in panel.Phases.OrderBy(p => p.Order))
+        {
+            int count = assigned[phase.PhaseId].Count();
+            if (count == 0 || ReviewAuditEvidence.HasExplicitLabel(phase,
+                eventsByEntity[ReviewAuditEvidence.PhaseLabelEntity(phase)])) continue;
+            string id = phase.PhaseId.Value.ToString("D");
+            var issue = Create(tab, $"phase-label-{id}", id, ReviewIssueKind.Phase, ReviewIssueSeverity.Warning,
+                "Review.PhaseLabel", localize);
+            issues.Add(issue with
+            {
+                Title = string.Format(CultureInfo.CurrentCulture, issue.Title, phase.LabelText, phase.Code),
+                Interpretation = string.Format(CultureInfo.CurrentCulture, issue.Interpretation, phase.Order, count),
+                PhaseLabelToVerify = phase,
+            });
         }
 
         AppendPipelineWarnings(issues, tab, localize, pipelineWarnings);

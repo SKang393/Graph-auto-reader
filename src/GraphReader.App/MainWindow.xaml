@@ -934,7 +934,7 @@
                 <TextBlock Text="{Binding ReviewIssueCount}" />
               </Border>
             </Grid>
-            <ListBox ItemsSource="{Binding ReviewIssues}"
+            <ListBox MaxHeight="200" ItemsSource="{Binding ReviewIssues}"
                      SelectedItem="{Binding SelectedReviewIssue, Mode=TwoWay}"
                      HorizontalContentAlignment="Stretch"
                      Background="Transparent"
@@ -966,6 +966,13 @@
                     Style="{DynamicResource App.Style.Button}"
                     automation:AutomationProperties.AutomationId="Review.AcceptPoint"
                     automation:AutomationProperties.Name="{DynamicResource Review.AcceptPoint}" />
+            <Button Margin="0,6,0,0"
+                    Command="{Binding ConfirmPhaseLabelCommand}"
+                    Visibility="{Binding IsEnabled, RelativeSource={RelativeSource Self}, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Content="{DynamicResource Review.ConfirmPhaseLabel}"
+                    Style="{DynamicResource App.Style.Button}"
+                    automation:AutomationProperties.AutomationId="Review.ConfirmPhaseLabel"
+                    automation:AutomationProperties.Name="{DynamicResource Review.ConfirmPhaseLabel}" />
             <Expander Margin="0,10,0,0" Header="{DynamicResource Review.FilteredMarkers}">
               <StackPanel>
                 <TextBlock Margin="0,4,0,6" Text="{DynamicResource Review.FilteredMarkers.Explanation}" TextWrapping="Wrap" />

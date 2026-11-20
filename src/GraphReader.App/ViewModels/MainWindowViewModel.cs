@@ -203,6 +203,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         PromoteFilteredMarkerCommand = new RelayCommand(_ => PromoteFilteredMarker(), _ => CanPromoteFilteredMarker());
         AcceptReviewPointCommand = new RelayCommand(_ => AcceptPoint(SelectedReviewIssue?.EntityId, ReviewStatus.Unreviewed),
             _ => CanAcceptReviewPoint());
+        ConfirmPhaseLabelCommand = new RelayCommand(_ => ConfirmSelectedPhaseLabel(), _ => CanConfirmSelectedPhaseLabel());
         AcceptCorrectedPointCommand = new RelayCommand(_ => AcceptPoint(SelectedPointId, ReviewStatus.Corrected),
             _ => CanAcceptPoint(SelectedPointId, ReviewStatus.Corrected));
         MovePointCommand = new RelayCommand(
@@ -842,6 +843,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public ICommand PromoteFilteredMarkerCommand { get; }
 
     public ICommand AcceptReviewPointCommand { get; }
+    public ICommand ConfirmPhaseLabelCommand { get; }
 
     public ICommand AcceptCorrectedPointCommand { get; }
 
@@ -961,6 +963,29 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)
         {
             SetOperationFailure(exception, LocalizationKeys.ManualEditRejected, "MANUAL_MARKER_PROMOTION_REJECTED", "review-inputs");
+        }
+    }
+
+    private bool CanConfirmSelectedPhaseLabel() =>
+        !IsBusy && _manualWorkspaceService is not null && SelectedReviewIssue is { PhaseLabelToVerify: { } phase } issue &&
+        issue.TabId == SelectedTab?.TabId && ReviewIssues.Contains(issue) &&
+        !string.IsNullOrWhiteSpace(phase.LabelText) && !string.IsNullOrWhiteSpace(phase.Code);
+
+    private void ConfirmSelectedPhaseLabel()
+    {
+        if (!CanConfirmSelectedPhaseLabel() || SelectedTab is not { } tab ||
+            SelectedReviewIssue?.PhaseLabelToVerify is not { } phase) return;
+        try
+        {
+            var before = CaptureTabSnapshot(tab);
+            _manualWorkspaceService!.ConfirmPhaseLabel(tab.TabId, phase);
+            RecordManualEdit(tab, LocalizationKeys.ConfirmPhaseLabel, before);
+            QueueAutosave(SnapshotTrigger.PhaseEdited, tab.TabId, phase.PhaseId.Value.ToString("D"));
+        }
+        catch (InvalidOperationException exception)
+        {
+            RefreshWorkspaceProjection();
+            SetOperationFailure(exception, LocalizationKeys.ManualEditRejected, "MANUAL_EDIT_REJECTED", "review-input");
         }
     }
 
@@ -3067,6 +3092,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
         if (issue.EntityId is not { } entityId)
         {
+            return;
+        }
+        if (issue.PhaseLabelToVerify is not null && SelectedTab is { } phaseTab)
+        {
+            var first = phaseTab.Points.Where(p => p.PhaseId == entityId).OrderBy(p => p.PixelX).FirstOrDefault();
+            if (first is not null)
+            {
+                SelectedPointId = first.PointId;
+                SelectedSeriesId = first.SeriesId;
+                HandleCanvasNavigation(new Point(first.PixelX, first.PixelY));
+            }
             return;
         }
         if (FindPoint(entityId) is { } point)

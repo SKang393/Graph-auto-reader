@@ -193,6 +193,9 @@ public sealed class ExportSummaryIsolationTests
             new(seriesName, "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
         foreach ((double x, double y) in points)
             workspace.AddPoint(tab.TabId, series.SeriesId, x, y);
+        // This fixture isolates pipeline warnings and export consent between tabs.
+        var panel = workspace.CurrentProject.Panels.Single(p => p.PanelId.Value.ToString("D") == tab.PanelId);
+        workspace.ConfirmPhaseLabel(tab.TabId, panel.Phases.Single());
     }
 
     private static LocalizationService Localizer()

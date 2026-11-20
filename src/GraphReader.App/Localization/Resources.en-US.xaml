@@ -470,6 +470,10 @@
   <sys:String x:Key="Review.SeriesUnknown.Title">Series role is unknown</sys:String>
   <sys:String x:Key="Review.SeriesUnknown.Interpretation">The series has no confirmed scientific role.</sys:String>
   <sys:String x:Key="Review.SeriesUnknown.Action">Choose the supported role or leave it explicitly unknown.</sys:String>
+  <sys:String x:Key="Review.ConfirmPhaseLabel">Confirm phase label</sys:String>
+  <sys:String x:Key="Review.PhaseLabel.Title">Verify phase label “{0}” ({1})</sys:String>
+  <sys:String x:Key="Review.PhaseLabel.Interpretation">Select to locate the first point in phase {0} ({1} assigned).</sys:String>
+  <sys:String x:Key="Review.PhaseLabel.Action">Compare the label with the figure before choosing Confirm phase label.</sys:String>
   <sys:String x:Key="Review.PhaseUnknown.Title">Phase type is unknown</sys:String>
   <sys:String x:Key="Review.PhaseUnknown.Interpretation">The phase has no supported normalized interpretation.</sys:String>
   <sys:String x:Key="Review.PhaseUnknown.Action">Confirm a supported phase label or retain the explicit unknown value.</sys:String>

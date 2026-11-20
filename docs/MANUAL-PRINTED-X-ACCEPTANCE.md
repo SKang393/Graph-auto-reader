@@ -23,6 +23,13 @@ calibration. Save, reopen and export the copy. Leave missed visits empty. Use
 the phase and its printed X together to identify an assessment in the CSV and
 retain its audit sidecar for source pixels and review status.
 
+In the Review list, select **Verify phase label** for a populated phase. The
+entry shows its label, code and number of assigned points, and selects its
+leftmost point on the image. Compare the phase with the figure, then choose
+**Confirm phase label**. This also works for the initial baseline, which has
+no left divider. Whole panels and saved phase copies use the same action.
+The export audit records the confirmed label separately from point acceptance.
+
 Manual printed-X calibration uses both pixel coordinates of each anchor, including
 small departures from horizontal and vertical. Existing projects reopen with their
 saved mapping. Screen-vertical phase dividers still require an aligned calibration.

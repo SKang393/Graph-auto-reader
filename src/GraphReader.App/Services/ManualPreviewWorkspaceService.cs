@@ -1367,6 +1367,36 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             CreatePhaseCorrectionDetails("delete", dividerId));
     }
 
+    public void ConfirmPhaseLabel(string tabId, PhaseRecord displayedPhase)
+    {
+        WorkspaceTabViewModel tab = RequireTab(tabId);
+        PanelRecord panel = CurrentProject.Panels.Single(p => p.PanelId.Value.ToString("D") == tab.PanelId);
+        PhaseRecord? phase = panel.Phases.SingleOrDefault(p => p.PhaseId == displayedPhase.PhaseId);
+        if (phase is null || phase != displayedPhase || string.IsNullOrWhiteSpace(phase.LabelText) ||
+            string.IsNullOrWhiteSpace(phase.Code) || !panel.Points.Any(p => p.PhaseId == phase.PhaseId))
+            throw new InvalidOperationException("Select the current phase label and its assigned points.");
+        string entity = ReviewAuditEvidence.PhaseLabelEntity(phase);
+        var priorEvents = CurrentProject.Audit.Events.Where(e => e.PanelId == panel.PanelId &&
+            string.Equals(e.EntityId, entity, StringComparison.OrdinalIgnoreCase));
+        if (ReviewAuditEvidence.HasExplicitLabel(phase, priorEvents)) return;
+
+        var now = DateTimeOffset.UtcNow;
+        var receipt = new AuditEvent(AuditEventId.New(), now, DomainEventKind.PhaseEdited, panel.PanelId, entity,
+            "Phase label verified by user", JsonSerializer.SerializeToElement(new
+            {
+                action = "verify_label", phase_id = phase.PhaseId.Value.ToString("D"), code = phase.Code,
+                label = phase.LabelText, previous_source = phase.Source.ToString(), previously_confirmed = phase.UserConfirmed,
+            }));
+        var confirmed = phase with { Source = PhaseSource.Manual, UserConfirmed = true, LabelVerificationEventId = receipt.EventId };
+        CurrentProject = CurrentProject with
+        {
+            ModifiedUtc = now,
+            Panels = CurrentProject.Panels.Select(p => p.PanelId == panel.PanelId
+                ? p with { Phases = p.Phases.Select(f => f.PhaseId == phase.PhaseId ? confirmed : f).ToArray() } : p).ToArray(),
+            Audit = CurrentProject.Audit with { Events = CurrentProject.Audit.Events.Append(receipt).ToArray() },
+        };
+    }
+
     public void LabelPhaseDivider(string tabId, string dividerId, string code, string label)
     {
         WorkspaceTabViewModel tab = RequireTab(tabId);
@@ -2057,7 +2087,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             {
                 ReviewEvidence = ReviewAuditEvidence.ForPoint(point, phase,
                     eventsByEntity[point.PointId.Value.ToString("D")],
-                    phase?.BoundaryLeftId is { } divider ? eventsByEntity[divider.Value.ToString("D")] : []),
+                    phase is null ? [] : eventsByEntity[ReviewAuditEvidence.PhaseLabelEntity(phase)]),
             };
         }
         var request = new ExportRequest(
@@ -4690,7 +4720,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         };
         if (confirmed)
             return phase with { Code = current.Code, NormalizedType = current.NormalizedType, LabelText = current.LabelText,
-                Confidence = 1, Source = PhaseSource.Manual, UserConfirmed = true };
+                Confidence = 1, Source = PhaseSource.Manual, UserConfirmed = true, LabelVerificationEventId = null };
         if (current.Order != 1 && (current.Code != prior.Code || current.LabelText != (prior.LabelText ?? prior.Code)))
             return current with { PhaseId = prior.PhaseId };
         return phase;

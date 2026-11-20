@@ -462,6 +462,10 @@ public static class LocalizationKeys
     public const string ReviewSeriesUnknownTitle = "Review.SeriesUnknown.Title";
     public const string ReviewSeriesUnknownInterpretation = "Review.SeriesUnknown.Interpretation";
     public const string ReviewSeriesUnknownAction = "Review.SeriesUnknown.Action";
+    public const string ConfirmPhaseLabel = "Review.ConfirmPhaseLabel";
+    public const string ReviewPhaseLabelTitle = "Review.PhaseLabel.Title";
+    public const string ReviewPhaseLabelInterpretation = "Review.PhaseLabel.Interpretation";
+    public const string ReviewPhaseLabelAction = "Review.PhaseLabel.Action";
     public const string ReviewPhaseUnknownTitle = "Review.PhaseUnknown.Title";
     public const string ReviewPhaseUnknownInterpretation = "Review.PhaseUnknown.Interpretation";
     public const string ReviewPhaseUnknownAction = "Review.PhaseUnknown.Action";
@@ -887,6 +891,10 @@ public static class LocalizationKeys
         ReviewSeriesUnknownTitle,
         ReviewSeriesUnknownInterpretation,
         ReviewSeriesUnknownAction,
+        ConfirmPhaseLabel,
+        ReviewPhaseLabelTitle,
+        ReviewPhaseLabelInterpretation,
+        ReviewPhaseLabelAction,
         ReviewPhaseUnknownTitle,
         ReviewPhaseUnknownInterpretation,
         ReviewPhaseUnknownAction,

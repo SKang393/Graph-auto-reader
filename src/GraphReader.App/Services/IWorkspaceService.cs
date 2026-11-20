@@ -135,6 +135,8 @@ public interface IManualWorkspaceService : IRuntimeWorkspaceService
 
     void DeletePhaseDivider(string tabId, string dividerId);
 
+    void ConfirmPhaseLabel(string tabId, PhaseRecord displayedPhase);
+
     void LabelPhaseDivider(string tabId, string dividerId, string code, string label);
 
     Task<DomainResult<ProjectSnapshotReceipt>> AutosaveAsync(

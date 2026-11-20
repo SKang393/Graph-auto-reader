@@ -62,6 +62,7 @@ public sealed record ReviewIssueViewModel(
     string RecommendedAction,
     string? TechnicalMessage = null)
 {
+    public GraphReader.Domain.PhaseRecord? PhaseLabelToVerify { get; init; }
     public bool IsBlocking => Severity == ReviewIssueSeverity.Blocking;
 }
 

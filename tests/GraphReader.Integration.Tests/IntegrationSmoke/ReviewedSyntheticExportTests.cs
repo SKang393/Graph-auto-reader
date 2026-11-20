@@ -2,7 +2,10 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.Text.Json;
+using GraphReader.App;
+using GraphReader.App.Localization;
 using GraphReader.App.Services;
+using GraphReader.App.ViewModels;
 using GraphReader.Domain;
 using GraphReader.Export;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -130,6 +133,135 @@ public sealed class ReviewedSyntheticExportTests(TestContext context)
             Assert.AreEqual(actions, row.GetProperty("point_review_actions").GetString());
             Assert.AreEqual(source, row.GetProperty("phase_source").GetString());
             Assert.AreEqual(labelReview, row.GetProperty("phase_label_review").GetString());
+        }
+    }
+
+    [STATestMethod(UseSTASynchronizationContext = true)]
+    public async Task ExplicitBaselineReviewOnWholePanelAndPhaseCopy()
+    {
+        using var temp = new IntegrationSmokeTestEnvironment();
+        string specs = Path.Combine(RepositoryRoot.Find(), "tests", "GraphReader.Integration.Tests", "Validation", "Specifications");
+        string image = temp.PathFor("review.png");
+        File.Copy(Path.Combine(specs, "reviewed-export.png"), image);
+        var token = CancellationToken.None;
+        string original = temp.PathFor("unconfirmed.garproj");
+        using var whole = new ManualPreviewWorkspaceService();
+        var tab = (await whole.ImportImagesAsync([image], token)).Single();
+        string series = whole.AddSeries(tab.TabId, new("Response", "●", MarkerShape.Circle,
+            MarkerFill.Filled, SemanticRole.Intervention)).SeriesId;
+        whole.Calibrate(tab.TabId, new(new(40, 152), new(40, 24), new(296, 152), 64, 18, 10)
+            { UsesPrintedXCoordinates = true });
+        whole.AddPhaseDivider(tab.TabId, 120, "b", "Training");
+        // Represent the follow-up visit as a linked maintenance probe. Its assigned
+        // phase has no divider-label receipt and must remain independently reviewable.
+        var followUp = whole.AddSeries(tab.TabId, new("Follow-up", "●", MarkerShape.Circle,
+            MarkerFill.Filled, SemanticRole.Maintenance));
+        whole.SetSeriesRelations(tab.TabId, series, sharedBaselineSeriesId: null, [followUp.SeriesId]);
+        foreach (var (x, y) in new[] { (72, 120), (136, 88), (200, 56), (232, 104) })
+        {
+            var p = whole.AddPoint(tab.TabId, x == 232 ? followUp.SeriesId : series, x, y);
+            if (x != 200) whole.SetPointReviewStatus(tab.TabId, p.PointId, ReviewStatus.Accepted);
+        }
+        Assert.IsTrue((await whole.SaveProjectAsync(original, token)).IsSuccess);
+        var expected = await File.ReadAllLinesAsync(Path.Combine(specs, "reviewed-export.expected.csv"), token);
+        string[] full = expected[1..];
+        string[] before = [full[1]];
+        string[] after = [full[0], full[1]];
+        System.Windows.Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+        var localizer = new LocalizationService(new System.Windows.ResourceDictionary());
+        using var vm = new MainWindowViewModel(whole, localizationService: localizer);
+        vm.SelectedTab = tab;
+        vm.OpenExportPreviewCommand.Execute(null);
+        Assert.IsTrue(vm.ExportSummary!.WarningIssues.Any(i => i.PhaseLabelToVerify?.Code == "a"));
+        vm.ExportSummary.WarningsAcknowledged = true;
+        await Check(whole, tab.TabId, "before", full, before);
+        Verify(vm, tab.Points.Single(p => p.PixelX == 72).PointId);
+        var remaining = vm.ReviewIssues.Single(i => i.PhaseLabelToVerify is not null);
+        StringAssert.Contains(remaining.Title, "Follow-up");
+        vm.SelectReviewIssueCommand.Execute(remaining);
+        Assert.AreEqual(tab.Points.Single(p => p.PixelX == 232).PointId, vm.SelectedPointId);
+        var baseline = whole.CurrentProject.Panels.Single().Phases.Single(p => p.Code == "a");
+        var receipt = whole.CurrentProject.Audit.Events.Single(e => e.EventId == baseline.LabelVerificationEventId);
+        Assert.AreEqual(baseline.PhaseId.Value.ToString("D"), receipt.Details!.Value.GetProperty("phase_id").GetString());
+        Assert.AreEqual("ProfilePrior", receipt.Details.Value.GetProperty("previous_source").GetString());
+        Assert.IsFalse(ReviewAuditEvidence.HasExplicitLabel(baseline with { LabelVerificationEventId = null }, [receipt]));
+        vm.UndoCommand.Execute(null);
+        await Check(whole, tab.TabId, "undo", full, before);
+        vm.RedoCommand.Execute(null);
+        string saved = temp.PathFor("confirmed.garproj");
+        Assert.IsTrue((await whole.SaveProjectAsync(saved, token)).IsSuccess);
+        using var restored = new ManualPreviewWorkspaceService();
+        var reopened = (await restored.OpenProjectAsync(saved, token)).Single();
+        await Check(restored, reopened.TabId, "whole-reopened", full, after);
+
+        using var copy = new ManualPreviewWorkspaceService();
+        var t = (await copy.OpenProjectAsync(original, token)).Single();
+        string copyPath = temp.PathFor("baseline-copy.garproj");
+        Assert.IsTrue((await copy.SaveProjectAsync(copyPath, token)).IsSuccess);
+        foreach (var p in t.Points.Where(p => p.PhaseCode != "a").ToArray()) copy.DeletePoint(t.TabId, p.PointId);
+        copy.Calibrate(t.TabId, new(new(40, 152), new(40, 24), new(104, 152), 64, 12, 10)
+            { UsesPrintedXCoordinates = true });
+        await Check(copy, t.TabId, "phase-copy-before", [full[0]], []);
+        using var copyVm = new MainWindowViewModel(copy, localizationService: localizer);
+        copyVm.SelectedTab = t;
+        Verify(copyVm, t.Points.Single().PointId);
+        Assert.IsFalse(copyVm.ReviewIssues.Any(i => i.PhaseLabelToVerify is not null));
+        Assert.IsTrue((await copy.SaveProjectAsync(copyPath, token)).IsSuccess);
+        using var copyRestored = new ManualPreviewWorkspaceService();
+        var copyTab = (await copyRestored.OpenProjectAsync(copyPath, token)).Single();
+        await Check(copyRestored, copyTab.TabId, "phase-copy-reopened", [full[0]], [full[0]]);
+        using var control = new ManualPreviewWorkspaceService();
+        var controlTab = (await control.OpenProjectAsync(original, token)).Single();
+        await Check(control, controlTab.TabId, "untouched-original", full, before);
+
+        static void Verify(MainWindowViewModel view, string firstPoint)
+        {
+            var issue = view.ReviewIssues.Single(i => i.PhaseLabelToVerify?.Code == "a");
+            StringAssert.Contains(issue.Title, "Baseline");
+            StringAssert.Contains(issue.Title, "(a)");
+            view.SelectReviewIssueCommand.Execute(issue);
+            Assert.AreEqual(firstPoint, view.SelectedPointId);
+            Assert.IsTrue(view.ConfirmPhaseLabelCommand.CanExecute(null));
+            view.ConfirmPhaseLabelCommand.Execute(null);
+            Assert.IsFalse(view.ReviewIssues.Any(i => i.PhaseLabelToVerify?.Code == "a"));
+        }
+
+        async Task Check(ManualPreviewWorkspaceService service, string tabId, string name, string[] all, string[] strict)
+        {
+            Assert.IsTrue(service.CurrentProject.Panels.Single().Calibration!.UserConfirmed);
+            var export = await service.ExportAsync(tabId, temp.PathFor(name), token);
+            Assert.IsTrue(export.Succeeded, string.Join(", ", export.Failures));
+            var lines = await File.ReadAllLinesAsync(export.MinimalArtifacts.Single().WrittenPath!, token);
+            CollectionAssert.AreEqual(all, lines[1..], name);
+            using var json = JsonDocument.Parse(await File.ReadAllBytesAsync(export.AuditArtifacts.Single(
+                a => a.Format == ExportAuditArtifactFormat.Json).WrittenPath!, token));
+            var rows = json.RootElement.GetProperty("rows").EnumerateArray().ToArray();
+            Assert.HasCount(all.Length, rows);
+            var verified = new List<string>();
+            for (int i = 0; i < rows.Length; i++)
+            {
+                var r = rows[i];
+                string auditLine = FormattableString.Invariant(
+                    $"{r.GetProperty("x_value").GetDouble()},{r.GetProperty("y_value").GetDouble()},{r.GetProperty("phase").GetString()}");
+                Assert.AreEqual(all[i], auditLine);
+                Assert.AreEqual("estimated", r.GetProperty("x_source").GetString());
+                Assert.AreEqual("printed_session", r.GetProperty("export_mode").GetString());
+                bool explicitLabel = r.GetProperty("phase_source").GetString() == "manual" &&
+                    r.GetProperty("phase_label_review").GetString() == "explicit_label";
+                if (all[i] == full[0])
+                {
+                    Assert.AreEqual(strict.Contains(full[0]), explicitLabel);
+                    if (!explicitLabel) Assert.AreEqual("unconfirmed", r.GetProperty("phase_label_review").GetString());
+                }
+                Assert.AreEqual(all[i] == full[2] ? "corrected" : "accepted", r.GetProperty("review_status").GetString());
+                if (all[i] == full[3]) Assert.AreEqual("unconfirmed", r.GetProperty("phase_label_review").GetString());
+                if (r.GetProperty("review_status").GetString() == "accepted" &&
+                    r.GetProperty("point_review_actions").GetString()!.Split('|').Contains("point_accepted") &&
+                    r.GetProperty("calibration_status").GetString() == "valid" && explicitLabel)
+                    verified.Add(all[i]);
+            }
+            CollectionAssert.AreEqual(strict, verified.ToArray(), name);
+            context.WriteLine($"{name}: {verified.Count}/{all.Length} strict [{string.Join(" | ", verified)}]");
         }
     }
 
