@@ -99,7 +99,7 @@ public sealed class CalibrationTickProposalTests
     [TestMethod]
     [DataRow(1)]
     [DataRow(29)]
-    public void PositiveIntegerSessionReviewDoesNotPublishAnAlternativePrintedDraft(int first)
+    public void PositiveIntegerSessionReviewAlsoOffersLiteralCoordinates(int first)
     {
         CalibrationOcrResponse response = Response(Labels(first));
         CalibrationTickProposalResult strict = CalibrationTickProposal.Create(Geometry(), response);
@@ -109,7 +109,10 @@ public sealed class CalibrationTickProposalTests
         Assert.AreEqual(first, review.FirstSession);
         Assert.AreEqual(strict.Anchors, review.Anchors);
         Assert.IsNull(strict.PrintedXReviewDraft);
-        Assert.IsNull(review.PrintedXReviewDraft);
+        Assert.IsNotNull(review.PrintedXReviewDraft);
+        Assert.AreEqual(review.Anchors, review.PrintedXReviewDraft.Anchors);
+        Assert.AreEqual((double)first, review.PrintedXReviewDraft.FirstX);
+        Assert.AreEqual(review.FinalSession!.Value, review.PrintedXReviewDraft.FinalX);
     }
 
     [TestMethod]

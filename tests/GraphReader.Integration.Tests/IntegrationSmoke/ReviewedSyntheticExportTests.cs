@@ -29,7 +29,7 @@ public sealed class ReviewedSyntheticExportTests(TestContext context)
         File.Copy(Path.Combine(spec, "reviewed-export.png"), image);
         string draft = temp.PathFor("draft.garproj");
         var token = CancellationToken.None;
-        await WriteSyntheticDraftAsync(image, draft, token);
+        await WriteUnreviewedDraftAsync(image, draft, [new(72, 120), new(136, 88), new(168, 72), new(232, 104)], token);
 
         using var review = new ManualPreviewWorkspaceService();
         var tab = (await review.OpenProjectAsync(draft, token)).Single();
@@ -133,7 +133,7 @@ public sealed class ReviewedSyntheticExportTests(TestContext context)
         }
     }
 
-    private static async Task WriteSyntheticDraftAsync(string image, string draft, CancellationToken token)
+    internal static async Task WriteUnreviewedDraftAsync(string image, string draft, IReadOnlyList<PixelPoint> centers, CancellationToken token)
     {
         // Supply only an imperfect overlay in original pixels. The review path must
         // establish every numeric value, phase assignment and review action.
@@ -143,7 +143,6 @@ public sealed class ReviewedSyntheticExportTests(TestContext context)
         var project = workspace.CurrentProject;
         var panel = project.Panels.Single();
         var series = panel.Series.Single();
-        PixelPoint[] centers = [new(72, 120), new(136, 88), new(168, 72), new(232, 104)];
         var points = centers.Select((pixel, i) => new PointRecord(
             PointId.New(), null, series.SeriesId, panel.Phases.Single().PhaseId, pixel, null, null, i + 1,
             null, null, PointXSource.Unknown, 0, 0, 0, "synthetic_draft", null, ReviewStatus.Unreviewed, [])).ToArray();
