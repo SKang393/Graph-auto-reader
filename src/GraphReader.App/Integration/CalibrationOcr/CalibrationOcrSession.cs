@@ -272,11 +272,18 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             throw new CalibrationOcrException(CalibrationOcrReasonCodes.InvalidInput);
         BitmapSource frame = WhiteBackgroundRaster.Normalize(decoder.Frames[0], token);
         var gray = new FormatConvertedBitmap(frame, PixelFormats.Gray8, null, 0);
-        var bgr = new FormatConvertedBitmap(frame, PixelFormats.Bgr24, null, 0);
         int width = item.Request.Width, height = item.Request.Height;
-        byte[] pixels = new byte[checked(width * height)], color = new byte[checked(width * height * 3)];
+        byte[] pixels = new byte[checked(width * height)];
         gray.CopyPixels(pixels, width, 0);
-        bgr.CopyPixels(color, width * 3, 0);
+        byte[] color;
+        // A Gray8 scan already has the sample for each of the reader's three channels.
+        if (frame.Format == PixelFormats.Gray8)
+            color = ProductionDecodedRaster.ReplicateGrayscaleToBgr(pixels, width, height);
+        else
+        {
+            color = new byte[checked(width * height * 3)];
+            new FormatConvertedBitmap(frame, PixelFormats.Bgr24, null, 0).CopyPixels(color, width * 3, 0);
+        }
         return new(width, height, width, pixels, OcrSourceImage.Original, OcrFrameTransform.Identity,
             BgrPixels: new(width * 3, color));
     }

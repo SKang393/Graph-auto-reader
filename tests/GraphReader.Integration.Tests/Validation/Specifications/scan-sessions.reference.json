@@ -1,0 +1,14 @@
+{
+  "plot": [78, 54, 438, 246],
+  "xTicks": [[78, 1], [150, 4], [270, 9], [438, 16]],
+  "yTicks": [[54, 64], [150, 32], [246, 0]],
+  "anchors": [[78, 246], [78, 54], [438, 246]],
+  "rows": [
+    {"x": 2,  "y": 10, "phase": "a", "review": "missing phase label"},
+    {"x": 4,  "y": 22, "phase": "a", "review": "missing phase label"},
+    {"x": 6,  "y": 19, "phase": "b", "review": "strict"},
+    {"x": 10, "y": 40, "phase": "b", "review": "strict"},
+    {"x": 13, "y": 36, "phase": "m", "review": "strict"},
+    {"x": 15, "y": 50, "phase": "m", "review": "missing point acceptance"}
+  ]
+}
