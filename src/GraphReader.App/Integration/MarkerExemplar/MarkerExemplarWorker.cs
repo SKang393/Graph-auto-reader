@@ -69,9 +69,7 @@ internal static class MarkerExemplarWorker
         // Read dimensions before conversion or pixel allocation.
         if (frame.PixelWidth != request.Width || frame.PixelHeight != request.Height)
             throw new MarkerExemplarException(MarkerExemplarReasonCodes.InvalidInput);
-        var gray = new FormatConvertedBitmap(WhiteBackgroundRaster.Normalize(frame, token), PixelFormats.Gray8, null, 0);
-        byte[] pixels = new byte[checked(request.Width * request.Height)];
-        gray.CopyPixels(pixels, request.Width, 0);
+        byte[] pixels = ReadGrayscale(frame, token);
         double decode = total.Elapsed.TotalMilliseconds;
         token.ThrowIfCancellationRequested();
         var matching = Stopwatch.StartNew();
@@ -81,5 +79,37 @@ internal static class MarkerExemplarWorker
         matching.Stop();
         return new(request, candidates, new(decode, matching.Elapsed.TotalMilliseconds, total.Elapsed.TotalMilliseconds),
             new(budget, OpenCvSharp.Cv2.GetNumThreads(), MarkerExemplarValidation.Algorithm), null);
+    }
+
+    private static byte[] ReadGrayscale(BitmapSource frame, CancellationToken token)
+    {
+        int width = frame.PixelWidth;
+        var gray = new byte[checked(width * frame.PixelHeight)];
+        var format = frame.Format;
+        if (format == PixelFormats.Gray8)
+        {
+            frame.CopyPixels(gray, width, 0);
+            return gray;
+        }
+
+        var normalized = WhiteBackgroundRaster.Normalize(frame, token, out byte[] bgra);
+        if (format == PixelFormats.Bgr24 || format == PixelFormats.Rgb24 || format == PixelFormats.Bgr32 ||
+            format == PixelFormats.Bgra32 || format == PixelFormats.Pbgra32)
+        {
+            // Equivalent RGB scans must give the matcher the same intensities as Gray8.
+            // Inspect the whole composited frame before using the common channel.
+            int i = 0;
+            for (; i < gray.Length; i++)
+            {
+                if ((i & 0xffff) == 0) token.ThrowIfCancellationRequested();
+                int offset = 4 * i;
+                byte sample = bgra[offset];
+                if (sample != bgra[offset + 1] || sample != bgra[offset + 2]) break;
+                gray[i] = sample;
+            }
+            if (i == gray.Length) return gray;
+        }
+        new FormatConvertedBitmap(normalized, PixelFormats.Gray8, null, 0).CopyPixels(gray, width, 0);
+        return gray;
     }
 }

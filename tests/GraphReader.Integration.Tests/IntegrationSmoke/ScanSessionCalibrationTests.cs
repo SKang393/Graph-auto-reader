@@ -77,7 +77,13 @@ public sealed class ScanSessionCalibrationTests(TestContext context)
         foreach (var disk in visibleDisks.Where(disk => !tab.Points.Any(p => p.PixelX == disk.X && p.PixelY == disk.Y)))
             placed.Add(workspace.AddPoint(tab.TabId, tab.SeriesCards.Single().SeriesId, disk.X, disk.Y).PointId);
         context.WriteLine($"Marker proposals beyond the seed = {reading.Centers.Length - 1}; manual point placements = {placed.Count}.");
-        if (!rgbControl) Assert.IsEmpty(placed);
+        var nonSeed = reading.Centers.Skip(1).ToArray();
+        if (nonSeed.Length > 0)
+        {
+            double maxError = nonSeed.Max(p => visibleDisks.Min(target =>
+                Math.Sqrt(Math.Pow(p.X - target.X, 2) + Math.Pow(p.Y - target.Y, 2))));
+            context.WriteLine($"Maximum distance of a returned non-seed center to its nearest disk = {maxError:G6} px.");
+        }
         var initial = await workspace.ExportAsync(tab.TabId, temp.PathFor("as-suggested"), token);
         Assert.IsTrue(initial.Succeeded, string.Join(", ", initial.Failures));
         var raw = draft.Anchors;
@@ -106,6 +112,7 @@ public sealed class ScanSessionCalibrationTests(TestContext context)
         ScoreCalibration(reading, reference);
         Assert.AreEqual(reference.Rows.Length, reading.Centers.Length + placed.Count);
         ScoreExports(reference.Rows, initial, final, placed);
+        Assert.IsEmpty(placed, "Both encodings must recover all visible disks from the seed.");
     }
 
     private static async Task<Reading> ReadImageAsync(byte[] image, string assets, CancellationToken token)

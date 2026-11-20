@@ -20,6 +20,9 @@ under the suggested coordinates, reviews the endpoint columns, then saves,
 reopens and exports again. The scorer opens `scan-sessions.reference.json` after
 both exports. It checks signed plot-edge errors, raw numeric labels, anchor
 distances, scientific CSV values, phases and the review evidence for every row.
+Both encodings must recover the five non-seed disks with no extra proposal or
+manual placement. The separate marker encoding tests exercise a hollow-square
+series with filled-square and cross distractors, transparency and a color annotation.
 
 ## Native reproduction
 
@@ -29,7 +32,7 @@ described in `models/review-assistance/ocr/README.md`, or use the verified
 
 ```powershell
 $env:GRAPHREADER_CALIBRATION_OCR_ASSET_ROOT = (Resolve-Path .\reader).Path
-dotnet test tests/GraphReader.Integration.Tests -c Release --filter "FullyQualifiedName~ScanSessionCalibrationTests" --logger "console;verbosity=detailed"
+dotnet test tests/GraphReader.Integration.Tests -c Release --filter "FullyQualifiedName~ScanSessionCalibrationTests|FullyQualifiedName~MarkerExemplarEncodingTests" --logger "console;verbosity=detailed"
 ```
 
 A missing asset directory makes this opt-in OCR case inconclusive. The reader
