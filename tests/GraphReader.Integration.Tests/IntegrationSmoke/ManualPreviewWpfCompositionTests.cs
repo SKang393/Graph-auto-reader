@@ -373,6 +373,7 @@ public sealed class ManualPreviewWpfCompositionTests
         Assert.IsTrue(workspace.CurrentProject.Panels.Single().Points.Any(
             point => point.PointId.Value.ToString("D") == baselinePointId));
 
+        dialogs.ObservationOrderChoices.Enqueue(true);
         Execute(viewModel.ExportCommand);
         await WaitForAsync(
             () => !viewModel.IsBusy &&
@@ -380,6 +381,7 @@ public sealed class ManualPreviewWpfCompositionTests
                 Directory.GetFiles(exportDirectory, "*.csv", SearchOption.AllDirectories).Length > 0,
             "CSV export through ExportCommand");
         Assert.AreEqual(1, dialogs.ExportDirectorySelectionCount);
+        Assert.IsEmpty(dialogs.ObservationOrderChoices);
         string[] csvFiles = Directory.GetFiles(exportDirectory, "*.csv", SearchOption.AllDirectories);
         Assert.IsTrue(csvFiles.Any(file =>
             string.Equals(File.ReadLines(file).FirstOrDefault(), ExportContract.MinimalCsvHeader, StringComparison.Ordinal)));
@@ -596,6 +598,11 @@ public sealed class ManualPreviewWpfCompositionTests
                 ? ProjectSaveDestinations[selectionIndex]
                 : null;
         }
+
+        public Queue<bool> ObservationOrderChoices { get; } = new();
+
+        public bool ConfirmObservationOrder() =>
+            ObservationOrderChoices.TryDequeue(out bool choice) && choice;
 
         public string? SelectExportDirectory()
         {
