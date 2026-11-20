@@ -201,8 +201,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             parameter => DeletePoint((string)parameter!),
             parameter => parameter is string pointId && FindPoint(pointId) is not null);
         PromoteFilteredMarkerCommand = new RelayCommand(_ => PromoteFilteredMarker(), _ => CanPromoteFilteredMarker());
-        AcceptReviewPointCommand = new RelayCommand(_ => AcceptPoint(SelectedReviewIssue?.EntityId, ReviewStatus.Unreviewed),
-            _ => CanAcceptReviewPoint());
+        AcceptReviewPointCommand = new RelayCommand(_ => AcceptReviewPoint(), _ => CanAcceptReviewPoint());
         ConfirmPhaseLabelCommand = new RelayCommand(_ => ConfirmSelectedPhaseLabel(), _ => CanConfirmSelectedPhaseLabel());
         AcceptCorrectedPointCommand = new RelayCommand(_ => AcceptPoint(SelectedPointId, ReviewStatus.Corrected),
             _ => CanAcceptPoint(SelectedPointId, ReviewStatus.Corrected));
@@ -991,9 +990,23 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private bool CanAcceptReviewPoint()
     {
-        return SelectedReviewIssue is { Kind: ReviewIssueKind.Point, EntityId: { } pointId } issue &&
-            issue.TabId == SelectedTab?.TabId && issue.IssueId == $"point-unreviewed-{pointId}" &&
-            CanAcceptPoint(pointId, ReviewStatus.Unreviewed);
+        if (SelectedReviewIssue is not { EntityId: { } pointId } issue ||
+            issue.TabId != SelectedTab?.TabId || !ReviewIssues.Contains(issue)) return false;
+        return issue.PointStatusToAccept switch
+        {
+            ReviewStatus.Corrected => pointId == SelectedPointId && AcceptCorrectedPointCommand.CanExecute(null),
+            ReviewStatus.Unreviewed => CanAcceptPoint(pointId, ReviewStatus.Unreviewed),
+            _ => false,
+        };
+    }
+
+    private void AcceptReviewPoint()
+    {
+        if (!CanAcceptReviewPoint()) return;
+        if (SelectedReviewIssue!.PointStatusToAccept == ReviewStatus.Corrected)
+            AcceptCorrectedPointCommand.Execute(null);
+        else
+            AcceptPoint(SelectedReviewIssue.EntityId, ReviewStatus.Unreviewed);
     }
 
     private bool CanAcceptPoint(string? pointId, ReviewStatus prior)
@@ -1006,8 +1019,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private void AcceptPoint(string? pointId, ReviewStatus prior)
     {
-        if (pointId is null || !CanAcceptPoint(pointId, prior) ||
-            (prior == ReviewStatus.Unreviewed && !CanAcceptReviewPoint())) return;
+        if (pointId is null || !CanAcceptPoint(pointId, prior)) return;
         WorkspaceTabViewModel tab = SelectedTab!;
         IManualWorkspaceService service = _manualWorkspaceService!;
         bool wasDirty = tab.IsDirty;

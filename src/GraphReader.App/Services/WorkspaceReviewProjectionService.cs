@@ -85,7 +85,21 @@ public static class WorkspaceReviewProjectionService
             {
                 issues.Add(Create(tab, $"point-unreviewed-{pointId}", pointId,
                     ReviewIssueKind.Point, ReviewIssueSeverity.Warning,
-                    "Review.PointUnreviewed", localize));
+                    "Review.PointUnreviewed", localize) with { PointStatusToAccept = ReviewStatus.Unreviewed });
+            }
+            else if (point.ReviewStatus == ReviewStatus.Corrected)
+            {
+                var issue = Create(tab, $"point-corrected-{pointId}", pointId, ReviewIssueKind.Point,
+                    ReviewIssueSeverity.Information, "Review.PointCorrected", localize);
+                var culture = CultureInfo.CurrentCulture;
+                issues.Add(issue with
+                {
+                    Title = string.Format(culture, issue.Title,
+                        point.GraphX?.ToString("0.###", culture) ?? localize(LocalizationKeys.PreviewUnknown),
+                        point.GraphY?.ToString("0.###", culture) ?? localize(LocalizationKeys.PreviewUnknown)),
+                    Interpretation = string.Format(culture, issue.Interpretation, point.ObservationIndex),
+                    PointStatusToAccept = ReviewStatus.Corrected,
+                });
             }
 
             if (point.SeriesId is not { } seriesId || !knownSeries.Contains(seriesId))

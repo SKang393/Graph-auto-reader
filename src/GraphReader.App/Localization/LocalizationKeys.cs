@@ -440,6 +440,9 @@ public static class LocalizationKeys
     public const string ReviewPointRejectedTitle = "Review.PointRejected.Title";
     public const string ReviewPointRejectedInterpretation = "Review.PointRejected.Interpretation";
     public const string ReviewPointRejectedAction = "Review.PointRejected.Action";
+    public const string ReviewPointCorrectedTitle = "Review.PointCorrected.Title";
+    public const string ReviewPointCorrectedInterpretation = "Review.PointCorrected.Interpretation";
+    public const string ReviewPointCorrectedAction = "Review.PointCorrected.Action";
     public const string ReviewPointUnreviewedTitle = "Review.PointUnreviewed.Title";
     public const string ReviewFilteredMarkers = "Review.FilteredMarkers";
     public const string ReviewFilteredMarkersExplanation = "Review.FilteredMarkers.Explanation";
@@ -869,6 +872,9 @@ public static class LocalizationKeys
         ReviewPointRejectedTitle,
         ReviewPointRejectedInterpretation,
         ReviewPointRejectedAction,
+        ReviewPointCorrectedTitle,
+        ReviewPointCorrectedInterpretation,
+        ReviewPointCorrectedAction,
         ReviewPointUnreviewedTitle,
         ReviewFilteredMarkers,
         ReviewFilteredMarkersExplanation,

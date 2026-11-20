@@ -39,13 +39,21 @@ public sealed class RasterPanelWorkspaceTests
             MarkerFill.Filled, SemanticRole.Intervention));
         workspace.Calibrate(tab.TabId, new(new(10, 70), new(10, 10), new(90, 70), 100, 10, 1));
         var point = workspace.AddPoint(tab.TabId, series.SeriesId, 20, 30);
-        ReviewStatus Status() => workspace.CurrentProject.Panels.Single().Points.Single().ReviewStatus;
+        var other = workspace.AddPoint(tab.TabId, series.SeriesId, 40, 30);
+        ReviewStatus Status() => workspace.CurrentProject.Panels.Single().Points
+            .Single(p => p.PointId.Value.ToString("D") == point.PointId).ReviewStatus;
         StaTestHost.Run(() =>
         {
             using var vm = new MainWindowViewModel(workspace);
             vm.SelectedTab = tab;
             vm.SelectedPointId = null;
             Assert.IsFalse(vm.AcceptCorrectedPointCommand.CanExecute(null));
+            var issue = vm.ReviewIssues.Single(i => i.EntityId == point.PointId);
+            vm.SelectReviewIssueCommand.Execute(issue);
+            vm.SelectedPointId = other.PointId;
+            Assert.IsFalse(vm.AcceptReviewPointCommand.CanExecute(null));
+            vm.AcceptReviewPointCommand.Execute(null);
+            Assert.IsTrue(workspace.CurrentProject.Panels.Single().Points.All(p => p.ReviewStatus == ReviewStatus.Corrected));
             vm.SelectedPointId = point.PointId;
             Assert.AreEqual(ReviewStatus.Corrected, Status());
             Assert.IsTrue(vm.AcceptCorrectedPointCommand.CanExecute(null));
@@ -59,6 +67,7 @@ public sealed class RasterPanelWorkspaceTests
             vm.MovePoint(point.PointId, 20, 31);
             Assert.AreEqual(ReviewStatus.Corrected, Status());
             Assert.IsTrue(vm.AcceptCorrectedPointCommand.CanExecute(null));
+            Assert.IsTrue(vm.ReviewIssues.Any(i => i.EntityId == point.PointId && i.PointStatusToAccept == ReviewStatus.Corrected));
         });
     }
 

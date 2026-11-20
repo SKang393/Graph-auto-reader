@@ -159,8 +159,9 @@ public sealed class ReviewedSyntheticExportTests(TestContext context)
         whole.SetSeriesRelations(tab.TabId, series, sharedBaselineSeriesId: null, [followUp.SeriesId]);
         foreach (var (x, y) in new[] { (72, 120), (136, 88), (200, 56), (232, 104) })
         {
-            var p = whole.AddPoint(tab.TabId, x == 232 ? followUp.SeriesId : series, x, y);
-            if (x != 200) whole.SetPointReviewStatus(tab.TabId, p.PointId, ReviewStatus.Accepted);
+            var p = whole.AddPoint(tab.TabId, x == 232 ? followUp.SeriesId : series, x, x == 200 ? y + 4 : y);
+            if (x == 200) whole.MovePoint(tab.TabId, p.PointId, x, y);
+            else whole.SetPointReviewStatus(tab.TabId, p.PointId, ReviewStatus.Accepted);
         }
         Assert.IsTrue((await whole.SaveProjectAsync(original, token)).IsSuccess);
         var expected = await File.ReadAllLinesAsync(Path.Combine(specs, "reviewed-export.expected.csv"), token);
@@ -193,6 +194,38 @@ public sealed class ReviewedSyntheticExportTests(TestContext context)
         using var restored = new ManualPreviewWorkspaceService();
         var reopened = (await restored.OpenProjectAsync(saved, token)).Single();
         await Check(restored, reopened.TabId, "whole-reopened", full, after);
+
+        using var pointVm = new MainWindowViewModel(restored, localizationService: localizer);
+        pointVm.SelectedTab = reopened;
+        var pending = pointVm.ReviewIssues.Single(i => i.PointStatusToAccept == ReviewStatus.Corrected);
+        Assert.AreEqual(reopened.Points.Single(p => p.PixelX == 200).PointId, pending.EntityId);
+        StringAssert.Contains(pending.Title, "X = 15, Y = 48");
+        int eventsBeforeLocate = restored.CurrentProject.Audit.Events.Count;
+        pointVm.SelectReviewIssueCommand.Execute(pending);
+        Assert.AreEqual(pending.EntityId, pointVm.SelectedPointId);
+        Assert.AreEqual(new System.Windows.Point(200, 56), pointVm.Magnifier.PixelPosition);
+        Assert.AreEqual(eventsBeforeLocate, restored.CurrentProject.Audit.Events.Count);
+        Assert.IsFalse(pointVm.ConfirmPhaseLabelCommand.CanExecute(null));
+        await Check(restored, reopened.TabId, "point-located", full, after);
+        Assert.IsTrue(pointVm.AcceptReviewPointCommand.CanExecute(null));
+        pointVm.AcceptReviewPointCommand.Execute(null);
+        Assert.IsFalse(pointVm.ReviewIssues.Contains(pending));
+        // A delayed action for the resolved list item cannot record another receipt.
+        pointVm.SelectedReviewIssue = pending;
+        int eventsAfterAccept = restored.CurrentProject.Audit.Events.Count;
+        Assert.IsFalse(pointVm.AcceptReviewPointCommand.CanExecute(null));
+        pointVm.AcceptReviewPointCommand.Execute(null);
+        Assert.AreEqual(eventsAfterAccept, restored.CurrentProject.Audit.Events.Count);
+        string[] withAcceptedPoint = [.. after, full[2]];
+        await Check(restored, reopened.TabId, "point-accepted", full, withAcceptedPoint);
+        Assert.IsTrue((await restored.SaveProjectAsync(saved, token)).IsSuccess);
+        using var accepted = new ManualPreviewWorkspaceService();
+        var acceptedTab = (await accepted.OpenProjectAsync(saved, token)).Single();
+        using var acceptedVm = new MainWindowViewModel(accepted, localizationService: localizer);
+        acceptedVm.SelectedTab = acceptedTab;
+        Assert.IsFalse(acceptedVm.ReviewIssues.Any(i => i.EntityId == pending.EntityId));
+        Assert.AreEqual("m", acceptedVm.ReviewIssues.Single(i => i.PhaseLabelToVerify is not null).PhaseLabelToVerify!.Code);
+        await Check(accepted, acceptedTab.TabId, "point-accepted-reopened", full, withAcceptedPoint);
 
         using var copy = new ManualPreviewWorkspaceService();
         var t = (await copy.OpenProjectAsync(original, token)).Single();
@@ -253,10 +286,14 @@ public sealed class ReviewedSyntheticExportTests(TestContext context)
                     Assert.AreEqual(strict.Contains(full[0]), explicitLabel);
                     if (!explicitLabel) Assert.AreEqual("unconfirmed", r.GetProperty("phase_label_review").GetString());
                 }
-                Assert.AreEqual(all[i] == full[2] ? "corrected" : "accepted", r.GetProperty("review_status").GetString());
+                var actions = r.GetProperty("point_review_actions").GetString()!.Split('|');
+                bool acceptedPoint = all[i] != full[2] || strict.Contains(full[2]);
+                Assert.AreEqual(acceptedPoint ? "accepted" : "corrected", r.GetProperty("review_status").GetString());
+                Assert.AreEqual(acceptedPoint, actions.Contains("point_accepted"));
+                if (all[i] == full[2]) Assert.Contains("pixel_y_moved", actions);
                 if (all[i] == full[3]) Assert.AreEqual("unconfirmed", r.GetProperty("phase_label_review").GetString());
                 if (r.GetProperty("review_status").GetString() == "accepted" &&
-                    r.GetProperty("point_review_actions").GetString()!.Split('|').Contains("point_accepted") &&
+                    actions.Contains("point_accepted") &&
                     r.GetProperty("calibration_status").GetString() == "valid" && explicitLabel)
                     verified.Add(all[i]);
             }
