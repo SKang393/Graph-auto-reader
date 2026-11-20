@@ -56,6 +56,8 @@
   <sys:String x:Key="Errors.DetectionCalibrationMultiple">Multiple graphs need calibration. Calibrate the selected graph, then run Analyze again.</sys:String>
   <sys:String x:Key="Review.AnalysisNeedsReview">Analysis did not complete for this graph. Review its calibration, then run Analyze again.</sys:String>
   <sys:String x:Key="Review.AnalysisNeedsReview.Symbol">!</sys:String>
+  <sys:String x:Key="Export.ReviewObservationOrder">Export paused. For continuous session numbers with gaps, calibrate printed X. If labels restart, use Save As for each phase, keep only that phase’s points, calibrate its printed X ticks and export the copy.</sys:String>
+  <sys:String x:Key="Export.ConfirmObservationOrder">This export would write X as 1, 2, 3… across phase boundaries in each CSV. Use these observation numbers? Choose No if printed sessions restart, skip, or are unclear. Use printed-X calibration for one continuous scale. For restarted labels, save a separate copy per phase, keep only its points and calibrate its printed X ticks.</sys:String>
   <sys:String x:Key="Errors.OperationFailed">The operation could not be completed. Review the current inputs and try again.</sys:String>
   <sys:String x:Key="Errors.ManualEditRejected">The edit could not be applied. Review the selected values and try again.</sys:String>
   <sys:String x:Key="Errors.ManualAffinePhasesUnsupported">Phase dividers require horizontal and vertical axes. Remove existing dividers before applying rotated calibration.</sys:String>
@@ -141,7 +143,7 @@
   <sys:String x:Key="Manual.PrintedX.UseFirst">Use as first printed X</sys:String>
   <sys:String x:Key="Manual.PrintedX.UseFinal">Use as final printed X</sys:String>
   <sys:String x:Key="Manual.PrintedX.Positions">Original pixels: first X at Y=0 ({0}, {1}); Y maximum ({2}, {3}); final X at Y=0 ({4}, {5}).</sys:String>
-  <sys:String x:Key="Manual.PrintedX.RangeHelp">Enter the printed X values at the left and right anchors. Zero, negative and fractional values are allowed. Fitted point X values export as estimates.</sys:String>
+  <sys:String x:Key="Manual.PrintedX.RangeHelp">Enter the printed X values at the left and right anchors of one continuous scale. If labels restart, work on a separate copy for each phase. Zero, negative and fractional values are allowed. Fitted point X values export as estimates.</sys:String>
   <sys:String x:Key="Manual.PrintedX.Invalid">Enter a finite first X value that is less than the final X value.</sys:String>
   <sys:String x:Key="Manual.PrintedX.Saved">Reviewed printed X calibration saved from {0} through {1}. Point X values are estimates.</sys:String>
   <sys:String x:Key="Manual.PrintedX.Prompt">Click ({0}, 0), then ({0}, {2}), then ({1}, 0) at the matching image positions.</sys:String>
@@ -155,7 +157,7 @@
   <sys:String x:Key="Manual.MarkerExemplar.Remove">Remove</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Row">({0}, {1}), similarity {2}</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Duplicate">A point already exists at this position.</sys:String>
-  <sys:String x:Key="Manual.MarkerExemplar.Ready">Select a calibrated point and series. Fit the square around the whole marker with a little background.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.Ready">Select a calibrated point and its series. Include the whole marker and a little background. For colored disks, choose a filled-circle series and place the point in its solid center.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.InvalidSize">Enter a whole-pixel size from 5 to 65.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Unavailable">The example must fit inside the panel and its center must be inside the confirmed plot area.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.PanelTooLarge">This panel exceeds the marker search limit (4096 pixels per side or 4,194,304 pixels total). Use Crop panel to create a smaller child tab; the original stays unchanged.</sys:String>

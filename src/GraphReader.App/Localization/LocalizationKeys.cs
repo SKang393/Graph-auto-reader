@@ -53,6 +53,8 @@ public static class LocalizationKeys
     public const string DetectionCalibrationPartial = "Errors.DetectionCalibrationPartial";
     public const string DetectionCalibrationPartialPanelUnknown = "Errors.DetectionCalibrationPartialPanelUnknown";
     public const string DetectionCalibrationMultiple = "Errors.DetectionCalibrationMultiple";
+    public const string ReviewObservationOrder = "Export.ReviewObservationOrder";
+    public const string ConfirmObservationOrder = "Export.ConfirmObservationOrder";
     public const string OperationFailed = "Errors.OperationFailed";
     public const string ManualEditRejected = "Errors.ManualEditRejected";
     public const string ManualAffinePhasesUnsupported = "Errors.ManualAffinePhasesUnsupported";
@@ -518,6 +520,8 @@ public static class LocalizationKeys
         DetectionCalibrationPartial,
         DetectionCalibrationPartialPanelUnknown,
         DetectionCalibrationMultiple,
+        ReviewObservationOrder,
+        ConfirmObservationOrder,
         OperationFailed,
         ManualEditRejected,
         ManualAffinePhasesUnsupported,

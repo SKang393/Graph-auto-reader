@@ -200,6 +200,7 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
     public override async Task<ExportResult> ExportAsync(
         string tabId,
         string outputDirectory,
+        bool confirmObservationOrder,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -230,6 +231,7 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                 currentEvidence.AuditMode,
                 currentEvidence.Calibration,
                 currentEvidence.SessionOriginPolicy,
+                confirmObservationOrder,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -271,6 +273,7 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                 firstObservedSession: sessionOverride ? FirstObservedSession(panel) : null,
                 panel.Calibration.Confidence),
             manualOriginPolicy,
+            confirmObservationOrder,
             cancellationToken).ConfigureAwait(false);
     }
 

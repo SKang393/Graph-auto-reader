@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -17,6 +18,7 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class ExportSummaryIsolationTests
 {
+    private static readonly string[] ObservationNumbers = ["1", "2"];
     private static readonly string[] WarningFromA = ["warning from A"];
     private static readonly string[] WarningsFromB = ["warning B1", "warning B2"];
 
@@ -129,6 +131,60 @@ public sealed class ExportSummaryIsolationTests
         }
     }
 
+    [TestMethod]
+    public void ObservationOrderChoiceAppliesOnlyToTheRequestedExport()
+    {
+        var directory = Directory.CreateTempSubdirectory();
+        try
+        {
+            StaTestHost.Run(() =>
+            {
+                string image = Path.Combine(directory.FullName, "axis.png");
+                WriteImage(image, 180, 140, 255);
+                using var workspace = new ManualPreviewWorkspaceService();
+                var tab = Pump(workspace.ImportImagesAsync([image], CancellationToken.None)).Single();
+                PrepareTab(workspace, tab, "Series", [(10, 80), (170, 55)]);
+                workspace.Calibrate(tab.TabId, new(new(10, 120), new(10, 10), new(170, 120), 10, 2, 1));
+                workspace.AddPhaseDivider(tab.TabId, 90, "b", "Treatment");
+
+                string output = Path.Combine(directory.FullName, "export");
+                var dialog = new ExportDialog(output);
+                using var vm = new MainWindowViewModel(workspace, localizationService: Localizer(), dialogService: dialog);
+                Export();
+                Assert.AreEqual(ExportContract.ObservationOrderReviewRequired, vm.LastOperationStatus!.Code);
+                Assert.IsFalse(Directory.Exists(output));
+                dialog.UseObservationOrder = true;
+                Export();
+                string csv = Directory.GetFiles(output, "*.csv").Single(path =>
+                    File.ReadLines(path).First() == ExportContract.MinimalCsvHeader);
+                CollectionAssert.AreEqual(ObservationNumbers, File.ReadLines(csv).Skip(1).Select(row => row.Split(',')[0]).ToArray());
+                using var audit = JsonDocument.Parse(File.ReadAllBytes(Directory.GetFiles(output, "*.json").Single()));
+                Assert.IsTrue(audit.RootElement.GetProperty("observation_order_confirmed_for_export").GetBoolean());
+                dialog.UseObservationOrder = false;
+                Export();
+                Assert.AreEqual(ExportContract.ObservationOrderReviewRequired, vm.LastOperationStatus!.Code);
+                Assert.AreEqual(3, dialog.ObservationOrderQuestions);
+
+                void Export()
+                {
+                    var complete = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                    void OnChange(object? sender, System.ComponentModel.PropertyChangedEventArgs args)
+                    {
+                        if (args.PropertyName == nameof(vm.IsBusy) && !vm.IsBusy) complete.TrySetResult();
+                    }
+                    vm.PropertyChanged += OnChange;
+                    try
+                    {
+                        vm.ExportCommand.Execute(null);
+                        Pump(complete.Task.WaitAsync(TimeSpan.FromSeconds(10)));
+                    }
+                    finally { vm.PropertyChanged -= OnChange; }
+                }
+            });
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
     private static void PrepareTab(ManualPreviewWorkspaceService workspace, WorkspaceTabViewModel tab,
         string seriesName, IReadOnlyList<(double X, double Y)> points)
     {
@@ -192,5 +248,12 @@ public sealed class ExportSummaryIsolationTests
         public string? SelectProjectToOpen() => null;
         public string? SelectProjectToSave(string? currentPath) => null;
         public string? SelectExportDirectory() => outputDirectory;
+        public bool UseObservationOrder { get; set; }
+        public int ObservationOrderQuestions { get; private set; }
+        public bool ConfirmObservationOrder()
+        {
+            ObservationOrderQuestions++;
+            return UseObservationOrder;
+        }
     }
 }

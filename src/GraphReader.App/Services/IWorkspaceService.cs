@@ -158,6 +158,12 @@ public interface IManualWorkspaceService : IRuntimeWorkspaceService
         string tabId,
         string outputDirectory,
         CancellationToken cancellationToken);
+
+    Task<ExportResult> ExportAsync(
+        string tabId,
+        string outputDirectory,
+        bool confirmObservationOrder,
+        CancellationToken cancellationToken);
 }
 
 public sealed record WorkspaceDeletedPointCorrection(string CorrectionId, string PointId, string? DetectionKey);

@@ -542,6 +542,7 @@ public sealed class ManualPreviewWorkflowSmokeTests
         ExportResult related = await reopened.ExportAsync(
             reopenedTab.TabId,
             environment.PathFor("explicit export"),
+            confirmObservationOrder: true,
             CancellationToken.None);
         Assert.IsTrue(related.Succeeded, Format(related.Failures));
         ExportSeriesRelation relationOne = reopenedCapture.LastRequest!.Relations.Single(
@@ -630,6 +631,7 @@ public sealed class ManualPreviewWorkflowSmokeTests
         ExportResult exported = await reopened.ExportAsync(
             reopenedTab.TabId,
             environment.PathFor("probe role export"),
+            confirmObservationOrder: true,
             CancellationToken.None);
         Assert.IsTrue(exported.Succeeded, Format(exported.Failures));
         Assert.HasCount(1, exported.MinimalArtifacts);

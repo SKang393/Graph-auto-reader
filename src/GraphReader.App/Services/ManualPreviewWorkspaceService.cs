@@ -1175,7 +1175,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     public void SetPointReviewStatus(string tabId, string pointId, ReviewStatus status)
     {
-        if (status is not (ReviewStatus.Accepted or ReviewStatus.Unreviewed))
+        if (status is not (ReviewStatus.Accepted or ReviewStatus.Unreviewed or ReviewStatus.Corrected))
             throw new ArgumentOutOfRangeException(nameof(status));
         WorkspaceTabViewModel tab = RequireTab(tabId);
         _ = RequirePoint(tab, pointId);
@@ -1183,12 +1183,29 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         Guid parsedPointId = Guid.Parse(pointId);
         PanelRecord panel = CurrentProject.Panels.Single(item => item.PanelId.Value == panelId);
         PointRecord point = panel.Points.Single(item => item.PointId.Value == parsedPointId);
-        if (point.ReviewStatus is not (ReviewStatus.Accepted or ReviewStatus.Unreviewed))
-            throw new InvalidOperationException("Only an unreviewed or explicitly accepted point can change review status.");
         if (point.ReviewStatus == status) return;
+        JsonElement? details = null;
+        if (status == ReviewStatus.Accepted)
+        {
+            if (point.ReviewStatus is not (ReviewStatus.Unreviewed or ReviewStatus.Corrected))
+                throw new InvalidOperationException("Only an unreviewed or corrected point can be accepted.");
+            if (point.ReviewStatus == ReviewStatus.Corrected)
+                details = JsonSerializer.SerializeToElement(new { previously_corrected = true });
+        }
+        else
+        {
+            // Older acceptance events came exclusively from unreviewed points.
+            var last = CurrentProject.Audit.Events.LastOrDefault(e => e.PanelId == panel.PanelId &&
+                e.EntityId == pointId && e.Kind == DomainEventKind.PointEdited && e.Note == "Point accepted by user");
+            bool wasCorrected = last?.Details is { ValueKind: JsonValueKind.Object } previous &&
+                previous.TryGetProperty("previously_corrected", out var flag) && flag.ValueKind == JsonValueKind.True;
+            if (point.ReviewStatus != ReviewStatus.Accepted ||
+                status != (wasCorrected ? ReviewStatus.Corrected : ReviewStatus.Unreviewed))
+                throw new InvalidOperationException("Undo must restore the point's review status before acceptance.");
+        }
         DateTimeOffset now = DateTimeOffset.UtcNow;
         var auditEvent = new AuditEvent(AuditEventId.New(), now, DomainEventKind.PointEdited,
-            panel.PanelId, pointId, status == ReviewStatus.Accepted ? "Point accepted by user" : "Point acceptance undone", Details: null);
+            panel.PanelId, pointId, status == ReviewStatus.Accepted ? "Point accepted by user" : "Point acceptance undone", details);
         CurrentProject = CurrentProject with
         {
             ModifiedUtc = now,
@@ -1522,9 +1539,16 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             cancellationToken).ConfigureAwait(false);
     }
 
+    public virtual Task<ExportResult> ExportAsync(
+        string tabId,
+        string outputDirectory,
+        CancellationToken cancellationToken) =>
+        ExportAsync(tabId, outputDirectory, confirmObservationOrder: false, cancellationToken);
+
     public virtual async Task<ExportResult> ExportAsync(
         string tabId,
         string outputDirectory,
+        bool confirmObservationOrder,
         CancellationToken cancellationToken)
     {
         WorkspaceTabViewModel tab = RequireTab(tabId);
@@ -1569,6 +1593,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 firstObservedSession: sessionOverride ? FirstObservedSession(panel) : null,
                 panel.Calibration.Confidence),
             manualOriginPolicy,
+            confirmObservationOrder,
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -2007,6 +2032,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         ExportAuditMode auditMode,
         ExportCalibration calibration,
         ExportSessionOriginPolicy sessionOriginPolicy,
+        bool confirmObservationOrder,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(tab);
@@ -2049,7 +2075,12 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             panel.Series.Select(ToExportSeries),
             panel.Points.Select(WithReviewEvidence),
             ToExportRelations(interventions),
-            interventions.Select(static series => series.SeriesId.Value));
+            interventions.Select(static series => series.SeriesId.Value))
+        {
+            ObservationOrderSelection = confirmObservationOrder
+                ? ObservationOrderSelection.ConfirmedForExport
+                : ObservationOrderSelection.WorkspaceDefault,
+        };
         return await _exportService.ExportAsync(request, cancellationToken).ConfigureAwait(false);
     }
 

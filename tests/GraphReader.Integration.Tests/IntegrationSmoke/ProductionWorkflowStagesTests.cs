@@ -2079,11 +2079,13 @@ public sealed class ProductionWorkflowStagesTests
                 currentEvidence.AuditMode,
                 new ExportSessionOriginPolicy(false, InvalidSessionOriginBehavior.Block),
                 currentEvidence.ProjectionEvidence));
-        ExportResult observationOrder = await ExportThroughManualWorkspaceInterfaceAsync(
-            workspace,
-            tab.TabId,
-            Path.Combine(directory.Path, "production-observation-export"),
-            CancellationToken.None);
+        string observationDirectory = Path.Combine(directory.Path, "production-observation-export");
+        var implicitOrder = await ExportThroughManualWorkspaceInterfaceAsync(
+            workspace, tab.TabId, observationDirectory, CancellationToken.None);
+        Assert.AreEqual(ExportContract.ObservationOrderReviewRequired, implicitOrder.Failures.Single().Code);
+        Assert.IsFalse(Directory.Exists(observationDirectory));
+        ExportResult observationOrder = await ((IManualWorkspaceService)workspace).ExportAsync(
+            tab.TabId, observationDirectory, confirmObservationOrder: true, CancellationToken.None);
         Assert.IsTrue(observationOrder.Succeeded);
         Assert.AreEqual(ExportMode.ObservationOrder, observationOrder.Mode);
         CollectionAssert.AreEqual(

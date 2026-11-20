@@ -10,6 +10,7 @@ namespace GraphReader.Export;
 /// </summary>
 public static class ExportContract
 {
+    public const string ObservationOrderReviewRequired = "OBSERVATION_ORDER_REVIEW_REQUIRED";
     public const int Version = 1;
     public const string MinimalCsvHeader = "x_value,y_value,phase";
     public const string CoordinateSpace = "original_pixels";
@@ -24,6 +25,13 @@ public enum ExportMode
 {
     PrintedSession,
     ObservationOrder,
+}
+
+public enum ObservationOrderSelection
+{
+    ExplicitMode,
+    WorkspaceDefault,
+    ConfirmedForExport,
 }
 
 [Flags]
@@ -324,6 +332,10 @@ public sealed class ExportRequest
     /// Optional batch filename scope. Does not change participant metadata or serialized contracts.
     /// </summary>
     public string? FileNamePrefix { get; init; }
+
+    // Direct callers choose Mode explicitly. Workspaces can also select observation
+    // order as a fallback, which needs review when a file crosses a phase boundary.
+    public ObservationOrderSelection ObservationOrderSelection { get; init; } = ObservationOrderSelection.ExplicitMode;
 
     public ExportMode Mode { get; }
 

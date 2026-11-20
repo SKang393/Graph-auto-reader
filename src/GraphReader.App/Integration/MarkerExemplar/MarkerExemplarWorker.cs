@@ -69,47 +69,54 @@ internal static class MarkerExemplarWorker
         // Read dimensions before conversion or pixel allocation.
         if (frame.PixelWidth != request.Width || frame.PixelHeight != request.Height)
             throw new MarkerExemplarException(MarkerExemplarReasonCodes.InvalidInput);
-        byte[] pixels = ReadGrayscale(frame, token);
+        byte[] pixels = ReadSamples(frame, request, token, out bool inkMask);
         double decode = total.Elapsed.TotalMilliseconds;
         token.ThrowIfCancellationRequested();
         var matching = Stopwatch.StartNew();
         // Includes native library loading and all correlation/postprocessing, independent of startup/decode budget.
         matchingStarted?.Invoke();
-        IReadOnlyList<MarkerExemplarCandidate> candidates = MarkerExemplarMatcher.Find(request, pixels, token);
+        IReadOnlyList<MarkerExemplarCandidate> candidates = MarkerExemplarMatcher.Find(request, pixels, inkMask, token);
         matching.Stop();
         return new(request, candidates, new(decode, matching.Elapsed.TotalMilliseconds, total.Elapsed.TotalMilliseconds),
-            new(budget, OpenCvSharp.Cv2.GetNumThreads(), MarkerExemplarValidation.Algorithm), null);
+            new(budget, OpenCvSharp.Cv2.GetNumThreads(),
+                inkMask ? MarkerExemplarValidation.InkOverlapAlgorithm : MarkerExemplarValidation.Algorithm), null);
     }
 
-    private static byte[] ReadGrayscale(BitmapSource frame, CancellationToken token)
+    private static byte[] ReadSamples(BitmapSource frame, MarkerExemplarRequest request, CancellationToken token, out bool inkMask)
     {
+        inkMask = false;
         int width = frame.PixelWidth;
-        var gray = new byte[checked(width * frame.PixelHeight)];
+        var samples = new byte[checked(width * frame.PixelHeight)];
         var format = frame.Format;
         if (format == PixelFormats.Gray8)
         {
-            frame.CopyPixels(gray, width, 0);
-            return gray;
+            frame.CopyPixels(samples, width, 0);
+            return samples;
         }
 
         var normalized = WhiteBackgroundRaster.Normalize(frame, token, out byte[] bgra);
+        if (request.IsFilledCircleSeries && MarkerExemplarInk.TryCreateMask(request, bgra, samples, token))
+        {
+            inkMask = true;
+            return samples;
+        }
         if (format == PixelFormats.Bgr24 || format == PixelFormats.Rgb24 || format == PixelFormats.Bgr32 ||
             format == PixelFormats.Bgra32 || format == PixelFormats.Pbgra32)
         {
             // Equivalent RGB scans must give the matcher the same intensities as Gray8.
             // Inspect the whole composited frame before using the common channel.
             int i = 0;
-            for (; i < gray.Length; i++)
+            for (; i < samples.Length; i++)
             {
                 if ((i & 0xffff) == 0) token.ThrowIfCancellationRequested();
                 int offset = 4 * i;
                 byte sample = bgra[offset];
                 if (sample != bgra[offset + 1] || sample != bgra[offset + 2]) break;
-                gray[i] = sample;
+                samples[i] = sample;
             }
-            if (i == gray.Length) return gray;
+            if (i == samples.Length) return samples;
         }
-        new FormatConvertedBitmap(normalized, PixelFormats.Gray8, null, 0).CopyPixels(gray, width, 0);
-        return gray;
+        new FormatConvertedBitmap(normalized, PixelFormats.Gray8, null, 0).CopyPixels(samples, width, 0);
+        return samples;
     }
 }

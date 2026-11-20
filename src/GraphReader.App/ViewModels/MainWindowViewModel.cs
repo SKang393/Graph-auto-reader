@@ -201,7 +201,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             parameter => DeletePoint((string)parameter!),
             parameter => parameter is string pointId && FindPoint(pointId) is not null);
         PromoteFilteredMarkerCommand = new RelayCommand(_ => PromoteFilteredMarker(), _ => CanPromoteFilteredMarker());
-        AcceptReviewPointCommand = new RelayCommand(_ => AcceptReviewPoint(), _ => CanAcceptReviewPoint());
+        AcceptReviewPointCommand = new RelayCommand(_ => AcceptPoint(SelectedReviewIssue?.EntityId, ReviewStatus.Unreviewed),
+            _ => CanAcceptReviewPoint());
+        AcceptCorrectedPointCommand = new RelayCommand(_ => AcceptPoint(SelectedPointId, ReviewStatus.Corrected),
+            _ => CanAcceptPoint(SelectedPointId, ReviewStatus.Corrected));
         MovePointCommand = new RelayCommand(
             parameter =>
             {
@@ -840,6 +843,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public ICommand AcceptReviewPointCommand { get; }
 
+    public ICommand AcceptCorrectedPointCommand { get; }
+
     public ICommand MovePointCommand { get; }
 
     public ICommand MergeSeriesCommand { get; }
@@ -961,30 +966,31 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private bool CanAcceptReviewPoint()
     {
-        if (IsBusy || _manualWorkspaceService is null || SelectedTab is not { } tab ||
-            SelectedReviewIssue is not { Kind: ReviewIssueKind.Point, EntityId: { } pointId } issue ||
-            !string.Equals(issue.TabId, tab.TabId, StringComparison.Ordinal) ||
-            !string.Equals(issue.IssueId, $"point-unreviewed-{pointId}", StringComparison.Ordinal) ||
-            !Guid.TryParse(tab.PanelId, out Guid panelId) || !Guid.TryParse(pointId, out Guid id))
-            return false;
-        return _manualWorkspaceService.CurrentProject.Panels
-            .SingleOrDefault(panel => panel.PanelId.Value == panelId)?.Points
-            .Any(point => point.PointId.Value == id && point.ReviewStatus == ReviewStatus.Unreviewed) == true &&
-            FindPoint(pointId) is not null;
+        return SelectedReviewIssue is { Kind: ReviewIssueKind.Point, EntityId: { } pointId } issue &&
+            issue.TabId == SelectedTab?.TabId && issue.IssueId == $"point-unreviewed-{pointId}" &&
+            CanAcceptPoint(pointId, ReviewStatus.Unreviewed);
     }
 
-    private void AcceptReviewPoint()
+    private bool CanAcceptPoint(string? pointId, ReviewStatus prior)
     {
-        if (!CanAcceptReviewPoint()) return;
+        if (IsBusy || _manualWorkspaceService is null || !Guid.TryParse(SelectedTab?.PanelId, out var panelId) ||
+            !Guid.TryParse(pointId, out var id) || FindPoint(pointId!) is null) return false;
+        return _manualWorkspaceService.CurrentProject.Panels.SingleOrDefault(p => p.PanelId.Value == panelId)?
+            .Points.Any(p => p.PointId.Value == id && p.ReviewStatus == prior) == true;
+    }
+
+    private void AcceptPoint(string? pointId, ReviewStatus prior)
+    {
+        if (pointId is null || !CanAcceptPoint(pointId, prior) ||
+            (prior == ReviewStatus.Unreviewed && !CanAcceptReviewPoint())) return;
         WorkspaceTabViewModel tab = SelectedTab!;
-        string pointId = SelectedReviewIssue!.EntityId!;
         IManualWorkspaceService service = _manualWorkspaceService!;
         bool wasDirty = tab.IsDirty;
         service.SetPointReviewStatus(tab.TabId, pointId, ReviewStatus.Accepted);
         GetEditHistory(tab).Record(GetLocalizedString(LocalizationKeys.EditAcceptPoint),
             () =>
             {
-                service.SetPointReviewStatus(tab.TabId, pointId, ReviewStatus.Unreviewed);
+                service.SetPointReviewStatus(tab.TabId, pointId, prior);
                 tab.IsDirty = wasDirty;
             },
             () =>
@@ -995,7 +1001,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         tab.IsDirty = true;
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
-        if (SelectedReviewIssue is { } next) SetSelectedReviewIssue(next, synchronizeWorkspace: true);
+        if (prior == ReviewStatus.Unreviewed && SelectedReviewIssue is { } next) SetSelectedReviewIssue(next, synchronizeWorkspace: true);
         QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, pointId);
     }
 
@@ -1649,6 +1655,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             GraphReader.Export.ExportResult exported =
                 await _manualWorkspaceService.ExportAsync(tab.TabId, directory, token);
+            if (SelectedTab == tab &&
+                exported.Failures.Any(f => f.Code == GraphReader.Export.ExportContract.ObservationOrderReviewRequired) &&
+                _dialogService.ConfirmObservationOrder())
+            {
+                exported = await _manualWorkspaceService.ExportAsync(tab.TabId, directory, confirmObservationOrder: true, token);
+            }
             if (!exported.Succeeded)
             {
                 SetOperationFailure(exported.Failures);

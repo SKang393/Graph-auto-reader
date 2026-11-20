@@ -19,6 +19,8 @@ public interface IWorkspaceDialogService
     string? SelectExportDirectory();
 
     bool ConfirmDiscardUnsavedChanges() => false;
+
+    bool ConfirmObservationOrder() => false;
 }
 
 public sealed class WindowsWorkspaceDialogService : IWorkspaceDialogService
@@ -79,6 +81,14 @@ public sealed class WindowsWorkspaceDialogService : IWorkspaceDialogService
         Text(LocalizationKeys.AppTitle, "Graph Auto Reader"),
         MessageBoxButton.YesNo,
         MessageBoxImage.Warning,
+        MessageBoxResult.No) == MessageBoxResult.Yes;
+
+    public bool ConfirmObservationOrder() => MessageBox.Show(
+        Text(LocalizationKeys.ConfirmObservationOrder,
+            "Use row numbers as X across phases? If printed session numbers restart or skip, choose No."),
+        Text(LocalizationKeys.AppTitle, "Graph Auto Reader"),
+        MessageBoxButton.YesNo,
+        MessageBoxImage.Question,
         MessageBoxResult.No) == MessageBoxResult.Yes;
 
     private string Text(string key, string fallback) =>

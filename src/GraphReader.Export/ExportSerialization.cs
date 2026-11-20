@@ -111,6 +111,7 @@ internal static class ExportSerialization
         Guid panelId,
         Guid interventionSeriesId,
         ExportMode mode,
+        bool observationOrderConfirmed,
         string seriesSymbol,
         string seriesName,
         IReadOnlyList<ExtendedAuditRow> rows,
@@ -136,6 +137,8 @@ internal static class ExportSerialization
             writer.WriteString("panel_id", panelId);
             writer.WriteString("intervention_series_id", interventionSeriesId);
             writer.WriteString("export_mode", ExportModeName(mode));
+            if (observationOrderConfirmed)
+                writer.WriteBoolean("observation_order_confirmed_for_export", true);
             writer.WriteString("series_symbol", seriesSymbol);
             writer.WriteString("series_name", seriesName);
             writer.WriteString("coordinate_space", ExportContract.CoordinateSpace);

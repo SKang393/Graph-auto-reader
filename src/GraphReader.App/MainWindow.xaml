@@ -1390,6 +1390,12 @@
                       Style="{DynamicResource App.Style.Button}"
                       automation:AutomationProperties.AutomationId="Manual.MovePoint"
                       automation:AutomationProperties.Name="{DynamicResource Manual.MovePoint}" />
+              <Button Margin="0,0,6,6"
+                      Command="{Binding AcceptCorrectedPointCommand}"
+                      Content="{DynamicResource Review.AcceptPoint}"
+                      Style="{DynamicResource App.Style.Button}"
+                      automation:AutomationProperties.AutomationId="Manual.AcceptCorrectedPoint"
+                      automation:AutomationProperties.Name="{DynamicResource Review.AcceptPoint}" />
               <Button x:Name="DeletePointButton"
                       Margin="0,0,6,6"
                       Command="{Binding DeletePointCommand}"

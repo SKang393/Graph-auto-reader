@@ -254,6 +254,7 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
             evidence.Relations)
         {
             FileNamePrefix = fileNamePrefix,
+            ObservationOrderSelection = ObservationOrderSelection.WorkspaceDefault,
         };
         return true;
     }

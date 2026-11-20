@@ -152,8 +152,12 @@ public sealed class MarkerExemplarBackendTests
         var good = new MarkerExemplarResponse(request, [new("one", new(80.25, 30.5), .99)],
             new(10, 20, 31), new(new(12, 416, .4992, true), 1, MarkerExemplarValidation.Algorithm), null);
         Assert.IsTrue(MarkerExemplarWorkerClient.IsValidResponse(request, good));
+        var circle = request with { IsFilledCircleSeries = true };
+        var inkRuntime = good.Runtime! with { Algorithm = MarkerExemplarValidation.InkOverlapAlgorithm };
+        Assert.IsTrue(MarkerExemplarWorkerClient.IsValidResponse(circle, good with { Request = circle, Runtime = inkRuntime }));
         MarkerExemplarResponse[] invalid =
         [
+            good with { Runtime = inkRuntime },
             good with { Request = request with { SelectedPointId = "changed" } },
             good with { Request = request with { Plot = new(30, 10, 64, 40) } },
             good with { Runtime = good.Runtime! with { OpenCvThreads = 2 } },
@@ -174,7 +178,7 @@ public sealed class MarkerExemplarBackendTests
     public async Task BoundedWireRoundTripRejectsOversizeAndTruncatedFrames()
     {
         byte[] bytes = [1, 2, 3];
-        MarkerExemplarRequest request = Request(bytes);
+        MarkerExemplarRequest request = Request(bytes) with { IsFilledCircleSeries = true };
         using var pipe = new MemoryStream();
         await MarkerExemplarWire.WriteRequestAsync(pipe, request, bytes, CancellationToken.None);
         pipe.Position = 0;

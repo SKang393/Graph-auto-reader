@@ -51,14 +51,10 @@ public sealed class SparseSessionExportTests(TestContext context)
         workspace.Calibrate(tab.TabId, Calibration(fit.Anchors!, fit.FirstSession!.Value, fit.FinalSession!.Value, fit.YMaximum!.Value, false));
         workspace.AddPhaseDivider(tab.TabId, 128, "b", "Training");
         workspace.AddPhaseDivider(tab.TabId, 228, "m", "Follow-up");
-        var ordinary = await workspace.ExportAsync(tab.TabId, temp.PathFor("ordinary"), token);
-        Assert.IsTrue(ordinary.Succeeded, string.Join(", ", ordinary.Failures));
-        Assert.AreEqual(ExportMode.ObservationOrder, ordinary.Mode);
-        var defaultRows = await File.ReadAllLinesAsync(ordinary.MinimalArtifacts.Single().WrittenPath!, token);
-        var defaultX = defaultRows.Skip(1).Select(line => double.Parse(line.Split(',')[0], CultureInfo.InvariantCulture)).ToArray();
-        CollectionAssert.AreEqual(new double[] { 1, 2, 3, 4, 5, 6 }, defaultX);
-        double maximumError = Reference.Zip(defaultX, (r, x) => Math.Abs(r.Session - x)).Max();
-        context.WriteLine($"Observation order X = {string.Join(", ", defaultX)}. Maximum error against printed sessions = {maximumError} sessions.");
+        string ordinaryDirectory = temp.PathFor("ordinary");
+        var ordinary = await workspace.ExportAsync(tab.TabId, ordinaryDirectory, token);
+        Assert.AreEqual(ExportContract.ObservationOrderReviewRequired, ordinary.Failures.Single().Code);
+        Assert.IsFalse(Directory.Exists(ordinaryDirectory));
 
         var printed = fit.PrintedXReviewDraft;
         Assert.IsNotNull(printed, "The operator needs a printed-X choice on a valid session-1 fit.");

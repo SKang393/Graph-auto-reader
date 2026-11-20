@@ -10,6 +10,7 @@ internal static class MarkerExemplarValidation
     internal const int MaximumPixels = 4_194_304;
     internal const int MaximumSide = 4096;
     internal const int MaximumCandidates = 128;
+    internal const string InkOverlapAlgorithm = "original-panel-user-exemplar-color-overlap-v1";
     internal const string Algorithm = "original-panel-user-exemplar-gaussian-single-scale-v2";
     internal static bool ValidRequest(MarkerExemplarRequest? request, ReadOnlyMemory<byte> image) =>
         ValidMetadata(request) && image.Length is > 0 and <= MarkerExemplarWire.MaximumImageBytes &&
@@ -53,7 +54,9 @@ internal static class MarkerExemplarValidation
             !budget.Verified || budget.LogicalProcessors == 0 || budget.Rate == 0 || budget.Rate != 5000 / budget.LogicalProcessors ||
             budget.MaximumLogicalCores != budget.LogicalProcessors * budget.Rate / 10000d ||
             budget.MaximumLogicalCores is <= 0 or > .5 || budget.PriorityClass != "BelowNormal" ||
-            runtime.OpenCvThreads != 1 || runtime.Algorithm != Algorithm || response.Timings is not { } timings ||
+            runtime.OpenCvThreads != 1 ||
+            (runtime.Algorithm != Algorithm && !(request.IsFilledCircleSeries && runtime.Algorithm == InkOverlapAlgorithm)) ||
+            response.Timings is not { } timings ||
             !Time(timings.DecodeMilliseconds) || !Time(timings.MatchingMilliseconds) || !Time(timings.TotalMilliseconds) ||
             timings.TotalMilliseconds < timings.DecodeMilliseconds + timings.MatchingMilliseconds ||
             response.Candidates.Count > MaximumCandidates) return false;

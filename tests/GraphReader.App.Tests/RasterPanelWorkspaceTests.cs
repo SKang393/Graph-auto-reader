@@ -28,6 +28,41 @@ public sealed class RasterPanelWorkspaceTests
     private static readonly string[] RequiredStages = ["axis", "ocr", "markers", "legends", "phases"];
 
     [TestMethod]
+    public async Task CorrectedPointNeedsSeparateAcceptanceAndUndoRestoresTheCorrection()
+    {
+        using var dir = new TemporaryDirectory();
+        string image = Path.Combine(dir.Path, "review.png");
+        await File.WriteAllBytesAsync(image, CreatePlainPng(100, 80));
+        using var workspace = new ManualPreviewWorkspaceService();
+        var tab = (await workspace.ImportImagesAsync([image], CancellationToken.None)).Single();
+        var series = workspace.AddSeries(tab.TabId, new("Response", "●", MarkerShape.Circle,
+            MarkerFill.Filled, SemanticRole.Intervention));
+        workspace.Calibrate(tab.TabId, new(new(10, 70), new(10, 10), new(90, 70), 100, 10, 1));
+        var point = workspace.AddPoint(tab.TabId, series.SeriesId, 20, 30);
+        ReviewStatus Status() => workspace.CurrentProject.Panels.Single().Points.Single().ReviewStatus;
+        StaTestHost.Run(() =>
+        {
+            using var vm = new MainWindowViewModel(workspace);
+            vm.SelectedTab = tab;
+            vm.SelectedPointId = null;
+            Assert.IsFalse(vm.AcceptCorrectedPointCommand.CanExecute(null));
+            vm.SelectedPointId = point.PointId;
+            Assert.AreEqual(ReviewStatus.Corrected, Status());
+            Assert.IsTrue(vm.AcceptCorrectedPointCommand.CanExecute(null));
+            vm.AcceptCorrectedPointCommand.Execute(null);
+            Assert.AreEqual(ReviewStatus.Accepted, Status());
+            Assert.IsFalse(vm.AcceptCorrectedPointCommand.CanExecute(null));
+            vm.UndoCommand.Execute(null);
+            Assert.AreEqual(ReviewStatus.Corrected, Status());
+            vm.RedoCommand.Execute(null);
+            Assert.AreEqual(ReviewStatus.Accepted, Status());
+            vm.MovePoint(point.PointId, 20, 31);
+            Assert.AreEqual(ReviewStatus.Corrected, Status());
+            Assert.IsTrue(vm.AcceptCorrectedPointCommand.CanExecute(null));
+        });
+    }
+
+    [TestMethod]
     public async Task AnalysisReviewWarningSurvivesCroppedPanelSaveAndReopen()
     {
         using var directory = new TemporaryDirectory();
