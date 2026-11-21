@@ -8,6 +8,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Threading;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Localization;
 using GraphReader.App.Models;
@@ -25,7 +32,7 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class RasterPanelWorkspaceTests
 {
-    [TestMethod]
+    [STATestMethod(UseSTASynchronizationContext = true)]
     public async Task ReviewApprovalFollowsThePreviewRowAcrossSeriesAtTheSameCoordinate()
     {
         using var dir = new TemporaryDirectory();
@@ -36,11 +43,12 @@ public sealed class RasterPanelWorkspaceTests
         var tab = (await fixture.ImportImagesAsync([image], token)).Single();
         var first = fixture.AddSeries(tab.TabId, new("First", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
         var second = fixture.AddSeries(tab.TabId, new("Second", "○", MarkerShape.Circle, MarkerFill.Open, SemanticRole.Intervention));
-        fixture.Calibrate(tab.TabId, new(new(10, 70), new(10, 10), new(90, 70), 60, 9));
+        fixture.Calibrate(tab.TabId, new(new(10, 70), new(10, 10), new(90, 70), 60, 9) { UsesPrintedXCoordinates = true });
         var a = fixture.AddPoint(tab.TabId, first.SeriesId, 30, 40);
         var b = fixture.AddPoint(tab.TabId, second.SeriesId, 30, 40);
         var control = fixture.AddPoint(tab.TabId, first.SeriesId, 50, 20);
         fixture.SetPointReviewStatus(tab.TabId, control.PointId, ReviewStatus.Accepted);
+        fixture.ConfirmPhaseLabel(tab.TabId, fixture.CurrentProject.Panels.Single().Phases.Single());
         var project = fixture.CurrentProject;
         var panel = project.Panels.Single();
         var pending = panel.Points.Select(p => p.PointId.Value == Guid.Parse(control.PointId)
@@ -51,36 +59,124 @@ public sealed class RasterPanelWorkspaceTests
         using var workspace = new ManualPreviewWorkspaceService();
         var reopened = (await workspace.OpenProjectAsync(path, token)).Single();
 
-        StaTestHost.Run(() =>
+        Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+        var resources = new ResourceDictionary();
+        foreach (string theme in new[] { "DesignTokens", "LightTheme", "Controls" })
+            resources.MergedDictionaries.Add(new() { Source = new Uri($"/GraphReader.App;component/Themes/{theme}.xaml", UriKind.Relative) });
+        using var vm = new MainWindowViewModel(workspace, new LocalizationService(resources))
+            { SelectedTab = reopened, IsDataPreviewExpanded = true };
+        var window = new MainWindow(null, resources);
+        ((MainWindowViewModel)window.DataContext).Dispose();
+        window.DataContext = vm;
+        try
         {
-            using var vm = new MainWindowViewModel(workspace) { SelectedTab = reopened };
-            var before = workspace.CurrentProject;
-            vm.SelectedReviewIssue = vm.ReviewIssues.Single(i => i.EntityId == a.PointId && i.PointStatusToAccept.HasValue);
-            vm.SelectedDataPreviewRow = vm.DataPreviewRows.Single(r => r.PointId == control.PointId);
-            Assert.IsNull(vm.SelectedReviewIssue);
-            Assert.IsFalse(vm.AcceptReviewPointCommand.CanExecute(null));
-            vm.AcceptReviewPointCommand.Execute(null);
+            window.Show();
+            window.UpdateLayout();
+            var controls = VisualChildren(window).ToArray();
+            var review = controls.OfType<ListBox>().Single(list => list.ItemsSource == vm.ReviewIssues);
+            var preview = controls.OfType<ListBox>().Single(list => list.ItemsSource == vm.DataPreviewRows);
+            var accept = controls.OfType<Button>().Single(button => AutomationProperties.GetAutomationId(button) == "Review.AcceptPoint");
+            var undo = controls.OfType<Button>().Single(button => button.Command == vm.UndoCommand);
+            var original = await Export("original");
+            window.UpdateLayout();
+            var snapshot = workspace.CurrentProject;
 
-            var row = vm.DataPreviewRows.Single(r => r.PointId == b.PointId);
-            vm.SelectDataPreviewRowCommand.Execute(row);
+            Select(review, vm.ReviewIssues.Single(i => i.EntityId == a.PointId && i.PointStatusToAccept.HasValue));
+            Select(preview, vm.DataPreviewRows.Single(r => r.PointId == control.PointId));
+            Assert.IsNull(review.SelectedItem, "The Review list must clear its previous point when the preview selects an accepted row.");
+            Assert.IsFalse(accept.IsEnabled);
+            var target = vm.DataPreviewRows.Single(r => r.PointId == b.PointId);
+            Select(preview, target);
+            Assert.AreSame(vm.SelectedReviewIssue, review.SelectedItem);
             Assert.AreEqual(b.PointId, vm.SelectedReviewIssue?.EntityId);
             Assert.AreEqual(second.SeriesId, vm.SelectedSeriesId);
-            Assert.AreEqual(new System.Windows.Point(30, 40), vm.Magnifier.PixelPosition);
-            Assert.IsTrue(vm.AcceptReviewPointCommand.CanExecute(null));
-            // A delayed button invocation must also check the current point identity.
-            vm.SelectedPointId = a.PointId;
-            Assert.IsFalse(vm.AcceptReviewPointCommand.CanExecute(null));
-            vm.AcceptReviewPointCommand.Execute(null);
-            Assert.AreSame(before, workspace.CurrentProject);
+            Assert.AreEqual(new Point(30, 40), vm.Magnifier.PixelPosition);
+            Assert.IsTrue(accept.IsEnabled);
 
-            vm.SelectDataPreviewRowCommand.Execute(row);
-            vm.AcceptReviewPointCommand.Execute(null);
-            var points = workspace.CurrentProject.Panels.Single().Points;
-            Assert.AreEqual(ReviewStatus.Accepted, points.Single(p => p.PointId.Value == Guid.Parse(b.PointId)).ReviewStatus);
-            Assert.AreEqual(ReviewStatus.Unreviewed, points.Single(p => p.PointId.Value == Guid.Parse(a.PointId)).ReviewStatus);
-            vm.UndoCommand.Execute(null);
-            CollectionAssert.AreEqual(before.Panels.Single().Points.ToArray(), workspace.CurrentProject.Panels.Single().Points.ToArray());
-        });
+            // Deliver a stale invocation after the point identity changes.
+            vm.SelectedPointId = a.PointId;
+            Assert.IsFalse(accept.Command.CanExecute(accept.CommandParameter));
+            accept.Command.Execute(accept.CommandParameter);
+            Assert.AreSame(snapshot, workspace.CurrentProject);
+            Select(preview, target);
+            Assert.AreEqual(b.PointId, vm.SelectedPointId);
+            var located = await Export("located");
+            CollectionAssert.AreEqual(original.AuditHashes, located.AuditHashes);
+            CollectionAssert.AreEqual(original.Rows, located.Rows);
+
+            Invoke(accept);
+            var accepted = await Export("accepted");
+            var expected = original.Rows.Select(row => row.PointId == Guid.Parse(b.PointId)
+                ? row with { ReviewStatus = ExportReviewStatus.Accepted, ReviewEvidence = row.ReviewEvidence!
+                    with { PointActions = "point_placed|point_accepted" } }
+                : row).ToArray();
+            CollectionAssert.AreEqual(expected, accepted.Rows);
+
+            Invoke(undo);
+            var undone = await Export("undone");
+            CollectionAssert.AreEqual(original.AuditHashes, undone.AuditHashes);
+            CollectionAssert.AreEqual(original.Rows, undone.Rows);
+            CollectionAssert.AreEqual(snapshot.Panels.Single().Points.ToArray(), workspace.CurrentProject.Panels.Single().Points.ToArray());
+        }
+        finally
+        {
+            window.DataContext = null;
+            window.Close();
+        }
+
+        void Select(ListBox list, object item)
+        {
+            list.SelectedItem = item;
+            window.Dispatcher.Invoke(static () => { }, DispatcherPriority.ApplicationIdle);
+        }
+
+        void Invoke(Button button)
+        {
+            Assert.IsTrue(button.IsEnabled);
+            ((IInvokeProvider)new ButtonAutomationPeer(button)).Invoke();
+            window.Dispatcher.Invoke(static () => { }, DispatcherPriority.ApplicationIdle);
+        }
+
+        async Task<(string[] AuditHashes, ExtendedAuditRow[] Rows)> Export(string stage)
+        {
+            var result = await workspace.ExportAsync(reopened.TabId, Path.Combine(dir.Path, stage), token);
+            Assert.IsTrue(result.Succeeded);
+            Assert.HasCount(2, result.MinimalArtifacts);
+            foreach (var csv in result.MinimalArtifacts)
+            {
+                string body = csv.InterventionSeriesId == Guid.Parse(first.SeriesId) ? "3,30,a\n5,50,a\n" : "3,30,a\n";
+                CollectionAssert.AreEqual(Encoding.UTF8.GetBytes("x_value,y_value,phase\n" + body),
+                    await File.ReadAllBytesAsync(csv.WrittenPath!, token));
+            }
+            var audits = result.AuditArtifacts.Where(file => file.Format == ExportAuditArtifactFormat.Csv)
+                .OrderBy(file => file.InterventionSeriesId).ToArray();
+            Assert.HasCount(2, audits);
+            string[] hashes = audits.Select(file => Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(file.WrittenPath!)))).ToArray();
+            var rows = audits.SelectMany(file => file.Rows).ToArray();
+            Assert.HasCount(3, rows);
+            if (stage == "original")
+            {
+                foreach (var row in rows)
+                {
+                    Assert.AreEqual("explicit_label", row.ReviewEvidence!.PhaseLabelReview);
+                    bool isControl = row.PointId == Guid.Parse(control.PointId);
+                    Assert.AreEqual(isControl ? ExportReviewStatus.Accepted : ExportReviewStatus.Unreviewed, row.ReviewStatus);
+                    Assert.AreEqual(isControl ? "point_placed|point_accepted" : "point_placed", row.ReviewEvidence.PointActions);
+                }
+                Assert.AreEqual(Guid.Parse(second.SeriesId), rows.Single(r => r.PointId == Guid.Parse(b.PointId)).SourceSeriesId);
+            }
+            return (hashes, rows);
+        }
+    }
+
+    private static IEnumerable<DependencyObject> VisualChildren(DependencyObject parent)
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            yield return child;
+            foreach (var descendant in VisualChildren(child)) yield return descendant;
+        }
     }
 
     private static readonly string[] RequiredStages = ["axis", "ocr", "markers", "legends", "phases"];

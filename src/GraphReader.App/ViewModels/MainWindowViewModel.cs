@@ -3097,7 +3097,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ReviewIssueViewModel? issue,
         bool synchronizeWorkspace)
     {
-        _ = SetProperty(ref _selectedReviewIssue, issue);
+        _ = SetProperty(ref _selectedReviewIssue, issue, nameof(SelectedReviewIssue));
         RelayCommand.RaiseCanExecuteChanged();
         if (!synchronizeWorkspace || issue is null)
         {
