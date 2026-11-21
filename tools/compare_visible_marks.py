@@ -9,28 +9,49 @@ from pathlib import Path
 from uuid import UUID
 
 
+def remember(records, key, value, field):
+    if records.setdefault(key, value) != value:
+        raise ValueError(f"Conflicting {field} for {key}. Use unchanged files from one export.")
+
+
 def audit_counts(paths):
     scope = None
     placements = {}
     series_names = {}
     phase_codes = {}
+    source_snapshots = {}
+    target_sources = {}
     for path in paths:
         audit = json.loads(Path(path).read_text(encoding="utf-8-sig"))
-        identity = tuple(UUID(audit[key]) for key in ("project_id", "panel_id", "run_id"))
+        ids = tuple(UUID(audit[key]) for key in ("project_id", "panel_id", "run_id"))
+        if any(identifier.int == 0 for identifier in ids):
+            raise ValueError(f"Empty project, panel or run ID in {path}.")
+        identity = (ids, audit.get("contract_version"), audit.get("coordinate_space"),
+                    audit.get("export_mode"), audit.get("observation_order_confirmed_for_export"))
         if scope is not None and identity != scope:
             raise ValueError("Use files from one export of one panel. Check phase copies separately.")
         scope = identity
         rows = audit["rows"]
         if not isinstance(rows, list) or len(rows) != audit["row_count"]:
             raise ValueError(f"Row count disagrees with the rows in {path}.")
+        target = UUID(audit["intervention_series_id"])
+        by_source = {}
         for row in rows:
+            if UUID(row["target_intervention_series_id"]) != target:
+                raise ValueError(f"Row target disagrees with the file target in {path}.")
             series = UUID(row["source_series_id"])
             phase = UUID(row["phase_id"])
             point = UUID(row["point_id"])
-            if placements.setdefault(point, (series, phase)) != (series, phase):
-                raise ValueError(f"Conflicting assignments for point {point}.")
-            series_names[series] = row["series_name"]
-            phase_codes[phase] = row["phase"]
+            remember(placements, point, (series, phase), "point assignments")
+            remember(series_names, series, row["series_name"], "source series names")
+            remember(phase_codes, phase, row["phase"], "phase codes")
+            # Only the destination and its inclusion reason vary when the exporter
+            # copies a source series into another intervention's file.
+            evidence = {k: v for k, v in row.items() if k not in ("target_intervention_series_id", "inclusion")}
+            remember(by_source.setdefault(series, {}), point, evidence, "point evidence")
+        for series, points in by_source.items():
+            remember(source_snapshots, series, points, "source series snapshots")
+        remember(target_sources, target, set(by_source), "target series contents")
     return placements, series_names, phase_codes
 
 
@@ -70,6 +91,8 @@ def main():
     print(f"Distinct audited points = {placed}")
     print(f"Audited minus visible = {difference:+d}")
     print("Counts agree." if difference == 0 else "Counts differ.")
+    if len(args.audits) > 1:
+        print("Combined tally assumes unchanged files from one export action.")
     if placed == 0:
         print("No rows for this pair in the supplied files. Check which series and phases were exported.")
     print("Source plot completeness is unverified. Check each mark's visit, position and phase.")

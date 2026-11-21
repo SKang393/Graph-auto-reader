@@ -198,6 +198,11 @@ jobs:
           architecture: x64
           check-latest: false
 
+      - name: Check the visible-mark tally on synthetic audit files
+        if: inputs.review_assistance
+        shell: pwsh
+        run: python -B tests/test_compare_visible_marks.py -v
+
       - name: Reproduce and stage the reviewed reader
         id: reader
         if: ${{ !cancelled() && inputs.review_assistance }}

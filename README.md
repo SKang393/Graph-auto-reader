@@ -104,6 +104,14 @@ the audit when names or phase codes repeat. The result covers the supplied
 files. The preview's **Placed points** total covers the panel. If an entire
 group is absent, check its scope in the project before recording zero.
 
+The desktop workspace writes a fresh run ID for each export action. The helper
+checks project, panel and run IDs and compares repeated source series across
+files. These headers identify the declared run. Files with copied or reused
+headers and disjoint series can still look consistent. Combine only original
+JSON files you know were written together. If their origin is uncertain, check
+each file separately and keep the counts separate. Keep audit CSVs with their
+original export folder because the CSV rows omit these run identifiers.
+
 ## Privacy
 
 Article PDFs, graph images, projects, and inference remain on the local computer
