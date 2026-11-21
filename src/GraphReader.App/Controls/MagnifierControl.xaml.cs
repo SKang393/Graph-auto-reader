@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace GraphReader.App.Controls;
 
@@ -29,13 +30,13 @@ public partial class MagnifierControl : UserControl
         new FrameworkPropertyMetadata(
             false,
             FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
-            OnDisplayPropertyChanged));
+            OnImageSourceChanged));
 
     public static readonly DependencyProperty CrosshairPositionProperty = DependencyProperty.Register(
         nameof(CrosshairPosition),
         typeof(Point),
         typeof(MagnifierControl),
-        new PropertyMetadata(new Point(0.5, 0.5)));
+        new PropertyMetadata(new Point(0.5, 0.5), OnCrosshairPositionChanged));
 
     public static readonly DependencyProperty ShowCrosshairProperty = DependencyProperty.Register(
         nameof(ShowCrosshair),
@@ -71,7 +72,7 @@ public partial class MagnifierControl : UserControl
         nameof(ZoomLevel),
         typeof(double),
         typeof(MagnifierControl),
-        new PropertyMetadata(2d, OnDisplayPropertyChanged), IsValidZoomLevel);
+        new PropertyMetadata(2d, OnZoomLevelChanged), IsValidZoomLevel);
 
     public MagnifierControl()
     {
@@ -97,7 +98,7 @@ public partial class MagnifierControl : UserControl
         set => SetValue(ShowEnhancedProperty, value);
     }
 
-    /// <summary>Gets or sets the normalized viewport location of the crosshair.</summary>
+    /// <summary>Gets or sets the normalized image location shown at the center of the magnifier.</summary>
     public Point CrosshairPosition
     {
         get => (Point)GetValue(CrosshairPositionProperty);
@@ -146,14 +147,21 @@ public partial class MagnifierControl : UserControl
     private static void OnImageSourceChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
     {
         _ = args;
-        ((MagnifierControl)dependencyObject).RefreshImage();
+        var control = (MagnifierControl)dependencyObject;
+        control.RefreshImage();
+        control.RefreshDisplayValues();
     }
 
     private static void OnDisplayPropertyChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
     {
         _ = args;
+        ((MagnifierControl)dependencyObject).RefreshDisplayValues();
+    }
+
+    private static void OnZoomLevelChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
+    {
         var control = (MagnifierControl)dependencyObject;
-        control.RefreshImage();
+        control.PositionLens();
         control.RefreshDisplayValues();
     }
 
@@ -179,6 +187,29 @@ public partial class MagnifierControl : UserControl
         ShowEnhanced = true;
     }
 
+    private static void OnCrosshairPositionChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args) =>
+        ((MagnifierControl)sender).PositionLens();
+
+    private void OnLensViewportSizeChanged(object sender, SizeChangedEventArgs args) => PositionLens();
+
+    private void PositionLens()
+    {
+        if (!IsInitialized || (OriginalImageSource ?? ViewportImage.Source) is not { } reference)
+        {
+            return;
+        }
+
+        // Render both image modes on the original pixel grid, including enhanced rasters at another resolution.
+        (double width, double height) = reference is BitmapSource bitmap
+            ? (bitmap.PixelWidth, bitmap.PixelHeight)
+            : (reference.Width, reference.Height);
+        ViewportImage.Width = width;
+        ViewportImage.Height = height;
+        LensTransform.Matrix = new Matrix(ZoomLevel, 0, 0, ZoomLevel,
+            LensViewport.ActualWidth / 2 - CrosshairPosition.X * width * ZoomLevel,
+            LensViewport.ActualHeight / 2 - CrosshairPosition.Y * height * ZoomLevel);
+    }
+
     private void RefreshImage()
     {
         if (!IsInitialized)
@@ -191,6 +222,7 @@ public partial class MagnifierControl : UserControl
             : OriginalImageSource;
 
         ViewportImage.Source = selectedSource;
+        PositionLens();
         EmptyImageText.Visibility = selectedSource is null ? Visibility.Visible : Visibility.Collapsed;
         EnhancedModeButton.IsEnabled = EnhancedImageSource is not null;
         OriginalModeButton.IsChecked = !ShowEnhanced;

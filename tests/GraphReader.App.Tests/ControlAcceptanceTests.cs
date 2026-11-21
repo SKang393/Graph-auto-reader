@@ -203,10 +203,6 @@ public sealed class ControlAcceptanceTests
 
                 var viewportImage = (Image)magnifier.FindName("ViewportImage");
                 Assert.AreSame(enhanced, viewportImage.Source);
-                var scale = (ScaleTransform)viewportImage.RenderTransform;
-                Assert.AreEqual(3d, scale.ScaleX);
-                Assert.AreEqual(3d, scale.ScaleY);
-                Assert.AreEqual(magnifier.CrosshairPosition, viewportImage.RenderTransformOrigin);
                 Assert.AreEqual("12.5, 42.25", ((TextBlock)magnifier.FindName("PixelPositionText")).Text);
                 Assert.AreEqual("3, 18.5", ((TextBlock)magnifier.FindName("GraphPositionText")).Text);
                 Assert.AreEqual("Open circle", ((TextBlock)magnifier.FindName("NearestDetectionText")).Text);
@@ -214,6 +210,53 @@ public sealed class ControlAcceptanceTests
 
                 magnifier.NearestDetectionName = null;
                 Assert.AreEqual(Visibility.Visible, ((TextBlock)magnifier.FindName("NoDetectionText")).Visibility);
+            });
+    }
+
+    [TestMethod]
+    [DataRow(600, 160)]
+    [DataRow(160, 600)]
+    public void MagnifierCentersTheSelectedOriginalPixelAtTheDisplayedScale(int width, int height)
+    {
+        StaTestHost.Run(
+            () =>
+            {
+                var magnifier = new MagnifierControl
+                {
+                    OriginalImageSource = new WriteableBitmap(width, height, 144, 144, PixelFormats.Bgra32, null),
+                    EnhancedImageSource = new WriteableBitmap(width * 2, height * 2, 96, 96, PixelFormats.Bgra32, null),
+                    CrosshairPosition = new Point(0.17, 0.83),
+                    ZoomLevel = 2,
+                };
+                var image = (Image)magnifier.FindName("ViewportImage");
+                AssertRegistration(286);
+
+                magnifier.ShowEnhanced = true;
+                magnifier.ZoomLevel = 4;
+                magnifier.CrosshairPosition = new Point(0.995, 0.01);
+                AssertRegistration(340);
+
+                void AssertRegistration(double inspectorWidth)
+                {
+                    magnifier.Measure(new Size(inspectorWidth, 480));
+                    magnifier.Arrange(new Rect(0, 0, inspectorWidth, 480));
+                    magnifier.UpdateLayout();
+                    var crosshair = FindVisualDescendant<CrosshairOverlay>(magnifier);
+                    Assert.IsNotNull(crosshair);
+                    Assert.IsTrue(crosshair.ActualWidth > 0 && crosshair.ActualHeight > 0);
+                    Assert.AreEqual(new Point(0.5, 0.5), crosshair.Position);
+
+                    var cursor = magnifier.CrosshairPosition;
+                    var sample = new Point(cursor.X * image.ActualWidth, cursor.Y * image.ActualHeight);
+                    var at = image.TranslatePoint(sample, crosshair);
+                    Assert.AreEqual(crosshair.ActualWidth / 2, at.X, 1e-6);
+                    Assert.AreEqual(crosshair.ActualHeight / 2, at.Y, 1e-6);
+
+                    var onePixel = new Vector(image.ActualWidth / width, image.ActualHeight / height);
+                    var step = image.TranslatePoint(sample + onePixel, crosshair) - at;
+                    Assert.AreEqual(magnifier.ZoomLevel, step.X, 1e-6);
+                    Assert.AreEqual(magnifier.ZoomLevel, step.Y, 1e-6);
+                }
             });
     }
 
