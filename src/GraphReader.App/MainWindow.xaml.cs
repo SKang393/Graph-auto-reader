@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 using GraphReader.App.Appearance;
 using GraphReader.App.Controls;
@@ -182,7 +183,9 @@ public partial class MainWindow : Window
         _ = sender;
         if (DataContext is MainWindowViewModel viewModel)
         {
-            await viewModel.HandleCanvasPointAsync(e.ImagePoint);
+            // Releasing Shift while holding Enter must not place another point.
+            if (e.IsRepeat && viewModel.EditorMode == ManualEditorMode.AddPoint) return;
+            await viewModel.HandleCanvasPointAsync(e.ImagePoint, continueAddingPoints: e.Modifiers == ModifierKeys.Shift);
         }
     }
 

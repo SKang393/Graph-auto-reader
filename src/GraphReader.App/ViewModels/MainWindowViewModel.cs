@@ -1255,7 +1255,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         RefreshWorkspaceProjection();
     }
 
-    public async Task HandleCanvasPointAsync(Point point, CancellationToken cancellationToken = default)
+    public Task HandleCanvasPointAsync(Point point, CancellationToken cancellationToken = default) =>
+        HandleCanvasPointAsync(point, continueAddingPoints: false, cancellationToken);
+
+    internal async Task HandleCanvasPointAsync(Point point, bool continueAddingPoints, CancellationToken cancellationToken = default)
     {
         if (SelectedTab is not { } tab || _manualWorkspaceService is null)
         {
@@ -1343,7 +1346,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                     point.X,
                     point.Y);
                 SelectedPointId = added.PointId;
-                EditorMode = ManualEditorMode.Select;
+                if (!continueAddingPoints) EditorMode = ManualEditorMode.Select;
                 SetStatus(GetLocalizedString(LocalizationKeys.ManualPointAdded));
                 RecordManualEdit(tab, LocalizationKeys.EditAddPoint, before!);
                 await TryAutosaveAsync(SnapshotTrigger.PointEdited, tab.TabId, added.PointId, cancellationToken);

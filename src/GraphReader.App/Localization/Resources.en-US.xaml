@@ -269,7 +269,7 @@
   <sys:String x:Key="Manual.LabelDivider">Apply divider label</sys:String>
   <sys:String x:Key="Manual.Default.Intervention">Intervention</sys:String>
   <sys:String x:Key="Manual.Instruction.Calibration">Calibration anchor {0} of 3. Click the graph, or move the keyboard cursor and press Enter.</sys:String>
-  <sys:String x:Key="Manual.Instruction.AddPoint">Click the graph, or move the keyboard cursor and press Enter, to add a point</sys:String>
+  <sys:String x:Key="Manual.Instruction.AddPoint">Click or press Enter at the graph cursor to place a point. Hold Shift when placing to keep Add point active.</sys:String>
   <sys:String x:Key="Manual.Instruction.MovePoint">Click the new location, or move the keyboard cursor and press Enter</sys:String>
   <sys:String x:Key="Manual.Instruction.AddDivider">Click the graph, or move the keyboard cursor and press Enter, to add a phase divider</sys:String>
   <sys:String x:Key="Manual.Instruction.MoveDivider">Click the new phase-divider location, or move the keyboard cursor and press Enter</sys:String>
