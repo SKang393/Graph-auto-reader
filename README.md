@@ -104,6 +104,23 @@ the audit when names or phase codes repeat. The result covers the supplied
 files. The preview's **Placed points** total covers the panel. If an entire
 group is absent, check its scope in the project before recording zero.
 
+If you can read the printed session number for every visible mark in the selected
+series and phase, record those numbers before opening the audit. Add them as a
+JSON list with one number per mark, including repeats. This example uses visits 1 and 3.
+
+```sh
+python tools/compare_visible_marks.py "Response.audit.json" --series Response --phase a --visible 2 --sessions '[1,3]'
+```
+
+The helper compares exact numeric values for distinct points only when the file
+and row declare `printed_session` and the row declares `x_source` as `printed`.
+It lists repeated values on either side and identifies unresolved audit points
+by ID. A manually calibrated X value recorded as `estimated` stays unresolved
+even when it equals a printed label. An analyst value without a comparable
+audit value calls for inspection. Use the tally alone when a label is unreadable.
+Agreement checks the supplied labels only. Point positions, Y values, phase
+assignments and review evidence still need independent verification.
+
 The desktop workspace writes a fresh run ID for each export action. The helper
 checks project, panel and run IDs and compares repeated source series across
 files. These headers identify the declared run. Files with copied or reused

@@ -34,9 +34,10 @@ class VisibleMarkTests(unittest.TestCase):
         path.write_text(json.dumps(content), encoding="utf-8")
         return path
 
-    def compare(self, *files, phase="a", visible=2):
+    def compare(self, *files, phase="a", visible=2, sessions=None):
         return subprocess.run([sys.executable, str(TOOL), *files, "--series", "Response",
-                               "--phase", phase, "--visible", str(visible)], capture_output=True, text=True)
+                               "--phase", phase, "--visible", str(visible),
+                               *(["--sessions", sessions] if sessions is not None else [])], capture_output=True, text=True)
 
     def test_same_count_wrong_visit_and_repeated_shared_baseline(self):
         # Baseline in phase-restart-coverage.png has marks at visits 1 and 3.
@@ -57,6 +58,60 @@ class VisibleMarkTests(unittest.TestCase):
         self.assertIn("unchanged files from one export action", result.stdout)
         self.assertIn("Audited minus visible = -1\nCounts differ.", self.compare(*audits, visible=3).stdout)
         self.assertEqual(before, [path.read_bytes() for path in audits])
+
+    def test_printed_sessions_with_shared_copies_and_a_phase_restart(self):
+        self.header["export_mode"] = "printed_session"
+        for second, common, analyst_only, audit_only in [(2, "1", "3", "2"), (3, "1, 3", "none", "none")]:
+            with self.subTest(second=second):
+                rows = [dict(self.row(x), export_mode="printed_session", x_source="printed") for x in (1, second)]
+                restart = dict(rows[0], phase="b", phase_id=str(uuid4()), point_id=str(uuid4()))
+                files = [self.audit(name, [*rows, restart]) for name in ("blue", "green")]
+                before = [path.read_bytes() for path in files]
+                result = self.compare(*files, sessions="[1,3]")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                lines = result.stdout.splitlines()
+                self.assertIn("Counts agree.", lines)
+                self.assertIn("Printed values appearing once on each side: " + common, lines)
+                self.assertIn("Analyst values without a comparable printed audit value: " + analyst_only, lines)
+                self.assertIn("Printed audit values absent from the analyst list: " + audit_only, lines)
+                self.assertNotIn("Repeated value", result.stdout)
+                self.assertEqual(before, [path.read_bytes() for path in files])
+                self.header["run_id"] = str(uuid4())
+                mixed = self.compare(*files, self.audit("other", rows), sessions="[1,3]")
+                self.assertNotEqual(mixed.returncode, 0)
+                self.assertEqual("", mixed.stdout)
+
+    def test_duplicates_and_unresolved_values_stay_visible(self):
+        self.header["export_mode"] = "printed_session"
+        def reading(x, source="printed", mode="printed_session"):
+            return dict(self.row(x), x_source=source, export_mode=mode)
+        rows = [reading(1), reading(1), reading(3, "estimated"), reading(4, mode="observation_order"),
+                reading("5"), reading(True), self.row(7), reading(8, "unknown")]
+        result = self.compare(self.audit("duplicates", rows), sessions="[1,1,3,4,5,6,7,8]", visible=len(rows))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Printed values appearing once on each side: none", result.stdout)
+        self.assertIn("Repeated value in analyst list: 1 (2 entries)", result.stdout)
+        self.assertIn("Repeated value in printed audit: 1 (2 point IDs)", result.stdout)
+        for unresolved in rows[2:]:
+            self.assertIn("Unresolved audit point " + unresolved["point_id"], result.stdout)
+        self.header["export_mode"] = "observation_order"
+        result = self.compare(self.audit("ordinal", rows[:2]), sessions="[1,3]")
+        self.assertEqual(result.stdout.count("Unresolved audit point"), 2)
+
+    def test_session_values_use_exact_json_numbers(self):
+        self.header["export_mode"] = "printed_session"
+        path = self.audit("decimal", [dict(self.row(1.25), x_source="printed", export_mode="printed_session")])
+        path.write_text(path.read_text().replace("1.25", "1.2500000000000001"))
+        result = self.compare(path, visible=1, sessions="[1.25]")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Printed values appearing once on each side: none", result.stdout)
+        self.assertIn("Printed audit values absent from the analyst list: 1.2500000000000001", result.stdout)
+        for invalid in ('["1.25"]', "[true]", "[NaN]", "[null]", "[]"):
+            with self.subTest(invalid=invalid):
+                result = self.compare(path, visible=1, sessions=invalid)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("--sessions", result.stderr)
+                self.assertEqual("", result.stdout)
 
     def test_scoped_counts_and_ambiguous_labels(self):
         first = self.row(1)
