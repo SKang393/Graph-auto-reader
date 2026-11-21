@@ -100,6 +100,22 @@ public sealed class RasterPanelWorkspaceTests
             Assert.AreSame(snapshot, workspace.CurrentProject);
             Select(preview, target);
             Assert.AreEqual(b.PointId, vm.SelectedPointId);
+            var sharedCenter = new Point(target.PixelX, target.PixelY);
+            await vm.HandleCanvasPointAsync(sharedCenter);
+            Assert.AreEqual(b.PointId, vm.SelectedPointId);
+            Assert.AreEqual(second.SeriesId, vm.SelectedSeriesId);
+            vm.SelectedPointId = null;
+            await vm.HandleCanvasPointAsync(sharedCenter);
+            Assert.AreEqual(b.PointId, vm.SelectedPointId, "The selected series has exactly one point here.");
+
+            vm.SelectedSeriesId = null;
+            vm.IsDataPreviewExpanded = false;
+            await vm.HandleCanvasPointAsync(sharedCenter);
+            Assert.IsNull(vm.SelectedPointId);
+            Assert.IsTrue(vm.IsDataPreviewExpanded);
+            Assert.IsFalse(vm.AcceptReviewPointCommand.CanExecute(null));
+            Assert.AreSame(snapshot, workspace.CurrentProject);
+            Select(preview, target);
             var located = await Export("located");
             CollectionAssert.AreEqual(original.AuditHashes, located.AuditHashes);
             CollectionAssert.AreEqual(original.Rows, located.Rows);

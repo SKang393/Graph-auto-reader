@@ -282,6 +282,7 @@ public static class LocalizationKeys
     public const string ManualPointAdded = "Manual.Status.PointAdded";
     public const string ManualPointMoved = "Manual.Status.PointMoved";
     public const string ManualPointSelected = "Manual.Status.PointSelected";
+    public const string ManualChooseOverlappingPoint = "Manual.Status.ChooseOverlappingPoint";
     public const string ManualDividerAdded = "Manual.Status.DividerAdded";
     public const string ManualDividerMoved = "Manual.Status.DividerMoved";
     public const string ManualDividerDeleted = "Manual.Status.DividerDeleted";
@@ -726,6 +727,7 @@ public static class LocalizationKeys
         ManualPointAdded,
         ManualPointMoved,
         ManualPointSelected,
+        ManualChooseOverlappingPoint,
         ManualDividerAdded,
         ManualDividerMoved,
         ManualDividerDeleted,

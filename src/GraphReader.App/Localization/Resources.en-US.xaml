@@ -285,6 +285,7 @@
   <sys:String x:Key="Manual.Status.PointAdded">Manual point added.</sys:String>
   <sys:String x:Key="Manual.Status.PointMoved">Manual point moved.</sys:String>
   <sys:String x:Key="Manual.Status.PointSelected">Manual point selected.</sys:String>
+  <sys:String x:Key="Manual.Status.ChooseOverlappingPoint">Several points share this position. Select the row you want in Data preview.</sys:String>
   <sys:String x:Key="Manual.Status.DividerAdded">Manual phase divider added.</sys:String>
   <sys:String x:Key="Manual.Status.DividerMoved">Manual phase divider moved.</sys:String>
   <sys:String x:Key="Manual.Status.DividerDeleted">Manual phase divider deleted.</sys:String>

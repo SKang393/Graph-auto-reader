@@ -2129,9 +2129,24 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             ? double.MaxValue
             : Math.Sqrt(DistanceSquared(nearestPoint.PixelX, nearestPoint.PixelY, point.X, point.Y));
         double dividerDistance = nearestDivider is null ? double.MaxValue : Math.Abs(nearestDivider.OriginalX - point.X);
-        if (pointDistance <= 12 && pointDistance <= dividerDistance)
+        if (nearestPoint is not null && pointDistance <= 12 && pointDistance <= dividerDistance)
         {
-            SelectedPointId = nearestPoint!.PointId;
+            // A shared center can represent independent observations in different series.
+            var coincident = tab.Points.Where(p => p.PixelX == nearestPoint.PixelX && p.PixelY == nearestPoint.PixelY).ToArray();
+            if (coincident.Length > 1)
+            {
+                var inSeries = coincident.Where(p => p.SeriesId == SelectedSeriesId).ToArray();
+                nearestPoint = inSeries.Length == 1 ? inSeries[0] : inSeries.FirstOrDefault(p => p.PointId == SelectedPointId);
+                if (nearestPoint is null)
+                {
+                    SelectedPointId = null;
+                    IsDataPreviewExpanded = true;
+                    SetStatus(GetLocalizedString(LocalizationKeys.ManualChooseOverlappingPoint));
+                    return;
+                }
+            }
+
+            SelectedPointId = nearestPoint.PointId;
             SelectedSeriesId = nearestPoint.SeriesId;
             SetStatus(GetLocalizedString(LocalizationKeys.ManualPointSelected));
         }
