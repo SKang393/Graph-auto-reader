@@ -4447,6 +4447,15 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 ? operation is { Kind: DomainEventKind.PointEdited, Note: "Manual point added" } && operation.EntityId == point.PointId
                 : !modificationHistory.SequenceEqual(prior.ModificationHistory);
             bool movedVertically = pointEdited && prior is not null && prior.OriginalPixel.Y != originalPixel.Y;
+            ReviewStatus reviewStatus = pointEdited ? ReviewStatus.Corrected : prior?.ReviewStatus ?? ReviewStatus.Unreviewed;
+            // A calibration edit can change the reviewed observation without moving its source pixel.
+            if (operation?.Kind == DomainEventKind.CalibrationChanged && prior is { ReviewStatus: ReviewStatus.Accepted } &&
+                (prior.GraphX != graphX || prior.GraphY != graphY || prior.ObservationIndex != point.ObservationIndex ||
+                 prior.XSource != xState.Source || prior.PrintedXValue != xState.PrintedXValue ||
+                 prior.EstimatedXValue != xState.EstimatedXValue))
+            {
+                reviewStatus = ReviewStatus.Unreviewed;
+            }
             return new PointRecord(
                 pointId,
                 prior?.MarkerId,
@@ -4466,9 +4475,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 prior?.PointConfidence ?? 1,
                 prior?.SourceStage ?? "manual",
                 prior?.ModelVersion,
-                pointEdited
-                    ? ReviewStatus.Corrected
-                    : prior?.ReviewStatus ?? ReviewStatus.Unreviewed,
+                reviewStatus,
                 modificationHistory);
         }).ToArray();
         CalibrationRecord? generatedCalibration = MapCalibrationPanelToSource(

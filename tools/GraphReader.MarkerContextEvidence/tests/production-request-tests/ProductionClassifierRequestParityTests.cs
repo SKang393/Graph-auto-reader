@@ -392,7 +392,7 @@ public sealed class ProductionClassifierRequestParityTests
         DirectoryInfo? current = new(Path.GetFullPath(start));
         while (current is not null)
         {
-            if (File.Exists(Path.Combine(current.FullName, "AGENTS.md")) &&
+            if (File.Exists(Path.Combine(current.FullName, "GraphAutoReader.slnx")) &&
                 File.Exists(Path.Combine(current.FullName, "src", "GraphReader.App", "GraphReader.App.csproj")))
             {
                 return current.FullName;

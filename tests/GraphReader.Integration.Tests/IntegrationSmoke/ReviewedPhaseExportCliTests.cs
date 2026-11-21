@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
 using GraphReader.App.Services;
+using GraphReader.App.ViewModels;
 using GraphReader.Domain;
 using GraphReader.Export;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -58,8 +59,66 @@ public sealed class ReviewedPhaseExportCliTests(TestContext context)
         var blocked = await reopened.ExportAsync(full.TabId, temp.PathFor("whole"), token);
         Assert.AreEqual(ExportContract.ObservationOrderReviewRequired, blocked.Failures.Single().Code);
 
-        async Task VerifyExport(string code, string name, double left, double right, string expectedRows, double[] pixels)
+        // Keep one independently reviewed observation in a second panel of the same project.
+        var other = (await reopened.ImportImagesAsync([image], token)).Single();
+        var otherSeries = reopened.AddSeries(other.TabId, new("Control", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
+        reopened.Calibrate(other.TabId, new(new(30, 100), new(30, 20), new(210, 100), 8, 7));
+        var otherPoint = reopened.AddPoint(other.TabId, otherSeries.SeriesId, 30, 80);
+        reopened.SetPointReviewStatus(other.TabId, otherPoint.PointId, ReviewStatus.Accepted);
+        var control = reopened.CurrentProject.Panels.Single(p => p.PanelId.Value.ToString("D") == other.PanelId);
+        reopened.ConfirmPhaseLabel(other.TabId, control.Phases.Single());
+        using var reviewer = new MainWindowViewModel(reopened) { SelectedTab = full };
+        // Repeating the same anchors preserves approval. Moving the right anchor leaves the first X unchanged.
+        await SetAnchors(20, 210);
+        Assert.IsFalse(reviewer.ReviewIssues.Any(issue => issue.PointStatusToAccept.HasValue));
+        await SetAnchors(20, 150);
+        CollectionAssert.AreEquivalent(full.Points.Where(p => p.PixelX != 30).Select(p => p.PointId).ToArray(),
+            reviewer.ReviewIssues.Where(i => i.PointStatusToAccept.HasValue).Select(i => i.EntityId).ToArray());
+        reviewer.UndoCommand.Execute(null);
+        Assert.IsFalse(reviewer.ReviewIssues.Any(issue => issue.PointStatusToAccept.HasValue));
+
+        await SetAnchors(60, 210);
+        Assert.AreEqual(4d, full.Points.Single(p => p.PixelX == 30).GraphY);
+        Assert.IsTrue((await reopened.SaveProjectAsync(project, token)).IsSuccess);
+        await Check("a", "30", "90", "changed-anchor", "requires explicit point and phase evidence");
+        await Check("a", "30", "90", "other-panel", null, controlPanel: control);
+        await VerifyExport("a", "other-panel", 30, 90, "1,2,a\n", [30], control.Phases.Single().PhaseId.Value);
+
+        using var saved = new ManualPreviewWorkspaceService();
+        var edited = (await saved.OpenProjectAsync(project, token)).Single(t => t.PanelId == full.PanelId);
+        using var review = new MainWindowViewModel(saved) { SelectedTab = edited };
+        var pending = review.ReviewIssues.Where(i => i.PointStatusToAccept == ReviewStatus.Unreviewed).ToArray();
+        CollectionAssert.AreEquivalent(full.Points.Select(p => p.PointId).ToArray(), pending.Select(i => i.EntityId).ToArray());
+        Assert.IsFalse(review.ReviewIssues.Any(i => i.PhaseLabelToVerify is not null));
+        review.OpenExportPreviewCommand.Execute(null);
+        Assert.IsNotNull(review.ExportSummary);
+        CollectionAssert.AreEquivalent(pending.Select(i => i.EntityId).ToArray(), review.ExportSummary.WarningIssues
+            .Where(i => i.PointStatusToAccept.HasValue).Select(i => i.EntityId).ToArray());
+        Assert.IsTrue(review.ExportSummary.RequiresWarningAcknowledgement);
+        Assert.IsFalse(review.ExportSummary.CanExport);
+        foreach (var point in edited.Points.Where(p => p.PhaseCode == "a"))
         {
+            var issue = review.ReviewIssues.Single(i => i.EntityId == point.PointId && i.PointStatusToAccept.HasValue);
+            review.SelectReviewIssueCommand.Execute(issue);
+            Assert.IsTrue(review.AcceptReviewPointCommand.CanExecute(null));
+            review.AcceptReviewPointCommand.Execute(null);
+        }
+        Assert.IsTrue((await saved.SaveProjectAsync(project, token)).IsSuccess);
+        await Check("a", "30", "90", "reviewed-again", null);
+        await VerifyExport("a", "reviewed-again", 30, 90, "1,4,a\n3,8,a\n", ExpectedBaselinePixels);
+        await Check("b", "150", "210", "still-pending", "requires explicit point and phase evidence");
+
+        async Task SetAnchors(double upperY, double rightX)
+        {
+            reviewer.StartCalibrationCommand.Execute(null);
+            await reviewer.HandleCanvasPointAsync(new(30, 100));
+            await reviewer.HandleCanvasPointAsync(new(30, upperY));
+            await reviewer.HandleCanvasPointAsync(new(rightX, 100));
+        }
+
+        async Task VerifyExport(string code, string name, double left, double right, string expectedRows, double[] pixels, Guid? expectedPhase = null)
+        {
+            Guid phaseId = expectedPhase ?? phases[code].PhaseId.Value;
             string folder = temp.PathFor(name);
             string csv = Directory.GetFiles(folder, "*.csv").Single(p => !p.EndsWith(".audit.csv", StringComparison.Ordinal));
             Assert.AreEqual("x_value,y_value,phase\n" + expectedRows, await File.ReadAllTextAsync(csv, token));
@@ -68,7 +127,7 @@ public sealed class ReviewedPhaseExportCliTests(TestContext context)
             var proof = receipt.RootElement;
             Assert.AreEqual(audit.RootElement.GetProperty("run_id").GetGuid(), proof.GetProperty("RunId").GetGuid());
             var ticks = proof.GetProperty("ConfirmedPhaseTicks");
-            Assert.AreEqual(phases[code].PhaseId.Value, ticks.GetProperty("PhaseId").GetGuid());
+            Assert.AreEqual(phaseId, ticks.GetProperty("PhaseId").GetGuid());
             Assert.AreEqual(left, ticks.GetProperty("LeftPixel").GetDouble());
             Assert.AreEqual(right, ticks.GetProperty("RightPixel").GetDouble());
             Assert.AreEqual(1d, ticks.GetProperty("LeftValue").GetDouble());
@@ -77,19 +136,20 @@ public sealed class ReviewedPhaseExportCliTests(TestContext context)
             Assert.AreEqual(Convert.ToHexStringLower(projectHash), proof.GetProperty("ProjectSha256").GetString());
             var rows = audit.RootElement.GetProperty("rows").EnumerateArray().ToArray();
             CollectionAssert.AreEqual(pixels, rows.Select(r => r.GetProperty("original_pixel_x").GetDouble()).ToArray());
-            Assert.IsTrue(rows.All(r => r.GetProperty("phase_id").GetGuid() == phases[code].PhaseId.Value &&
+            Assert.IsTrue(rows.All(r => r.GetProperty("phase_id").GetGuid() == phaseId &&
                 r.GetProperty("phase_label_review").GetString() == "explicit_label" &&
                 r.GetProperty("point_review_actions").GetString()!.Split('|').Contains("point_accepted") &&
                 r.GetProperty("x_source").GetString() == "estimated"));
             context.WriteLine($"Phase {code} verified CSV rows {expectedRows.TrimEnd().Replace("\n", " | ", StringComparison.Ordinal)}");
         }
 
-        async Task Check(string code, string left, string right, string name, string? expectedError, bool confirmTicks = true)
+        async Task Check(string code, string left, string right, string name, string? expectedError, bool confirmTicks = true, PanelRecord? controlPanel = null)
         {
+            Guid phase = controlPanel is null ? phases[code].PhaseId.Value : controlPanel.Phases.Single().PhaseId.Value;
             var original = SHA256.HashData(await File.ReadAllBytesAsync(project, token));
             var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet")
                 { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
-            foreach (string arg in new[]{ tool!, "export", project, tab.PanelId!, phases[code].PhaseId.Value.ToString("D"),
+            foreach (string arg in new[]{ tool!, "export", project, controlPanel?.PanelId.Value.ToString("D") ?? tab.PanelId!, phase.ToString("D"),
                          left, "1", right, "3", temp.PathFor(name) })
                 start.ArgumentList.Add(arg);
             if (confirmTicks) start.ArgumentList.Add("--confirm-ticks");
@@ -102,7 +162,7 @@ public sealed class ReviewedPhaseExportCliTests(TestContext context)
             int expectedExit = !confirmTicks ? 2 : expectedError is null ? 0 : 1;
             Assert.AreEqual(expectedExit, child.ExitCode, message);
             if (expectedError is not null) StringAssert.Contains(message, expectedError);
-            else StringAssert.Contains(message, $"from phase {code} ({phases[code].PhaseId.Value:D})");
+            else StringAssert.Contains(message, $"from phase {code} ({phase:D})");
             Assert.AreEqual(expectedError is null, Directory.Exists(temp.PathFor(name)));
             CollectionAssert.AreEqual(original, SHA256.HashData(await File.ReadAllBytesAsync(project, token)), name);
             context.WriteLine($"{name} exit {child.ExitCode}; saved project hash matched.");
