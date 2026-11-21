@@ -25,6 +25,64 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class RasterPanelWorkspaceTests
 {
+    [TestMethod]
+    public async Task ReviewApprovalFollowsThePreviewRowAcrossSeriesAtTheSameCoordinate()
+    {
+        using var dir = new TemporaryDirectory();
+        string image = Path.Combine(dir.Path, "series.png");
+        await File.WriteAllBytesAsync(image, CreatePlainPng(100, 80));
+        using var fixture = new ManualPreviewWorkspaceService();
+        var token = CancellationToken.None;
+        var tab = (await fixture.ImportImagesAsync([image], token)).Single();
+        var first = fixture.AddSeries(tab.TabId, new("First", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
+        var second = fixture.AddSeries(tab.TabId, new("Second", "○", MarkerShape.Circle, MarkerFill.Open, SemanticRole.Intervention));
+        fixture.Calibrate(tab.TabId, new(new(10, 70), new(10, 10), new(90, 70), 60, 9));
+        var a = fixture.AddPoint(tab.TabId, first.SeriesId, 30, 40);
+        var b = fixture.AddPoint(tab.TabId, second.SeriesId, 30, 40);
+        var control = fixture.AddPoint(tab.TabId, first.SeriesId, 50, 20);
+        fixture.SetPointReviewStatus(tab.TabId, control.PointId, ReviewStatus.Accepted);
+        var project = fixture.CurrentProject;
+        var panel = project.Panels.Single();
+        var pending = panel.Points.Select(p => p.PointId.Value == Guid.Parse(control.PointId)
+            ? p : p with { ReviewStatus = ReviewStatus.Unreviewed }).ToArray();
+        string path = Path.Combine(dir.Path, "pending.garproj");
+        Assert.IsTrue((await new ProjectFileStore().SaveNewAsync(
+            project with { Panels = [panel with { Points = pending }] }, path, token)).IsSuccess);
+        using var workspace = new ManualPreviewWorkspaceService();
+        var reopened = (await workspace.OpenProjectAsync(path, token)).Single();
+
+        StaTestHost.Run(() =>
+        {
+            using var vm = new MainWindowViewModel(workspace) { SelectedTab = reopened };
+            var before = workspace.CurrentProject;
+            vm.SelectedReviewIssue = vm.ReviewIssues.Single(i => i.EntityId == a.PointId && i.PointStatusToAccept.HasValue);
+            vm.SelectedDataPreviewRow = vm.DataPreviewRows.Single(r => r.PointId == control.PointId);
+            Assert.IsNull(vm.SelectedReviewIssue);
+            Assert.IsFalse(vm.AcceptReviewPointCommand.CanExecute(null));
+            vm.AcceptReviewPointCommand.Execute(null);
+
+            var row = vm.DataPreviewRows.Single(r => r.PointId == b.PointId);
+            vm.SelectDataPreviewRowCommand.Execute(row);
+            Assert.AreEqual(b.PointId, vm.SelectedReviewIssue?.EntityId);
+            Assert.AreEqual(second.SeriesId, vm.SelectedSeriesId);
+            Assert.AreEqual(new System.Windows.Point(30, 40), vm.Magnifier.PixelPosition);
+            Assert.IsTrue(vm.AcceptReviewPointCommand.CanExecute(null));
+            // A delayed button invocation must also check the current point identity.
+            vm.SelectedPointId = a.PointId;
+            Assert.IsFalse(vm.AcceptReviewPointCommand.CanExecute(null));
+            vm.AcceptReviewPointCommand.Execute(null);
+            Assert.AreSame(before, workspace.CurrentProject);
+
+            vm.SelectDataPreviewRowCommand.Execute(row);
+            vm.AcceptReviewPointCommand.Execute(null);
+            var points = workspace.CurrentProject.Panels.Single().Points;
+            Assert.AreEqual(ReviewStatus.Accepted, points.Single(p => p.PointId.Value == Guid.Parse(b.PointId)).ReviewStatus);
+            Assert.AreEqual(ReviewStatus.Unreviewed, points.Single(p => p.PointId.Value == Guid.Parse(a.PointId)).ReviewStatus);
+            vm.UndoCommand.Execute(null);
+            CollectionAssert.AreEqual(before.Panels.Single().Points.ToArray(), workspace.CurrentProject.Panels.Single().Points.ToArray());
+        });
+    }
+
     private static readonly string[] RequiredStages = ["axis", "ocr", "markers", "legends", "phases"];
 
     [TestMethod]

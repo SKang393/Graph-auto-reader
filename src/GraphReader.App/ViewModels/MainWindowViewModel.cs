@@ -998,10 +998,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private bool CanAcceptReviewPoint()
     {
         if (SelectedReviewIssue is not { EntityId: { } pointId } issue ||
-            issue.TabId != SelectedTab?.TabId || !ReviewIssues.Contains(issue)) return false;
+            issue.TabId != SelectedTab?.TabId || pointId != SelectedPointId || !ReviewIssues.Contains(issue)) return false;
         return issue.PointStatusToAccept switch
         {
-            ReviewStatus.Corrected => pointId == SelectedPointId && AcceptCorrectedPointCommand.CanExecute(null),
+            ReviewStatus.Corrected => AcceptCorrectedPointCommand.CanExecute(null),
             ReviewStatus.Unreviewed => CanAcceptPoint(pointId, ReviewStatus.Unreviewed),
             _ => false,
         };
@@ -3169,6 +3169,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         SelectedPointId = row.PointId;
         SelectedSeriesId = row.SeriesId;
         HandleCanvasNavigation(new Point(row.PixelX, row.PixelY));
+
+        if (SelectedReviewIssue is null or { Kind: ReviewIssueKind.Point } &&
+            SelectedReviewIssue?.EntityId != row.PointId)
+        {
+            var pending = ReviewIssues.FirstOrDefault(issue =>
+                issue.EntityId == row.PointId && issue.PointStatusToAccept is not null);
+            SetSelectedReviewIssue(pending, synchronizeWorkspace: false);
+        }
     }
 
     private void OpenExportPreview()
