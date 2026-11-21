@@ -452,6 +452,16 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             "Real image or PDF panel import");
     }
 
+    private static SourceReference ResolveImageSourcePath(SourceReference source, string projectDirectory)
+    {
+        if (source.Kind != SourceKind.Image || string.IsNullOrWhiteSpace(source.LocalPath) || File.Exists(source.LocalPath))
+            return source;
+
+        // The raster restore paths verify the saved hash before committing the staged workspace.
+        string adjacent = Path.Combine(projectDirectory, Path.GetFileName(source.LocalPath));
+        return File.Exists(adjacent) ? source with { LocalPath = adjacent } : source;
+    }
+
     public virtual async Task<IReadOnlyList<WorkspaceTabViewModel>> OpenProjectAsync(
         string path,
         CancellationToken cancellationToken)
@@ -463,7 +473,11 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             throw new InvalidOperationException(FormatErrors(loaded.Errors));
         }
 
-        ProjectDocument project = loaded.Value;
+        string projectDirectory = Path.GetDirectoryName(Path.GetFullPath(path))!;
+        ProjectDocument project = loaded.Value with
+        {
+            Sources = loaded.Value.Sources.Select(source => ResolveImageSourcePath(source, projectDirectory)).ToList().AsReadOnly(),
+        };
         var importedLegacyRasterSources = new Dictionary<SourceId, ImportedImage>();
         var importedRasterPanelsById = new Dictionary<PanelId, RasterWorkspacePanel>();
         var importedPdfPanelsById = new Dictionary<PanelId, PdfWorkspacePanel>();

@@ -302,6 +302,83 @@ public sealed class ReviewedSyntheticExportTests(TestContext context)
         }
     }
 
+    [STATestMethod(UseSTASynchronizationContext = true)]
+    public async Task MovedReviewedImageReopensOnlyWithVerifiedSource()
+    {
+        using var temp = new IntegrationSmokeTestEnvironment();
+        var token = CancellationToken.None;
+        string spec = Path.Combine(RepositoryRoot.Find(), "tests", "GraphReader.Integration.Tests", "Validation", "Specifications");
+        string original = Directory.CreateDirectory(temp.PathFor("original")).FullName;
+        string image = Path.Combine(original, "figure.png");
+        string project = Path.Combine(original, "reviewed.garproj");
+        File.Copy(Path.Combine(spec, "reviewed-export.png"), image);
+        using var workspace = new ManualPreviewWorkspaceService();
+        var tab = (await workspace.ImportImagesAsync([image], token)).Single();
+        workspace.Calibrate(tab.TabId, new(new(40, 152), new(40, 24), new(296, 152), 64, 18, 10));
+        var series = workspace.AddSeries(tab.TabId, new("Response", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
+        workspace.AddPhaseDivider(tab.TabId, 120, "b", "Training");
+        workspace.AddPhaseDivider(tab.TabId, 232, "m", "Follow-up");
+        foreach (var (x, y) in new[] { (72, 120), (136, 88), (200, 56), (232, 104) })
+        {
+            var point = workspace.AddPoint(tab.TabId, series.SeriesId, x, y);
+            workspace.SetPointReviewStatus(tab.TabId, point.PointId, ReviewStatus.Accepted);
+        }
+        workspace.ConfirmPhaseLabel(tab.TabId, workspace.CurrentProject.Panels.Single().Phases.Single(p => p.Code == "a"));
+        Assert.IsTrue((await workspace.SaveProjectAsync(project, token)).IsSuccess);
+        var before = await workspace.ExportAsync(tab.TabId, temp.PathFor("before"), token);
+        Assert.IsTrue(before.Succeeded);
+        string expected = (await File.ReadAllTextAsync(Path.Combine(spec, "reviewed-export.expected.csv"), token)).ReplaceLineEndings("\n");
+        Assert.AreEqual(expected, await File.ReadAllTextAsync(before.MinimalArtifacts.Single().WrittenPath!, token));
+        var saved = await File.ReadAllBytesAsync(project, token);
+        var source = workspace.CurrentProject.Sources.Single();
+
+        string moved = temp.PathFor("moved");
+        Directory.Move(original, moved);
+        string movedProject = Path.Combine(moved, "reviewed.garproj");
+        string movedImage = Path.Combine(moved, "figure.png");
+        using var reopened = new ManualPreviewWorkspaceService();
+        var restored = (await reopened.OpenProjectAsync(movedProject, token)).Single();
+        Assert.AreEqual(movedImage, restored.SourcePath);
+        Assert.AreEqual(source with { LocalPath = movedImage }, reopened.CurrentProject.Sources.Single());
+        var after = await reopened.ExportAsync(restored.TabId, temp.PathFor("after"), token);
+        Assert.IsTrue(after.Succeeded);
+        Assert.AreEqual(before.PanelId, after.PanelId);
+        CollectionAssert.AreEqual(await File.ReadAllBytesAsync(before.MinimalArtifacts.Single().WrittenPath!, token),
+            await File.ReadAllBytesAsync(after.MinimalArtifacts.Single().WrittenPath!, token));
+        var oldAudit = before.AuditArtifacts.Single(a => a.Format == ExportAuditArtifactFormat.Csv);
+        var newAudit = after.AuditArtifacts.Single(a => a.Format == ExportAuditArtifactFormat.Csv);
+        CollectionAssert.AreEqual(await File.ReadAllBytesAsync(oldAudit.WrittenPath!, token), await File.ReadAllBytesAsync(newAudit.WrittenPath!, token));
+        Assert.HasCount(4, newAudit.Rows);
+        Assert.IsTrue(newAudit.Rows.All(row => row.ReviewEvidence is { PhaseLabelReview: "explicit_label" } evidence &&
+            evidence.PointActions.Split('|').Contains("point_accepted")));
+        string savedAs = temp.PathFor("saved-as.garproj");
+        Assert.IsTrue((await reopened.SaveProjectAsync(savedAs, token)).IsSuccess);
+        var rebound = (await new ProjectFileStore().LoadAsync(savedAs, token)).Value!;
+        Assert.AreEqual(source with { LocalPath = movedImage }, rebound.Sources.Single());
+        CollectionAssert.AreEqual(saved, await File.ReadAllBytesAsync(movedProject, token));
+
+        // A decodable replacement with the same filename and dimensions contains no plotted observations.
+        var blank = new System.Windows.Media.Imaging.WriteableBitmap(tab.PixelWidth, tab.PixelHeight, 96, 96,
+            System.Windows.Media.PixelFormats.Gray8, null);
+        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(blank));
+        Directory.CreateDirectory(original);
+        using (var output = File.Create(image)) encoder.Save(output);
+        await CheckMismatch("Changed recorded image, exact adjacent copy");
+        File.Move(image, movedImage, overwrite: true);
+        await CheckMismatch("Missing recorded image, changed adjacent copy");
+
+        async Task CheckMismatch(string name)
+        {
+            using var rejected = new ManualPreviewWorkspaceService();
+            var failure = await Assert.ThrowsAsync<InvalidOperationException>(() => rejected.OpenProjectAsync(movedProject, token));
+            StringAssert.Contains(failure.Message, "checksum");
+            Assert.IsEmpty(rejected.CreateWorkspace());
+            CollectionAssert.AreEqual(saved, await File.ReadAllBytesAsync(movedProject, token));
+            context.WriteLine($"{name}: {failure.Message}");
+        }
+    }
+
     internal static async Task WriteUnreviewedDraftAsync(string image, string draft, IReadOnlyList<PixelPoint> centers, CancellationToken token)
     {
         // Supply only an imperfect overlay in original pixels. The review path must
