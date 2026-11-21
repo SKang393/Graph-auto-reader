@@ -153,6 +153,8 @@ public static class LocalizationKeys
     public const string ManualMarkerExemplarAdd = "Manual.MarkerExemplar.Add";
     public const string ManualMarkerExemplarRemove = "Manual.MarkerExemplar.Remove";
     public const string ManualMarkerExemplarRow = "Manual.MarkerExemplar.Row";
+    public const string ManualMarkerExemplarInspect = "Manual.MarkerExemplar.Inspect";
+    public const string ManualMarkerExemplarNearby = "Manual.MarkerExemplar.Nearby";
     public const string ManualMarkerExemplarDuplicate = "Manual.MarkerExemplar.Duplicate";
     public const string ManualMarkerExemplarReady = "Manual.MarkerExemplar.Ready";
     public const string ManualMarkerExemplarInvalidSize = "Manual.MarkerExemplar.InvalidSize";
@@ -636,6 +638,8 @@ public static class LocalizationKeys
         ManualMarkerExemplarAdd,
         ManualMarkerExemplarRemove,
         ManualMarkerExemplarRow,
+        ManualMarkerExemplarInspect,
+        ManualMarkerExemplarNearby,
         ManualMarkerExemplarDuplicate,
         ManualMarkerExemplarReady,
         ManualMarkerExemplarInvalidSize,

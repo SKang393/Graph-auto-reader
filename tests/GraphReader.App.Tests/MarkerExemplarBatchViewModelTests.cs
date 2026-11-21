@@ -21,6 +21,9 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class MarkerExemplarBatchViewModelTests
 {
+    private static readonly string[] InspectorResources =
+        ["Themes/DesignTokens", "Themes/LightTheme", "Themes/Controls", "Localization/Resources.en-US"];
+
     [TestMethod]
     public void RemainingCountBindingRefreshesAfterSearchAndLastRowHasAccurateStatus() => WithFixture(fixture =>
     {
@@ -78,6 +81,93 @@ public sealed class MarkerExemplarBatchViewModelTests
         Assert.AreEqual(after, ScientificState(fixture.Workspace), "One Redo restores every batch point and its scientific coordinates.");
         Assert.IsFalse(fixture.Vm.MarkerExemplarStatusText.Contains("Added 2", StringComparison.Ordinal));
         Assert.IsEmpty(fixture.Vm.MarkerExemplarCandidates);
+    });
+
+    [TestMethod]
+    public void AdjacentMatchesCanBeInspectedAndDecidedIndividually() => WithFixture(fixture =>
+    {
+        var (vm, workspace, tab) = (fixture.Vm, fixture.Workspace, fixture.Tab);
+        var prior = workspace.AddPoint(tab.TabId, fixture.SeriesId, 90, 80);
+        workspace.SetPointReviewStatus(tab.TabId, prior.PointId, ReviewStatus.Accepted);
+        var other = workspace.AddSeries(tab.TabId,
+            new("Crossing trace", "□", MarkerShape.Square, MarkerFill.Open, SemanticRole.Intervention));
+        workspace.AddPoint(tab.TabId, other.SeriesId, 180, 94);
+        fixture.Matcher.Candidates = [
+            new("same mark", new(91, 80), .97),
+            new("exact repeat", new(90, 80), .98),
+            new("crossing", new(180, 94), .96),
+            new("first close visit", new(220, 122), .95),
+            new("next close visit", new(221, 121), .94),
+        ];
+        fixture.Find();
+        var repeat = vm.MarkerExemplarCandidates[0];
+        var exact = vm.MarkerExemplarCandidates[1];
+        var first = vm.MarkerExemplarCandidates[3];
+        var next = vm.MarkerExemplarCandidates[4];
+        Assert.IsTrue(repeat.NeedsIndividualReview);
+        Assert.IsTrue(exact.IsDuplicate);
+        Assert.IsFalse(vm.AcceptMarkerExemplarCandidateCommand.CanExecute(exact));
+        Assert.IsTrue(first.NeedsIndividualReview && next.NeedsIndividualReview);
+        StringAssert.Contains(vm.AcceptAllMarkerExemplarsText, "(1)");
+        var before = workspace.CurrentProject;
+
+        var resources = new ResourceDictionary();
+        foreach (string name in InspectorResources)
+            resources.MergedDictionaries.Add(new() { Source = new Uri($"/GraphReader.App;component/{name}.xaml", UriKind.Relative) });
+        var window = new MainWindow(null, resources);
+        ((MainWindowViewModel)window.DataContext).Dispose();
+        window.DataContext = vm;
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+            var list = (ItemsControl)window.FindName("MarkerExemplarList");
+            var presenter = (ContentPresenter)list.ItemContainerGenerator.ContainerFromItem(repeat);
+            var inspect = (Button)list.ItemTemplate.FindName("InspectMatchButton", presenter);
+            var remove = (Button)list.ItemTemplate.FindName("RemoveMatchButton", presenter);
+            var notice = (TextBlock)list.ItemTemplate.FindName("NearbyMatchNotice", presenter);
+            Assert.AreEqual(Visibility.Visible, notice.Visibility);
+            StringAssert.Contains(notice.Text, "within one pixel");
+            Assert.AreSame(repeat, inspect.CommandParameter);
+            Assert.IsTrue(inspect.IsEnabled && remove.IsEnabled);
+            inspect.Command.Execute(inspect.CommandParameter);
+            var lens = (GraphReader.App.Controls.MagnifierControl)window.FindName("MagnifierInspector");
+            Assert.AreEqual(new Point(91, 80), lens.PixelPosition);
+            Assert.AreEqual(fixture.Seed.PointId, vm.SelectedPointId);
+            Assert.AreEqual(fixture.SeriesId, vm.SelectedSeriesId);
+            Assert.HasCount(5, vm.MarkerExemplarCandidates);
+            Assert.AreSame(repeat, remove.CommandParameter);
+            remove.Command.Execute(remove.CommandParameter);
+            Assert.IsFalse(vm.InspectMarkerExemplarCandidateCommand.CanExecute(repeat));
+            vm.HandleCanvasNavigation(new(30, 30));
+            vm.InspectMarkerExemplarCandidateCommand.Execute(repeat);
+            Assert.AreEqual(new Point(30, 30), lens.PixelPosition);
+            Assert.AreSame(before, workspace.CurrentProject);
+
+            vm.AcceptAllMarkerExemplarCandidatesCommand.Execute(null);
+            Assert.HasCount(2, tab.Points.Where(p => p.PixelX == 180 && p.PixelY == 94).ToArray());
+            CollectionAssert.AreEquivalent(new[] { exact, first, next }, vm.MarkerExemplarCandidates.ToArray());
+            foreach (var visit in new[] { first, next })
+            {
+                Assert.IsTrue(vm.AcceptMarkerExemplarCandidateCommand.CanExecute(visit));
+                vm.AcceptMarkerExemplarCandidateCommand.Execute(visit);
+                var added = workspace.CurrentProject.Panels.Single().Points[^1];
+                Assert.AreEqual(visit.Candidate.Center.X, added.OriginalPixel.X);
+                Assert.AreEqual(visit.Candidate.Center.Y, added.OriginalPixel.Y);
+                Assert.AreEqual(ReviewStatus.Corrected, added.ReviewStatus);
+            }
+            Assert.HasCount(1, vm.MarkerExemplarCandidates);
+            Assert.AreSame(exact, vm.MarkerExemplarCandidates[0]);
+            Assert.IsFalse(vm.AcceptAllMarkerExemplarCandidatesCommand.CanExecute(null));
+            var accepted = workspace.CurrentProject.Panels.Single().Points.Single(p => p.ReviewStatus == ReviewStatus.Accepted);
+            Assert.AreEqual(Guid.Parse(prior.PointId), accepted.PointId.Value);
+            Assert.IsFalse(tab.Points.Any(p => p.PixelX == 91 && p.PixelY == 80));
+        }
+        finally
+        {
+            window.DataContext = null;
+            window.Close();
+        }
     });
 
     [TestMethod]

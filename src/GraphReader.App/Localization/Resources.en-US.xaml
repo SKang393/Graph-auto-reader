@@ -156,6 +156,8 @@
   <sys:String x:Key="Manual.MarkerExemplar.Add">Add point</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Remove">Remove</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Row">({0}, {1}), similarity {2}</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.Inspect">Inspect match</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.Nearby">Another point or match in this series is within one pixel on each axis. Inspect this match and add or remove it individually.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Duplicate">A point already exists at this position.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Ready">Select a calibrated point and its series. Include the whole marker and a little background. For colored disks, choose a filled-circle series and place the point in its solid center.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.InvalidSize">Enter a whole-pixel size from 5 to 65.</sys:String>
@@ -167,7 +169,7 @@
   <sys:String x:Key="Manual.MarkerExemplar.Count">{0} possible matches found.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.ReviewAdvice">Review outlines and remove incorrect positions before adding. Added points remain editable with Move Point.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.AcceptAll">Add remaining matches ({0})</sys:String>
-  <sys:String x:Key="Manual.MarkerExemplar.BatchAdded">Added {0} points; skipped {1} existing or overlapping positions.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.BatchAdded">Added {0} points. Left {1} matches for individual review.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.BatchFailure">The batch could not be completed. No points were kept; the proposal list was cleared.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Failure">Marker search failed: {0}</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Failure.InvalidInput">the point, image, or plot area is invalid</sys:String>
