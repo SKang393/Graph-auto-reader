@@ -1513,7 +1513,8 @@
             </Grid>
             <TextBlock Margin="0,0,0,8" TextWrapping="Wrap"
                        Foreground="{DynamicResource App.Brush.Danger}" Text="{DynamicResource Manual.YMaximum.Invalid}"
-                       automation:AutomationProperties.AutomationId="Manual.YMaximum.Validation">
+                       automation:AutomationProperties.AutomationId="Manual.YMaximum.Validation"
+                       automation:AutomationProperties.Name="{DynamicResource Manual.YMaximum.Invalid}">
               <TextBlock.Style>
                 <Style TargetType="TextBlock">
                   <Setter Property="Visibility" Value="Collapsed" />
