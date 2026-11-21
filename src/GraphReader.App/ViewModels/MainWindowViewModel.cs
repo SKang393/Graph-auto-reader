@@ -1908,13 +1908,19 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private void BeginAddPointForFill(MarkerFill fill)
     {
-        SeriesCardViewModel? series = SelectedTab?.SeriesCards.FirstOrDefault(candidate =>
-            candidate.Fill == fill && string.Equals(candidate.SeriesId, SelectedSeriesId, StringComparison.Ordinal))
-            ?? SelectedTab?.SeriesCards.FirstOrDefault(candidate => candidate.Fill == fill);
+        var matches = SelectedTab?.SeriesCards.Where(series => series.Fill == fill).ToArray() ?? [];
+        var series = matches.FirstOrDefault(candidate => candidate.SeriesId == SelectedSeriesId);
         if (series is null)
         {
-            SetStatus(GetLocalizedString(LocalizationKeys.ManualSelectSeriesFirst));
-            return;
+            if (matches.Length != 1)
+            {
+                EditorMode = ManualEditorMode.Select;
+                SetStatus(GetLocalizedString(matches.Length == 0
+                    ? LocalizationKeys.ManualSelectSeriesFirst
+                    : LocalizationKeys.ManualChooseSeriesForFill));
+                return;
+            }
+            series = matches[0];
         }
 
         SelectedSeriesId = series.SeriesId;

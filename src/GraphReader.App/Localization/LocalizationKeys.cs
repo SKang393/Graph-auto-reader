@@ -273,6 +273,7 @@ public static class LocalizationKeys
     public const string ManualInstructionSelect = "Manual.Instruction.Select";
     public const string ManualCalibrationPrompt = "Manual.Status.CalibrationPrompt";
     public const string ManualCalibrationSaved = "Manual.Status.CalibrationSaved";
+    public const string ManualChooseSeriesForFill = "Manual.Status.ChooseSeriesForFill";
     public const string ManualSelectSeriesFirst = "Manual.Status.SelectSeriesFirst";
     public const string ManualPointAdded = "Manual.Status.PointAdded";
     public const string ManualPointMoved = "Manual.Status.PointMoved";
@@ -711,6 +712,7 @@ public static class LocalizationKeys
         ManualInstructionSelect,
         ManualCalibrationPrompt,
         ManualCalibrationSaved,
+        ManualChooseSeriesForFill,
         ManualSelectSeriesFirst,
         ManualPointAdded,
         ManualPointMoved,
