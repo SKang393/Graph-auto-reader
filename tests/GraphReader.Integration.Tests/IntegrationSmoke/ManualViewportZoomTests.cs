@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Interop;
 using GraphReader.App;
 using GraphReader.App.Controls;
 using GraphReader.App.Localization;
@@ -16,8 +19,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace GraphReader.Integration.Tests.IntegrationSmoke;
 
 [TestClass]
-public sealed class ManualViewportZoomTests
+public sealed class ManualViewportZoomTests(TestContext context)
 {
+    [DllImport("user32.dll", ExactSpelling = true)]
+    private static extern nint SendMessageW(nint hwnd, uint message, nint wParam, nint lParam);
+
     [STATestMethod(UseSTASynchronizationContext = true)]
     [DataRow(false)]
     [DataRow(true)]
@@ -52,9 +58,10 @@ public sealed class ManualViewportZoomTests
             Point pointer = image.TranslatePoint(disks[0], scroll);
             bool Visible(Point disk) => new Rect(viewport.RenderSize).Contains(image.TranslatePoint(disk, viewport));
 
+            if (anchorWheel) Assert.IsTrue(image.CaptureMouse());
             for (int i = 0; i < 4; i++)
             {
-                if (anchorWheel) canvas.ZoomAtViewportPoint(1.25, pointer);
+                if (anchorWheel) Wheel(120, pointer);
                 else canvas.ZoomBy(1.25);
                 window.UpdateLayout();
             }
@@ -63,9 +70,10 @@ public sealed class ManualViewportZoomTests
             if (anchorWheel)
             {
                 // Reverse and repeat the final step from a nonzero scroll offset.
-                canvas.ZoomAtViewportPoint(0.8, pointer);
-                canvas.ZoomAtViewportPoint(1.25, pointer);
+                Wheel(-120, pointer);
+                Wheel(120, pointer);
                 window.UpdateLayout();
+                Assert.IsTrue(scroll.HorizontalOffset > 0 && scroll.VerticalOffset > 0);
                 Assert.IsTrue((scroll.TranslatePoint(pointer, image) - disks[0]).Length < 1);
             }
             else
@@ -77,32 +85,76 @@ public sealed class ManualViewportZoomTests
                 window.UpdateLayout();
             }
             Assert.IsEmpty(tab.Points);
+            Task? placement = null;
+            canvas.ImagePointInvoked += (_, e) => placement = vm.HandleCanvasPointAsync(e.ImagePoint);
             foreach (Point disk in disks)
             {
                 Assert.IsTrue(Visible(disk));
                 vm.BeginAddPointCommand.Execute(null);
-                await vm.HandleCanvasPointAsync(disk);
+                canvas.CrosshairPosition = new Point(disk.X / tab.PixelWidth, disk.Y / tab.PixelHeight);
+                Assert.IsTrue(canvas.TryHandleKeyboardInput(Key.Enter, ModifierKeys.None));
+                await placement!;
                 Assert.AreEqual(ReviewStatus.Corrected, workspace.CurrentProject.Panels.Single().Points[^1].ReviewStatus);
-                vm.AcceptCorrectedPointCommand.Execute(null);
             }
-            var result = await workspace.ExportAsync(tab.TabId, temp.PathFor("export"), token);
-            Assert.IsTrue(result.Succeeded);
-            Assert.AreEqual("x_value,y_value,phase\n15,48,b\n16,24,b\n",
-                await File.ReadAllTextAsync(result.MinimalArtifacts.Single().WrittenPath!, token));
-            using var audit = JsonDocument.Parse(await File.ReadAllBytesAsync(result.AuditArtifacts.Single(
-                a => a.Format == ExportAuditArtifactFormat.Json).WrittenPath!, token));
-            var rows = audit.RootElement.GetProperty("rows").EnumerateArray().ToArray();
-            Assert.HasCount(disks.Length, rows);
-            for (int i = 0; i < rows.Length; i++)
+            if (anchorWheel)
             {
-                var row = rows[i];
-                Assert.AreEqual(disks[i], new Point(row.GetProperty("original_pixel_x").GetDouble(), row.GetProperty("original_pixel_y").GetDouble()));
-                Assert.AreEqual("printed_session", row.GetProperty("export_mode").GetString());
-                Assert.AreEqual("valid", row.GetProperty("calibration_status").GetString());
-                Assert.AreEqual("accepted", row.GetProperty("review_status").GetString());
-                Assert.AreEqual("point_placed|point_accepted", row.GetProperty("point_review_actions").GetString());
-                Assert.AreEqual("manual", row.GetProperty("phase_source").GetString());
-                Assert.AreEqual("explicit_label", row.GetProperty("phase_label_review").GetString());
+                scroll.ScrollToHorizontalOffset(0);
+                scroll.ScrollToVerticalOffset(scroll.ScrollableHeight / 2);
+                window.UpdateLayout();
+                Point edgePointer = viewport.TranslatePoint(new Point(viewport.ActualWidth / 2, viewport.ActualHeight / 2), scroll);
+                Point before = scroll.TranslatePoint(edgePointer, image);
+                Wheel(-120, edgePointer);
+                Point after = scroll.TranslatePoint(edgePointer, image);
+                Assert.AreEqual(0d, scroll.HorizontalOffset);
+                Assert.IsTrue(after.X > before.X + 1, "The left edge must prevent full horizontal anchoring.");
+                Assert.AreEqual(before.Y, after.Y, 1, "The scrollable vertical axis must still anchor.");
+                context.WriteLine($"Wheel at left limit: horizontal offset {scroll.HorizontalOffset}, source delta {after - before}.");
+            }
+
+            // Keep one point pending through the first export, then accept just that point.
+            vm.SelectedPointId = tab.Points[0].PointId;
+            vm.AcceptCorrectedPointCommand.Execute(null);
+            await CheckExport("pending", lastAccepted: false);
+            vm.SelectedPointId = tab.Points[1].PointId;
+            vm.AcceptCorrectedPointCommand.Execute(null);
+            await CheckExport("accepted", lastAccepted: true);
+
+            void Wheel(int delta, Point at)
+            {
+                // Send the wheel message only to this HWND. Capture keeps WPF hit testing
+                // on the graph without moving the desktop cursor or generating global input.
+                const uint mouseWheel = 0x020A;
+                var screen = scroll.PointToScreen(at);
+                int x = (int)Math.Round(screen.X);
+                int y = (int)Math.Round(screen.Y);
+                double previous = canvas.ZoomLevel;
+                SendMessageW(new WindowInteropHelper(window).Handle, mouseWheel, delta << 16, (y << 16) | (x & 0xffff));
+                Assert.AreEqual(previous * (delta > 0 ? 1.25 : 0.8), canvas.ZoomLevel, 1e-9);
+            }
+
+            async Task CheckExport(string folder, bool lastAccepted)
+            {
+                var result = await workspace.ExportAsync(tab.TabId, temp.PathFor(folder), token);
+                Assert.IsTrue(result.Succeeded);
+                Assert.AreEqual("x_value,y_value,phase\n15,48,b\n16,24,b\n",
+                    await File.ReadAllTextAsync(result.MinimalArtifacts.Single().WrittenPath!, token));
+                using var audit = JsonDocument.Parse(await File.ReadAllBytesAsync(result.AuditArtifacts.Single(
+                    a => a.Format == ExportAuditArtifactFormat.Json).WrittenPath!, token));
+                var rows = audit.RootElement.GetProperty("rows").EnumerateArray().ToArray();
+                Assert.HasCount(disks.Length, rows);
+                for (int i = 0; i < rows.Length; i++)
+                {
+                    var row = rows[i];
+                    Assert.AreEqual(disks[i], new Point(row.GetProperty("original_pixel_x").GetDouble(), row.GetProperty("original_pixel_y").GetDouble()));
+                    Assert.AreEqual("printed_session", row.GetProperty("export_mode").GetString());
+                    Assert.AreEqual("valid", row.GetProperty("calibration_status").GetString());
+                    bool accepted = i == 0 || lastAccepted;
+                    Assert.AreEqual(accepted ? "accepted" : "corrected", row.GetProperty("review_status").GetString());
+                    Assert.AreEqual(accepted ? "point_placed|point_accepted" : "point_placed", row.GetProperty("point_review_actions").GetString());
+                    Assert.AreEqual("manual", row.GetProperty("phase_source").GetString());
+                    Assert.AreEqual("explicit_label", row.GetProperty("phase_label_review").GetString());
+                }
+                context.WriteLine($"{folder}: strict {(lastAccepted ? 2 : 1)}/2 at (200,56) and (232,104).");
             }
         }
         finally
