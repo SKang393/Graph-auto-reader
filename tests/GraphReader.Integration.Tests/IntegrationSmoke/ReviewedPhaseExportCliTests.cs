@@ -108,6 +108,22 @@ public sealed class ReviewedPhaseExportCliTests(TestContext context)
         await VerifyExport("a", "reviewed-again", 30, 90, "1,4,a\n3,8,a\n", ExpectedBaselinePixels);
         await Check("b", "150", "210", "still-pending", "requires explicit point and phase evidence");
 
+        // Reopen the same two-panel data with only the first panel's calibration confirmation withdrawn.
+        var store = new ProjectFileStore();
+        var document = (await store.LoadAsync(project, token)).Value!;
+        var affected = document.Panels.Single(p => p.PanelId.Value.ToString("D") == full.PanelId);
+        Assert.IsTrue(affected.Calibration!.UserConfirmed);
+        project = temp.PathFor("one-unconfirmed.garproj");
+        Assert.IsTrue((await store.SaveAsync(document with
+        {
+            Panels = document.Panels.Select(p => p.PanelId == affected.PanelId
+                ? p with { Calibration = p.Calibration! with { UserConfirmed = false } } : p).ToArray(),
+        }, project, token)).IsSuccess);
+        await Check("a", "30", "90", "sibling-after-loss", null, controlPanel: control);
+        await VerifyExport("a", "sibling-after-loss", 30, 90, "1,2,a\n", [30], control.Phases.Single().PhaseId.Value);
+        await Check("a", "30", "90", "calibration-unconfirmed",
+            $"{affected.DisplayName} ({affected.PanelId.Value:D}) requires a confirmed axis-aligned Y calibration");
+
         async Task SetAnchors(double upperY, double rightX)
         {
             reviewer.StartCalibrationCommand.Execute(null);

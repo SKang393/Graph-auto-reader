@@ -186,6 +186,51 @@ public sealed class InMemoryWorkflowArtifactTests
     }
 
     [TestMethod]
+    public async Task MissingPanelCalibrationIdentifiesPanelBeforeGroupWriteAndPreservesSibling()
+    {
+        using var directory = new TemporaryDirectory();
+        ExportFixture fixture = CreateMultiPanelExportFixture();
+        var stage = new ProductionWorkflowExportStage(fixture.Store, new ExportService());
+        var sibling = fixture.Review.Panels.Single(p => p.PreparedPanel.ImportedPanel.DisplayName == "Panel A");
+        var affected = fixture.Review.Panels.Single(p => p.PreparedPanel.ImportedPanel.DisplayName == "Panel B");
+        var siblingReview = new WorkflowReviewState(fixture.Review.ProjectId, [sibling]);
+        var preview = new WorkflowExportRequest(Guid.NewGuid(), "unused") { Operation = ExportOperation.Preview };
+        var baseline = await stage.ExportAsync(fixture.Review, preview, CancellationToken.None);
+        Assert.IsTrue(baseline.Succeeded);
+        Assert.HasCount(6, baseline.Artifacts);
+        var before = await stage.ExportAsync(siblingReview, preview, CancellationToken.None);
+        Assert.IsTrue(before.Succeeded);
+        Assert.HasCount(3, before.Artifacts);
+
+        var evidence = fixture.Store.Get(affected.PanelId).ExportEvidence!;
+        var calibration = evidence.Calibration;
+        var missingY = new ExportCalibration(calibration.Status, false, calibration.HasPrintedSessionCalibration,
+            calibration.HasAbsoluteSessionOrigin, calibration.FirstObservedSession, calibration.Confidence, calibration.Reasons);
+        fixture.Store.SetExportEvidence(affected.PanelId, new ProductionPanelExportEvidence(
+            missingY, evidence.Phases, evidence.Series, evidence.Relations, evidence.Points, evidence.Provenance,
+            evidence.Participant, evidence.Mode, evidence.AuditMode, evidence.SessionOriginPolicy, evidence.ProjectionEvidence));
+        string destination = Path.Combine(directory.Path, "group");
+        var result = await stage.ExportAsync(fixture.Review, new(preview.RunId, destination), CancellationToken.None);
+        Assert.IsFalse(result.Succeeded);
+        Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, result.FailureCode);
+        Assert.IsEmpty(result.Artifacts);
+        Assert.IsFalse(Directory.Exists(destination));
+
+        var after = await stage.ExportAsync(siblingReview, new(preview.RunId, Path.Combine(directory.Path, "sibling")), CancellationToken.None);
+        Assert.IsTrue(after.Succeeded);
+        Assert.HasCount(before.Artifacts.Count, after.Artifacts);
+        foreach (var artifact in before.Artifacts)
+        {
+            var written = after.Artifacts.Single(a => a.FileName == artifact.FileName);
+            CollectionAssert.AreEqual(artifact.CopyContentBytes(), await File.ReadAllBytesAsync(written.WrittenPath!));
+        }
+        string warning = result.Warnings.Single();
+        StringAssert.Contains(warning, "Panel B");
+        StringAssert.Contains(warning, affected.PanelId.ToString("D"));
+        StringAssert.Contains(warning, "confirm the Y scale");
+    }
+
+    [TestMethod]
     public async Task MultiPanelExportDoesNotOverwriteAnExistingDestination()
     {
         using var directory = new TemporaryDirectory();

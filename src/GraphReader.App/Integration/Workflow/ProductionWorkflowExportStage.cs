@@ -9,6 +9,7 @@ namespace GraphReader.App.Integration.Workflow;
 
 public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
 {
+    private const string IncompleteEvidence = "Calibration, phase, series, relation, point, or provenance evidence is incomplete; no scientific values were guessed.";
     private readonly ProductionWorkflowPanelStore panelStore;
     private readonly IExportService exportService;
 
@@ -39,9 +40,9 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
             string? fileNamePrefix = review.Panels.Count > 1
                 ? FormattableString.Invariant($"panel-{exportRequests.Count + 1:D3}")
                 : null;
-            if (!TryBuildRequest(review.ProjectId, panel, request, corrections, fileNamePrefix, out ExportRequest? exportRequest))
+            if (!TryBuildRequest(review.ProjectId, panel, request, corrections, fileNamePrefix, out ExportRequest? exportRequest, out string reason))
             {
-                return RecalibrationRequired();
+                return RecalibrationRequired($"{panel.PreparedPanel.ImportedPanel.DisplayName} ({panel.PanelId:D}): {reason}");
             }
 
             exportRequests.Add(exportRequest!);
@@ -134,9 +135,11 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
         WorkflowExportRequest workflowRequest,
         IReadOnlyDictionary<string, WorkflowCorrection> corrections,
         string? fileNamePrefix,
-        out ExportRequest? request)
+        out ExportRequest? request,
+        out string reason)
     {
         request = null;
+        reason = IncompleteEvidence;
         if (!panelStore.TryGet(reviewPanel.PanelId, out ProductionPanelEvidence? panel) ||
             panel is null ||
             reviewPanel.PreparedPanel.ImportedPanel.SourceId != panel.Panel.SourceId ||
@@ -144,12 +147,16 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
             reviewPanel.PreparedPanel.Original.Height != panel.Panel.Original.Height ||
             !string.Equals(reviewPanel.PreparedPanel.Original.Sha256, panel.Panel.Original.Sha256, StringComparison.OrdinalIgnoreCase) ||
             panel.ExportEvidence is not { } evidence ||
-            evidence.Calibration.Status != ExportCalibrationStatus.Valid ||
-            !evidence.Calibration.HasYCalibration ||
             evidence.Phases.Count == 0 ||
             evidence.Series.Count == 0 ||
             evidence.Provenance.Count == 0)
         {
+            return false;
+        }
+
+        if (evidence.Calibration.Status != ExportCalibrationStatus.Valid || !evidence.Calibration.HasYCalibration)
+        {
+            reason = "Review the calibration and confirm the Y scale before exporting.";
             return false;
         }
 
@@ -289,12 +296,9 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
         _ => ExportReviewStatus.Unreviewed,
     };
 
-    private static WorkflowExportResult RecalibrationRequired() =>
+    private static WorkflowExportResult RecalibrationRequired(string reason = IncompleteEvidence) =>
         new(
             succeeded: false,
-            warnings:
-            [
-                "Calibration, phase, series, relation, point, or provenance evidence is incomplete; no scientific values were guessed.",
-            ],
+            warnings: [reason],
             failureCode: ProductionWorkflowFailureCodes.RecalibrationRequired);
 }

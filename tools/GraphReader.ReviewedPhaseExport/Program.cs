@@ -65,7 +65,7 @@ internal static class Program
         var tab = tabs.Single(t => Guid.Parse(t.PanelId!) == panelId);
         if (saved.Calibration is not { UserConfirmed: true, Status: CalibrationStatus.Valid } calibration ||
             tab.Calibration is not { XTransform: not null, YTransform: not null, UsesPrintedXCoordinates: false })
-            throw new InvalidDataException("This restart workflow requires a confirmed axis-aligned Y calibration on an observation-order panel.");
+            throw new InvalidDataException($"Phase export for {saved.DisplayName} ({panelId:D}) requires a confirmed axis-aligned Y calibration on an observation-order panel.");
 
         Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
         using var review = new MainWindowViewModel(workspace, localizationService: new LocalizationService(new ResourceDictionary()));
