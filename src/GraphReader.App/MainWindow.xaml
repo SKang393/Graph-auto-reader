@@ -794,21 +794,20 @@
           </Border>
         </Expander>
 
-        <Grid Grid.Row="4"
-              Grid.RowSpan="2"
+        <Grid Grid.Row="2"
+              Grid.RowSpan="4"
               Panel.ZIndex="20"
               Background="{DynamicResource App.Brush.Overlay}"
               Style="{StaticResource State.ExportPreview}">
-          <Border Width="520"
+          <Border MaxWidth="520"
                   MaxHeight="520"
                   Margin="24"
                   Padding="20"
-                  HorizontalAlignment="Center"
+                  HorizontalAlignment="Stretch"
                   VerticalAlignment="Center"
                   Style="{DynamicResource App.Style.Panel}">
             <Grid>
               <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -821,7 +820,11 @@
                            Text="{DynamicResource ExportPreview.PlotCompleteness}" />
               </StackPanel>
               <UniformGrid Grid.Row="1" Margin="0,16,0,12" Columns="5">
-                <StackPanel><TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding ExportSummary.PointCount}" /><TextBlock Foreground="{DynamicResource App.Brush.TextMuted}" Text="{DynamicResource ExportPreview.Points}" /></StackPanel>
+                <StackPanel>
+                  <TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding ExportSummary.PointCount}" />
+                  <TextBlock x:Name="ExportPlacedPointsLabel" Foreground="{DynamicResource App.Brush.TextMuted}"
+                             Text="{DynamicResource ExportPreview.Points}" TextWrapping="Wrap" />
+                </StackPanel>
                 <StackPanel><TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding ExportSummary.SeriesCount}" /><TextBlock Foreground="{DynamicResource App.Brush.TextMuted}" Text="{DynamicResource ExportPreview.Series}" /></StackPanel>
                 <StackPanel><TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding ExportSummary.PhaseCount}" /><TextBlock Foreground="{DynamicResource App.Brush.TextMuted}" Text="{DynamicResource ExportPreview.Phases}" /></StackPanel>
                 <StackPanel><TextBlock FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource App.Brush.Danger}" Text="{Binding ExportSummary.BlockingIssueCount}" /><TextBlock Foreground="{DynamicResource App.Brush.TextMuted}" Text="{DynamicResource ExportPreview.Blockers}" /></StackPanel>
@@ -845,15 +848,13 @@
                   </Style>
                 </CheckBox.Style>
               </CheckBox>
-              <StackPanel Grid.Row="3" Margin="0,0,0,10">
-                <TextBlock FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Provenance}" />
-                <TextBlock Margin="0,2,0,7" Foreground="{DynamicResource App.Brush.TextMuted}" Text="{Binding ExportSummary.ProvenanceSummary}" TextWrapping="Wrap" />
-                <TextBlock FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Destination}" />
-                <TextBlock Margin="0,2,0,0" Foreground="{DynamicResource App.Brush.TextMuted}" Text="{Binding ExportSummary.OutputDirectoryDisplay}" TextTrimming="CharacterEllipsis" />
-              </StackPanel>
-              <StackPanel Grid.Row="4">
-                <TextBlock FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Files}" />
-                <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
+              <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+                  <TextBlock FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Provenance}" />
+                  <TextBlock Margin="0,2,0,7" Foreground="{DynamicResource App.Brush.TextMuted}" Text="{Binding ExportSummary.ProvenanceSummary}" TextWrapping="Wrap" />
+                  <TextBlock FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Destination}" />
+                  <TextBlock Margin="0,2,0,10" Foreground="{DynamicResource App.Brush.TextMuted}" Text="{Binding ExportSummary.OutputDirectoryDisplay}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Files}" />
                   <ItemsControl ItemsSource="{Binding ExportSummary.OutputFileNames}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
@@ -861,11 +862,11 @@
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
-                </ScrollViewer>
-              </StackPanel>
-              <StackPanel Grid.Row="5" Margin="0,16,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
+                </StackPanel>
+              </ScrollViewer>
+              <StackPanel Grid.Row="4" Margin="0,16,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button Margin="0,0,8,0" Command="{Binding ReviewCommand}" Style="{DynamicResource App.Style.Button}" Content="{DynamicResource Workflow.Review}" />
-                <Button Command="{Binding ConfirmExportCommand}" Style="{DynamicResource App.Style.PrimaryButton}" Content="{DynamicResource ExportPreview.Confirm}" />
+                <Button x:Name="ExportConfirmButton" Command="{Binding ConfirmExportCommand}" Style="{DynamicResource App.Style.PrimaryButton}" Content="{DynamicResource ExportPreview.Confirm}" />
               </StackPanel>
             </Grid>
           </Border>

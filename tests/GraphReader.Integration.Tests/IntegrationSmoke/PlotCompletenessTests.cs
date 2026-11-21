@@ -3,6 +3,8 @@
 
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
 using GraphReader.App;
 using GraphReader.App.Localization;
 using GraphReader.App.Services;
@@ -14,7 +16,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace GraphReader.Integration.Tests.IntegrationSmoke;
 
 [TestClass]
-public sealed class PlotCompletenessTests
+public sealed class PlotCompletenessTests(TestContext context)
 {
     [STATestMethod(UseSTASynchronizationContext = true)]
     [DataRow("a", 30, 80, 90, 60, "1,2,a", "3,4,a")]
@@ -51,6 +53,8 @@ public sealed class PlotCompletenessTests
         window.DataContext = vm;
         try
         {
+            window.Width = window.MinWidth;
+            window.Height = window.MinHeight;
             window.Show();
             await CheckPreview("partial", [firstRow], 1);
             var last = workspace.AddPoint(tab.TabId, series.SeriesId, lastX, lastY);
@@ -89,8 +93,35 @@ public sealed class PlotCompletenessTests
                 && r.ReviewEvidence!.PointActions.Split('|').Contains("point_accepted")));
             var note = (TextBlock?)window.FindName("ExportPlotCompleteness");
             Assert.IsNotNull(note, "The export preview needs a source plot completeness statement.");
-            Assert.IsTrue(note.IsVisible);
             StringAssert.Contains(note.Text, "Source plot completeness is unverified");
+            AssertReadable(note);
+            var caption = (TextBlock)window.FindName("ExportPlacedPointsLabel");
+            Assert.AreEqual("Placed points", caption.Text);
+            AssertReadable(caption);
+            var confirm = (Button)window.FindName("ExportConfirmButton");
+            Point center = confirm.TranslatePoint(new Point(confirm.ActualWidth / 2, confirm.ActualHeight / 2), window);
+            var hit = VisualTreeHelper.HitTest(window, center)?.VisualHit;
+            Assert.IsTrue(hit == confirm || hit is not null && confirm.IsAncestorOf(hit), "Export button is covered or clipped.");
+            context.WriteLine($"{phase}/{stage}: {strictRows}/{expectedRows.Length} placed rows meet strict evidence. " +
+                $"Notice {note.ActualWidth} × {note.ActualHeight} visible at {window.ActualWidth} × {window.ActualHeight}.");
+        }
+
+        void AssertReadable(TextBlock text)
+        {
+            Assert.IsTrue(text.IsVisible);
+            Assert.AreEqual(TextWrapping.Wrap, text.TextWrapping);
+            Assert.AreEqual(TextTrimming.None, text.TextTrimming);
+            // IsVisible alone also passes for a label clipped by its containing pane.
+            var start = text.ContentStart.GetInsertionPosition(LogicalDirection.Forward);
+            Assert.AreEqual(text.Text, start.GetTextInRun(LogicalDirection.Forward));
+            for (int i = 0; i < text.Text.Length; i++)
+            {
+                if (char.IsWhiteSpace(text.Text[i])) continue;
+                Rect glyph = start.GetPositionAtOffset(i)!.GetCharacterRect(LogicalDirection.Forward);
+                Point at = text.TranslatePoint(new Point(glyph.Left + 1, glyph.Top + glyph.Height / 2), window);
+                Assert.AreSame(text, VisualTreeHelper.HitTest(window, at)?.VisualHit,
+                    $"{text.Name} character {i + 1} is clipped or covered at {at}.");
+            }
         }
     }
 }
