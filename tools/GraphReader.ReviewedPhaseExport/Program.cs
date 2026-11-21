@@ -39,7 +39,7 @@ internal static class Program
         bool list = args is ["list", _];
         if (!list && args is not ["export", _, _, _, _, _, _, _, _, "--confirm-ticks"])
         {
-            Console.Error.WriteLine("list PROJECT\nexport PROJECT PANEL_ID PHASE_ID LEFT_PIXEL LEFT_VALUE RIGHT_PIXEL RIGHT_VALUE NEW_DIRECTORY --confirm-ticks [--acknowledge-warnings]");
+            Console.Error.WriteLine("Export placed and reviewed points for one phase using two confirmed X ticks.\nlist PROJECT\nexport PROJECT PANEL_ID PHASE_ID LEFT_PIXEL LEFT_VALUE RIGHT_PIXEL RIGHT_VALUE NEW_DIRECTORY --confirm-ticks [--acknowledge-warnings]");
             return 2;
         }
 
@@ -52,6 +52,7 @@ internal static class Program
         var tabs = await workspace.OpenProjectAsync(project, CancellationToken.None);
         if (list)
         {
+            Console.WriteLine("Panel ID\tPanel\tPhase ID\tPhase code\tPhase label");
             foreach (var panel in workspace.CurrentProject.Panels)
                 foreach (var phase in panel.Phases.OrderBy(p => p.Order))
                     Console.WriteLine($"{panel.PanelId.Value:D}\t{panel.DisplayName}\t{phase.PhaseId.Value:D}\t{phase.Code}\t{phase.LabelText}");
@@ -100,7 +101,7 @@ internal static class Program
                 XSource = "estimated_from_reviewer_supplied_ticks", DistinctPlacedPoints = selected.Count };
             await File.WriteAllTextAsync(Path.Combine(staging, "phase-scope.json"), JsonSerializer.Serialize(receipt));
             Directory.Move(staging, destination);
-            Console.WriteLine($"Exported {selected.Count} distinct reviewed points to {destination}.");
+            Console.WriteLine($"Exported {selected.Count} distinct reviewed points from phase {rows[0].Phase} ({ticks!.PhaseId:D}) to {destination}.");
         }
         finally
         {

@@ -148,12 +148,21 @@ jobs:
         shell: pwsh
         run: dotnet build GraphAutoReader.slnx --configuration Release --no-restore --nologo
 
+      - name: Build the reviewed phase export command for the integration smoke
+        if: steps.scope.outputs.full_product_validation != 'false'
+        shell: pwsh
+        run: |
+          dotnet build tools/GraphReader.ReviewedPhaseExport -c Release --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Phase export command build failed.' }
+          $tool = (Resolve-Path tools/GraphReader.ReviewedPhaseExport/bin/Release/net10.0-windows/GraphReader.ReviewedPhaseExport.dll).Path
+          "GRAPHREADER_PHASE_EXPORT_DLL=$tool" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Test
         if: steps.scope.outputs.full_product_validation != 'false'
         shell: pwsh
         run: >-
           dotnet test GraphAutoReader.slnx --configuration Release --no-build --no-restore --nologo
-          --logger "console;verbosity=${{ inputs.review_assistance && 'normal' || 'minimal' }}"
+          --logger "console;verbosity=${{ github.event_name == 'workflow_dispatch' && 'normal' || 'minimal' }}"
 
       - name: Test localization audit
         shell: pwsh
