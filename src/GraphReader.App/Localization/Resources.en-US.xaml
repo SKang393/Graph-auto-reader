@@ -241,6 +241,8 @@
   <sys:String x:Key="Manual.PanelCrop.ParentRequired">Keep this source tab open while its cropped panels are in the project. Close the cropped panels first.</sys:String>
   <sys:String x:Key="Manual.Instruction">Current action</sys:String>
   <sys:String x:Key="Manual.Calibration">Start three-anchor calibration</sys:String>
+  <sys:String x:Key="Manual.YMaximum.Invalid">Enter a finite Y maximum greater than zero.</sys:String>
+  <sys:String x:Key="Manual.XMaximum.Invalid">Enter a finite number for the final X value.</sys:String>
   <sys:String x:Key="Manual.YMaximum">Y maximum</sys:String>
   <sys:String x:Key="Manual.FirstVisibleSession">First visible session</sys:String>
   <sys:String x:Key="Manual.XMaximum">Final session</sys:String>

@@ -120,6 +120,65 @@ public sealed partial class CalibrationTickViewModelTests
     }
 
     [TestMethod]
+    [DataRow("Manual.YMaximum", "")]
+    [DataRow("Manual.XMaximum", "3x")]
+    public void InvalidVisibleLimitCannotCommitThePreviousScale(string fieldId, string invalid)
+    {
+        WithImage(path =>
+        {
+            Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+            using var workspace = new ManualPreviewWorkspaceService();
+            var tab = Pump(workspace.ImportImagesAsync([path], CancellationToken.None)).Single();
+            using var vm = new MainWindowViewModel(workspace, new LocalizationService(new ResourceDictionary()))
+            {
+                ManualUsesPrintedXCoordinates = true, ManualFirstVisibleSessionText = "-8",
+                ManualXMaximum = 12, ManualYMaximum = 30
+            };
+            var window = CreateCalibrationWindow(vm);
+            try
+            {
+                window.Show();
+                TextBox field = FindCalibrationElement<TextBox>(window, fieldId);
+                var start = (Button)window.FindName("CalibrationButton");
+                start.Command.Execute(null);
+                Pump(vm.HandleCanvasPointAsync(new(16, 90)));
+                Pump(vm.HandleCanvasPointAsync(new(16, 18)));
+                field.SetCurrentValue(TextBox.TextProperty, invalid);
+                FlushCalibrationBindings();
+
+                Assert.AreEqual(invalid, field.Text);
+                Assert.IsFalse(start.Command.CanExecute(null));
+                string noticeId = fieldId == "Manual.YMaximum" ? "Manual.YMaximum.Validation" : "Manual.FirstVisibleSession.Validation";
+                var notice = FindCalibrationElement<TextBlock>(window, noticeId);
+                Assert.AreEqual(Visibility.Visible, notice.Visibility);
+                Assert.AreEqual(notice.Text, vm.StatusMessage);
+                Pump(vm.HandleCanvasPointAsync(new(144, 90)));
+                Assert.IsNull(tab.Calibration);
+                Assert.IsNull(workspace.CurrentProject.Panels.Single().Calibration);
+
+                // A corrected limit requires three fresh anchors. Negative printed X remains valid.
+                field.SetCurrentValue(TextBox.TextProperty, fieldId == "Manual.YMaximum" ? "7.5" : "-2.5");
+                FlushCalibrationBindings();
+                Assert.IsTrue(start.Command.CanExecute(null));
+                Assert.AreEqual(Visibility.Collapsed, notice.Visibility);
+                Pump(vm.HandleCanvasPointAsync(new(16, 90)));
+                Pump(vm.HandleCanvasPointAsync(new(16, 18)));
+                Assert.IsNull(tab.Calibration);
+                Pump(vm.HandleCanvasPointAsync(new(144, 90)));
+                Assert.IsNotNull(tab.Calibration);
+                Assert.AreEqual(-8d, tab.Calibration.FirstVisibleSession);
+                Assert.AreEqual(fieldId == "Manual.YMaximum" ? 7.5d : 30d, tab.Calibration.YMaximum);
+                Assert.AreEqual(fieldId == "Manual.XMaximum" ? -2.5d : 12d, tab.Calibration.XMaximum);
+            }
+            finally
+            {
+                window.DataContext = null;
+                window.Close();
+            }
+        });
+    }
+
+    [TestMethod]
     public void NativeMarkerPreviewToggleShowsOnlyUncalibratedPixelLocations()
     {
         WithImage(path =>

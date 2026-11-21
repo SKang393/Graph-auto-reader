@@ -238,6 +238,8 @@ public static class LocalizationKeys
     public const string ManualPanelCropParentRequired = "Manual.PanelCrop.ParentRequired";
     public const string ManualInstruction = "Manual.Instruction";
     public const string ManualCalibration = "Manual.Calibration";
+    public const string ManualYMaximumInvalid = "Manual.YMaximum.Invalid";
+    public const string ManualFinalXInvalid = "Manual.XMaximum.Invalid";
     public const string ManualYMaximum = "Manual.YMaximum";
     public const string ManualFirstVisibleSession = "Manual.FirstVisibleSession";
     public const string ManualXMaximum = "Manual.XMaximum";
@@ -679,6 +681,8 @@ public static class LocalizationKeys
         ManualPanelCropParentRequired,
         ManualInstruction,
         ManualCalibration,
+        ManualYMaximumInvalid,
+        ManualFinalXInvalid,
         ManualYMaximum,
         ManualFirstVisibleSession,
         ManualXMaximum,

@@ -77,8 +77,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private string _phaseLabel = string.Empty;
     private string? _selectedDividerId;
     private string? _selectedSharedBaselineSeriesId;
-    private double _manualYMaximum = 100;
-    private double _manualXMaximum = 20;
+    private string _manualYMaximumText = "100";
+    private string _manualXMaximumText = "20";
     private int _manualFirstVisibleSession = 1;
     private string _manualFirstVisibleSessionText = "1";
     private bool _manualUsesPrintedXCoordinates;
@@ -370,7 +370,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 if (_selectedTab is { } previous && Tabs.Contains(previous))
                 {
                     _manualCalibrationForms[previous] = new ManualCalibrationFormState(
-                        previous.Calibration, ManualYMaximum, ManualXMaximum,
+                        previous.Calibration, ManualYMaximumText, ManualXMaximumText,
                         ManualFirstVisibleSession, ManualFirstVisibleSessionText, ManualUsesPrintedXCoordinates);
                 }
                 // A pending canvas action belongs to its original panel.
@@ -700,15 +700,24 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public double ManualYMaximum
     {
-        get => _manualYMaximum;
+        get => ParseManualLimit(ManualYMaximumText);
+        set => ManualYMaximumText = value.ToString("R", CultureInfo.InvariantCulture);
+    }
+
+    public string ManualYMaximumText
+    {
+        get => _manualYMaximumText;
         set
         {
-            if (SetProperty(ref _manualYMaximum, value))
-            {
-                UpdateCalibrationPromptIfActive();
-            }
+            if (!SetProperty(ref _manualYMaximumText, value ?? string.Empty)) return;
+            OnPropertyChanged(nameof(ManualYMaximum));
+            OnPropertyChanged(nameof(IsManualYMaximumInputValid));
+            UpdateCalibrationPromptIfActive();
+            RelayCommand.RaiseCanExecuteChanged();
         }
     }
+
+    public bool IsManualYMaximumInputValid => double.IsFinite(ManualYMaximum) && ManualYMaximum > 0;
 
     public int ManualFirstVisibleSession
     {
@@ -782,17 +791,31 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public double ManualXMaximum
     {
-        get => _manualXMaximum;
+        get => ParseManualLimit(ManualXMaximumText);
+        set => ManualXMaximumText = value.ToString("R", CultureInfo.InvariantCulture);
+    }
+
+    public string ManualXMaximumText
+    {
+        get => _manualXMaximumText;
         set
         {
-            if (SetProperty(ref _manualXMaximum, value))
-            {
-                OnPropertyChanged(nameof(IsManualFirstVisibleSessionInputValid));
-                UpdateCalibrationPromptIfActive();
-                RelayCommand.RaiseCanExecuteChanged();
-            }
+            if (!SetProperty(ref _manualXMaximumText, value ?? string.Empty)) return;
+            OnPropertyChanged(nameof(ManualXMaximum));
+            OnPropertyChanged(nameof(IsManualFirstVisibleSessionInputValid));
+            OnPropertyChanged(nameof(ManualFirstXInvalidText));
+            UpdateCalibrationPromptIfActive();
+            RelayCommand.RaiseCanExecuteChanged();
         }
     }
+
+    private static double ParseManualLimit(string text) =>
+        double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ? value : double.NaN;
+
+    private bool AreManualCalibrationInputsValid => IsManualFirstVisibleSessionInputValid && IsManualYMaximumInputValid;
+
+    private string ManualCalibrationInputError => IsManualYMaximumInputValid
+        ? ManualFirstXInvalidText : GetLocalizedString(LocalizationKeys.ManualYMaximumInvalid);
 
     public string NewSeriesName
     {
@@ -1273,9 +1296,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
-        if (EditorMode == ManualEditorMode.Calibration && !HasAxisSuggestion && !IsManualFirstVisibleSessionInputValid)
+        if (EditorMode == ManualEditorMode.Calibration && !HasAxisSuggestion && !AreManualCalibrationInputsValid)
         {
-            SetStatus(ManualFirstXInvalidText);
+            SetStatus(ManualCalibrationInputError);
             return;
         }
 
@@ -1791,9 +1814,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(EditorInstruction));
             }
 
-            if (!IsManualFirstVisibleSessionInputValid)
+            if (!AreManualCalibrationInputsValid)
             {
-                SetStatus(ManualFirstXInvalidText);
+                SetStatus(ManualCalibrationInputError);
                 return;
             }
 
@@ -2185,7 +2208,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private bool CanStartCalibration() =>
         SelectedTab is not null &&
         _manualWorkspaceService is not null &&
-        (HasAxisSuggestion || IsManualFirstVisibleSessionInputValid);
+        (HasAxisSuggestion || AreManualCalibrationInputsValid);
 
     private void RestoreManualCalibrationForm(WorkspaceTabViewModel? tab)
     {
@@ -2207,19 +2230,19 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             bool printed = supported && calibration!.UsesPrintedXCoordinates;
             int first = supported && !printed ? (int)calibration!.FirstVisibleSession : 1;
             form = new ManualCalibrationFormState(calibration,
-                supported ? calibration!.YMaximum : 100,
-                supported ? calibration!.XMaximum : 20,
+                supported ? calibration!.YMaximum.ToString("R", CultureInfo.InvariantCulture) : "100",
+                supported ? calibration!.XMaximum.ToString("R", CultureInfo.InvariantCulture) : "20",
                 first, supported ? calibration!.FirstVisibleSession.ToString("R", CultureInfo.InvariantCulture) : "1", printed);
         }
-        ManualYMaximum = form.YMaximum;
-        ManualXMaximum = form.XMaximum;
+        ManualYMaximumText = form.YMaximumText;
+        ManualXMaximumText = form.XMaximumText;
         ManualFirstVisibleSession = form.FirstVisibleSession;
         ManualFirstVisibleSessionText = form.FirstVisibleSessionText;
         ManualUsesPrintedXCoordinates = form.UsesPrintedXCoordinates;
     }
 
     private sealed record ManualCalibrationFormState(
-        ManualCalibrationState? Calibration, double YMaximum, double XMaximum,
+        ManualCalibrationState? Calibration, string YMaximumText, string XMaximumText,
         int FirstVisibleSession, string FirstVisibleSessionText, bool UsesPrintedXCoordinates);
 
     private bool TryParseManualFirstX(out double value)

@@ -1475,7 +1475,7 @@
               </Grid.ColumnDefinitions>
               <StackPanel Grid.Column="0" Margin="0,0,4,0">
                 <TextBlock Text="{DynamicResource Manual.YMaximum}" />
-                <TextBox Text="{Binding ManualYMaximum, UpdateSourceTrigger=PropertyChanged}"
+                <TextBox Text="{Binding ManualYMaximumText, UpdateSourceTrigger=PropertyChanged}"
                          automation:AutomationProperties.AutomationId="Manual.YMaximum"
                          automation:AutomationProperties.Name="{DynamicResource Manual.YMaximum}" />
               </StackPanel>
@@ -1505,12 +1505,26 @@
               </StackPanel>
               <StackPanel Grid.Column="2" Margin="4,0,0,0">
                 <TextBlock Text="{Binding ManualFinalXLabel}" />
-                <TextBox Text="{Binding ManualXMaximum, UpdateSourceTrigger=PropertyChanged}"
+                <TextBox Text="{Binding ManualXMaximumText, UpdateSourceTrigger=PropertyChanged}"
                          automation:AutomationProperties.AutomationId="Manual.XMaximum"
                          automation:AutomationProperties.Name="{Binding ManualFinalXLabel}"
                          automation:AutomationProperties.HelpText="{Binding ManualXRangeHelp}" />
               </StackPanel>
             </Grid>
+            <TextBlock Margin="0,0,0,8" TextWrapping="Wrap"
+                       Foreground="{DynamicResource App.Brush.Danger}" Text="{DynamicResource Manual.YMaximum.Invalid}"
+                       automation:AutomationProperties.AutomationId="Manual.YMaximum.Validation">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                  <Setter Property="Visibility" Value="Collapsed" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsManualYMaximumInputValid}" Value="False">
+                      <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
             <TextBlock Margin="0,0,0,8"
                        Foreground="{DynamicResource App.Brush.TextMuted}"
                        Text="{Binding ManualXRangeHelp}"
