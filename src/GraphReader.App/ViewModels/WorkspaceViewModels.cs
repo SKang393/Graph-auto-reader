@@ -203,6 +203,9 @@ public sealed class WorkspaceTabViewModel : ObservableObject
     private object? _overlayContent;
     private double _zoomLevel = 1;
     private bool _isDirty;
+    private long _nextEditRevision;
+    private long _otherChanges;
+    private (long Edit, long Other) _savedRevision;
     private bool _analysisNeedsReview;
     private ImageSource? _enhancedImageSource;
     private EnhancementPreviewMode _enhancementPreviewMode;
@@ -273,11 +276,34 @@ public sealed class WorkspaceTabViewModel : ObservableObject
         get => _isDirty;
         internal set
         {
-            if (SetProperty(ref _isDirty, value))
-            {
-                OnPropertyChanged(nameof(TabHeader));
-            }
+            if (value) _otherChanges++;
+            else _savedRevision = Revision;
+            RefreshDirty();
         }
+    }
+
+    // Undo restores only the editable snapshot. Changes outside its history still need saving.
+    internal long EditRevision { get; private set; }
+    internal (long Edit, long Other) Revision => (EditRevision, _otherChanges);
+
+    internal void RecordEdit() => RestoreEditRevision(++_nextEditRevision);
+
+    internal void RestoreEditRevision(long revision)
+    {
+        EditRevision = revision;
+        RefreshDirty();
+    }
+
+    internal void MarkSaved((long Edit, long Other) revision)
+    {
+        _savedRevision = revision;
+        RefreshDirty();
+    }
+
+    private void RefreshDirty()
+    {
+        if (SetProperty(ref _isDirty, Revision != _savedRevision, nameof(IsDirty)))
+            OnPropertyChanged(nameof(TabHeader));
     }
 
     public ObservableCollection<AppGraphPoint> Points { get; }

@@ -122,11 +122,24 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnClosing(object? sender, CancelEventArgs e)
+    private async void OnClosing(object? sender, CancelEventArgs e)
     {
-        if (DataContext is MainWindowViewModel viewModel && !viewModel.CanCloseWindow())
+        if (e.Cancel || DataContext is not MainWindowViewModel viewModel) return;
+        Task<bool> decision = viewModel.CanCloseWindowAsync();
+        if (decision.IsCompletedSuccessfully)
         {
-            e.Cancel = true;
+            e.Cancel = !decision.Result;
+            return;
+        }
+
+        // WPF needs a synchronous veto while the explicit save is in flight.
+        e.Cancel = true;
+        if (await decision)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                if (IsLoaded && ReferenceEquals(DataContext, viewModel)) Close();
+            });
         }
     }
 

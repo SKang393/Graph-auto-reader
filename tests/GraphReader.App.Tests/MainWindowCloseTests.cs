@@ -18,7 +18,7 @@ public sealed class MainWindowCloseTests
             var dialog = new CloseDialog();
             using var viewModel = new MainWindowViewModel(new UnavailableWorkspaceService(), localizationService: null, dialogService: dialog);
             viewModel.Tabs.Add(Tab("clean", false));
-            Assert.IsTrue(viewModel.CanCloseWindow());
+            Assert.IsTrue(viewModel.CanCloseWindowAsync().GetAwaiter().GetResult());
             Assert.AreEqual(0, dialog.Prompts);
         });
     }
@@ -37,7 +37,7 @@ public sealed class MainWindowCloseTests
             viewModel.Tabs.Add(selected);
             viewModel.Tabs.Add(otherProject);
             viewModel.SelectedTab = selected;
-            Assert.AreEqual(confirm, viewModel.CanCloseWindow());
+            Assert.AreEqual(confirm, viewModel.CanCloseWindowAsync().GetAwaiter().GetResult());
             Assert.AreEqual(1, dialog.Prompts);
             Assert.IsTrue(otherProject.IsDirty, "The guard must not mark unsaved edits as saved.");
         });
@@ -50,7 +50,7 @@ public sealed class MainWindowCloseTests
         {
             using var viewModel = new MainWindowViewModel(new UnavailableWorkspaceService());
             viewModel.Tabs.Add(Tab("dirty", true));
-            Assert.IsFalse(viewModel.CanCloseWindow());
+            Assert.IsFalse(viewModel.CanCloseWindowAsync().GetAwaiter().GetResult());
         });
     }
 
@@ -63,7 +63,7 @@ public sealed class MainWindowCloseTests
             using var viewModel = new MainWindowViewModel(new UnavailableWorkspaceService(), localizationService: null, dialogService: dialog);
             viewModel.Tabs.Add(Tab("dirty", true));
             typeof(MainWindowViewModel).GetProperty(nameof(MainWindowViewModel.IsBusy))!.SetValue(viewModel, true);
-            Assert.IsFalse(viewModel.CanCloseWindow());
+            Assert.IsFalse(viewModel.CanCloseWindowAsync().GetAwaiter().GetResult());
             Assert.AreEqual(0, dialog.Prompts);
             Assert.AreEqual("Project.CloseBusyBlocked", viewModel.StatusMessage);
         });
@@ -76,7 +76,11 @@ public sealed class MainWindowCloseTests
     {
         public bool Confirm { get; init; }
         public int Prompts { get; private set; }
-        public bool ConfirmDiscardUnsavedChanges() { Prompts++; return Confirm; }
+        public ProjectCloseAction ChooseProjectCloseAction()
+        {
+            Prompts++;
+            return Confirm ? ProjectCloseAction.Discard : ProjectCloseAction.Cancel;
+        }
         public IReadOnlyList<string> SelectImages() => [];
         public string? SelectProjectToOpen() => null;
         public string? SelectProjectToSave(string? currentPath) => null;

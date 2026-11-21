@@ -8,6 +8,13 @@ using Microsoft.Win32;
 
 namespace GraphReader.App.Services;
 
+public enum ProjectCloseAction
+{
+    Cancel,
+    Save,
+    Discard,
+}
+
 public interface IWorkspaceDialogService
 {
     IReadOnlyList<string> SelectImages();
@@ -18,7 +25,7 @@ public interface IWorkspaceDialogService
 
     string? SelectExportDirectory();
 
-    bool ConfirmDiscardUnsavedChanges() => false;
+    ProjectCloseAction ChooseProjectCloseAction() => ProjectCloseAction.Cancel;
 
     bool ConfirmObservationOrder() => false;
 }
@@ -76,12 +83,17 @@ public sealed class WindowsWorkspaceDialogService : IWorkspaceDialogService
         return dialog.ShowDialog() == true ? dialog.FolderName : null;
     }
 
-    public bool ConfirmDiscardUnsavedChanges() => MessageBox.Show(
-        Text(LocalizationKeys.ProjectConfirmDiscardAll, "Closing will discard unsaved changes across all open projects. Discard changes and close?"),
+    public ProjectCloseAction ChooseProjectCloseAction() => MessageBox.Show(
+        Text(LocalizationKeys.ProjectSaveBeforeClosing, "Save changes to the project before closing? Choose Yes to save, No to close without saving, or Cancel to keep editing. A recovery copy may still be available."),
         Text(LocalizationKeys.AppTitle, "Graph Auto Reader"),
-        MessageBoxButton.YesNo,
-        MessageBoxImage.Warning,
-        MessageBoxResult.No) == MessageBoxResult.Yes;
+        MessageBoxButton.YesNoCancel,
+        MessageBoxImage.Question,
+        MessageBoxResult.Cancel) switch
+        {
+            MessageBoxResult.Yes => ProjectCloseAction.Save,
+            MessageBoxResult.No => ProjectCloseAction.Discard,
+            _ => ProjectCloseAction.Cancel,
+        };
 
     public bool ConfirmObservationOrder() => MessageBox.Show(
         Text(LocalizationKeys.ConfirmObservationOrder,

@@ -342,7 +342,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<WorkspaceTabViewModel> Tabs { get; }
 
-    internal bool CanCloseWindow()
+    internal async Task<bool> CanCloseWindowAsync()
     {
         if (IsBusy)
         {
@@ -350,7 +350,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return false;
         }
 
-        return !Tabs.Any(tab => tab.IsDirty) || _dialogService?.ConfirmDiscardUnsavedChanges() == true;
+        if (!Tabs.Any(tab => tab.IsDirty)) return true;
+        return _dialogService?.ChooseProjectCloseAction() switch
+        {
+            ProjectCloseAction.Discard => true,
+            ProjectCloseAction.Save => await SaveProjectFromDialogAsync(saveAs: false, CancellationToken.None)
+                && !Tabs.Any(tab => tab.IsDirty),
+            _ => false,
+        };
     }
 
     public WorkspaceTabViewModel? SelectedTab
@@ -1022,20 +1029,21 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (pointId is null || !CanAcceptPoint(pointId, prior)) return;
         WorkspaceTabViewModel tab = SelectedTab!;
         IManualWorkspaceService service = _manualWorkspaceService!;
-        bool wasDirty = tab.IsDirty;
+        long beforeEdit = tab.EditRevision;
         service.SetPointReviewStatus(tab.TabId, pointId, ReviewStatus.Accepted);
+        tab.RecordEdit();
+        long acceptedEdit = tab.EditRevision;
         GetEditHistory(tab).Record(GetLocalizedString(LocalizationKeys.EditAcceptPoint),
             () =>
             {
                 service.SetPointReviewStatus(tab.TabId, pointId, prior);
-                tab.IsDirty = wasDirty;
+                tab.RestoreEditRevision(beforeEdit);
             },
             () =>
             {
                 service.SetPointReviewStatus(tab.TabId, pointId, ReviewStatus.Accepted);
-                tab.IsDirty = true;
+                tab.RestoreEditRevision(acceptedEdit);
             });
-        tab.IsDirty = true;
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
         if (prior == ReviewStatus.Unreviewed && SelectedReviewIssue is { } next) SetSelectedReviewIssue(next, synchronizeWorkspace: true);
@@ -1520,6 +1528,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(HasEnhancedPreview));
             OnPropertyChanged(nameof(CurrentEnhancementPreviewMode));
             RelayCommand.RaiseCanExecuteChanged();
+            tab.IsDirty = true;
             QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "enhancement");
         }, cancellationToken);
     }
@@ -1534,6 +1543,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _manualWorkspaceService.SetEnhancementPreviewMode(tab.TabId, mode);
         Magnifier.IsEnhanced = mode != EnhancementPreviewMode.Original;
         OnPropertyChanged(nameof(CurrentEnhancementPreviewMode));
+        tab.IsDirty = true;
         QueueAutosave(SnapshotTrigger.ExportSettingsChanged, tab.TabId, "enhancement-preview");
     }
 
@@ -1586,11 +1596,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }, cancellationToken);
     }
 
-    private async Task SaveProjectFromDialogAsync(bool saveAs, CancellationToken cancellationToken)
+    private async Task<bool> SaveProjectFromDialogAsync(bool saveAs, CancellationToken cancellationToken)
     {
         if (_manualWorkspaceService is null || _dialogService is null)
         {
-            return;
+            return false;
         }
 
         string? path = saveAs || _manualWorkspaceService.CurrentProjectPath is null
@@ -1598,11 +1608,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             : _manualWorkspaceService.CurrentProjectPath;
         if (path is null)
         {
-            return;
+            return false;
         }
 
+        bool completed = false;
         await RunBusyAsync(async token =>
         {
+            var revisions = Tabs.ToDictionary(tab => tab, tab => tab.Revision);
             DomainResult<ProjectSaveReceipt> saved =
                 await _manualWorkspaceService.SaveProjectAsync(path, token);
             if (!saved.IsSuccess)
@@ -1610,13 +1622,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 throw new InvalidOperationException(string.Join(" | ", saved.Errors.Select(error => error.TechnicalMessage)));
             }
 
-            foreach (WorkspaceTabViewModel tab in Tabs)
+            foreach (var (tab, revision) in revisions)
             {
-                tab.IsDirty = false;
+                tab.MarkSaved(revision);
             }
+            completed = true;
             RememberRecentProject(saved.Value!.Path);
             SetStatus(FormatLocalizedString(LocalizationKeys.StatusSavedFormat, Path.GetFileName(saved.Value!.Path)));
         }, cancellationToken);
+        return completed;
     }
 
     private async Task RecoverProjectFromAutosaveAsync(CancellationToken cancellationToken)
@@ -2102,20 +2116,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         SnapshotTrigger trigger,
         string? tabId,
         string? entityId,
-        CancellationToken cancellationToken,
-        bool markDirty = true)
+        CancellationToken cancellationToken)
     {
         if (_manualWorkspaceService is null)
         {
             return;
-        }
-
-        WorkspaceTabViewModel? editedTab = tabId is null
-            ? null
-            : Tabs.FirstOrDefault(tab => string.Equals(tab.TabId, tabId, StringComparison.Ordinal));
-        if (markDirty && editedTab is not null)
-        {
-            editedTab.IsDirty = true;
         }
 
         DomainResult<ProjectSnapshotReceipt> result = await _manualWorkspaceService
@@ -2146,12 +2151,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private async void QueueAutosave(
         SnapshotTrigger trigger,
         string? tabId,
-        string? entityId,
-        bool markDirty = true)
+        string? entityId)
     {
         try
         {
-            await TryAutosaveAsync(trigger, tabId, entityId, _shutdown.Token, markDirty);
+            await TryAutosaveAsync(trigger, tabId, entityId, _shutdown.Token);
         }
         catch (OperationCanceledException) when (_shutdown.IsCancellationRequested)
         {
@@ -2776,6 +2780,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        tab.RecordEdit();
         WorkspaceTabSnapshot after = CaptureTabSnapshot(tab);
         GetEditHistory(tab).Record(
             GetLocalizedString(descriptionKey),
@@ -2786,7 +2791,6 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             SurfaceState = WorkspaceSurfaceState.Reviewing;
         }
-        tab.IsDirty = true;
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
     }
@@ -2812,7 +2816,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
         SetStatus(GetLocalizedString(LocalizationKeys.StatusUndoCompleted));
-        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "undo", markDirty: false);
+        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "undo");
     }
 
     private void RedoSelectedTab()
@@ -2836,7 +2840,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
         SetStatus(GetLocalizedString(LocalizationKeys.StatusRedoCompleted));
-        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "redo", markDirty: false);
+        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "redo");
     }
 
     private void NotifyHistoryStateChanged()
@@ -2879,7 +2883,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         CapturePointReviewStatuses(tab),
         CapturePointMarkerIds(tab),
         (_workspaceService as IWorkspaceEditStateSink)?.CapturePointCorrectionState(tab.TabId),
-        tab.IsDirty);
+        tab.EditRevision);
 
     private Dictionary<string, string> CapturePointMarkerIds(WorkspaceTabViewModel tab)
     {
@@ -2977,7 +2981,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 divider.Label));
         }
 
-        tab.IsDirty = snapshot.IsDirty;
+        tab.RestoreEditRevision(snapshot.EditRevision);
         SelectedPointId = tab.Points.FirstOrDefault()?.PointId;
         SelectedSeriesId = tab.SeriesCards.FirstOrDefault()?.SeriesId;
         SelectedDividerId = tab.PhaseDividers.FirstOrDefault()?.DividerId;
@@ -3518,7 +3522,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         IReadOnlyDictionary<string, ReviewStatus> ReviewStatuses,
         IReadOnlyDictionary<string, string> PointMarkerIds,
         WorkspacePointCorrectionState? CorrectionState,
-        bool IsDirty);
+        long EditRevision);
 
     private sealed record SeriesRelationSnapshot(
         string InterventionSeriesId,
