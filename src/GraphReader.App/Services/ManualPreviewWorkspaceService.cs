@@ -104,6 +104,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
     private readonly Dictionary<string, RasterWorkspacePanel> _rasterPanelsByTab = new(StringComparer.Ordinal);
     private readonly HashSet<string> _verifiedManualCalibrationPendingByTab = new(StringComparer.Ordinal);
     private IReadOnlyList<ImageImportError> _lastImportErrors = [];
+    private ProjectDocument _currentProject;
 
     public ManualPreviewWorkspaceService(
         IApplicationPaths? applicationPaths = null,
@@ -140,7 +141,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         _runtimeEnvironment = runtimeEnvironment;
         _automaticStages = (automaticStages ?? DefaultAutomaticStages).ToArray();
         _enhancementResolver = enhancementResolver;
-        CurrentProject = ProjectDocument.Create(GetApplicationVersion(), DateTimeOffset.UtcNow);
+        _currentProject = ProjectDocument.Create(GetApplicationVersion(), DateTimeOffset.UtcNow);
     }
 
     private static IReadOnlyList<AutomaticStageStatus> DefaultAutomaticStages { get; } =
@@ -159,7 +160,11 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     public bool UsesFakeGraphData => false;
 
-    public ProjectDocument CurrentProject { get; protected set; }
+    public ProjectDocument CurrentProject
+    {
+        get => Volatile.Read(ref _currentProject);
+        protected set => Volatile.Write(ref _currentProject, value);
+    }
 
     public string? CurrentProjectPath { get; private set; }
 
@@ -1453,18 +1458,15 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         PrepareProjectForSave();
         var snapshots = new ProjectSnapshotService(_applicationPaths.AutosaveRoot, _projectFileStore);
         PanelId? panelId = tabId is null ? null : PanelId.FromGuid(Guid.Parse(RequireTab(tabId).PanelId!));
+        ProjectDocument source = CurrentProject;
         DomainResult<ProjectSnapshotReceipt> result = await snapshots.SaveEventSnapshotAsync(
-            CurrentProject,
+            source,
             trigger,
             DateTimeOffset.UtcNow,
             panelId,
             entityId,
             cancellationToken).ConfigureAwait(false);
-        if (result.IsSuccess && result.Value is not null)
-        {
-            CurrentProject = result.Value.Snapshot;
-        }
-
+        ApplyAutosaveIfCurrent(source, result);
         return result;
     }
 
@@ -1490,17 +1492,23 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             PrepareProjectForSave();
         }
         var snapshots = new ProjectSnapshotService(_applicationPaths.AutosaveRoot, _projectFileStore, scheduler);
+        ProjectDocument source = CurrentProject;
         DomainResult<ProjectSnapshotReceipt> result = await snapshots.SaveTimerSnapshotAsync(
-            CurrentProject,
+            source,
             schedule,
             occurredUtc,
             cancellationToken).ConfigureAwait(false);
-        if (result.IsSuccess && result.Value is not null)
-        {
-            CurrentProject = result.Value.Snapshot;
-        }
-
+        ApplyAutosaveIfCurrent(source, result);
         return result;
+    }
+
+    private void ApplyAutosaveIfCurrent(ProjectDocument source, DomainResult<ProjectSnapshotReceipt> result)
+    {
+        if (result.IsSuccess && result.Value is { } receipt)
+        {
+            // The file records this revision even if the user edited or reopened the project during I/O.
+            Interlocked.CompareExchange(ref _currentProject, receipt.Snapshot, source);
+        }
     }
 
     public Task<DomainResult<RecoveryDiscoveryReport>> DiscoverRecoveryAsync(CancellationToken cancellationToken)
