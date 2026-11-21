@@ -477,6 +477,7 @@ public static class LocalizationKeys
     public const string ReviewPipelineWarningAction = "Review.PipelineWarning.Action";
     public const string ReviewPhaseDividerClusterInterpretation = "Review.PhaseDividerCluster.Interpretation";
     public const string ExportPreviewTitle = "ExportPreview.Title";
+    public const string ExportPreviewPlotCompleteness = "ExportPreview.PlotCompleteness";
     public const string ExportPreviewPoints = "ExportPreview.Points";
     public const string ExportPreviewSeries = "ExportPreview.Series";
     public const string ExportPreviewPhases = "ExportPreview.Phases";
@@ -909,6 +910,7 @@ public static class LocalizationKeys
         ReviewPipelineWarningAction,
         ReviewPhaseDividerClusterInterpretation,
         ExportPreviewTitle,
+        ExportPreviewPlotCompleteness,
         ExportPreviewPoints,
         ExportPreviewSeries,
         ExportPreviewPhases,

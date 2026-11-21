@@ -815,7 +815,11 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
               </Grid.RowDefinitions>
-              <TextBlock FontSize="{DynamicResource App.FontSize.Title}" FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Title}" />
+              <StackPanel>
+                <TextBlock FontSize="{DynamicResource App.FontSize.Title}" FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Title}" />
+                <TextBlock x:Name="ExportPlotCompleteness" Margin="0,4,0,0" TextWrapping="Wrap"
+                           Text="{DynamicResource ExportPreview.PlotCompleteness}" />
+              </StackPanel>
               <UniformGrid Grid.Row="1" Margin="0,16,0,12" Columns="5">
                 <StackPanel><TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding ExportSummary.PointCount}" /><TextBlock Foreground="{DynamicResource App.Brush.TextMuted}" Text="{DynamicResource ExportPreview.Points}" /></StackPanel>
                 <StackPanel><TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding ExportSummary.SeriesCount}" /><TextBlock Foreground="{DynamicResource App.Brush.TextMuted}" Text="{DynamicResource ExportPreview.Series}" /></StackPanel>
