@@ -3258,6 +3258,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             phaseCount,
             blockingIssues,
             warningIssues,
+            ReviewIssues.Any(static issue => issue.TitleKey == LocalizationKeys.ReviewPointBeyondYAnchorsTitle),
             provenance,
             CreateExpectedExportFileNames(tab, panel));
     }
@@ -3281,7 +3282,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             snapshot.WarningIssues,
             outputDirectory is null
                 ? ExportDestinationStatus.PendingSelection
-                : ExportDestinationStatus.Written);
+                : ExportDestinationStatus.Written)
+        {
+            ShowYAnchorNotice = outputDirectory is null && snapshot.HasYAnchorNotice,
+        };
     }
 
     private sealed record ExportSummarySnapshot(
@@ -3290,6 +3294,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         int PhaseCount,
         ReviewIssueViewModel[] BlockingIssues,
         ReviewIssueViewModel[] WarningIssues,
+        bool HasYAnchorNotice,
         string ProvenanceSummary,
         string[] ExpectedFileNames);
 

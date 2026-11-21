@@ -818,6 +818,9 @@
                 <TextBlock FontSize="{DynamicResource App.FontSize.Title}" FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Title}" />
                 <TextBlock x:Name="ExportPlotCompleteness" Margin="0,4,0,0" TextWrapping="Wrap"
                            Text="{DynamicResource ExportPreview.PlotCompleteness}" />
+                <TextBlock x:Name="ExportYAnchorNotice" Margin="0,4,0,0" TextWrapping="Wrap"
+                           Visibility="{Binding ExportSummary.ShowYAnchorNotice, Converter={StaticResource BooleanToVisibilityConverter}}"
+                           Text="{DynamicResource ExportPreview.YAnchorNotice}" />
               </StackPanel>
               <UniformGrid Grid.Row="1" Margin="0,16,0,12" Columns="5">
                 <StackPanel>

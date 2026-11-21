@@ -495,6 +495,7 @@
 
   <sys:String x:Key="ExportPreview.Title">Export preview</sys:String>
   <sys:String x:Key="ExportPreview.PlotCompleteness">Source plot completeness is unverified. Compare the placed points with the marks shown in each series and phase.</sys:String>
+  <sys:String x:Key="ExportPreview.YAnchorNotice">Some points lie beyond the confirmed Y anchors. Choose Review to inspect them.</sys:String>
   <sys:String x:Key="ExportPreview.Points">Placed points</sys:String>
   <sys:String x:Key="ExportPreview.Series">Series</sys:String>
   <sys:String x:Key="ExportPreview.Phases">Phases</sys:String>

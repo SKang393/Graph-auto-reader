@@ -211,8 +211,14 @@ public sealed class RasterPanelWorkspaceTests
             Assert.AreEqual(below.PointId, vm.SelectedPointId);
             Assert.AreSame(before, workspace.CurrentProject);
             Assert.AreEqual(-2d, below.GraphY);
+            vm.OpenExportPreviewCommand.Execute(null);
+            Assert.IsTrue(vm.ExportSummary!.ShowYAnchorNotice);
+            Assert.IsFalse(vm.ExportSummary.WarningIssues.Any(IsNotice));
             vm.MovePoint(below.PointId, below.PixelX, 60);
             Assert.IsFalse(vm.ReviewIssues.Any(i => IsNotice(i) && i.EntityId == below.PointId));
+            vm.MovePoint(above.PointId, above.PixelX, 20);
+            Assert.IsFalse(vm.ExportSummary!.ShowYAnchorNotice);
+            vm.UndoCommand.Execute(null);
             vm.UndoCommand.Execute(null);
             Assert.IsTrue(vm.ReviewIssues.Any(i => IsNotice(i) && i.EntityId == below.PointId));
         });

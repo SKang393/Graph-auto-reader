@@ -189,6 +189,8 @@ public sealed class ExportSummaryViewModel : ObservableObject
 
     public int WarningCount { get; }
 
+    public bool ShowYAnchorNotice { get; init; }
+
     public bool RequiresWarningAcknowledgement => WarningCount > 0;
 
     public bool WarningsAcknowledged
