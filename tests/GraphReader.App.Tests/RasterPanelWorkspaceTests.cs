@@ -28,6 +28,54 @@ public sealed class RasterPanelWorkspaceTests
     private static readonly string[] RequiredStages = ["axis", "ocr", "markers", "legends", "phases"];
 
     [TestMethod]
+    public async Task YAnchorNoticeLocatesAPlacedPointWithoutChangingItsEvidence()
+    {
+        using var dir = new TemporaryDirectory();
+        string image = Path.Combine(dir.Path, "range.png");
+        await File.WriteAllBytesAsync(image, CreatePlainPng(100, 80));
+        using var workspace = new ManualPreviewWorkspaceService();
+        var tab = (await workspace.ImportImagesAsync([image], CancellationToken.None)).Single();
+        var series = workspace.AddSeries(tab.TabId, new("Response", "●", MarkerShape.Circle,
+            MarkerFill.Filled, SemanticRole.Intervention));
+        workspace.Calibrate(tab.TabId, new(new(10, 60), new(10, 20), new(90, 60), 40, 9));
+        var below = workspace.AddPoint(tab.TabId, series.SeriesId, 20, 62);
+        workspace.AddPoint(tab.TabId, series.SeriesId, 30, 60);
+        workspace.AddPoint(tab.TabId, series.SeriesId, 40, 20);
+        var above = workspace.AddPoint(tab.TabId, series.SeriesId, 50, 19);
+        workspace.SetPointReviewStatus(tab.TabId, below.PointId, ReviewStatus.Accepted);
+        static bool IsNotice(ReviewIssueViewModel i) => i.TitleKey == LocalizationKeys.ReviewPointBeyondYAnchorsTitle;
+        StaTestHost.Run(() =>
+        {
+            using var vm = new MainWindowViewModel(workspace);
+            vm.SelectedTab = tab;
+            var notices = vm.ReviewIssues.Where(IsNotice).ToArray();
+            CollectionAssert.AreEquivalent(new[] { below.PointId, above.PointId }, notices.Select(i => i.EntityId).ToArray());
+            var notice = notices.Single(i => i.EntityId == below.PointId);
+            Assert.AreEqual(ReviewIssueSeverity.Information, notice.Severity);
+            var before = workspace.CurrentProject;
+            vm.SelectReviewIssueCommand.Execute(notice);
+            Assert.AreEqual(below.PointId, vm.SelectedPointId);
+            Assert.AreSame(before, workspace.CurrentProject);
+            Assert.AreEqual(-2d, below.GraphY);
+            vm.MovePoint(below.PointId, below.PixelX, 60);
+            Assert.IsFalse(vm.ReviewIssues.Any(i => IsNotice(i) && i.EntityId == below.PointId));
+            vm.UndoCommand.Execute(null);
+            Assert.IsTrue(vm.ReviewIssues.Any(i => IsNotice(i) && i.EntityId == below.PointId));
+        });
+
+        // Imported records may use a signed scale. The anchor values determine its span.
+        var project = workspace.CurrentProject;
+        var panel = project.Panels.Single();
+        var calibration = panel.Calibration!;
+        var signed = calibration with { Anchors = calibration.Anchors.Select(a =>
+            a with { Graph = a.Graph with { Y = a.Graph.Y - 20 } }).ToArray() };
+        var signedProject = project with { Panels = [panel with { Calibration = signed }] };
+        var signedNotices = WorkspaceReviewProjectionService.ProjectIssues(tab, signedProject, key => key).Where(IsNotice);
+        Assert.IsFalse(signedNotices.Any(i => i.EntityId == below.PointId), "−2 is within the confirmed −20 to 20 span.");
+        Assert.IsTrue(signedNotices.Any(i => i.EntityId == above.PointId));
+    }
+
+    [TestMethod]
     public async Task CorrectedPointNeedsSeparateAcceptanceAndUndoRestoresTheCorrection()
     {
         using var dir = new TemporaryDirectory();
