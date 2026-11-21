@@ -231,11 +231,13 @@ public sealed class InMemoryWorkflowArtifactTests
     }
 
     [TestMethod]
-    public async Task MultiPanelExportDoesNotOverwriteAnExistingDestination()
+    [DataRow(1)]
+    [DataRow(2)]
+    public async Task MultiPanelExportDoesNotOverwriteAnExistingDestination(int conflictingPanel)
     {
         using var directory = new TemporaryDirectory();
         ExportFixture fixture = CreateMultiPanelExportFixture();
-        string protectedPath = Path.Combine(directory.Path, "panel-001_participant_Intervention.csv");
+        string protectedPath = Path.Combine(directory.Path, $"panel-{conflictingPanel:D3}_participant_Intervention.csv");
         byte[] sentinel = "Existing user data"u8.ToArray();
         await File.WriteAllBytesAsync(protectedPath, sentinel);
 
@@ -245,7 +247,31 @@ public sealed class InMemoryWorkflowArtifactTests
         Assert.IsFalse(result.Succeeded);
         Assert.AreEqual("EXPORT_FILE_EXISTS", result.FailureCode);
         CollectionAssert.AreEqual(sentinel, await File.ReadAllBytesAsync(protectedPath));
-        Assert.HasCount(1, Directory.GetFiles(directory.Path));
+        Assert.HasCount(1, Directory.GetFileSystemEntries(directory.Path));
+        Assert.IsEmpty(result.Artifacts);
+    }
+
+    [TestMethod]
+    public async Task LatePanelRequiresValidSessionOriginBeforeWritingAnyGroupFiles()
+    {
+        using var directory = new TemporaryDirectory();
+        ExportFixture fixture = CreateMultiPanelExportFixture();
+        Guid second = fixture.Review.Panels.Single(p => p.PreparedPanel.ImportedPanel.DisplayName == "Panel B").PanelId;
+        var evidence = fixture.Store.Get(second).ExportEvidence!;
+        var invalidOrigin = new ExportCalibration(ExportCalibrationStatus.Valid, hasYCalibration: true,
+            hasPrintedSessionCalibration: true, hasAbsoluteSessionOrigin: true, firstObservedSession: 2, confidence: 1);
+        fixture.Store.SetExportEvidence(second, new ProductionPanelExportEvidence(invalidOrigin, evidence.Phases,
+            evidence.Series, evidence.Relations, evidence.Points, evidence.Provenance, evidence.Participant,
+            evidence.Mode, evidence.AuditMode, evidence.SessionOriginPolicy, evidence.ProjectionEvidence));
+        string destination = Path.Combine(directory.Path, "group");
+
+        var result = await new ProductionWorkflowExportStage(fixture.Store, new ExportService()).ExportAsync(
+            fixture.Review, new WorkflowExportRequest(Guid.NewGuid(), destination), CancellationToken.None);
+
+        Assert.IsFalse(result.Succeeded);
+        Assert.AreEqual("INVALID_SESSION_ORIGIN", result.FailureCode);
+        Assert.IsEmpty(result.Artifacts);
+        Assert.IsFalse(Directory.Exists(destination));
     }
 
     private static ExportFixture CreateMultiPanelExportFixture()

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 
+using System.IO;
 using GraphReader.App.Services;
 using GraphReader.Export;
 using GraphReader.Pdf;
@@ -30,6 +31,8 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
 
+        bool groupedWrite = review.Panels.Count > 1 && request.Operation == ExportOperation.WriteFiles;
+        var panelRequest = groupedWrite ? request with { Operation = ExportOperation.PrepareFiles } : request;
         var exportRequests = new List<ExportRequest>(review.Panels.Count);
         var corrections = review.CorrectionJournal.ToDictionary(correction => correction.CorrectionId, StringComparer.Ordinal);
         foreach (WorkflowReviewPanel panel in review.Panels
@@ -40,7 +43,7 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
             string? fileNamePrefix = review.Panels.Count > 1
                 ? FormattableString.Invariant($"panel-{exportRequests.Count + 1:D3}")
                 : null;
-            if (!TryBuildRequest(review.ProjectId, panel, request, corrections, fileNamePrefix, out ExportRequest? exportRequest, out string reason))
+            if (!TryBuildRequest(review.ProjectId, panel, panelRequest, corrections, fileNamePrefix, out ExportRequest? exportRequest, out string reason))
             {
                 return RecalibrationRequired($"{panel.PreparedPanel.ImportedPanel.DisplayName} ({panel.PanelId:D}): {reason}");
             }
@@ -55,6 +58,7 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
 
         var artifacts = new List<WorkflowExportArtifact>();
         var warnings = new List<string>();
+        var groupFiles = new List<(string FileName, string Content)>();
         foreach (ExportRequest exportRequest in exportRequests)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -69,8 +73,7 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
                     item.Severity == ExportFailureSeverity.Error);
                 return new WorkflowExportResult(
                     succeeded: false,
-                    artifacts,
-                    warnings.Concat(result.Failures.Select(static item => item.TechnicalMessage)),
+                    warnings: warnings.Concat(result.Failures.Select(static item => item.TechnicalMessage)),
                     failureCode: failure?.Code ?? "WORKFLOW_EXPORT_FAILED");
             }
 
@@ -91,6 +94,11 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
             }
             else
             {
+                if (groupedWrite)
+                {
+                    groupFiles.AddRange(result.MinimalArtifacts.Select(static a => (a.FileName, a.Content)));
+                    groupFiles.AddRange(result.AuditArtifacts.Select(static a => (a.FileName, a.Content)));
+                }
                 artifacts.AddRange(result.MinimalArtifacts.Select(static artifact =>
                     new WorkflowExportArtifact(
                         artifact.FileName,
@@ -104,6 +112,21 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
                         artifact.Rows.Count,
                         artifact.WrittenPath)));
             }
+        }
+
+        if (groupedWrite)
+        {
+            var (directory, failure) = await ExportService.WriteFileSetAsync(request.OutputDirectory, groupFiles, cancellationToken)
+                .ConfigureAwait(false);
+            if (failure is not null)
+            {
+                return new WorkflowExportResult(false, warnings: warnings.Append(failure.TechnicalMessage), failureCode: failure.Code);
+            }
+
+            artifacts = artifacts.Select(artifact => artifact with
+            {
+                WrittenPath = Path.Combine(directory!, artifact.FileName),
+            }).ToList();
         }
 
         return new WorkflowExportResult(

@@ -47,6 +47,8 @@ public enum ExportOperation
 {
     Preview,
     WriteFiles,
+    // Run final-write validation and serialize in memory for a grouped file write.
+    PrepareFiles,
 }
 
 public enum ExportCalibrationStatus

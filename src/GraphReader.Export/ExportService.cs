@@ -62,36 +62,17 @@ public sealed class ExportService : IExportService
         if (request.Operation == ExportOperation.WriteFiles)
         {
             stage.Restart();
-            try
+            var files = serialized.MinimalArtifacts.Select(static a => (a.FileName, a.Content))
+                .Concat(serialized.AuditArtifacts.Select(static a => (a.FileName, a.Content))).ToArray();
+            var (directory, failure) = await WriteFileSetAsync(request.OutputDirectory, files, cancellationToken)
+                .ConfigureAwait(false);
+            if (failure is null)
             {
-                serialized = await WriteFilesAsync(
-                        request.OutputDirectory,
-                        serialized,
-                        cancellationToken)
-                    .ConfigureAwait(false);
+                serialized = WithWrittenPaths(serialized, directory!);
             }
-            catch (OperationCanceledException)
+            else
             {
-                throw;
-            }
-            catch (ExportFileCollisionException exception)
-            {
-                failures.Add(Failure(
-                    "EXPORT_FILE_EXISTS",
-                    "Export.FileExists",
-                    exception.Message,
-                    recoverable: true,
-                    "Choose another output directory or remove the existing destination deliberately."));
-            }
-            catch (Exception exception) when (
-                exception is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
-            {
-                failures.Add(Failure(
-                    "EXPORT_WRITE_FAILED",
-                    "Export.WriteFailed",
-                    $"The export files could not be written: {exception.Message}",
-                    recoverable: true,
-                    "Choose a writable output directory and retry."));
+                failures.Add(failure);
             }
 
             writeMilliseconds = stage.Elapsed.TotalMilliseconds;
@@ -284,7 +265,7 @@ public sealed class ExportService : IExportService
             }
         }
 
-        if (request.Operation == ExportOperation.WriteFiles &&
+        if (request.Operation != ExportOperation.Preview &&
             string.IsNullOrWhiteSpace(request.OutputDirectory))
         {
             failures.Add(Failure(
@@ -343,7 +324,7 @@ public sealed class ExportService : IExportService
                 "Correct the session calibration."));
         }
 
-        if (request.Operation == ExportOperation.WriteFiles &&
+        if (request.Operation != ExportOperation.Preview &&
             IsInvalidSessionOrigin(request) &&
             !request.SessionOriginPolicy.HasExplicitOverride)
         {
@@ -751,16 +732,64 @@ public sealed class ExportService : IExportService
             new ExportDeterminism(ExportContract.DeterministicOrdering, artifactSetHash));
     }
 
-    private static async Task<SerializedExport> WriteFilesAsync(
+    /// <summary>Commits the serialized artifacts from one or more panels using one no-overwrite file set.</summary>
+    public static async Task<(string? Directory, ExportFailure? Failure)> WriteFileSetAsync(
         string outputDirectory,
-        SerializedExport serialized,
+        IReadOnlyList<(string FileName, string Content)> artifacts,
         CancellationToken cancellationToken)
     {
-        string fullDirectory = Path.GetFullPath(outputDirectory);
-        IEnumerable<(string FileName, string Content)> artifactValues =
-            serialized.MinimalArtifacts.Select(static artifact => (artifact.FileName, artifact.Content))
-                .Concat(serialized.AuditArtifacts.Select(static artifact => (artifact.FileName, artifact.Content)));
-        (string FileName, string Content)[] artifacts = artifactValues.ToArray();
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string directory = Path.GetFullPath(outputDirectory);
+            await WriteFilesAsync(directory, artifacts, cancellationToken).ConfigureAwait(false);
+            return (directory, null);
+        }
+        catch (ExportFileCollisionException exception)
+        {
+            return (null, Failure("EXPORT_FILE_EXISTS", "Export.FileExists", exception.Message, recoverable: true,
+                "Choose another output directory or remove the existing destination deliberately."));
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            return (null, Failure("EXPORT_WRITE_FAILED", "Export.WriteFailed",
+                $"The export files could not be written: {exception.Message}", recoverable: true,
+                "Choose a writable output directory and retry."));
+        }
+    }
+
+    private static SerializedExport WithWrittenPaths(SerializedExport serialized, string fullDirectory)
+    {
+        MinimalCsvArtifact[] minimal = serialized.MinimalArtifacts
+            .Select(artifact => new MinimalCsvArtifact(
+                artifact.InterventionSeriesId,
+                artifact.SeriesSymbol,
+                artifact.SeriesName,
+                artifact.FileName,
+                artifact.Content,
+                artifact.Sha256,
+                artifact.Rows,
+                SafeOutputPath(fullDirectory, artifact.FileName)))
+            .ToArray();
+        ExtendedAuditArtifact[] audit = serialized.AuditArtifacts
+            .Select(artifact => new ExtendedAuditArtifact(
+                artifact.InterventionSeriesId,
+                artifact.Format,
+                artifact.FileName,
+                artifact.Content,
+                artifact.Sha256,
+                artifact.Rows,
+                SafeOutputPath(fullDirectory, artifact.FileName)))
+            .ToArray();
+        return serialized with { MinimalArtifacts = minimal, AuditArtifacts = audit };
+    }
+
+    private static async Task WriteFilesAsync(
+        string fullDirectory,
+        IReadOnlyList<(string FileName, string Content)> artifacts,
+        CancellationToken cancellationToken)
+    {
         foreach ((string fileName, _) in artifacts)
         {
             string destination = SafeOutputPath(fullDirectory, fileName);
@@ -828,29 +857,6 @@ public sealed class ExportService : IExportService
 
                 throw;
             }
-
-            MinimalCsvArtifact[] minimal = serialized.MinimalArtifacts
-                .Select(artifact => new MinimalCsvArtifact(
-                    artifact.InterventionSeriesId,
-                    artifact.SeriesSymbol,
-                    artifact.SeriesName,
-                    artifact.FileName,
-                    artifact.Content,
-                    artifact.Sha256,
-                    artifact.Rows,
-                    SafeOutputPath(fullDirectory, artifact.FileName)))
-                .ToArray();
-            ExtendedAuditArtifact[] audit = serialized.AuditArtifacts
-                .Select(artifact => new ExtendedAuditArtifact(
-                    artifact.InterventionSeriesId,
-                    artifact.Format,
-                    artifact.FileName,
-                    artifact.Content,
-                    artifact.Sha256,
-                    artifact.Rows,
-                    SafeOutputPath(fullDirectory, artifact.FileName)))
-                .ToArray();
-            return serialized with { MinimalArtifacts = minimal, AuditArtifacts = audit };
         }
         finally
         {
@@ -872,6 +878,11 @@ public sealed class ExportService : IExportService
 
     private static string SafeOutputPath(string fullDirectory, string fileName)
     {
+        if (string.IsNullOrWhiteSpace(fileName) || fileName != Path.GetFileName(fileName) ||
+            fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        {
+            throw new ArgumentException("An export artifact must have a single filename.", nameof(fileName));
+        }
         string candidate = Path.GetFullPath(Path.Combine(fullDirectory, fileName));
         string directoryPrefix = Path.TrimEndingDirectorySeparator(fullDirectory) + Path.DirectorySeparatorChar;
         if (!candidate.StartsWith(directoryPrefix, StringComparison.OrdinalIgnoreCase))
