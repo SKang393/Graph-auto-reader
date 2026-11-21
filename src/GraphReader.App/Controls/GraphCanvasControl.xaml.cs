@@ -292,8 +292,27 @@ public partial class GraphCanvasControl : UserControl
             return;
         }
 
-        ZoomBy(e.Delta > 0 ? ZoomInFactor : ZoomOutFactor);
+        ZoomAtViewportPoint(e.Delta > 0 ? ZoomInFactor : ZoomOutFactor, e.GetPosition(ViewportScrollViewer));
         e.Handled = true;
+    }
+
+    internal void ZoomAtViewportPoint(double factor, Point pointer)
+    {
+        Point anchor = ViewportScrollViewer.TranslatePoint(pointer, ImageCoordinateSurface);
+        double previousZoom = ZoomLevel;
+        ZoomBy(factor);
+        if (ZoomLevel == previousZoom || !new Rect(ImageCoordinateSurface.RenderSize).Contains(anchor))
+        {
+            return;
+        }
+
+        // Layout determines both the scaled image origin and the scrollable extent.
+        ViewportScrollViewer.UpdateLayout();
+        Point scaled = ImageCoordinateSurface.TranslatePoint(anchor, ViewportScrollViewer);
+        ViewportScrollViewer.ScrollToHorizontalOffset(ViewportScrollViewer.HorizontalOffset + scaled.X - pointer.X);
+        ViewportScrollViewer.ScrollToVerticalOffset(ViewportScrollViewer.VerticalOffset + scaled.Y - pointer.Y);
+        // ScrollViewer queues offset changes. Apply them before another wheel event reads the anchor.
+        ViewportScrollViewer.UpdateLayout();
     }
 
     private void OnImageMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
