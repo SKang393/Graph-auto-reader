@@ -19,6 +19,36 @@ public sealed partial class CalibrationTickViewModelTests
     private static readonly int[] IntervalExpectedYTicks = [20, 60, 100];
     private static readonly string[] IntervalExpectedRawXTexts = ["1", "12.5", "24"];
     [TestMethod]
+    public void FrameEdgeReadingWarnsOnlyOnItsOwnRowAndCanBeExcludedBeforeRefit()
+    {
+        WithImage(path =>
+        {
+            var fragment = Proposal("fragment", "2", 2, "XTick", "X", 157, 112);
+            using var workspace = CreateWorkspace(path, [.. ZeroOriginProposals(), fragment], MeasuredGeometry());
+            Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+            var localization = new LocalizationService(new ResourceDictionary());
+            using var vm = new MainWindowViewModel(workspace, localization);
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+
+            var row = vm.CalibrationLabelRows.Single(item => item.Proposal.RegionId == "fragment");
+            var warning = localization.GetString(LocalizationKeys.ManualCalibrationLabelsImageEdge);
+            Assert.Contains(warning, row.DisplayText);
+            Assert.IsTrue(vm.CalibrationLabelRows.Where(item => item != row).All(item => !item.DisplayText.Contains(warning)));
+            Assert.IsTrue(row.IsIncluded);
+            Assert.AreEqual("2", row.CorrectedText);
+            Assert.IsFalse(vm.HasPrintedXReviewDraft);
+
+            row.IsIncluded = false;
+            vm.RefitSelectedCalibrationLabels();
+            vm.UsePrintedXCoordinatesCommand.Execute(null);
+            Assert.AreEqual("0", vm.SuggestedFirstSession);
+            Assert.AreEqual("10", vm.SuggestedFinalSession);
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.IsNull(vm.SelectedTab!.Calibration);
+        });
+    }
+
+    [TestMethod]
     public void NativePixelTickEvidenceRefitsWithoutEstimatedPositionsAndStillRequiresReview()
     {
         WithImage(path =>

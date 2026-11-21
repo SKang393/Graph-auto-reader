@@ -307,6 +307,11 @@ public sealed partial class MainWindowViewModel
                 proposal.Text, position, role, confidence, detail)
             : FormatLocalizedString(LocalizationKeys.ManualCalibrationLabelsRow,
                 proposal.Text, position, role, confidence);
+        if (proposal.Role is "XTick" or "YTick" && _calibrationLabelSuggestion?.Response.Request is { } request &&
+            proposal.Polygon.Any(point => point.X == 0 || point.X == request.Width || point.Y == 0 || point.Y == request.Height))
+        {
+            row += "\n" + GetLocalizedString(LocalizationKeys.ManualCalibrationLabelsImageEdge);
+        }
         return proposal.ParentReading is { } parent
             ? FormatLocalizedString(LocalizationKeys.ManualCalibrationLabelsSplitReading, row, parent.Text) : row;
     }

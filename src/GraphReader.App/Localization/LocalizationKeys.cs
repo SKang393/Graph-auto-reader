@@ -193,6 +193,7 @@ public static class LocalizationKeys
     public const string ManualCalibrationLabelsRow = "Manual.CalibrationLabels.Row";
     public const string ManualCalibrationLabelsRowWithFailure = "Manual.CalibrationLabels.RowWithFailure";
     public const string ManualCalibrationLabelsSplitReading = "Manual.CalibrationLabels.SplitReading";
+    public const string ManualCalibrationLabelsImageEdge = "Manual.CalibrationLabels.ImageEdge";
     public const string ManualCalibrationLabelsAmbiguousInterval = "Manual.CalibrationLabels.AmbiguousInterval";
     public const string ManualCalibrationLabelsPosition = "Manual.CalibrationLabels.Position";
     public const string ManualCalibrationLabelsPositionUnknown = "Manual.CalibrationLabels.PositionUnknown";
@@ -634,6 +635,7 @@ public static class LocalizationKeys
         ManualCalibrationLabelsInvalidCorrection,
         ManualCalibrationLabelsRefit,
         ManualCalibrationLabelsSelectionChanged,
+        ManualCalibrationLabelsImageEdge,
         ManualCalibrationLabelsAmbiguousInterval,
         ManualCalibrationLabelsSplitReading,
         ManualMarkerExemplarTitle,
