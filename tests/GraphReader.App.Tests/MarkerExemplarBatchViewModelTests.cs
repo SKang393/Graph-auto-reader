@@ -39,8 +39,13 @@ public sealed class MarkerExemplarBatchViewModelTests
         fixture.Vm.RemoveMarkerExemplarCandidateCommand.Execute(fixture.Vm.MarkerExemplarCandidates.Single());
         Assert.AreEqual("No unreviewed matches remain.", fixture.Vm.MarkerExemplarStatusText);
         fixture.Matcher.Candidates = [];
+        var beforeEmptySearch = fixture.Workspace.CurrentProject;
         fixture.Find();
-        StringAssert.Contains(fixture.Vm.MarkerExemplarStatusText, "No similar positions were found");
+        StringAssert.Contains(fixture.Vm.MarkerExemplarStatusText, "This search proposed no matches");
+        StringAssert.Contains(fixture.Vm.MarkerExemplarStatusText, "choose Points above the graph");
+        Assert.AreSame(beforeEmptySearch, fixture.Workspace.CurrentProject);
+        Assert.AreEqual(fixture.SeriesId, fixture.Vm.SelectedSeriesId);
+        Assert.IsTrue(fixture.Vm.BeginAddPointCommand.CanExecute(null));
     });
     [TestMethod]
     public void ExplicitBatchSkipsExistingDuplicatesAndUsesSelectedSeriesWithOneUndoAndAutosave() => WithFixture(fixture =>

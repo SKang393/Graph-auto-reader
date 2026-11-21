@@ -164,7 +164,7 @@
   <sys:String x:Key="Manual.MarkerExemplar.Unavailable">The example must fit inside the panel and its center must be inside the confirmed plot area.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.PanelTooLarge">This panel exceeds the marker search limit (4096 pixels per side or 4,194,304 pixels total). Use Crop panel to create a smaller child tab; the original stays unchanged.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Searching">Searching the original panel for similar markers…</sys:String>
-  <sys:String x:Key="Manual.MarkerExemplar.NoMatches">No similar positions were found. Try a smaller sample that includes the whole marker, another placed example, or add the point manually.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.NoMatches">This search proposed no matches. Check the selected series for missed marks. To place one, choose Points above the graph and click its center. To search again, try another example or a smaller sample around the whole marker.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Reviewed">No unreviewed matches remain.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Count">{0} possible matches found.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.ReviewAdvice">Review outlines and remove incorrect positions before adding. Added points remain editable with Move Point.</sys:String>
