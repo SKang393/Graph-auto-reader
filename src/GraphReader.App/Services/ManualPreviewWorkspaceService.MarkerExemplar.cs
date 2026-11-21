@@ -64,16 +64,22 @@ public partial class ManualPreviewWorkspaceService
             : !IsConfirmedReviewedMarkerCalibration(panel, calibration))) return false;
         var source = CurrentProject.Sources.SingleOrDefault(item => item.SourceId == panel.SourceId);
         var point = tab.Points.SingleOrDefault(item => item.PointId == pointId && item.SeriesId == seriesId);
-        if (source is null || point is null || !tab.SeriesCards.Any(item => item.SeriesId == seriesId) ||
+        var series = tab.SeriesCards.SingleOrDefault(item => item.SeriesId == seriesId);
+        if (source is null || point is null || series is null ||
             !double.IsFinite(point.PixelX) || !double.IsFinite(point.PixelY)) return false;
         if (!MarkerExemplarGeometry.TryCreatePlot(calibration, tab.PixelWidth, tab.PixelHeight, out var plot, out var frame)) return false;
         int x = (int)Math.Floor(point.PixelX - size / 2d), y = (int)Math.Floor(point.PixelY - size / 2d);
         var exemplar = new MarkerExemplarRectangle(x, y, size, size);
+        bool filledCircle = series.Shape == MarkerShape.Circle && series.Fill == MarkerFill.Filled;
         string payload = JsonSerializer.Serialize(new { Axis = AxisSuggestionBinding(tab), panel.Calibration,
-            point.PointId, point.SeriesId, point.PixelX, point.PixelY, size });
+            point.PointId, point.SeriesId, point.PixelX, point.PixelY, size, filledCircle });
         string binding = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(payload)));
         request = new MarkerExemplarRequest(requestId, binding, source.Sha256, imageHash, tab.PanelId,
-            tab.PixelWidth, tab.PixelHeight, exemplar, plot, pointId, seriesId, new(point.PixelX, point.PixelY)) { AffinePlot = frame };
+            tab.PixelWidth, tab.PixelHeight, exemplar, plot, pointId, seriesId, new(point.PixelX, point.PixelY))
+        {
+            AffinePlot = frame,
+            IsFilledCircleSeries = filledCircle,
+        };
         return MarkerExemplarValidation.ValidMetadata(request);
     }
 

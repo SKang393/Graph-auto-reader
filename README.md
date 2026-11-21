@@ -75,6 +75,43 @@ x_value,y_value,phase
 An optional audit export includes source pixel coordinates, marker identity,
 confidence, session-value provenance, and review status.
 
+### Compare a visual tally with placed points
+
+1. On the original panel, count the visible data marks separately for each series
+   and phase. Record the counts before inspecting the overlay. Leave a tally
+   blank if marks cannot be distinguished. Exclude tick labels and symbols that
+   the figure identifies as unobserved assessments.
+2. Use all relevant audit files from the same panel and export run. For a
+   phase-specific project copy, compare that phase separately. In a spreadsheet,
+   filter the audit CSV rows by `source_series_id` and `phase_id`, then count
+   distinct `point_id` values across the selected files. This counts shared
+   baseline points once and includes points still awaiting review.
+3. Compare this count with your tally. For a discrepancy, revisit the marks on
+   the source. Equal counts still need a mark-by-mark check of visit, position
+   and phase. For example, placing visits 1 and 2 where the source shows 1 and 3
+   gives two points either way.
+
+The optional read-only helper makes the same comparison with Python 3 and the
+audit JSON. This example compares two visible marks in phase a of the Response
+series. Run it from the repository root.
+
+```sh
+python tools/compare_visible_marks.py "Response.audit.json" --series Response --phase a --visible 2
+```
+
+Pass additional audit files from the same run as separate paths. Use IDs from
+the audit when names or phase codes repeat. The result covers the supplied
+files. The preview's **Placed points** total covers the panel. If an entire
+group is absent, check its scope in the project before recording zero.
+
+The desktop workspace writes a fresh run ID for each export action. The helper
+checks project, panel and run IDs and compares repeated source series across
+files. These headers identify the declared run. Files with copied or reused
+headers and disjoint series can still look consistent. Combine only original
+JSON files you know were written together. If their origin is uncertain, check
+each file separately and keep the counts separate. Keep audit CSVs with their
+original export folder because the CSV rows omit these run identifiers.
+
 ## Privacy
 
 Article PDFs, graph images, projects, and inference remain on the local computer

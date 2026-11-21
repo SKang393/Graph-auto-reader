@@ -9,6 +9,27 @@ anchors on the original image. Each point then receives a calibrated X estimate.
 Skipped observation sessions keep their spacing in the CSV. The default remains
 observation order for a new calibration starting at session one.
 
+When rows in one CSV span phase IDs, exporting observation order requires an
+explicit choice each time. This mode writes 1, 2, 3… through the phases. Check
+the original axis before choosing it. The JSON sidecar records this choice as
+`observation_order_confirmed_for_export`. For a continuous scale with gaps, choose
+**Use printed X values** and confirm anchors spanning that scale.
+
+When session labels restart, choose **No**. Save the reviewed whole project.
+For each phase, reopen the whole project and use **Save As** to create a separate
+copy before editing. Keep the dividers and only that phase’s observed points.
+Calibrate printed X from two labeled ticks in that phase and confirm the Y
+calibration. Save, reopen and export the copy. Leave missed visits empty. Use
+the phase and its printed X together to identify an assessment in the CSV and
+retain its audit sidecar for source pixels and review status.
+
+In the Review list, select **Verify phase label** for a populated phase. The
+entry shows its label, code and number of assigned points, and selects its
+leftmost point on the image. Compare the phase with the figure, then choose
+**Confirm phase label**. This also works for the initial baseline, which has
+no left divider. Whole panels and saved phase copies use the same action.
+The export audit records the confirmed label separately from point acceptance.
+
 Manual printed-X calibration uses both pixel coordinates of each anchor, including
 small departures from horizontal and vertical. Existing projects reopen with their
 saved mapping. Screen-vertical phase dividers still require an aligned calibration.

@@ -56,6 +56,8 @@
   <sys:String x:Key="Errors.DetectionCalibrationMultiple">Multiple graphs need calibration. Calibrate the selected graph, then run Analyze again.</sys:String>
   <sys:String x:Key="Review.AnalysisNeedsReview">Analysis did not complete for this graph. Review its calibration, then run Analyze again.</sys:String>
   <sys:String x:Key="Review.AnalysisNeedsReview.Symbol">!</sys:String>
+  <sys:String x:Key="Export.ReviewObservationOrder">Export paused. For continuous session numbers with gaps, calibrate printed X. If labels restart, use Save As for each phase, keep only that phase’s points, calibrate its printed X ticks and export the copy.</sys:String>
+  <sys:String x:Key="Export.ConfirmObservationOrder">This export would write X as 1, 2, 3… across phase boundaries in each CSV. Use these observation numbers? Choose No if printed sessions restart, skip, or are unclear. Use printed-X calibration for one continuous scale. For restarted labels, save a separate copy per phase, keep only its points and calibrate its printed X ticks.</sys:String>
   <sys:String x:Key="Errors.OperationFailed">The operation could not be completed. Review the current inputs and try again.</sys:String>
   <sys:String x:Key="Errors.ManualEditRejected">The edit could not be applied. Review the selected values and try again.</sys:String>
   <sys:String x:Key="Errors.ManualAffinePhasesUnsupported">Phase dividers require horizontal and vertical axes. Remove existing dividers before applying rotated calibration.</sys:String>
@@ -94,7 +96,7 @@
   <sys:String x:Key="Project.Recover">Recover autosave</sys:String>
   <sys:String x:Key="Project.CloseTab">Close tab</sys:String>
   <sys:String x:Key="Project.CloseDirtyBlocked">Save the project before closing a tab with unsaved changes.</sys:String>
-  <sys:String x:Key="Project.ConfirmDiscardAll">Closing will discard unsaved changes across all open projects. Discard changes and close?</sys:String>
+  <sys:String x:Key="Project.SaveBeforeClosing">Save changes to the project before closing? Choose Yes to save, No to close without saving, or Cancel to keep editing. A recovery copy may still be available.</sys:String>
   <sys:String x:Key="Project.CloseBusyBlocked">Wait for the current operation to finish or cancel it before closing.</sys:String>
   <sys:String x:Key="Manual.Title">Manual tools</sys:String>
   <sys:String x:Key="Manual.SuggestAxes">Suggest axes (review only)</sys:String>
@@ -141,7 +143,7 @@
   <sys:String x:Key="Manual.PrintedX.UseFirst">Use as first printed X</sys:String>
   <sys:String x:Key="Manual.PrintedX.UseFinal">Use as final printed X</sys:String>
   <sys:String x:Key="Manual.PrintedX.Positions">Original pixels: first X at Y=0 ({0}, {1}); Y maximum ({2}, {3}); final X at Y=0 ({4}, {5}).</sys:String>
-  <sys:String x:Key="Manual.PrintedX.RangeHelp">Enter the printed X values at the left and right anchors. Zero, negative and fractional values are allowed. Fitted point X values export as estimates.</sys:String>
+  <sys:String x:Key="Manual.PrintedX.RangeHelp">Enter the printed X values at the left and right anchors of one continuous scale. If labels restart, work on a separate copy for each phase. Zero, negative and fractional values are allowed. Fitted point X values export as estimates.</sys:String>
   <sys:String x:Key="Manual.PrintedX.Invalid">Enter a finite first X value that is less than the final X value.</sys:String>
   <sys:String x:Key="Manual.PrintedX.Saved">Reviewed printed X calibration saved from {0} through {1}. Point X values are estimates.</sys:String>
   <sys:String x:Key="Manual.PrintedX.Prompt">Click ({0}, 0), then ({0}, {2}), then ({1}, 0) at the matching image positions.</sys:String>
@@ -154,8 +156,10 @@
   <sys:String x:Key="Manual.MarkerExemplar.Add">Add point</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Remove">Remove</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Row">({0}, {1}), similarity {2}</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.Inspect">Inspect match</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.Nearby">Another point or match in this series is within one pixel on each axis. Inspect this match and add or remove it individually.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Duplicate">A point already exists at this position.</sys:String>
-  <sys:String x:Key="Manual.MarkerExemplar.Ready">Select a calibrated point and series. Fit the square around the whole marker with a little background.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.Ready">Select a calibrated point and its series. Include the whole marker and a little background. For colored disks, choose a filled-circle series and place the point in its solid center.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.InvalidSize">Enter a whole-pixel size from 5 to 65.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Unavailable">The example must fit inside the panel and its center must be inside the confirmed plot area.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.PanelTooLarge">This panel exceeds the marker search limit (4096 pixels per side or 4,194,304 pixels total). Use Crop panel to create a smaller child tab; the original stays unchanged.</sys:String>
@@ -165,7 +169,7 @@
   <sys:String x:Key="Manual.MarkerExemplar.Count">{0} possible matches found.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.ReviewAdvice">Review outlines and remove incorrect positions before adding. Added points remain editable with Move Point.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.AcceptAll">Add remaining matches ({0})</sys:String>
-  <sys:String x:Key="Manual.MarkerExemplar.BatchAdded">Added {0} points; skipped {1} existing or overlapping positions.</sys:String>
+  <sys:String x:Key="Manual.MarkerExemplar.BatchAdded">Added {0} points. Left {1} matches for individual review.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.BatchFailure">The batch could not be completed. No points were kept; the proposal list was cleared.</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Failure">Marker search failed: {0}</sys:String>
   <sys:String x:Key="Manual.MarkerExemplar.Failure.InvalidInput">the point, image, or plot area is invalid</sys:String>
@@ -237,6 +241,8 @@
   <sys:String x:Key="Manual.PanelCrop.ParentRequired">Keep this source tab open while its cropped panels are in the project. Close the cropped panels first.</sys:String>
   <sys:String x:Key="Manual.Instruction">Current action</sys:String>
   <sys:String x:Key="Manual.Calibration">Start three-anchor calibration</sys:String>
+  <sys:String x:Key="Manual.YMaximum.Invalid">Enter a finite Y maximum greater than zero.</sys:String>
+  <sys:String x:Key="Manual.XMaximum.Invalid">Enter a finite number for the final X value.</sys:String>
   <sys:String x:Key="Manual.YMaximum">Y maximum</sys:String>
   <sys:String x:Key="Manual.FirstVisibleSession">First visible session</sys:String>
   <sys:String x:Key="Manual.XMaximum">Final session</sys:String>
@@ -267,13 +273,14 @@
   <sys:String x:Key="Manual.LabelDivider">Apply divider label</sys:String>
   <sys:String x:Key="Manual.Default.Intervention">Intervention</sys:String>
   <sys:String x:Key="Manual.Instruction.Calibration">Calibration anchor {0} of 3. Click the graph, or move the keyboard cursor and press Enter.</sys:String>
-  <sys:String x:Key="Manual.Instruction.AddPoint">Click the graph, or move the keyboard cursor and press Enter, to add a point</sys:String>
+  <sys:String x:Key="Manual.Instruction.AddPoint">Click or press Enter at the graph cursor to place a point. Hold Shift when placing to keep Add point active.</sys:String>
   <sys:String x:Key="Manual.Instruction.MovePoint">Click the new location, or move the keyboard cursor and press Enter</sys:String>
   <sys:String x:Key="Manual.Instruction.AddDivider">Click the graph, or move the keyboard cursor and press Enter, to add a phase divider</sys:String>
   <sys:String x:Key="Manual.Instruction.MoveDivider">Click the new phase-divider location, or move the keyboard cursor and press Enter</sys:String>
   <sys:String x:Key="Manual.Instruction.Select">Click a point or divider, or move the keyboard cursor and press Enter, to select it</sys:String>
   <sys:String x:Key="Manual.Status.CalibrationPrompt">Enter the first visible session as {0}, final session as {1}, and Y maximum as {2}. Then choose ({0},0), ({0},{2}), and ({1},0) with a click or the keyboard cursor and Enter. These are manually entered calibration values.</sys:String>
   <sys:String x:Key="Manual.Status.CalibrationSaved">Manual calibration saved for sessions {0} through {1}.</sys:String>
+  <sys:String x:Key="Manual.Status.ChooseSeriesForFill">Several series use this fill. Select the intended series card, then add the point.</sys:String>
   <sys:String x:Key="Manual.Status.SelectSeriesFirst">Create or select a series before adding points.</sys:String>
   <sys:String x:Key="Manual.Status.PointAdded">Manual point added.</sys:String>
   <sys:String x:Key="Manual.Status.PointMoved">Manual point moved.</sys:String>
@@ -446,6 +453,12 @@
   <sys:String x:Key="Review.PointRejected.Title">Rejected point</sys:String>
   <sys:String x:Key="Review.PointRejected.Interpretation">This candidate was rejected and will not be exported as an accepted point.</sys:String>
   <sys:String x:Key="Review.PointRejected.Action">Confirm the rejection or correct the point.</sys:String>
+  <sys:String x:Key="Review.PointCorrected.Title">Corrected point at X = {0}, Y = {1}</sys:String>
+  <sys:String x:Key="Review.PointCorrected.Interpretation">Observation {0} is awaiting point acceptance.</sys:String>
+  <sys:String x:Key="Review.PointCorrected.Action">Check its position on the figure, then choose Accept selected point.</sys:String>
+  <sys:String x:Key="Review.PointBeyondYAnchors.Title">Observation {0} is beyond the Y calibration anchors</sys:String>
+  <sys:String x:Key="Review.PointBeyondYAnchors.Interpretation">Point Y = {0}. The confirmed Y anchors span {1} to {2}.</sys:String>
+  <sys:String x:Key="Review.PointBeyondYAnchors.Action">Check the marker center against its visible edges and the Y ticks.</sys:String>
   <sys:String x:Key="Review.PointUnreviewed.Title">Point needs review</sys:String>
   <sys:String x:Key="Review.FilteredMarkers">Filtered marker candidates</sys:String>
   <sys:String x:Key="Review.FilteredMarkers.Explanation">These markers are recorded as rejected by detection or review and may be text, legend symbols, or other artifacts. Selecting one only inspects it; it is not exported as a point.</sys:String>
@@ -468,6 +481,10 @@
   <sys:String x:Key="Review.SeriesUnknown.Title">Series role is unknown</sys:String>
   <sys:String x:Key="Review.SeriesUnknown.Interpretation">The series has no confirmed scientific role.</sys:String>
   <sys:String x:Key="Review.SeriesUnknown.Action">Choose the supported role or leave it explicitly unknown.</sys:String>
+  <sys:String x:Key="Review.ConfirmPhaseLabel">Confirm phase label</sys:String>
+  <sys:String x:Key="Review.PhaseLabel.Title">Verify phase label “{0}” ({1})</sys:String>
+  <sys:String x:Key="Review.PhaseLabel.Interpretation">Select to locate the first point in phase {0} ({1} assigned).</sys:String>
+  <sys:String x:Key="Review.PhaseLabel.Action">Compare the label with the figure before choosing Confirm phase label.</sys:String>
   <sys:String x:Key="Review.PhaseUnknown.Title">Phase type is unknown</sys:String>
   <sys:String x:Key="Review.PhaseUnknown.Interpretation">The phase has no supported normalized interpretation.</sys:String>
   <sys:String x:Key="Review.PhaseUnknown.Action">Confirm a supported phase label or retain the explicit unknown value.</sys:String>
@@ -477,7 +494,8 @@
   <sys:String x:Key="Review.PhaseDividerCluster.Interpretation">Nearby phase lines were grouped. Check whether they mark one boundary or several.</sys:String>
 
   <sys:String x:Key="ExportPreview.Title">Export preview</sys:String>
-  <sys:String x:Key="ExportPreview.Points">Points</sys:String>
+  <sys:String x:Key="ExportPreview.PlotCompleteness">Source plot completeness is unverified. Compare the placed points with the marks shown in each series and phase.</sys:String>
+  <sys:String x:Key="ExportPreview.Points">Placed points</sys:String>
   <sys:String x:Key="ExportPreview.Series">Series</sys:String>
   <sys:String x:Key="ExportPreview.Phases">Phases</sys:String>
   <sys:String x:Key="ExportPreview.Blockers">Blockers</sys:String>

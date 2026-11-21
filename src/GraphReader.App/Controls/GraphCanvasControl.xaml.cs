@@ -292,8 +292,27 @@ public partial class GraphCanvasControl : UserControl
             return;
         }
 
-        ZoomBy(e.Delta > 0 ? ZoomInFactor : ZoomOutFactor);
+        ZoomAtViewportPoint(e.Delta > 0 ? ZoomInFactor : ZoomOutFactor, e.GetPosition(ViewportScrollViewer));
         e.Handled = true;
+    }
+
+    internal void ZoomAtViewportPoint(double factor, Point pointer)
+    {
+        Point anchor = ViewportScrollViewer.TranslatePoint(pointer, ImageCoordinateSurface);
+        double previousZoom = ZoomLevel;
+        ZoomBy(factor);
+        if (ZoomLevel == previousZoom || !new Rect(ImageCoordinateSurface.RenderSize).Contains(anchor))
+        {
+            return;
+        }
+
+        // Layout determines both the scaled image origin and the scrollable extent.
+        ViewportScrollViewer.UpdateLayout();
+        Point scaled = ImageCoordinateSurface.TranslatePoint(anchor, ViewportScrollViewer);
+        ViewportScrollViewer.ScrollToHorizontalOffset(ViewportScrollViewer.HorizontalOffset + scaled.X - pointer.X);
+        ViewportScrollViewer.ScrollToVerticalOffset(ViewportScrollViewer.VerticalOffset + scaled.Y - pointer.Y);
+        // ScrollViewer queues offset changes. Apply them before another wheel event reads the anchor.
+        ViewportScrollViewer.UpdateLayout();
     }
 
     private void OnImageMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -310,7 +329,7 @@ public partial class GraphCanvasControl : UserControl
             return;
         }
 
-        ImagePointInvoked?.Invoke(this, new GraphImagePointEventArgs(point));
+        ImagePointInvoked?.Invoke(this, new GraphImagePointEventArgs(point, Keyboard.Modifiers));
         e.Handled = true;
     }
 
@@ -326,10 +345,10 @@ public partial class GraphCanvasControl : UserControl
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
         _ = sender;
-        e.Handled = TryHandleKeyboardInput(e.Key, Keyboard.Modifiers);
+        e.Handled = TryHandleKeyboardInput(e.Key, Keyboard.Modifiers, e.IsRepeat);
     }
 
-    internal bool TryHandleKeyboardInput(Key key, ModifierKeys modifiers)
+    internal bool TryHandleKeyboardInput(Key key, ModifierKeys modifiers, bool isRepeat = false)
     {
         (double width, double height) = GetCoordinateDimensions(CoordinateReferenceSource ?? ImageSource);
         if (width <= 0 || height <= 0)
@@ -339,7 +358,7 @@ public partial class GraphCanvasControl : UserControl
 
         if (key is Key.Enter or Key.Space)
         {
-            ImagePointInvoked?.Invoke(this, new GraphImagePointEventArgs(ToImagePoint(width, height)));
+            ImagePointInvoked?.Invoke(this, new GraphImagePointEventArgs(ToImagePoint(width, height), modifiers, isRepeat));
             return true;
         }
 
@@ -382,7 +401,11 @@ public partial class GraphCanvasControl : UserControl
             Math.Clamp(CrosshairPosition.Y, 0, 1) * height);
 }
 
-public sealed class GraphImagePointEventArgs(Point imagePoint) : EventArgs
+public sealed class GraphImagePointEventArgs(Point imagePoint, ModifierKeys modifiers, bool isRepeat = false) : EventArgs
 {
+    public GraphImagePointEventArgs(Point imagePoint) : this(imagePoint, ModifierKeys.None) { }
+
     public Point ImagePoint { get; } = imagePoint;
+    public ModifierKeys Modifiers { get; } = modifiers;
+    public bool IsRepeat { get; } = isRepeat;
 }

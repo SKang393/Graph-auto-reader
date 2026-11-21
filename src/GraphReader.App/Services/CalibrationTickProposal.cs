@@ -267,9 +267,10 @@ public static class CalibrationTickProposal
             y[0].Value > 0 && y[0].Value == y.Max(pair => pair.Value)
                 ? new(y[^1].PixelPosition, y[0].PixelPosition, y[0].Value,
                     y.Any(pair => pair.IsEstimated)) : null;
+        // A valid session fit can also describe literal coordinates with gaps between observations.
         CalibrationPrintedXReviewDraft? printedDraft = publishPrintedX && userFirstSession is null && !identityConflict &&
             xPairChecksPassed && yReasons.Count == 0 && double.IsFinite(x[0].Value) && double.IsFinite(x[^1].Value) &&
-            x[^1].Value > x[0].Value && !ValidXRange(x[0].Value, x[^1].Value)
+            x[^1].Value > x[0].Value
                 ? new(new(new(x[0].PixelPosition, y[^1].PixelPosition), new(x[0].PixelPosition, y[0].PixelPosition),
                         new(x[^1].PixelPosition, y[^1].PixelPosition)), x[0].Value, x[^1].Value, y[0].Value,
                     x.Any(pair => pair.IsEstimated) || y.Any(pair => pair.IsEstimated)) : null;
@@ -279,7 +280,7 @@ public static class CalibrationTickProposal
         return new CalibrationTickProposalResult(new(new(firstPixel, y[^1].PixelPosition), new(firstPixel, y[0].PixelPosition),
                 new(x[^1].PixelPosition, y[^1].PixelPosition)), (int)first, final, maximum,
             Array.AsReadOnly(paired.ToArray()), Array.Empty<string>()) { XReviewDraft = xDraft, YReviewDraft = yDraft,
-                UsesUserEnteredSessionPosition = userFirstSession is not null };
+                PrintedXReviewDraft = printedDraft, UsesUserEnteredSessionPosition = userFirstSession is not null };
     }
 
     private static bool ValidXRange(double first, double final) =>

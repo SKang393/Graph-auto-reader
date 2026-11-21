@@ -542,6 +542,7 @@ public sealed class ManualPreviewWorkflowSmokeTests
         ExportResult related = await reopened.ExportAsync(
             reopenedTab.TabId,
             environment.PathFor("explicit export"),
+            confirmObservationOrder: true,
             CancellationToken.None);
         Assert.IsTrue(related.Succeeded, Format(related.Failures));
         ExportSeriesRelation relationOne = reopenedCapture.LastRequest!.Relations.Single(
@@ -630,6 +631,7 @@ public sealed class ManualPreviewWorkflowSmokeTests
         ExportResult exported = await reopened.ExportAsync(
             reopenedTab.TabId,
             environment.PathFor("probe role export"),
+            confirmObservationOrder: true,
             CancellationToken.None);
         Assert.IsTrue(exported.Succeeded, Format(exported.Failures));
         Assert.HasCount(1, exported.MinimalArtifacts);
@@ -906,6 +908,100 @@ public sealed class ManualPreviewWorkflowSmokeTests
         Assert.IsTrue(
             overwriteBlocked.Errors.Any(static error => error.Code == "PROJECT_TARGET_EXISTS"),
             Format(overwriteBlocked.Errors));
+    }
+
+    [TestMethod]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    public async Task PendingAutosavePreservesNewerBaselineRelation(bool timer, bool linkAfterEdit)
+    {
+        using var environment = new IntegrationSmokeTestEnvironment();
+        var token = CancellationToken.None;
+        var paths = CreatePortablePaths(environment, "relation recovery");
+        var gate = new PauseFirstSnapshotCommit();
+        using var workspace = new ManualPreviewWorkspaceService(paths, projectFileStore: new ProjectFileStore(interceptor: gate));
+        string image = environment.PathFor("graph.png");
+        WriteImage(image, 100, 100);
+        string tab = (await workspace.ImportImagesAsync([image], token)).Single().TabId;
+        workspace.Calibrate(tab, new(new(10, 90), new(10, 10), new(90, 90), 100, 9, 1) { UsesPrintedXCoordinates = true });
+        var baseline = workspace.AddSeries(tab, new("Baseline", "□", MarkerShape.Square, MarkerFill.Open, SemanticRole.Baseline));
+        var intervention = workspace.AddSeries(tab, new("Treatment", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
+        workspace.AddPhaseDivider(tab, 40, "b", "Treatment");
+        var first = workspace.AddPoint(tab, baseline.SeriesId, 20, 74);
+        var second = workspace.AddPoint(tab, intervention.SeriesId, 50, 42);
+        workspace.SetPointReviewStatus(tab, first.PointId, ReviewStatus.Accepted);
+        workspace.SetPointReviewStatus(tab, second.PointId, ReviewStatus.Accepted);
+        Guid? oldLink = linkAfterEdit ? null : Guid.Parse(baseline.SeriesId);
+        Guid? editedLink = linkAfterEdit ? Guid.Parse(baseline.SeriesId) : null;
+        if (oldLink.HasValue)
+        {
+            workspace.SetSeriesRelations(tab, intervention.SeriesId, baseline.SeriesId, []);
+        }
+        string primary = environment.PathFor("primary.garproj");
+        var saved = await workspace.SaveProjectAsync(primary, token);
+        Assert.IsTrue(saved.IsSuccess, Format(saved.Errors));
+        string originalHash = Sha256(primary);
+
+        var pending = timer
+            ? workspace.TimerAutosaveAsync(workspace.CurrentProject.ModifiedUtc + FiveMinuteAutosaveScheduler.DefaultInterval, token)
+            : workspace.AutosaveAsync(SnapshotTrigger.PointEdited, tab, first.PointId, token);
+        try
+        {
+            await gate.BeforeCommit.Task.WaitAsync(TimeSpan.FromSeconds(10), token);
+            workspace.SetSeriesRelations(tab, intervention.SeriesId, linkAfterEdit ? baseline.SeriesId : null, []);
+            Assert.AreEqual(editedLink, BaselineLink(workspace.CurrentProject));
+        }
+        finally
+        {
+            gate.Release.TrySetResult();
+        }
+
+        var older = await pending;
+        Assert.IsTrue(older.IsSuccess, Format(older.Errors));
+        Assert.AreEqual(oldLink, BaselineLink(older.Value!.Snapshot), "The first receipt describes its own saved revision.");
+        var newer = await workspace.AutosaveAsync(SnapshotTrigger.ExportSettingsChanged, tab, intervention.SeriesId, token);
+        Assert.IsTrue(newer.IsSuccess, Format(newer.Errors));
+        var recovered = await workspace.RecoverLatestToNewFileAsync(environment.PathFor("recovered.garproj"), token);
+        Assert.IsTrue(recovered.IsSuccess, Format(recovered.Errors));
+        string recoveredTab = (await workspace.OpenProjectAsync(recovered.Value!.Path, token)).Single().TabId;
+        Assert.AreEqual(editedLink, BaselineLink(workspace.CurrentProject), "The recovered copy must contain the later explicit edit.");
+        Assert.AreEqual(originalHash, Sha256(primary));
+        Assert.AreEqual(editedLink, BaselineLink(newer.Value!.Snapshot));
+        Assert.IsTrue(workspace.CurrentProject.Audit.LastAutosaveUtc.HasValue);
+        CollectionAssert.IsSubsetOf(older.Value.Snapshot.Audit.Events.Select(e => e.EventId).ToArray(),
+            workspace.CurrentProject.Audit.Events.Select(e => e.EventId).ToArray());
+
+        var export = await workspace.ExportAsync(recoveredTab, environment.PathFor("export"), token);
+        Assert.IsTrue(export.Succeeded, Format(export.Failures));
+        string expectedCsv = linkAfterEdit ? "x_value,y_value,phase\n2,20,a\n5,60,b\n" : "x_value,y_value,phase\n5,60,b\n";
+        Assert.AreEqual(expectedCsv, await File.ReadAllTextAsync(export.MinimalArtifacts.Single().WrittenPath!, token));
+        var rows = export.AuditArtifacts.Single(a => a.Format == ExportAuditArtifactFormat.Json).Rows;
+        Assert.HasCount(linkAfterEdit ? 2 : 1, rows);
+        if (linkAfterEdit)
+        {
+            var shared = rows.Single(r => r.PointId == Guid.Parse(first.PointId));
+            Assert.AreEqual(ExportRowInclusion.SharedBaseline, shared.Inclusion);
+            Assert.AreEqual("unconfirmed", shared.ReviewEvidence!.PhaseLabelReview);
+        }
+        var strict = rows.Single(r => r.CalibrationStatus == ExportCalibrationStatus.Valid &&
+            r.ReviewStatus == ExportReviewStatus.Accepted && r.ReviewEvidence!.PointActions.Split('|').Contains("point_accepted") &&
+            r.ReviewEvidence.PhaseSource == "manual" && r.ReviewEvidence.PhaseLabelReview == "explicit_label");
+        Assert.AreEqual(Guid.Parse(second.PointId), strict.PointId);
+
+        Guid? BaselineLink(ProjectDocument project) => project.Panels.Single().Series
+            .Single(s => s.SeriesId.Value == Guid.Parse(intervention.SeriesId)).SharedBaselineSeriesId?.Value;
+    }
+
+    private sealed class PauseFirstSnapshotCommit : IAtomicSaveInterceptor
+    {
+        public TaskCompletionSource BeforeCommit { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public ValueTask OnStageAsync(AtomicSaveStage stage, string targetPath, string temporaryPath, CancellationToken cancellationToken) =>
+            stage == AtomicSaveStage.BeforeCommit && targetPath.EndsWith(".autosave.garproj", StringComparison.OrdinalIgnoreCase)
+                && BeforeCommit.TrySetResult()
+                ? new ValueTask(Release.Task.WaitAsync(cancellationToken))
+                : ValueTask.CompletedTask;
     }
 
     private static void AssertObservationOrder(

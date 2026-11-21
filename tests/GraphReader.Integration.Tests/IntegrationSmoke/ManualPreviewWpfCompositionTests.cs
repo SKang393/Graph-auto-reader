@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using GraphReader.App;
 using GraphReader.App.Localization;
 using GraphReader.App.Models;
 using GraphReader.App.Services;
@@ -17,6 +18,7 @@ using GraphReader.Domain;
 using GraphReader.Export;
 using GraphReader.Imaging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PixelPoint = GraphReader.Domain.PixelPoint;
 
 namespace GraphReader.Integration.Tests.IntegrationSmoke;
 
@@ -28,7 +30,16 @@ public sealed class ManualPreviewWpfCompositionTests
     /// mandatory maintainer graph and do not provide graph-reading accuracy evidence.
     /// </summary>
     [TestMethod]
-    public void GeneratedImagesComposeTheCompleteManualWorkflowWithoutFakeGraphData()
+    public void GeneratedImagesComposeTheCompleteManualWorkflowWithoutFakeGraphData() =>
+        RunOnDispatcher(VerifyCompositionAsync);
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ClosingAfterUndoOfSavedPointHonorsReviewerChoice(bool saveOnClose) =>
+        RunOnDispatcher(() => VerifyCloseAfterUndoAsync(saveOnClose));
+
+    private static void RunOnDispatcher(Func<Task> verify)
     {
         Exception? failure = null;
         var thread = new Thread(() =>
@@ -38,7 +49,7 @@ public sealed class ManualPreviewWpfCompositionTests
                 Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
                 SynchronizationContext.SetSynchronizationContext(
                     new DispatcherSynchronizationContext(dispatcher));
-                Task scenario = VerifyCompositionAsync();
+                Task scenario = verify();
                 _ = scenario.ContinueWith(
                     _ => dispatcher.BeginInvokeShutdown(DispatcherPriority.Background),
                     CancellationToken.None,
@@ -66,6 +77,137 @@ public sealed class ManualPreviewWpfCompositionTests
         {
             throw new AssertFailedException($"The STA WPF composition scenario failed: {failure}", failure);
         }
+    }
+
+    private static async Task VerifyCloseAfterUndoAsync(bool saveOnClose)
+    {
+        var token = CancellationToken.None;
+        using var environment = new IntegrationSmokeTestEnvironment();
+        string portable = environment.PathFor("portable");
+        Directory.CreateDirectory(portable);
+        File.WriteAllText(Path.Combine(portable, "portable.mode"), string.Empty);
+        var paths = ApplicationPaths.Create(portable, environment.PathFor("LocalAppData"));
+        using var workspace = new ClosingWorkspace(paths);
+        string image = environment.PathFor("graph.png");
+        WriteImage(image, 100, 100, 255, 255, 255);
+        var tab = (await workspace.ImportImagesAsync([image], token)).Single();
+        workspace.Calibrate(tab.TabId, new(new(10, 90), new(10, 10), new(90, 90), 100, 9));
+        var series = workspace.AddSeries(tab.TabId, new("Response", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
+        var point = workspace.AddPoint(tab.TabId, series.SeriesId, 20, 74);
+        string primary = environment.PathFor("review.garproj");
+
+        Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+        var resources = new ResourceDictionary();
+        foreach (string name in new[] { "DesignTokens", "LightTheme", "Controls" })
+            resources.MergedDictionaries.Add(new() { Source = new Uri($"/GraphReader.App;component/Themes/{name}.xaml", UriKind.Relative) });
+        var dialogs = new DeterministicWorkspaceDialogService
+        {
+            CloseAction = ProjectCloseAction.Save,
+            ProjectSaveDestinations = [null, portable, primary],
+        };
+        using var vm = new MainWindowViewModel(workspace, new LocalizationService(resources), dialogService: dialogs);
+        var window = new MainWindow(null, resources);
+        ((IDisposable)window.DataContext).Dispose();
+        window.DataContext = vm;
+        var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        window.Closed += (_, _) => closed.TrySetResult();
+        try
+        {
+            window.Show();
+            vm.SelectedPointId = point.PointId;
+            vm.BeginMovePointCommand.Execute(null);
+            await vm.HandleCanvasPointAsync(new(50, 42));
+            Assert.IsTrue(tab.IsDirty);
+            // Cancel the first Save As, then select an existing directory as an invalid file.
+            window.Close();
+            Assert.IsFalse(closed.Task.IsCompleted);
+            Assert.IsTrue(tab.IsDirty);
+            await RunSave(window.Close);
+            Assert.IsFalse(closed.Task.IsCompleted);
+            Assert.IsTrue(tab.IsDirty);
+            Assert.IsNotNull(vm.LastOperationStatus);
+            Assert.IsNull(workspace.CurrentProjectPath);
+            await RunSave(() => vm.SaveProjectCommand.Execute(null));
+            dialogs.CloseAction = ProjectCloseAction.Cancel;
+            Assert.IsFalse(tab.IsDirty);
+            Assert.AreEqual(new PixelPoint(50, 42), await ReopenPoint(primary));
+            string savedHash = Sha256(primary);
+
+            vm.UndoCommand.Execute(null);
+            var snapshot = await workspace.LastAutosave!;
+            Assert.IsTrue(snapshot.IsSuccess, string.Join(" | ", snapshot.Errors));
+            string recovery = environment.PathFor("recovered.garproj");
+            Assert.IsTrue((await workspace.RecoverLatestToNewFileAsync(recovery, token)).IsSuccess);
+            Assert.AreEqual(new PixelPoint(20, 74), await ReopenPoint(recovery));
+
+            // Cancel must leave the edited point in the live window and the explicit save intact.
+            window.Close();
+            Assert.IsFalse(closed.Task.IsCompleted,
+                "Close bypassed the decision. Primary is (50,42); the undo at (20,74) is only in recovery.");
+            Assert.AreEqual(3, dialogs.ClosePrompts);
+            Assert.IsTrue(tab.IsDirty);
+            Assert.AreEqual(20d, tab.Points.Single().PixelX);
+            Assert.AreEqual(savedHash, Sha256(primary));
+
+            vm.RedoCommand.Execute(null);
+            Assert.IsTrue((await workspace.LastAutosave!).IsSuccess);
+            Assert.IsFalse(tab.IsDirty, "Redo returned to the explicitly saved point.");
+            vm.UndoCommand.Execute(null);
+            Assert.IsTrue((await workspace.LastAutosave!).IsSuccess);
+            dialogs.CloseAction = saveOnClose ? ProjectCloseAction.Save : ProjectCloseAction.Discard;
+            window.Close();
+            await closed.Task.WaitAsync(TimeSpan.FromSeconds(10), token);
+            Assert.AreEqual(saveOnClose ? new PixelPoint(20, 74) : new PixelPoint(50, 42),
+                await ReopenPoint(primary));
+            Assert.AreEqual(4, dialogs.ClosePrompts);
+            if (!saveOnClose)
+            {
+                Assert.AreEqual(savedHash, Sha256(primary));
+                Assert.AreEqual(new PixelPoint(20, 74), await ReopenPoint(snapshot.Value!.SnapshotPath));
+            }
+        }
+        finally
+        {
+            if (!closed.Task.IsCompleted)
+            {
+                window.DataContext = null;
+                window.Close();
+            }
+        }
+
+        async Task RunSave(Action start)
+        {
+            var finished = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            void OnBusyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+            {
+                if (e.PropertyName == nameof(vm.IsBusy) && !vm.IsBusy) finished.TrySetResult();
+            }
+            vm.PropertyChanged += OnBusyChanged;
+            try
+            {
+                start();
+                await finished.Task.WaitAsync(TimeSpan.FromSeconds(10), token);
+            }
+            finally
+            {
+                vm.PropertyChanged -= OnBusyChanged;
+            }
+        }
+
+        async Task<PixelPoint> ReopenPoint(string path)
+        {
+            using var reopened = new ManualPreviewWorkspaceService(paths);
+            await reopened.OpenProjectAsync(path, token);
+            return reopened.CurrentProject.Panels.Single().Points.Single(p => p.PointId.Value.ToString("D") == point.PointId).OriginalPixel;
+        }
+    }
+
+    private sealed class ClosingWorkspace(ApplicationPaths paths) : ManualPreviewWorkspaceService(paths), IManualWorkspaceService
+    {
+        public Task<DomainResult<ProjectSnapshotReceipt>>? LastAutosave { get; private set; }
+        Task<DomainResult<ProjectSnapshotReceipt>> IManualWorkspaceService.AutosaveAsync(
+            SnapshotTrigger trigger, string? tabId, string? entityId, CancellationToken cancellationToken) =>
+            LastAutosave = base.AutosaveAsync(trigger, tabId, entityId, cancellationToken);
     }
 
     private static async Task VerifyCompositionAsync()
@@ -373,6 +515,7 @@ public sealed class ManualPreviewWpfCompositionTests
         Assert.IsTrue(workspace.CurrentProject.Panels.Single().Points.Any(
             point => point.PointId.Value.ToString("D") == baselinePointId));
 
+        dialogs.ObservationOrderChoices.Enqueue(true);
         Execute(viewModel.ExportCommand);
         await WaitForAsync(
             () => !viewModel.IsBusy &&
@@ -380,6 +523,7 @@ public sealed class ManualPreviewWpfCompositionTests
                 Directory.GetFiles(exportDirectory, "*.csv", SearchOption.AllDirectories).Length > 0,
             "CSV export through ExportCommand");
         Assert.AreEqual(1, dialogs.ExportDirectorySelectionCount);
+        Assert.IsEmpty(dialogs.ObservationOrderChoices);
         string[] csvFiles = Directory.GetFiles(exportDirectory, "*.csv", SearchOption.AllDirectories);
         Assert.IsTrue(csvFiles.Any(file =>
             string.Equals(File.ReadLines(file).FirstOrDefault(), ExportContract.MinimalCsvHeader, StringComparison.Ordinal)));
@@ -566,6 +710,16 @@ public sealed class ManualPreviewWpfCompositionTests
 
         public string? ExportDirectory { get; init; }
 
+        public ProjectCloseAction CloseAction { get; set; } = ProjectCloseAction.Cancel;
+
+        public int ClosePrompts { get; private set; }
+
+        public ProjectCloseAction ChooseProjectCloseAction()
+        {
+            ClosePrompts++;
+            return CloseAction;
+        }
+
         public int ImageSelectionCount { get; private set; }
 
         public int ProjectOpenSelectionCount { get; private set; }
@@ -596,6 +750,11 @@ public sealed class ManualPreviewWpfCompositionTests
                 ? ProjectSaveDestinations[selectionIndex]
                 : null;
         }
+
+        public Queue<bool> ObservationOrderChoices { get; } = new();
+
+        public bool ConfirmObservationOrder() =>
+            ObservationOrderChoices.TryDequeue(out bool choice) && choice;
 
         public string? SelectExportDirectory()
         {

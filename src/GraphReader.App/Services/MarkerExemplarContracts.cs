@@ -20,6 +20,8 @@ public sealed record MarkerExemplarRequest(string RequestId, string Binding, str
     MarkerExemplarRectangle Exemplar, MarkerExemplarRectangle Plot,
     string SelectedPointId, string SelectedSeriesId, MarkerExemplarPoint SelectedPoint)
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool IsFilledCircleSeries { get; init; }
     public int ProtocolVersion { get; init; } = 1;
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public MarkerExemplarAffinePlot? AffinePlot { get; init; }

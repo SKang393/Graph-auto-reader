@@ -104,6 +104,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
     private readonly Dictionary<string, RasterWorkspacePanel> _rasterPanelsByTab = new(StringComparer.Ordinal);
     private readonly HashSet<string> _verifiedManualCalibrationPendingByTab = new(StringComparer.Ordinal);
     private IReadOnlyList<ImageImportError> _lastImportErrors = [];
+    private ProjectDocument _currentProject;
 
     public ManualPreviewWorkspaceService(
         IApplicationPaths? applicationPaths = null,
@@ -140,7 +141,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         _runtimeEnvironment = runtimeEnvironment;
         _automaticStages = (automaticStages ?? DefaultAutomaticStages).ToArray();
         _enhancementResolver = enhancementResolver;
-        CurrentProject = ProjectDocument.Create(GetApplicationVersion(), DateTimeOffset.UtcNow);
+        _currentProject = ProjectDocument.Create(GetApplicationVersion(), DateTimeOffset.UtcNow);
     }
 
     private static IReadOnlyList<AutomaticStageStatus> DefaultAutomaticStages { get; } =
@@ -159,7 +160,11 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     public bool UsesFakeGraphData => false;
 
-    public ProjectDocument CurrentProject { get; protected set; }
+    public ProjectDocument CurrentProject
+    {
+        get => Volatile.Read(ref _currentProject);
+        protected set => Volatile.Write(ref _currentProject, value);
+    }
 
     public string? CurrentProjectPath { get; private set; }
 
@@ -1175,7 +1180,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
 
     public void SetPointReviewStatus(string tabId, string pointId, ReviewStatus status)
     {
-        if (status is not (ReviewStatus.Accepted or ReviewStatus.Unreviewed))
+        if (status is not (ReviewStatus.Accepted or ReviewStatus.Unreviewed or ReviewStatus.Corrected))
             throw new ArgumentOutOfRangeException(nameof(status));
         WorkspaceTabViewModel tab = RequireTab(tabId);
         _ = RequirePoint(tab, pointId);
@@ -1183,12 +1188,29 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         Guid parsedPointId = Guid.Parse(pointId);
         PanelRecord panel = CurrentProject.Panels.Single(item => item.PanelId.Value == panelId);
         PointRecord point = panel.Points.Single(item => item.PointId.Value == parsedPointId);
-        if (point.ReviewStatus is not (ReviewStatus.Accepted or ReviewStatus.Unreviewed))
-            throw new InvalidOperationException("Only an unreviewed or explicitly accepted point can change review status.");
         if (point.ReviewStatus == status) return;
+        JsonElement? details = null;
+        if (status == ReviewStatus.Accepted)
+        {
+            if (point.ReviewStatus is not (ReviewStatus.Unreviewed or ReviewStatus.Corrected))
+                throw new InvalidOperationException("Only an unreviewed or corrected point can be accepted.");
+            if (point.ReviewStatus == ReviewStatus.Corrected)
+                details = JsonSerializer.SerializeToElement(new { previously_corrected = true });
+        }
+        else
+        {
+            // Older acceptance events came exclusively from unreviewed points.
+            var last = CurrentProject.Audit.Events.LastOrDefault(e => e.PanelId == panel.PanelId &&
+                e.EntityId == pointId && e.Kind == DomainEventKind.PointEdited && e.Note == "Point accepted by user");
+            bool wasCorrected = last?.Details is { ValueKind: JsonValueKind.Object } previous &&
+                previous.TryGetProperty("previously_corrected", out var flag) && flag.ValueKind == JsonValueKind.True;
+            if (point.ReviewStatus != ReviewStatus.Accepted ||
+                status != (wasCorrected ? ReviewStatus.Corrected : ReviewStatus.Unreviewed))
+                throw new InvalidOperationException("Undo must restore the point's review status before acceptance.");
+        }
         DateTimeOffset now = DateTimeOffset.UtcNow;
         var auditEvent = new AuditEvent(AuditEventId.New(), now, DomainEventKind.PointEdited,
-            panel.PanelId, pointId, status == ReviewStatus.Accepted ? "Point accepted by user" : "Point acceptance undone", Details: null);
+            panel.PanelId, pointId, status == ReviewStatus.Accepted ? "Point accepted by user" : "Point acceptance undone", details);
         CurrentProject = CurrentProject with
         {
             ModifiedUtc = now,
@@ -1350,6 +1372,36 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             CreatePhaseCorrectionDetails("delete", dividerId));
     }
 
+    public void ConfirmPhaseLabel(string tabId, PhaseRecord displayedPhase)
+    {
+        WorkspaceTabViewModel tab = RequireTab(tabId);
+        PanelRecord panel = CurrentProject.Panels.Single(p => p.PanelId.Value.ToString("D") == tab.PanelId);
+        PhaseRecord? phase = panel.Phases.SingleOrDefault(p => p.PhaseId == displayedPhase.PhaseId);
+        if (phase is null || phase != displayedPhase || string.IsNullOrWhiteSpace(phase.LabelText) ||
+            string.IsNullOrWhiteSpace(phase.Code) || !panel.Points.Any(p => p.PhaseId == phase.PhaseId))
+            throw new InvalidOperationException("Select the current phase label and its assigned points.");
+        string entity = ReviewAuditEvidence.PhaseLabelEntity(phase);
+        var priorEvents = CurrentProject.Audit.Events.Where(e => e.PanelId == panel.PanelId &&
+            string.Equals(e.EntityId, entity, StringComparison.OrdinalIgnoreCase));
+        if (ReviewAuditEvidence.HasExplicitLabel(phase, priorEvents)) return;
+
+        var now = DateTimeOffset.UtcNow;
+        var receipt = new AuditEvent(AuditEventId.New(), now, DomainEventKind.PhaseEdited, panel.PanelId, entity,
+            "Phase label verified by user", JsonSerializer.SerializeToElement(new
+            {
+                action = "verify_label", phase_id = phase.PhaseId.Value.ToString("D"), code = phase.Code,
+                label = phase.LabelText, previous_source = phase.Source.ToString(), previously_confirmed = phase.UserConfirmed,
+            }));
+        var confirmed = phase with { Source = PhaseSource.Manual, UserConfirmed = true, LabelVerificationEventId = receipt.EventId };
+        CurrentProject = CurrentProject with
+        {
+            ModifiedUtc = now,
+            Panels = CurrentProject.Panels.Select(p => p.PanelId == panel.PanelId
+                ? p with { Phases = p.Phases.Select(f => f.PhaseId == phase.PhaseId ? confirmed : f).ToArray() } : p).ToArray(),
+            Audit = CurrentProject.Audit with { Events = CurrentProject.Audit.Events.Append(receipt).ToArray() },
+        };
+    }
+
     public void LabelPhaseDivider(string tabId, string dividerId, string code, string label)
     {
         WorkspaceTabViewModel tab = RequireTab(tabId);
@@ -1406,18 +1458,15 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         PrepareProjectForSave();
         var snapshots = new ProjectSnapshotService(_applicationPaths.AutosaveRoot, _projectFileStore);
         PanelId? panelId = tabId is null ? null : PanelId.FromGuid(Guid.Parse(RequireTab(tabId).PanelId!));
+        ProjectDocument source = CurrentProject;
         DomainResult<ProjectSnapshotReceipt> result = await snapshots.SaveEventSnapshotAsync(
-            CurrentProject,
+            source,
             trigger,
             DateTimeOffset.UtcNow,
             panelId,
             entityId,
             cancellationToken).ConfigureAwait(false);
-        if (result.IsSuccess && result.Value is not null)
-        {
-            CurrentProject = result.Value.Snapshot;
-        }
-
+        ApplyAutosaveIfCurrent(source, result);
         return result;
     }
 
@@ -1443,17 +1492,23 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             PrepareProjectForSave();
         }
         var snapshots = new ProjectSnapshotService(_applicationPaths.AutosaveRoot, _projectFileStore, scheduler);
+        ProjectDocument source = CurrentProject;
         DomainResult<ProjectSnapshotReceipt> result = await snapshots.SaveTimerSnapshotAsync(
-            CurrentProject,
+            source,
             schedule,
             occurredUtc,
             cancellationToken).ConfigureAwait(false);
-        if (result.IsSuccess && result.Value is not null)
-        {
-            CurrentProject = result.Value.Snapshot;
-        }
-
+        ApplyAutosaveIfCurrent(source, result);
         return result;
+    }
+
+    private void ApplyAutosaveIfCurrent(ProjectDocument source, DomainResult<ProjectSnapshotReceipt> result)
+    {
+        if (result.IsSuccess && result.Value is { } receipt)
+        {
+            // The file records this revision even if the user edited or reopened the project during I/O.
+            Interlocked.CompareExchange(ref _currentProject, receipt.Snapshot, source);
+        }
     }
 
     public Task<DomainResult<RecoveryDiscoveryReport>> DiscoverRecoveryAsync(CancellationToken cancellationToken)
@@ -1522,9 +1577,16 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             cancellationToken).ConfigureAwait(false);
     }
 
+    public virtual Task<ExportResult> ExportAsync(
+        string tabId,
+        string outputDirectory,
+        CancellationToken cancellationToken) =>
+        ExportAsync(tabId, outputDirectory, confirmObservationOrder: false, cancellationToken);
+
     public virtual async Task<ExportResult> ExportAsync(
         string tabId,
         string outputDirectory,
+        bool confirmObservationOrder,
         CancellationToken cancellationToken)
     {
         WorkspaceTabViewModel tab = RequireTab(tabId);
@@ -1569,6 +1631,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
                 firstObservedSession: sessionOverride ? FirstObservedSession(panel) : null,
                 panel.Calibration.Confidence),
             manualOriginPolicy,
+            confirmObservationOrder,
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -2007,6 +2070,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         ExportAuditMode auditMode,
         ExportCalibration calibration,
         ExportSessionOriginPolicy sessionOriginPolicy,
+        bool confirmObservationOrder,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(tab);
@@ -2031,7 +2095,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             {
                 ReviewEvidence = ReviewAuditEvidence.ForPoint(point, phase,
                     eventsByEntity[point.PointId.Value.ToString("D")],
-                    phase?.BoundaryLeftId is { } divider ? eventsByEntity[divider.Value.ToString("D")] : []),
+                    phase is null ? [] : eventsByEntity[ReviewAuditEvidence.PhaseLabelEntity(phase)]),
             };
         }
         var request = new ExportRequest(
@@ -2049,7 +2113,12 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
             panel.Series.Select(ToExportSeries),
             panel.Points.Select(WithReviewEvidence),
             ToExportRelations(interventions),
-            interventions.Select(static series => series.SeriesId.Value));
+            interventions.Select(static series => series.SeriesId.Value))
+        {
+            ObservationOrderSelection = confirmObservationOrder
+                ? ObservationOrderSelection.ConfirmedForExport
+                : ObservationOrderSelection.WorkspaceDefault,
+        };
         return await _exportService.ExportAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
@@ -4659,7 +4728,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         };
         if (confirmed)
             return phase with { Code = current.Code, NormalizedType = current.NormalizedType, LabelText = current.LabelText,
-                Confidence = 1, Source = PhaseSource.Manual, UserConfirmed = true };
+                Confidence = 1, Source = PhaseSource.Manual, UserConfirmed = true, LabelVerificationEventId = null };
         if (current.Order != 1 && (current.Code != prior.Code || current.LabelText != (prior.LabelText ?? prior.Code)))
             return current with { PhaseId = prior.PhaseId };
         return phase;

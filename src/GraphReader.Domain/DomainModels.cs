@@ -415,7 +415,13 @@ public sealed record PhaseRecord(
     PhaseId? BoundaryRightId,
     double Confidence,
     PhaseSource Source,
-    bool UserConfirmed);
+    bool UserConfirmed)
+{
+    // A review of an existing label can occur without editing a boundary. A history
+    // snapshot restores this exact receipt together with the original phase record.
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public AuditEventId? LabelVerificationEventId { get; init; }
+}
 
 public sealed record ExportSettingsRecord(
     string XValueMode,

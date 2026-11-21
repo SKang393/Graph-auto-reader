@@ -25,6 +25,7 @@ public sealed partial class MainWindowViewModel
 
     public ObservableCollection<MarkerExemplarCandidateViewModel> MarkerExemplarCandidates { get; } = [];
     public ICommand FindMarkerExemplarsCommand { get; private set; } = null!;
+    public ICommand InspectMarkerExemplarCandidateCommand { get; private set; } = null!;
     public ICommand AcceptMarkerExemplarCandidateCommand { get; private set; } = null!;
     public ICommand AcceptAllMarkerExemplarCandidatesCommand { get; private set; } = null!;
     public ICommand RemoveMarkerExemplarCandidateCommand { get; private set; } = null!;
@@ -70,6 +71,8 @@ public sealed partial class MainWindowViewModel
     private void InitializeMarkerExemplarCommands()
     {
         FindMarkerExemplarsCommand = new AsyncRelayCommand(FindMarkerExemplarsAsync, CanFindMarkerExemplars);
+        InspectMarkerExemplarCandidateCommand = new RelayCommand(InspectMarkerExemplarCandidate,
+            parameter => parameter is MarkerExemplarCandidateViewModel row && MarkerExemplarCandidates.Contains(row));
         AcceptMarkerExemplarCandidateCommand = new RelayCommand(AcceptMarkerExemplarCandidate,
             CanAcceptMarkerExemplarCandidate);
         AcceptAllMarkerExemplarCandidatesCommand = new RelayCommand(_ => AcceptAllMarkerExemplarCandidates(),
@@ -141,6 +144,7 @@ public sealed partial class MainWindowViewModel
                         candidate.Center.Y.ToString("0.##", CultureInfo.CurrentCulture),
                         candidate.Similarity.ToString("P0", CultureInfo.CurrentCulture)), duplicate));
             }
+            RefreshNearbyMarkerExemplars(tab, seriesId);
             SetMarkerExemplarStatus(MarkerExemplarCandidates.Count == 0
                 ? GetLocalizedString(LocalizationKeys.ManualMarkerExemplarNoMatches)
                 : FormatLocalizedString(LocalizationKeys.ManualMarkerExemplarCount, MarkerExemplarCandidates.Count));
@@ -229,6 +233,14 @@ public sealed partial class MainWindowViewModel
         return true;
     }
 
+    private void InspectMarkerExemplarCandidate(object? parameter)
+    {
+        if (parameter is MarkerExemplarCandidateViewModel row && MarkerExemplarCandidates.Contains(row) &&
+            _markerExemplarSuggestion is { } suggestion && _workspaceService is IMarkerExemplarWorkspace workspace &&
+            workspace.IsMarkerExemplarSuggestionCurrent(suggestion))
+            HandleCanvasNavigation(new(row.Candidate.Center.X, row.Candidate.Center.Y));
+    }
+
     private void AcceptMarkerExemplarCandidate(object? parameter)
     {
         if (parameter is not MarkerExemplarCandidateViewModel row || !CanAcceptMarkerExemplarCandidate(row) ||
@@ -277,10 +289,7 @@ public sealed partial class MainWindowViewModel
             .Where(row => IsValidMarkerCandidate(row.Candidate, suggestion.Request)).ToArray();
         foreach (MarkerExemplarCandidateViewModel row in validRows)
         {
-            bool overlapsExisting = IsDuplicateMarkerPosition(row.Candidate.Center, seriesId, tab);
-            bool overlapsAnother = validRows.Any(other => !ReferenceEquals(other, row) &&
-                IsSameMarkerPosition(other.Candidate.Center, row.Candidate.Center));
-            if (row.IsDuplicate || overlapsExisting || overlapsAnother) continue;
+            if (row.IsDuplicate || HasNearbyMarkerPosition(row, seriesId, tab, validRows)) continue;
             candidates.Add(row);
         }
         return (tab, suggestion, candidates, MarkerExemplarCandidates.Count - candidates.Count);
@@ -372,6 +381,22 @@ public sealed partial class MainWindowViewModel
             candidate.IsDuplicate = IsDuplicateMarkerPosition(candidate.Candidate.Center, seriesId, tab) ||
                 MarkerExemplarCandidates.Any(other => !ReferenceEquals(other, candidate) &&
                     IsSameMarkerPosition(other.Candidate.Center, candidate.Candidate.Center));
+        RefreshNearbyMarkerExemplars(tab, seriesId);
+    }
+
+    private void RefreshNearbyMarkerExemplars(WorkspaceTabViewModel tab, string seriesId)
+    {
+        foreach (var row in MarkerExemplarCandidates)
+            row.NeedsIndividualReview = !row.IsDuplicate && HasNearbyMarkerPosition(row, seriesId, tab, MarkerExemplarCandidates);
+    }
+
+    private static bool HasNearbyMarkerPosition(MarkerExemplarCandidateViewModel row, string seriesId,
+        WorkspaceTabViewModel tab, IEnumerable<MarkerExemplarCandidateViewModel> candidates)
+    {
+        var center = row.Candidate.Center;
+        bool IsNearby(double x, double y) => Math.Abs(center.X - x) <= 1 && Math.Abs(center.Y - y) <= 1;
+        return tab.Points.Any(point => point.SeriesId == seriesId && IsNearby(point.PixelX, point.PixelY)) ||
+            candidates.Any(other => other != row && IsNearby(other.Candidate.Center.X, other.Candidate.Center.Y));
     }
 
     private static bool IsValidMarkerCandidate(MarkerExemplarCandidate candidate, MarkerExemplarRequest request) =>
@@ -468,12 +493,18 @@ public sealed class MarkerExemplarCandidateViewModel(MarkerExemplarCandidate can
     bool isDuplicate) : ObservableObject
 {
     private bool _isDuplicate = isDuplicate;
+    private bool _needsIndividualReview;
     public MarkerExemplarCandidate Candidate { get; } = candidate;
     public string DisplayText { get; } = displayText;
     public bool IsDuplicate
     {
         get => _isDuplicate;
         set => SetProperty(ref _isDuplicate, value);
+    }
+    public bool NeedsIndividualReview
+    {
+        get => _needsIndividualReview;
+        internal set => SetProperty(ref _needsIndividualReview, value);
     }
     public bool CanAccept => !IsDuplicate;
 }

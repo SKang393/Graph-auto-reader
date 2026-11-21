@@ -77,8 +77,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private string _phaseLabel = string.Empty;
     private string? _selectedDividerId;
     private string? _selectedSharedBaselineSeriesId;
-    private double _manualYMaximum = 100;
-    private double _manualXMaximum = 20;
+    private string _manualYMaximumText = "100";
+    private string _manualXMaximumText = "20";
     private int _manualFirstVisibleSession = 1;
     private string _manualFirstVisibleSessionText = "1";
     private bool _manualUsesPrintedXCoordinates;
@@ -202,6 +202,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             parameter => parameter is string pointId && FindPoint(pointId) is not null);
         PromoteFilteredMarkerCommand = new RelayCommand(_ => PromoteFilteredMarker(), _ => CanPromoteFilteredMarker());
         AcceptReviewPointCommand = new RelayCommand(_ => AcceptReviewPoint(), _ => CanAcceptReviewPoint());
+        ConfirmPhaseLabelCommand = new RelayCommand(_ => ConfirmSelectedPhaseLabel(), _ => CanConfirmSelectedPhaseLabel());
+        AcceptCorrectedPointCommand = new RelayCommand(_ => AcceptPoint(SelectedPointId, ReviewStatus.Corrected),
+            _ => CanAcceptPoint(SelectedPointId, ReviewStatus.Corrected));
         MovePointCommand = new RelayCommand(
             parameter =>
             {
@@ -339,7 +342,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<WorkspaceTabViewModel> Tabs { get; }
 
-    internal bool CanCloseWindow()
+    internal async Task<bool> CanCloseWindowAsync()
     {
         if (IsBusy)
         {
@@ -347,7 +350,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return false;
         }
 
-        return !Tabs.Any(tab => tab.IsDirty) || _dialogService?.ConfirmDiscardUnsavedChanges() == true;
+        if (!Tabs.Any(tab => tab.IsDirty)) return true;
+        return _dialogService?.ChooseProjectCloseAction() switch
+        {
+            ProjectCloseAction.Discard => true,
+            ProjectCloseAction.Save => await SaveProjectFromDialogAsync(saveAs: false, CancellationToken.None)
+                && !Tabs.Any(tab => tab.IsDirty),
+            _ => false,
+        };
     }
 
     public WorkspaceTabViewModel? SelectedTab
@@ -360,7 +370,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 if (_selectedTab is { } previous && Tabs.Contains(previous))
                 {
                     _manualCalibrationForms[previous] = new ManualCalibrationFormState(
-                        previous.Calibration, ManualYMaximum, ManualXMaximum,
+                        previous.Calibration, ManualYMaximumText, ManualXMaximumText,
                         ManualFirstVisibleSession, ManualFirstVisibleSessionText, ManualUsesPrintedXCoordinates);
                 }
                 // A pending canvas action belongs to its original panel.
@@ -690,15 +700,24 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public double ManualYMaximum
     {
-        get => _manualYMaximum;
+        get => ParseManualLimit(ManualYMaximumText);
+        set => ManualYMaximumText = value.ToString("R", CultureInfo.InvariantCulture);
+    }
+
+    public string ManualYMaximumText
+    {
+        get => _manualYMaximumText;
         set
         {
-            if (SetProperty(ref _manualYMaximum, value))
-            {
-                UpdateCalibrationPromptIfActive();
-            }
+            if (!SetProperty(ref _manualYMaximumText, value ?? string.Empty)) return;
+            OnPropertyChanged(nameof(ManualYMaximum));
+            OnPropertyChanged(nameof(IsManualYMaximumInputValid));
+            UpdateCalibrationPromptIfActive();
+            RelayCommand.RaiseCanExecuteChanged();
         }
     }
+
+    public bool IsManualYMaximumInputValid => double.IsFinite(ManualYMaximum) && ManualYMaximum > 0;
 
     public int ManualFirstVisibleSession
     {
@@ -772,17 +791,31 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public double ManualXMaximum
     {
-        get => _manualXMaximum;
+        get => ParseManualLimit(ManualXMaximumText);
+        set => ManualXMaximumText = value.ToString("R", CultureInfo.InvariantCulture);
+    }
+
+    public string ManualXMaximumText
+    {
+        get => _manualXMaximumText;
         set
         {
-            if (SetProperty(ref _manualXMaximum, value))
-            {
-                OnPropertyChanged(nameof(IsManualFirstVisibleSessionInputValid));
-                UpdateCalibrationPromptIfActive();
-                RelayCommand.RaiseCanExecuteChanged();
-            }
+            if (!SetProperty(ref _manualXMaximumText, value ?? string.Empty)) return;
+            OnPropertyChanged(nameof(ManualXMaximum));
+            OnPropertyChanged(nameof(IsManualFirstVisibleSessionInputValid));
+            OnPropertyChanged(nameof(ManualFirstXInvalidText));
+            UpdateCalibrationPromptIfActive();
+            RelayCommand.RaiseCanExecuteChanged();
         }
     }
+
+    private static double ParseManualLimit(string text) =>
+        double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ? value : double.NaN;
+
+    private bool AreManualCalibrationInputsValid => IsManualFirstVisibleSessionInputValid && IsManualYMaximumInputValid;
+
+    private string ManualCalibrationInputError => IsManualYMaximumInputValid
+        ? ManualFirstXInvalidText : GetLocalizedString(LocalizationKeys.ManualYMaximumInvalid);
 
     public string NewSeriesName
     {
@@ -839,6 +872,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public ICommand PromoteFilteredMarkerCommand { get; }
 
     public ICommand AcceptReviewPointCommand { get; }
+    public ICommand ConfirmPhaseLabelCommand { get; }
+
+    public ICommand AcceptCorrectedPointCommand { get; }
 
     public ICommand MovePointCommand { get; }
 
@@ -959,43 +995,81 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
+    private bool CanConfirmSelectedPhaseLabel() =>
+        !IsBusy && _manualWorkspaceService is not null && SelectedReviewIssue is { PhaseLabelToVerify: { } phase } issue &&
+        issue.TabId == SelectedTab?.TabId && ReviewIssues.Contains(issue) &&
+        !string.IsNullOrWhiteSpace(phase.LabelText) && !string.IsNullOrWhiteSpace(phase.Code);
+
+    private void ConfirmSelectedPhaseLabel()
+    {
+        if (!CanConfirmSelectedPhaseLabel() || SelectedTab is not { } tab ||
+            SelectedReviewIssue?.PhaseLabelToVerify is not { } phase) return;
+        try
+        {
+            var before = CaptureTabSnapshot(tab);
+            _manualWorkspaceService!.ConfirmPhaseLabel(tab.TabId, phase);
+            RecordManualEdit(tab, LocalizationKeys.ConfirmPhaseLabel, before);
+            QueueAutosave(SnapshotTrigger.PhaseEdited, tab.TabId, phase.PhaseId.Value.ToString("D"));
+        }
+        catch (InvalidOperationException exception)
+        {
+            RefreshWorkspaceProjection();
+            SetOperationFailure(exception, LocalizationKeys.ManualEditRejected, "MANUAL_EDIT_REJECTED", "review-input");
+        }
+    }
+
     private bool CanAcceptReviewPoint()
     {
-        if (IsBusy || _manualWorkspaceService is null || SelectedTab is not { } tab ||
-            SelectedReviewIssue is not { Kind: ReviewIssueKind.Point, EntityId: { } pointId } issue ||
-            !string.Equals(issue.TabId, tab.TabId, StringComparison.Ordinal) ||
-            !string.Equals(issue.IssueId, $"point-unreviewed-{pointId}", StringComparison.Ordinal) ||
-            !Guid.TryParse(tab.PanelId, out Guid panelId) || !Guid.TryParse(pointId, out Guid id))
-            return false;
-        return _manualWorkspaceService.CurrentProject.Panels
-            .SingleOrDefault(panel => panel.PanelId.Value == panelId)?.Points
-            .Any(point => point.PointId.Value == id && point.ReviewStatus == ReviewStatus.Unreviewed) == true &&
-            FindPoint(pointId) is not null;
+        if (SelectedReviewIssue is not { EntityId: { } pointId } issue ||
+            issue.TabId != SelectedTab?.TabId || pointId != SelectedPointId || !ReviewIssues.Contains(issue)) return false;
+        return issue.PointStatusToAccept switch
+        {
+            ReviewStatus.Corrected => AcceptCorrectedPointCommand.CanExecute(null),
+            ReviewStatus.Unreviewed => CanAcceptPoint(pointId, ReviewStatus.Unreviewed),
+            _ => false,
+        };
     }
 
     private void AcceptReviewPoint()
     {
         if (!CanAcceptReviewPoint()) return;
+        if (SelectedReviewIssue!.PointStatusToAccept == ReviewStatus.Corrected)
+            AcceptCorrectedPointCommand.Execute(null);
+        else
+            AcceptPoint(SelectedReviewIssue.EntityId, ReviewStatus.Unreviewed);
+    }
+
+    private bool CanAcceptPoint(string? pointId, ReviewStatus prior)
+    {
+        if (IsBusy || _manualWorkspaceService is null || !Guid.TryParse(SelectedTab?.PanelId, out var panelId) ||
+            !Guid.TryParse(pointId, out var id) || FindPoint(pointId!) is null) return false;
+        return _manualWorkspaceService.CurrentProject.Panels.SingleOrDefault(p => p.PanelId.Value == panelId)?
+            .Points.Any(p => p.PointId.Value == id && p.ReviewStatus == prior) == true;
+    }
+
+    private void AcceptPoint(string? pointId, ReviewStatus prior)
+    {
+        if (pointId is null || !CanAcceptPoint(pointId, prior)) return;
         WorkspaceTabViewModel tab = SelectedTab!;
-        string pointId = SelectedReviewIssue!.EntityId!;
         IManualWorkspaceService service = _manualWorkspaceService!;
-        bool wasDirty = tab.IsDirty;
+        long beforeEdit = tab.EditRevision;
         service.SetPointReviewStatus(tab.TabId, pointId, ReviewStatus.Accepted);
+        tab.RecordEdit();
+        long acceptedEdit = tab.EditRevision;
         GetEditHistory(tab).Record(GetLocalizedString(LocalizationKeys.EditAcceptPoint),
             () =>
             {
-                service.SetPointReviewStatus(tab.TabId, pointId, ReviewStatus.Unreviewed);
-                tab.IsDirty = wasDirty;
+                service.SetPointReviewStatus(tab.TabId, pointId, prior);
+                tab.RestoreEditRevision(beforeEdit);
             },
             () =>
             {
                 service.SetPointReviewStatus(tab.TabId, pointId, ReviewStatus.Accepted);
-                tab.IsDirty = true;
+                tab.RestoreEditRevision(acceptedEdit);
             });
-        tab.IsDirty = true;
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
-        if (SelectedReviewIssue is { } next) SetSelectedReviewIssue(next, synchronizeWorkspace: true);
+        if (prior == ReviewStatus.Unreviewed && SelectedReviewIssue is { } next) SetSelectedReviewIssue(next, synchronizeWorkspace: true);
         QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, pointId);
     }
 
@@ -1204,7 +1278,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         RefreshWorkspaceProjection();
     }
 
-    public async Task HandleCanvasPointAsync(Point point, CancellationToken cancellationToken = default)
+    public Task HandleCanvasPointAsync(Point point, CancellationToken cancellationToken = default) =>
+        HandleCanvasPointAsync(point, continueAddingPoints: false, cancellationToken);
+
+    internal async Task HandleCanvasPointAsync(Point point, bool continueAddingPoints, CancellationToken cancellationToken = default)
     {
         if (SelectedTab is not { } tab || _manualWorkspaceService is null)
         {
@@ -1219,9 +1296,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
-        if (EditorMode == ManualEditorMode.Calibration && !HasAxisSuggestion && !IsManualFirstVisibleSessionInputValid)
+        if (EditorMode == ManualEditorMode.Calibration && !HasAxisSuggestion && !AreManualCalibrationInputsValid)
         {
-            SetStatus(ManualFirstXInvalidText);
+            SetStatus(ManualCalibrationInputError);
             return;
         }
 
@@ -1292,7 +1369,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                     point.X,
                     point.Y);
                 SelectedPointId = added.PointId;
-                EditorMode = ManualEditorMode.Select;
+                if (!continueAddingPoints) EditorMode = ManualEditorMode.Select;
                 SetStatus(GetLocalizedString(LocalizationKeys.ManualPointAdded));
                 RecordManualEdit(tab, LocalizationKeys.EditAddPoint, before!);
                 await TryAutosaveAsync(SnapshotTrigger.PointEdited, tab.TabId, added.PointId, cancellationToken);
@@ -1477,6 +1554,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(HasEnhancedPreview));
             OnPropertyChanged(nameof(CurrentEnhancementPreviewMode));
             RelayCommand.RaiseCanExecuteChanged();
+            tab.IsDirty = true;
             QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "enhancement");
         }, cancellationToken);
     }
@@ -1491,6 +1569,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _manualWorkspaceService.SetEnhancementPreviewMode(tab.TabId, mode);
         Magnifier.IsEnhanced = mode != EnhancementPreviewMode.Original;
         OnPropertyChanged(nameof(CurrentEnhancementPreviewMode));
+        tab.IsDirty = true;
         QueueAutosave(SnapshotTrigger.ExportSettingsChanged, tab.TabId, "enhancement-preview");
     }
 
@@ -1543,11 +1622,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }, cancellationToken);
     }
 
-    private async Task SaveProjectFromDialogAsync(bool saveAs, CancellationToken cancellationToken)
+    private async Task<bool> SaveProjectFromDialogAsync(bool saveAs, CancellationToken cancellationToken)
     {
         if (_manualWorkspaceService is null || _dialogService is null)
         {
-            return;
+            return false;
         }
 
         string? path = saveAs || _manualWorkspaceService.CurrentProjectPath is null
@@ -1555,11 +1634,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             : _manualWorkspaceService.CurrentProjectPath;
         if (path is null)
         {
-            return;
+            return false;
         }
 
+        bool completed = false;
         await RunBusyAsync(async token =>
         {
+            var revisions = Tabs.ToDictionary(tab => tab, tab => tab.Revision);
             DomainResult<ProjectSaveReceipt> saved =
                 await _manualWorkspaceService.SaveProjectAsync(path, token);
             if (!saved.IsSuccess)
@@ -1567,13 +1648,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 throw new InvalidOperationException(string.Join(" | ", saved.Errors.Select(error => error.TechnicalMessage)));
             }
 
-            foreach (WorkspaceTabViewModel tab in Tabs)
+            foreach (var (tab, revision) in revisions)
             {
-                tab.IsDirty = false;
+                tab.MarkSaved(revision);
             }
+            completed = true;
             RememberRecentProject(saved.Value!.Path);
             SetStatus(FormatLocalizedString(LocalizationKeys.StatusSavedFormat, Path.GetFileName(saved.Value!.Path)));
         }, cancellationToken);
+        return completed;
     }
 
     private async Task RecoverProjectFromAutosaveAsync(CancellationToken cancellationToken)
@@ -1649,6 +1732,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             GraphReader.Export.ExportResult exported =
                 await _manualWorkspaceService.ExportAsync(tab.TabId, directory, token);
+            if (SelectedTab == tab &&
+                exported.Failures.Any(f => f.Code == GraphReader.Export.ExportContract.ObservationOrderReviewRequired) &&
+                _dialogService.ConfirmObservationOrder())
+            {
+                exported = await _manualWorkspaceService.ExportAsync(tab.TabId, directory, confirmObservationOrder: true, token);
+            }
             if (!exported.Succeeded)
             {
                 SetOperationFailure(exported.Failures);
@@ -1725,9 +1814,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(EditorInstruction));
             }
 
-            if (!IsManualFirstVisibleSessionInputValid)
+            if (!AreManualCalibrationInputsValid)
             {
-                SetStatus(ManualFirstXInvalidText);
+                SetStatus(ManualCalibrationInputError);
                 return;
             }
 
@@ -1842,13 +1931,19 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private void BeginAddPointForFill(MarkerFill fill)
     {
-        SeriesCardViewModel? series = SelectedTab?.SeriesCards.FirstOrDefault(candidate =>
-            candidate.Fill == fill && string.Equals(candidate.SeriesId, SelectedSeriesId, StringComparison.Ordinal))
-            ?? SelectedTab?.SeriesCards.FirstOrDefault(candidate => candidate.Fill == fill);
+        var matches = SelectedTab?.SeriesCards.Where(series => series.Fill == fill).ToArray() ?? [];
+        var series = matches.FirstOrDefault(candidate => candidate.SeriesId == SelectedSeriesId);
         if (series is null)
         {
-            SetStatus(GetLocalizedString(LocalizationKeys.ManualSelectSeriesFirst));
-            return;
+            if (matches.Length != 1)
+            {
+                EditorMode = ManualEditorMode.Select;
+                SetStatus(GetLocalizedString(matches.Length == 0
+                    ? LocalizationKeys.ManualSelectSeriesFirst
+                    : LocalizationKeys.ManualChooseSeriesForFill));
+                return;
+            }
+            series = matches[0];
         }
 
         SelectedSeriesId = series.SeriesId;
@@ -2053,20 +2148,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         SnapshotTrigger trigger,
         string? tabId,
         string? entityId,
-        CancellationToken cancellationToken,
-        bool markDirty = true)
+        CancellationToken cancellationToken)
     {
         if (_manualWorkspaceService is null)
         {
             return;
-        }
-
-        WorkspaceTabViewModel? editedTab = tabId is null
-            ? null
-            : Tabs.FirstOrDefault(tab => string.Equals(tab.TabId, tabId, StringComparison.Ordinal));
-        if (markDirty && editedTab is not null)
-        {
-            editedTab.IsDirty = true;
         }
 
         DomainResult<ProjectSnapshotReceipt> result = await _manualWorkspaceService
@@ -2097,12 +2183,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private async void QueueAutosave(
         SnapshotTrigger trigger,
         string? tabId,
-        string? entityId,
-        bool markDirty = true)
+        string? entityId)
     {
         try
         {
-            await TryAutosaveAsync(trigger, tabId, entityId, _shutdown.Token, markDirty);
+            await TryAutosaveAsync(trigger, tabId, entityId, _shutdown.Token);
         }
         catch (OperationCanceledException) when (_shutdown.IsCancellationRequested)
         {
@@ -2123,7 +2208,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private bool CanStartCalibration() =>
         SelectedTab is not null &&
         _manualWorkspaceService is not null &&
-        (HasAxisSuggestion || IsManualFirstVisibleSessionInputValid);
+        (HasAxisSuggestion || AreManualCalibrationInputsValid);
 
     private void RestoreManualCalibrationForm(WorkspaceTabViewModel? tab)
     {
@@ -2145,19 +2230,19 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             bool printed = supported && calibration!.UsesPrintedXCoordinates;
             int first = supported && !printed ? (int)calibration!.FirstVisibleSession : 1;
             form = new ManualCalibrationFormState(calibration,
-                supported ? calibration!.YMaximum : 100,
-                supported ? calibration!.XMaximum : 20,
+                supported ? calibration!.YMaximum.ToString("R", CultureInfo.InvariantCulture) : "100",
+                supported ? calibration!.XMaximum.ToString("R", CultureInfo.InvariantCulture) : "20",
                 first, supported ? calibration!.FirstVisibleSession.ToString("R", CultureInfo.InvariantCulture) : "1", printed);
         }
-        ManualYMaximum = form.YMaximum;
-        ManualXMaximum = form.XMaximum;
+        ManualYMaximumText = form.YMaximumText;
+        ManualXMaximumText = form.XMaximumText;
         ManualFirstVisibleSession = form.FirstVisibleSession;
         ManualFirstVisibleSessionText = form.FirstVisibleSessionText;
         ManualUsesPrintedXCoordinates = form.UsesPrintedXCoordinates;
     }
 
     private sealed record ManualCalibrationFormState(
-        ManualCalibrationState? Calibration, double YMaximum, double XMaximum,
+        ManualCalibrationState? Calibration, string YMaximumText, string XMaximumText,
         int FirstVisibleSession, string FirstVisibleSessionText, bool UsesPrintedXCoordinates);
 
     private bool TryParseManualFirstX(out double value)
@@ -2727,6 +2812,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        tab.RecordEdit();
         WorkspaceTabSnapshot after = CaptureTabSnapshot(tab);
         GetEditHistory(tab).Record(
             GetLocalizedString(descriptionKey),
@@ -2737,7 +2823,6 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             SurfaceState = WorkspaceSurfaceState.Reviewing;
         }
-        tab.IsDirty = true;
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
     }
@@ -2763,7 +2848,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
         SetStatus(GetLocalizedString(LocalizationKeys.StatusUndoCompleted));
-        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "undo", markDirty: false);
+        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "undo");
     }
 
     private void RedoSelectedTab()
@@ -2787,7 +2872,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
         SetStatus(GetLocalizedString(LocalizationKeys.StatusRedoCompleted));
-        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "redo", markDirty: false);
+        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "redo");
     }
 
     private void NotifyHistoryStateChanged()
@@ -2830,7 +2915,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         CapturePointReviewStatuses(tab),
         CapturePointMarkerIds(tab),
         (_workspaceService as IWorkspaceEditStateSink)?.CapturePointCorrectionState(tab.TabId),
-        tab.IsDirty);
+        tab.EditRevision);
 
     private Dictionary<string, string> CapturePointMarkerIds(WorkspaceTabViewModel tab)
     {
@@ -2928,7 +3013,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 divider.Label));
         }
 
-        tab.IsDirty = snapshot.IsDirty;
+        tab.RestoreEditRevision(snapshot.EditRevision);
         SelectedPointId = tab.Points.FirstOrDefault()?.PointId;
         SelectedSeriesId = tab.SeriesCards.FirstOrDefault()?.SeriesId;
         SelectedDividerId = tab.PhaseDividers.FirstOrDefault()?.DividerId;
@@ -3044,7 +3129,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ReviewIssueViewModel? issue,
         bool synchronizeWorkspace)
     {
-        _ = SetProperty(ref _selectedReviewIssue, issue);
+        _ = SetProperty(ref _selectedReviewIssue, issue, nameof(SelectedReviewIssue));
         RelayCommand.RaiseCanExecuteChanged();
         if (!synchronizeWorkspace || issue is null)
         {
@@ -3055,6 +3140,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
         if (issue.EntityId is not { } entityId)
         {
+            return;
+        }
+        if (issue.PhaseLabelToVerify is not null && SelectedTab is { } phaseTab)
+        {
+            var first = phaseTab.Points.Where(p => p.PhaseId == entityId).OrderBy(p => p.PixelX).FirstOrDefault();
+            if (first is not null)
+            {
+                SelectedPointId = first.PointId;
+                SelectedSeriesId = first.SeriesId;
+                HandleCanvasNavigation(new Point(first.PixelX, first.PixelY));
+            }
             return;
         }
         if (FindPoint(entityId) is { } point)
@@ -3105,6 +3201,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         SelectedPointId = row.PointId;
         SelectedSeriesId = row.SeriesId;
         HandleCanvasNavigation(new Point(row.PixelX, row.PixelY));
+
+        if (SelectedReviewIssue is null or { Kind: ReviewIssueKind.Point } &&
+            SelectedReviewIssue?.EntityId != row.PointId)
+        {
+            var pending = ReviewIssues.FirstOrDefault(issue =>
+                issue.EntityId == row.PointId && issue.PointStatusToAccept is not null);
+            SetSelectedReviewIssue(pending, synchronizeWorkspace: false);
+        }
     }
 
     private void OpenExportPreview()
@@ -3458,7 +3562,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         IReadOnlyDictionary<string, ReviewStatus> ReviewStatuses,
         IReadOnlyDictionary<string, string> PointMarkerIds,
         WorkspacePointCorrectionState? CorrectionState,
-        bool IsDirty);
+        long EditRevision);
 
     private sealed record SeriesRelationSnapshot(
         string InterventionSeriesId,

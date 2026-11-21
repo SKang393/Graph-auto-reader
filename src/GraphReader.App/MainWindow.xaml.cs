@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 using GraphReader.App.Appearance;
 using GraphReader.App.Controls;
@@ -122,11 +123,24 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnClosing(object? sender, CancelEventArgs e)
+    private async void OnClosing(object? sender, CancelEventArgs e)
     {
-        if (DataContext is MainWindowViewModel viewModel && !viewModel.CanCloseWindow())
+        if (e.Cancel || DataContext is not MainWindowViewModel viewModel) return;
+        Task<bool> decision = viewModel.CanCloseWindowAsync();
+        if (decision.IsCompletedSuccessfully)
         {
-            e.Cancel = true;
+            e.Cancel = !decision.Result;
+            return;
+        }
+
+        // WPF needs a synchronous veto while the explicit save is in flight.
+        e.Cancel = true;
+        if (await decision)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                if (IsLoaded && ReferenceEquals(DataContext, viewModel)) Close();
+            });
         }
     }
 
@@ -169,7 +183,9 @@ public partial class MainWindow : Window
         _ = sender;
         if (DataContext is MainWindowViewModel viewModel)
         {
-            await viewModel.HandleCanvasPointAsync(e.ImagePoint);
+            // Releasing Shift while holding Enter must not place another point.
+            if (e.IsRepeat && viewModel.EditorMode == ManualEditorMode.AddPoint) return;
+            await viewModel.HandleCanvasPointAsync(e.ImagePoint, continueAddingPoints: e.Modifiers == ModifierKeys.Shift);
         }
     }
 

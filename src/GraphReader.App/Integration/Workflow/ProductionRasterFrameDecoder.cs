@@ -288,7 +288,7 @@ public sealed class ProductionDecodedRaster
         return true;
     }
 
-    private static byte[] ReplicateGrayscaleToBgr(byte[] grayscale, int width, int height)
+    internal static byte[] ReplicateGrayscaleToBgr(byte[] grayscale, int width, int height)
     {
         if (grayscale.Length != checked(width * height))
         {

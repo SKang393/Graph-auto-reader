@@ -14,9 +14,12 @@ internal static class MarkerExemplarMatcher
     // Values farther outside the mathematical [-1,1] range are invalid, never perfect matches.
     internal const float CorrelationRoundoff = 0.00001f;
     internal static IReadOnlyList<MarkerExemplarCandidate> Find(MarkerExemplarRequest request,
-        byte[] grayscale, CancellationToken token)
+        byte[] grayscale, CancellationToken token) => Find(request, grayscale, false, token);
+
+    internal static IReadOnlyList<MarkerExemplarCandidate> Find(MarkerExemplarRequest request,
+        byte[] samples, bool inkMask, CancellationToken token)
     {
-        if (!MarkerExemplarValidation.ValidMetadata(request) || grayscale.Length != checked(request.Width * request.Height))
+        if (!MarkerExemplarValidation.ValidMetadata(request) || samples.Length != checked(request.Width * request.Height))
             throw new MarkerExemplarException(MarkerExemplarReasonCodes.InvalidInput);
         bool affine = request.AffinePlot is not null;
         MarkerExemplarGeometry.AffineDomain domain = default;
@@ -24,7 +27,7 @@ internal static class MarkerExemplarMatcher
             throw new MarkerExemplarException(MarkerExemplarReasonCodes.InvalidInput);
         token.ThrowIfCancellationRequested();
         Cv2.SetNumThreads(1);
-        using var original = Mat.FromPixelData(request.Height, request.Width, MatType.CV_8UC1, grayscale);
+        using var original = Mat.FromPixelData(request.Height, request.Width, MatType.CV_8UC1, samples);
         MarkerExemplarRectangle exemplar = request.Exemplar, plot = request.Plot;
         using var template = new Mat(original, new Rect(exemplar.X, exemplar.Y, exemplar.Width, exemplar.Height));
         Cv2.MeanStdDev(template, out _, out Scalar deviation);
@@ -38,16 +41,10 @@ internal static class MarkerExemplarMatcher
         int y1 = Math.Min(request.Height - exemplar.Height, (int)Math.Ceiling((long)plot.Y + plot.Height - 0.5 - offsetY) - 1);
         if (x1 < x0 || y1 < y0) return Array.Empty<MarkerExemplarCandidate>();
         using var search = new Mat(original, new Rect(x0, y0, x1 - x0 + exemplar.Width, y1 - y0 + exemplar.Height));
-        using var correlation = new Mat();
-        float[] weights = CreateWeights(exemplar.Width, exemplar.Height, offsetX, offsetY);
-        using var mask = Mat.FromPixelData(exemplar.Height, exemplar.Width, MatType.CV_32FC1, weights);
-        // Native matching cannot cooperatively cancel. The isolated worker has a hard five-second watchdog.
-        // A float mask retains every background/interior pixel; an 8-bit mask would become binary.
-        // OpenCV uses M for its mean and M squared in product/norm terms. Keep this exact declared formula.
-        Cv2.MatchTemplate(search, template, correlation, TemplateMatchModes.CCoeffNormed, mask);
-        token.ThrowIfCancellationRequested();
-        correlation.GetArray(out float[] scores);
-        int width = correlation.Width, height = correlation.Height;
+        float[] scores = inkMask
+            ? MarkerExemplarInk.Score(search, template, token)
+            : ScoreGrayscale(search, template, offsetX, offsetY, token);
+        int width = x1 - x0 + 1, height = y1 - y0 + 1;
         double suppression = Math.Max(2, Math.Min(exemplar.Width, exemplar.Height) / 2d);
         var retained = new List<MarkerExemplarCandidate>();
         // Keep memory bounded even for repetitive/degenerate pages; overflow is visible, never truncated silently.
@@ -77,6 +74,20 @@ internal static class MarkerExemplarMatcher
             retained.Add(new(retained.Count.ToString(CultureInfo.InvariantCulture), center, peak.Score));
         }
         return retained.AsReadOnly();
+    }
+
+    private static float[] ScoreGrayscale(Mat search, Mat template, double offsetX, double offsetY, CancellationToken token)
+    {
+        using var correlation = new Mat();
+        float[] weights = CreateWeights(template.Width, template.Height, offsetX, offsetY);
+        using var mask = Mat.FromPixelData(template.Height, template.Width, MatType.CV_32FC1, weights);
+        // Native matching cannot cooperatively cancel. The isolated worker has a hard five-second watchdog.
+        // A float mask retains every background/interior pixel; an 8-bit mask would become binary.
+        // OpenCV uses M for its mean and M squared in product/norm terms. Keep this exact declared formula.
+        Cv2.MatchTemplate(search, template, correlation, TemplateMatchModes.CCoeffNormed, mask);
+        token.ThrowIfCancellationRequested();
+        correlation.GetArray(out float[] scores);
+        return scores;
     }
 
     internal static float[] CreateWeights(int width, int height, double offsetX, double offsetY)

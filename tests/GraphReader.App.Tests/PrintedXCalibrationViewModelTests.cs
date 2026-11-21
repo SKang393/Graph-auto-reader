@@ -58,10 +58,11 @@ public sealed partial class CalibrationTickViewModelTests
     }
 
     [TestMethod]
-    [DataRow(0d, 5d, 10d)]
-    [DataRow(-10d, -5d, 0d)]
-    [DataRow(.5d, 1.5d, 2.5d)]
-    public void PrintedXDraftRequiresExplicitChoiceAndReviewThenSupportsUndoRedo(double first, double middle, double final)
+    [DataRow(0d, 5d, 10d, false)]
+    [DataRow(-10d, -5d, 0d, false)]
+    [DataRow(.5d, 1.5d, 2.5d, false)]
+    [DataRow(1d, 6d, 11d, true)]
+    public void PrintedXDraftRequiresExplicitChoiceAndReviewThenSupportsUndoRedo(double first, double middle, double final, bool sessionFit)
     {
         WithImage(path =>
         {
@@ -73,13 +74,20 @@ public sealed partial class CalibrationTickViewModelTests
             using var workspace = CreateWorkspace(path, reader, MeasuredGeometry());
             using var vm = new MainWindowViewModel(workspace);
             var tab = vm.SelectedTab!;
+            bool choicePublished = false;
+            vm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(vm.HasPrintedXReviewDraft) && vm.HasPrintedXReviewDraft)
+                    choicePublished = true;
+            };
             Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+            Assert.IsTrue(choicePublished);
             Assert.IsTrue(vm.HasPrintedXReviewDraft);
             Assert.IsFalse(vm.SuggestedUsesPrintedXCoordinates);
-            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+            Assert.AreEqual(sessionFit ? first.ToString("R", CultureInfo.InvariantCulture) : string.Empty, vm.SuggestedFirstSession);
             Assert.IsNull(tab.Calibration);
             vm.AxisSuggestionReviewed = true;
-            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.AreEqual(sessionFit, vm.ApplyAxisSuggestionCommand.CanExecute(null));
             vm.UsePrintedXCoordinatesCommand.Execute(null);
             Assert.IsTrue(vm.SuggestedUsesPrintedXCoordinates);
             Assert.IsFalse(vm.HasPrintedXReviewDraft);

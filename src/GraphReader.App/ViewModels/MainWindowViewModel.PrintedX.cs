@@ -12,8 +12,9 @@ public sealed partial class MainWindowViewModel
         ? LocalizationKeys.ManualFinalPrintedX : LocalizationKeys.ManualXMaximum);
     public string ManualXRangeHelp => GetLocalizedString(ManualUsesPrintedXCoordinates
         ? LocalizationKeys.ManualPrintedXRangeHelp : LocalizationKeys.ManualSessionRangeHelp);
-    public string ManualFirstXInvalidText => GetLocalizedString(ManualUsesPrintedXCoordinates
-        ? LocalizationKeys.ManualPrintedXInvalid : LocalizationKeys.ManualFirstVisibleSessionInvalid);
+    public string ManualFirstXInvalidText => GetLocalizedString(!double.IsFinite(ManualXMaximum)
+        ? LocalizationKeys.ManualFinalXInvalid
+        : ManualUsesPrintedXCoordinates ? LocalizationKeys.ManualPrintedXInvalid : LocalizationKeys.ManualFirstVisibleSessionInvalid);
 
     private void OnCalibrationCultureChanged(object? sender, LocalizationChangedEventArgs e)
     {

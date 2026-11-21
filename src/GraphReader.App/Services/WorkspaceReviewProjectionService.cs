@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 
+using System.Globalization;
 using GraphReader.App.Models;
 using GraphReader.App.Localization;
 using GraphReader.App.ViewModels;
@@ -71,6 +72,7 @@ public static class WorkspaceReviewProjectionService
 
         HashSet<SeriesId> knownSeries = panel.Series.Select(static series => series.SeriesId).ToHashSet();
         HashSet<PhaseId> knownPhases = panel.Phases.Select(static phase => phase.PhaseId).ToHashSet();
+        var yRange = ConfirmedYAnchorRange(panel);
         foreach (PointRecord point in panel.Points.OrderBy(static point => point.ObservationIndex))
         {
             string pointId = point.PointId.Value.ToString("D");
@@ -84,7 +86,21 @@ public static class WorkspaceReviewProjectionService
             {
                 issues.Add(Create(tab, $"point-unreviewed-{pointId}", pointId,
                     ReviewIssueKind.Point, ReviewIssueSeverity.Warning,
-                    "Review.PointUnreviewed", localize));
+                    "Review.PointUnreviewed", localize) with { PointStatusToAccept = ReviewStatus.Unreviewed });
+            }
+            else if (point.ReviewStatus == ReviewStatus.Corrected)
+            {
+                var issue = Create(tab, $"point-corrected-{pointId}", pointId, ReviewIssueKind.Point,
+                    ReviewIssueSeverity.Information, "Review.PointCorrected", localize);
+                var culture = CultureInfo.CurrentCulture;
+                issues.Add(issue with
+                {
+                    Title = string.Format(culture, issue.Title,
+                        point.GraphX?.ToString("0.###", culture) ?? localize(LocalizationKeys.PreviewUnknown),
+                        point.GraphY?.ToString("0.###", culture) ?? localize(LocalizationKeys.PreviewUnknown)),
+                    Interpretation = string.Format(culture, issue.Interpretation, point.ObservationIndex),
+                    PointStatusToAccept = ReviewStatus.Corrected,
+                });
             }
 
             if (point.SeriesId is not { } seriesId || !knownSeries.Contains(seriesId))
@@ -99,6 +115,20 @@ public static class WorkspaceReviewProjectionService
                 issues.Add(Create(tab, $"point-coordinates-{pointId}", pointId,
                     ReviewIssueKind.Point, ReviewIssueSeverity.Blocking,
                     "Review.PointMissingCoordinates", localize));
+            }
+
+            if (point.ReviewStatus != ReviewStatus.Rejected && point.GraphY is double y &&
+                double.IsFinite(y) && yRange is { } range &&
+                (y < range.Low - range.Roundoff || y > range.High + range.Roundoff))
+            {
+                var issue = Create(tab, $"point-y-range-{pointId}", pointId, ReviewIssueKind.Point,
+                    ReviewIssueSeverity.Information, "Review.PointBeyondYAnchors", localize);
+                var culture = CultureInfo.CurrentCulture;
+                issues.Add(issue with
+                {
+                    Title = string.Format(culture, issue.Title, point.ObservationIndex),
+                    Interpretation = string.Format(culture, issue.Interpretation, y, range.Low, range.High),
+                });
             }
 
             if (point.PhaseId is not { } phaseId || !knownPhases.Contains(phaseId))
@@ -127,9 +157,43 @@ public static class WorkspaceReviewProjectionService
                 "Review.PhaseUnknown", localize));
         }
 
+        var eventsByEntity = project!.Audit.Events.Where(e => e.PanelId == panel.PanelId)
+            .ToLookup(e => e.EntityId, StringComparer.OrdinalIgnoreCase);
+        var assigned = panel.Points.ToLookup(p => p.PhaseId);
+        foreach (var phase in panel.Phases.OrderBy(p => p.Order))
+        {
+            int count = assigned[phase.PhaseId].Count();
+            if (count == 0 || ReviewAuditEvidence.HasExplicitLabel(phase,
+                eventsByEntity[ReviewAuditEvidence.PhaseLabelEntity(phase)])) continue;
+            string id = phase.PhaseId.Value.ToString("D");
+            var issue = Create(tab, $"phase-label-{id}", id, ReviewIssueKind.Phase, ReviewIssueSeverity.Warning,
+                "Review.PhaseLabel", localize);
+            issues.Add(issue with
+            {
+                Title = string.Format(CultureInfo.CurrentCulture, issue.Title, phase.LabelText, phase.Code),
+                Interpretation = string.Format(CultureInfo.CurrentCulture, issue.Interpretation, phase.Order, count),
+                PhaseLabelToVerify = phase,
+            });
+        }
+
         AppendPipelineWarnings(issues, tab, localize, pipelineWarnings);
 
         return issues;
+    }
+
+    private static (double Low, double High, double Roundoff)? ConfirmedYAnchorRange(PanelRecord panel)
+    {
+        if (panel.Calibration is not { Status: CalibrationStatus.Valid, UserConfirmed: true } calibration)
+            return null;
+
+        var values = calibration.Anchors
+            .Where(a => a.Kind != CalibrationAnchorKind.OcrTick ||
+                panel.OcrRegions.Any(r => r.RegionId == a.EvidenceRegionId && r.Role == OcrRole.YTick))
+            .Select(a => a.Graph.Y).Where(double.IsFinite).ToArray();
+        if (values.Length < 2) return null;
+        double low = values.Min(), high = values.Max();
+        // Ignore floating-point noise at an anchor when mapping pixels back to graph units.
+        return high > low ? (low, high, 2e-15 * Math.Max(Math.Abs(low), Math.Abs(high))) : null;
     }
 
     private static void AppendPipelineWarnings(

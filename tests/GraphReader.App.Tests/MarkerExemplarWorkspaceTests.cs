@@ -47,6 +47,11 @@ public sealed class MarkerExemplarWorkspaceTests
             Assert.AreEqual(new MarkerExemplarRectangle(43, 43, 13, 13), result.Request.Exemplar);
             Assert.AreEqual(count, tab.Points.Count);
             Assert.IsTrue(workspace.IsMarkerExemplarSuggestionCurrent(result));
+            Assert.IsTrue(result.Request.IsFilledCircleSeries);
+            workspace.UpdateSeries(tab.TabId, series.SeriesId, new("Series", "○", MarkerShape.Circle, MarkerFill.Open, SemanticRole.Intervention));
+            Assert.IsFalse(workspace.IsMarkerExemplarSuggestionCurrent(result));
+            result = Pump(workspace.FindMarkerExamplesAsync(tab.TabId, point.PointId, series.SeriesId, 13, CancellationToken.None))!;
+            Assert.IsFalse(result.Request.IsFilledCircleSeries);
             var originals = (Dictionary<string, ImmutableImageBytes>)typeof(ManualPreviewWorkspaceService)
                 .GetField("_originalPanelBytesByTab", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
                 .GetValue(workspace)!;

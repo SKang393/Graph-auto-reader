@@ -182,6 +182,7 @@ public sealed partial class MainWindowViewModel
                 ? LocalizationKeys.ManualCalibrationTicksEstimatedComplete : LocalizationKeys.ManualCalibrationTicksComplete,
             proposal.PairedTicks.Count);
         OnPropertyChanged(nameof(HasCalibrationTickProposal));
+        OnPropertyChanged(nameof(HasPrintedXReviewDraft));
         OnPropertyChanged(nameof(CalibrationTickProposalStatusText));
         OnPropertyChanged(nameof(HasCalibrationTickProposalStatus));
         OnPropertyChanged(nameof(AxisSuggestionSummary));

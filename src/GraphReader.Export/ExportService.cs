@@ -41,6 +41,17 @@ public sealed class ExportService : IExportService
         stage.Restart();
         PreparedExport prepared = Prepare(request, cancellationToken);
         double preparationMilliseconds = stage.Elapsed.TotalMilliseconds;
+        if (request.Mode == ExportMode.ObservationOrder &&
+            request.ObservationOrderSelection == ObservationOrderSelection.WorkspaceDefault &&
+            prepared.Interventions.Any(file => file.Rows.Select(row => row.Audit.PhaseId).Distinct().Skip(1).Any()))
+        {
+            failures.Add(Failure(ExportContract.ObservationOrderReviewRequired, "Export.ReviewObservationOrder",
+                "Observation-order export would number rows across phases without a reviewed common X scale.",
+                recoverable: true,
+                "For a continuous printed scale, calibrate printed X. For restarted labels, save a copy per phase, " +
+                "keep only its points, calibrate its printed X ticks and export the copy."));
+            return FailureResult(request, failures, finalExportBlocked: true, validationMilliseconds, total.Elapsed.TotalMilliseconds);
+        }
 
         cancellationToken.ThrowIfCancellationRequested();
         stage.Restart();
@@ -248,7 +259,7 @@ public sealed class ExportService : IExportService
                 $"Upgrade the project to export contract version {ExportContract.Version}."));
         }
 
-        if (!Enum.IsDefined(request.Mode) ||
+        if (!Enum.IsDefined(request.Mode) || !Enum.IsDefined(request.ObservationOrderSelection) ||
             !Enum.IsDefined(request.Operation) ||
             (request.AuditMode & ~ExportAuditMode.ExtendedCsvAndJson) != 0)
         {
@@ -705,6 +716,8 @@ public sealed class ExportService : IExportService
                     request.PanelId,
                     item.Series.SeriesId,
                     request.Mode,
+                    request.Mode == ExportMode.ObservationOrder &&
+                        request.ObservationOrderSelection == ObservationOrderSelection.ConfirmedForExport,
                     item.Series.Symbol,
                     item.Series.DisplayName,
                     auditRows,

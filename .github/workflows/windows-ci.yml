@@ -13,6 +13,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      review_assistance:
+        description: Run the synthetic export and child-worker checks with the pinned CPU reader
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -143,10 +148,21 @@ jobs:
         shell: pwsh
         run: dotnet build GraphAutoReader.slnx --configuration Release --no-restore --nologo
 
+      - name: Build the reviewed phase export command for the integration smoke
+        if: steps.scope.outputs.full_product_validation != 'false'
+        shell: pwsh
+        run: |
+          dotnet build tools/GraphReader.ReviewedPhaseExport -c Release --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Phase export command build failed.' }
+          $tool = (Resolve-Path tools/GraphReader.ReviewedPhaseExport/bin/Release/net10.0-windows/GraphReader.ReviewedPhaseExport.dll).Path
+          "GRAPHREADER_PHASE_EXPORT_DLL=$tool" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Test
         if: steps.scope.outputs.full_product_validation != 'false'
         shell: pwsh
-        run: dotnet test GraphAutoReader.slnx --configuration Release --no-build --no-restore --nologo
+        run: >-
+          dotnet test GraphAutoReader.slnx --configuration Release --no-build --no-restore --nologo
+          --logger "console;verbosity=${{ github.event_name == 'workflow_dispatch' && 'normal' || 'minimal' }}"
 
       - name: Test localization audit
         shell: pwsh
@@ -174,6 +190,58 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Next development project observer parity and locator guards failed.' }
           dotnet tools/GraphReader.CalibrationOcrProbe/bin/Release/net10.0-windows/win-x64/GraphReader.CalibrationOcrProbe.dll --real-dev-axis-choice-availability-self-test
           if ($LASTEXITCODE -ne 0) { throw 'Axis choice availability selection and accounting self-tests failed.' }
+
+      - name: Exercise the native marker worker
+        if: inputs.review_assistance
+        shell: pwsh
+        run: |
+          $app = (Resolve-Path src/GraphReader.App/bin/Release/net10.0-windows/win-x64/GraphReader.App.exe).Path
+          dotnet tools/GraphReader.CalibrationOcrProbe/bin/Release/net10.0-windows/win-x64/GraphReader.CalibrationOcrProbe.dll --marker-exemplar-check $app
+          if ($LASTEXITCODE -ne 0) { throw 'Marker child-process check failed.' }
+
+      - name: Set up the pinned OCR conversion interpreter
+        if: ${{ !cancelled() && inputs.review_assistance }}
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11.9'
+          architecture: x64
+          check-latest: false
+
+      - name: Check the visible-mark tally on synthetic audit files
+        if: inputs.review_assistance
+        shell: pwsh
+        run: python -B tests/test_compare_visible_marks.py -v
+
+      - name: Reproduce and stage the reviewed reader
+        id: reader
+        if: ${{ !cancelled() && inputs.review_assistance }}
+        shell: pwsh
+        timeout-minutes: 22
+        run: |
+          $model = Join-Path $env:RUNNER_TEMP 'review-model/en_PP-OCRv5_mobile_rec.onnx'
+          python packaging/Materialize-CalibrationReviewModel.py --output $model
+          if ($LASTEXITCODE -ne 0) { throw 'Reviewed reader materialization failed.' }
+          ./packaging/Stage-CalibrationReviewAssets.ps1 -ModelPath $model -DestinationRoot "$env:RUNNER_TEMP/reader" -Purpose LocalEvaluation
+
+      - name: Score the reviewed image exports
+        if: ${{ !cancelled() && steps.reader.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          $env:GRAPHREADER_CALIBRATION_OCR_ASSET_ROOT = (Resolve-Path "$env:RUNNER_TEMP/reader").Path
+          $env:GRAPHREADER_MARKER_WORKER_APP = (Resolve-Path src/GraphReader.App/bin/Release/net10.0-windows/win-x64/GraphReader.App.exe).Path
+          dotnet test tests/GraphReader.Integration.Tests -c Release --no-build --no-restore --filter "FullyQualifiedName~FilledColorExemplarTests|FullyQualifiedName~ScanSessionCalibrationTests|FullyQualifiedName~MarkerExemplarEncodingTests|FullyQualifiedName~SparseSessionExportTests|FullyQualifiedName~ReviewedSyntheticExportTests" --logger "console;verbosity=detailed"
+
+      - name: Exercise the native OCR worker on the synthetic scan
+        if: ${{ !cancelled() && steps.reader.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          $app = (Resolve-Path src/GraphReader.App/bin/Release/net10.0-windows/win-x64/GraphReader.App.exe).Path
+          $image = (Resolve-Path tests/GraphReader.Integration.Tests/Validation/Specifications/scan-sessions.png).Path
+          $request = Join-Path $env:RUNNER_TEMP 'scan-request.json'
+          @{ scope = 'owned-synthetic-review-only'; image_path = $image; image_sha256 = (Get-FileHash $image).Hash.ToLowerInvariant()
+             source_crop_xywh = @(0, 0, 520, 326); plot_ltrb = @(78, 54, 439, 247) } | ConvertTo-Json | Set-Content -Encoding utf8NoBOM $request
+          dotnet tools/GraphReader.CalibrationOcrProbe/bin/Release/net10.0-windows/win-x64/GraphReader.CalibrationOcrProbe.dll --worker-check $request $app "$env:RUNNER_TEMP/reader"
+          if ($LASTEXITCODE -ne 0) { throw 'OCR child-process check failed.' }
 
       - name: Test in-memory OCR metric accounting
         if: steps.scope.outputs.full_product_validation != 'false'

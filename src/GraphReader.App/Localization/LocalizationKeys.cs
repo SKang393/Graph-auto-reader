@@ -53,6 +53,8 @@ public static class LocalizationKeys
     public const string DetectionCalibrationPartial = "Errors.DetectionCalibrationPartial";
     public const string DetectionCalibrationPartialPanelUnknown = "Errors.DetectionCalibrationPartialPanelUnknown";
     public const string DetectionCalibrationMultiple = "Errors.DetectionCalibrationMultiple";
+    public const string ReviewObservationOrder = "Export.ReviewObservationOrder";
+    public const string ConfirmObservationOrder = "Export.ConfirmObservationOrder";
     public const string OperationFailed = "Errors.OperationFailed";
     public const string ManualEditRejected = "Errors.ManualEditRejected";
     public const string ManualAffinePhasesUnsupported = "Errors.ManualAffinePhasesUnsupported";
@@ -91,7 +93,7 @@ public static class LocalizationKeys
     public const string ProjectRecover = "Project.Recover";
     public const string ProjectCloseTab = "Project.CloseTab";
     public const string ProjectCloseDirtyBlocked = "Project.CloseDirtyBlocked";
-    public const string ProjectConfirmDiscardAll = "Project.ConfirmDiscardAll";
+    public const string ProjectSaveBeforeClosing = "Project.SaveBeforeClosing";
     public const string ProjectCloseBusyBlocked = "Project.CloseBusyBlocked";
     public const string ManualTitle = "Manual.Title";
     public const string ManualSuggestAxes = "Manual.SuggestAxes";
@@ -151,6 +153,8 @@ public static class LocalizationKeys
     public const string ManualMarkerExemplarAdd = "Manual.MarkerExemplar.Add";
     public const string ManualMarkerExemplarRemove = "Manual.MarkerExemplar.Remove";
     public const string ManualMarkerExemplarRow = "Manual.MarkerExemplar.Row";
+    public const string ManualMarkerExemplarInspect = "Manual.MarkerExemplar.Inspect";
+    public const string ManualMarkerExemplarNearby = "Manual.MarkerExemplar.Nearby";
     public const string ManualMarkerExemplarDuplicate = "Manual.MarkerExemplar.Duplicate";
     public const string ManualMarkerExemplarReady = "Manual.MarkerExemplar.Ready";
     public const string ManualMarkerExemplarInvalidSize = "Manual.MarkerExemplar.InvalidSize";
@@ -234,6 +238,8 @@ public static class LocalizationKeys
     public const string ManualPanelCropParentRequired = "Manual.PanelCrop.ParentRequired";
     public const string ManualInstruction = "Manual.Instruction";
     public const string ManualCalibration = "Manual.Calibration";
+    public const string ManualYMaximumInvalid = "Manual.YMaximum.Invalid";
+    public const string ManualFinalXInvalid = "Manual.XMaximum.Invalid";
     public const string ManualYMaximum = "Manual.YMaximum";
     public const string ManualFirstVisibleSession = "Manual.FirstVisibleSession";
     public const string ManualXMaximum = "Manual.XMaximum";
@@ -271,6 +277,7 @@ public static class LocalizationKeys
     public const string ManualInstructionSelect = "Manual.Instruction.Select";
     public const string ManualCalibrationPrompt = "Manual.Status.CalibrationPrompt";
     public const string ManualCalibrationSaved = "Manual.Status.CalibrationSaved";
+    public const string ManualChooseSeriesForFill = "Manual.Status.ChooseSeriesForFill";
     public const string ManualSelectSeriesFirst = "Manual.Status.SelectSeriesFirst";
     public const string ManualPointAdded = "Manual.Status.PointAdded";
     public const string ManualPointMoved = "Manual.Status.PointMoved";
@@ -438,6 +445,12 @@ public static class LocalizationKeys
     public const string ReviewPointRejectedTitle = "Review.PointRejected.Title";
     public const string ReviewPointRejectedInterpretation = "Review.PointRejected.Interpretation";
     public const string ReviewPointRejectedAction = "Review.PointRejected.Action";
+    public const string ReviewPointCorrectedTitle = "Review.PointCorrected.Title";
+    public const string ReviewPointCorrectedInterpretation = "Review.PointCorrected.Interpretation";
+    public const string ReviewPointCorrectedAction = "Review.PointCorrected.Action";
+    public const string ReviewPointBeyondYAnchorsTitle = "Review.PointBeyondYAnchors.Title";
+    public const string ReviewPointBeyondYAnchorsInterpretation = "Review.PointBeyondYAnchors.Interpretation";
+    public const string ReviewPointBeyondYAnchorsAction = "Review.PointBeyondYAnchors.Action";
     public const string ReviewPointUnreviewedTitle = "Review.PointUnreviewed.Title";
     public const string ReviewFilteredMarkers = "Review.FilteredMarkers";
     public const string ReviewFilteredMarkersExplanation = "Review.FilteredMarkers.Explanation";
@@ -460,6 +473,10 @@ public static class LocalizationKeys
     public const string ReviewSeriesUnknownTitle = "Review.SeriesUnknown.Title";
     public const string ReviewSeriesUnknownInterpretation = "Review.SeriesUnknown.Interpretation";
     public const string ReviewSeriesUnknownAction = "Review.SeriesUnknown.Action";
+    public const string ConfirmPhaseLabel = "Review.ConfirmPhaseLabel";
+    public const string ReviewPhaseLabelTitle = "Review.PhaseLabel.Title";
+    public const string ReviewPhaseLabelInterpretation = "Review.PhaseLabel.Interpretation";
+    public const string ReviewPhaseLabelAction = "Review.PhaseLabel.Action";
     public const string ReviewPhaseUnknownTitle = "Review.PhaseUnknown.Title";
     public const string ReviewPhaseUnknownInterpretation = "Review.PhaseUnknown.Interpretation";
     public const string ReviewPhaseUnknownAction = "Review.PhaseUnknown.Action";
@@ -468,6 +485,7 @@ public static class LocalizationKeys
     public const string ReviewPipelineWarningAction = "Review.PipelineWarning.Action";
     public const string ReviewPhaseDividerClusterInterpretation = "Review.PhaseDividerCluster.Interpretation";
     public const string ExportPreviewTitle = "ExportPreview.Title";
+    public const string ExportPreviewPlotCompleteness = "ExportPreview.PlotCompleteness";
     public const string ExportPreviewPoints = "ExportPreview.Points";
     public const string ExportPreviewSeries = "ExportPreview.Series";
     public const string ExportPreviewPhases = "ExportPreview.Phases";
@@ -518,6 +536,8 @@ public static class LocalizationKeys
         DetectionCalibrationPartial,
         DetectionCalibrationPartialPanelUnknown,
         DetectionCalibrationMultiple,
+        ReviewObservationOrder,
+        ConfirmObservationOrder,
         OperationFailed,
         ManualEditRejected,
         ManualAffinePhasesUnsupported,
@@ -556,7 +576,7 @@ public static class LocalizationKeys
         ProjectRecover,
         ProjectCloseTab,
         ProjectCloseDirtyBlocked,
-        ProjectConfirmDiscardAll,
+        ProjectSaveBeforeClosing,
         ProjectCloseBusyBlocked,
         ManualTitle,
         ManualSuggestAxes,
@@ -620,6 +640,8 @@ public static class LocalizationKeys
         ManualMarkerExemplarAdd,
         ManualMarkerExemplarRemove,
         ManualMarkerExemplarRow,
+        ManualMarkerExemplarInspect,
+        ManualMarkerExemplarNearby,
         ManualMarkerExemplarDuplicate,
         ManualMarkerExemplarReady,
         ManualMarkerExemplarInvalidSize,
@@ -659,6 +681,8 @@ public static class LocalizationKeys
         ManualPanelCropParentRequired,
         ManualInstruction,
         ManualCalibration,
+        ManualYMaximumInvalid,
+        ManualFinalXInvalid,
         ManualYMaximum,
         ManualFirstVisibleSession,
         ManualXMaximum,
@@ -696,6 +720,7 @@ public static class LocalizationKeys
         ManualInstructionSelect,
         ManualCalibrationPrompt,
         ManualCalibrationSaved,
+        ManualChooseSeriesForFill,
         ManualSelectSeriesFirst,
         ManualPointAdded,
         ManualPointMoved,
@@ -861,6 +886,12 @@ public static class LocalizationKeys
         ReviewPointRejectedTitle,
         ReviewPointRejectedInterpretation,
         ReviewPointRejectedAction,
+        ReviewPointCorrectedTitle,
+        ReviewPointCorrectedInterpretation,
+        ReviewPointCorrectedAction,
+        ReviewPointBeyondYAnchorsTitle,
+        ReviewPointBeyondYAnchorsInterpretation,
+        ReviewPointBeyondYAnchorsAction,
         ReviewPointUnreviewedTitle,
         ReviewFilteredMarkers,
         ReviewFilteredMarkersExplanation,
@@ -883,6 +914,10 @@ public static class LocalizationKeys
         ReviewSeriesUnknownTitle,
         ReviewSeriesUnknownInterpretation,
         ReviewSeriesUnknownAction,
+        ConfirmPhaseLabel,
+        ReviewPhaseLabelTitle,
+        ReviewPhaseLabelInterpretation,
+        ReviewPhaseLabelAction,
         ReviewPhaseUnknownTitle,
         ReviewPhaseUnknownInterpretation,
         ReviewPhaseUnknownAction,
@@ -891,6 +926,7 @@ public static class LocalizationKeys
         ReviewPipelineWarningAction,
         ReviewPhaseDividerClusterInterpretation,
         ExportPreviewTitle,
+        ExportPreviewPlotCompleteness,
         ExportPreviewPoints,
         ExportPreviewSeries,
         ExportPreviewPhases,

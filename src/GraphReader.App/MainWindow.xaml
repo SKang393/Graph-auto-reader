@@ -794,16 +794,16 @@
           </Border>
         </Expander>
 
-        <Grid Grid.Row="4"
-              Grid.RowSpan="2"
+        <Grid Grid.Row="2"
+              Grid.RowSpan="4"
               Panel.ZIndex="20"
               Background="{DynamicResource App.Brush.Overlay}"
               Style="{StaticResource State.ExportPreview}">
-          <Border Width="520"
+          <Border MaxWidth="520"
                   MaxHeight="520"
                   Margin="24"
                   Padding="20"
-                  HorizontalAlignment="Center"
+                  HorizontalAlignment="Stretch"
                   VerticalAlignment="Center"
                   Style="{DynamicResource App.Style.Panel}">
             <Grid>
@@ -811,13 +811,20 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
               </Grid.RowDefinitions>
-              <TextBlock FontSize="{DynamicResource App.FontSize.Title}" FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Title}" />
+              <StackPanel>
+                <TextBlock FontSize="{DynamicResource App.FontSize.Title}" FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Title}" />
+                <TextBlock x:Name="ExportPlotCompleteness" Margin="0,4,0,0" TextWrapping="Wrap"
+                           Text="{DynamicResource ExportPreview.PlotCompleteness}" />
+              </StackPanel>
               <UniformGrid Grid.Row="1" Margin="0,16,0,12" Columns="5">
-                <StackPanel><TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding ExportSummary.PointCount}" /><TextBlock Foreground="{DynamicResource App.Brush.TextMuted}" Text="{DynamicResource ExportPreview.Points}" /></StackPanel>
+                <StackPanel>
+                  <TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding ExportSummary.PointCount}" />
+                  <TextBlock x:Name="ExportPlacedPointsLabel" Foreground="{DynamicResource App.Brush.TextMuted}"
+                             Text="{DynamicResource ExportPreview.Points}" TextWrapping="Wrap" />
+                </StackPanel>
                 <StackPanel><TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding ExportSummary.SeriesCount}" /><TextBlock Foreground="{DynamicResource App.Brush.TextMuted}" Text="{DynamicResource ExportPreview.Series}" /></StackPanel>
                 <StackPanel><TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding ExportSummary.PhaseCount}" /><TextBlock Foreground="{DynamicResource App.Brush.TextMuted}" Text="{DynamicResource ExportPreview.Phases}" /></StackPanel>
                 <StackPanel><TextBlock FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource App.Brush.Danger}" Text="{Binding ExportSummary.BlockingIssueCount}" /><TextBlock Foreground="{DynamicResource App.Brush.TextMuted}" Text="{DynamicResource ExportPreview.Blockers}" /></StackPanel>
@@ -841,15 +848,13 @@
                   </Style>
                 </CheckBox.Style>
               </CheckBox>
-              <StackPanel Grid.Row="3" Margin="0,0,0,10">
-                <TextBlock FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Provenance}" />
-                <TextBlock Margin="0,2,0,7" Foreground="{DynamicResource App.Brush.TextMuted}" Text="{Binding ExportSummary.ProvenanceSummary}" TextWrapping="Wrap" />
-                <TextBlock FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Destination}" />
-                <TextBlock Margin="0,2,0,0" Foreground="{DynamicResource App.Brush.TextMuted}" Text="{Binding ExportSummary.OutputDirectoryDisplay}" TextTrimming="CharacterEllipsis" />
-              </StackPanel>
-              <StackPanel Grid.Row="4">
-                <TextBlock FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Files}" />
-                <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto">
+              <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+                  <TextBlock FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Provenance}" />
+                  <TextBlock Margin="0,2,0,7" Foreground="{DynamicResource App.Brush.TextMuted}" Text="{Binding ExportSummary.ProvenanceSummary}" TextWrapping="Wrap" />
+                  <TextBlock FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Destination}" />
+                  <TextBlock Margin="0,2,0,10" Foreground="{DynamicResource App.Brush.TextMuted}" Text="{Binding ExportSummary.OutputDirectoryDisplay}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock FontWeight="SemiBold" Text="{DynamicResource ExportPreview.Files}" />
                   <ItemsControl ItemsSource="{Binding ExportSummary.OutputFileNames}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
@@ -857,11 +862,11 @@
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
-                </ScrollViewer>
-              </StackPanel>
-              <StackPanel Grid.Row="5" Margin="0,16,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
+                </StackPanel>
+              </ScrollViewer>
+              <StackPanel Grid.Row="4" Margin="0,16,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button Margin="0,0,8,0" Command="{Binding ReviewCommand}" Style="{DynamicResource App.Style.Button}" Content="{DynamicResource Workflow.Review}" />
-                <Button Command="{Binding ConfirmExportCommand}" Style="{DynamicResource App.Style.PrimaryButton}" Content="{DynamicResource ExportPreview.Confirm}" />
+                <Button x:Name="ExportConfirmButton" Command="{Binding ConfirmExportCommand}" Style="{DynamicResource App.Style.PrimaryButton}" Content="{DynamicResource ExportPreview.Confirm}" />
               </StackPanel>
             </Grid>
           </Border>
@@ -934,7 +939,7 @@
                 <TextBlock Text="{Binding ReviewIssueCount}" />
               </Border>
             </Grid>
-            <ListBox ItemsSource="{Binding ReviewIssues}"
+            <ListBox MaxHeight="200" ItemsSource="{Binding ReviewIssues}"
                      SelectedItem="{Binding SelectedReviewIssue, Mode=TwoWay}"
                      HorizontalContentAlignment="Stretch"
                      Background="Transparent"
@@ -966,6 +971,13 @@
                     Style="{DynamicResource App.Style.Button}"
                     automation:AutomationProperties.AutomationId="Review.AcceptPoint"
                     automation:AutomationProperties.Name="{DynamicResource Review.AcceptPoint}" />
+            <Button Margin="0,6,0,0"
+                    Command="{Binding ConfirmPhaseLabelCommand}"
+                    Visibility="{Binding IsEnabled, RelativeSource={RelativeSource Self}, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Content="{DynamicResource Review.ConfirmPhaseLabel}"
+                    Style="{DynamicResource App.Style.Button}"
+                    automation:AutomationProperties.AutomationId="Review.ConfirmPhaseLabel"
+                    automation:AutomationProperties.Name="{DynamicResource Review.ConfirmPhaseLabel}" />
             <Expander Margin="0,10,0,0" Header="{DynamicResource Review.FilteredMarkers}">
               <StackPanel>
                 <TextBlock Margin="0,4,0,6" Text="{DynamicResource Review.FilteredMarkers.Explanation}" TextWrapping="Wrap" />
@@ -1331,7 +1343,7 @@
                       automation:AutomationProperties.Name="{Binding AcceptAllMarkerExemplarsText}" />
               <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto"
                             Visibility="{Binding HasMarkerExemplarCandidates, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <ItemsControl ItemsSource="{Binding MarkerExemplarCandidates}"
+                <ItemsControl x:Name="MarkerExemplarList" ItemsSource="{Binding MarkerExemplarCandidates}"
                               automation:AutomationProperties.AutomationId="Manual.MarkerExemplar.Candidates"
                               automation:AutomationProperties.Name="{DynamicResource Manual.MarkerExemplar.Title}">
                   <ItemsControl.ItemTemplate>
@@ -1342,14 +1354,22 @@
                         <TextBlock Text="{DynamicResource Manual.MarkerExemplar.Duplicate}" TextWrapping="Wrap"
                                    Foreground="{DynamicResource App.Brush.Warning}"
                                    Visibility="{Binding IsDuplicate, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <TextBlock x:Name="NearbyMatchNotice" Text="{DynamicResource Manual.MarkerExemplar.Nearby}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource App.Brush.Warning}"
+                                   Visibility="{Binding NeedsIndividualReview, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <WrapPanel>
+                          <Button x:Name="InspectMatchButton" Margin="0,0,4,0" Command="{Binding DataContext.InspectMarkerExemplarCandidateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                  CommandParameter="{Binding}" Content="{DynamicResource Manual.MarkerExemplar.Inspect}"
+                                  Style="{DynamicResource App.Style.Button}"
+                                  automation:AutomationProperties.AutomationId="Manual.MarkerExemplar.Candidate.Inspect"
+                                  automation:AutomationProperties.Name="{DynamicResource Manual.MarkerExemplar.Inspect}" />
                           <Button Margin="0,0,4,0" Command="{Binding DataContext.AcceptMarkerExemplarCandidateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                   CommandParameter="{Binding}" Content="{DynamicResource Manual.MarkerExemplar.Add}"
                                   Style="{DynamicResource App.Style.Button}"
                                   IsEnabled="{Binding CanAccept}"
                                   automation:AutomationProperties.AutomationId="Manual.MarkerExemplar.Candidate.Add"
                                   automation:AutomationProperties.Name="{DynamicResource Manual.MarkerExemplar.Add}" />
-                          <Button Command="{Binding DataContext.RemoveMarkerExemplarCandidateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                          <Button x:Name="RemoveMatchButton" Command="{Binding DataContext.RemoveMarkerExemplarCandidateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                   CommandParameter="{Binding}" Content="{DynamicResource Manual.MarkerExemplar.Remove}"
                                   Style="{DynamicResource App.Style.Button}"
                                   automation:AutomationProperties.AutomationId="Manual.MarkerExemplar.Candidate.Remove"
@@ -1390,6 +1410,12 @@
                       Style="{DynamicResource App.Style.Button}"
                       automation:AutomationProperties.AutomationId="Manual.MovePoint"
                       automation:AutomationProperties.Name="{DynamicResource Manual.MovePoint}" />
+              <Button Margin="0,0,6,6"
+                      Command="{Binding AcceptCorrectedPointCommand}"
+                      Content="{DynamicResource Review.AcceptPoint}"
+                      Style="{DynamicResource App.Style.Button}"
+                      automation:AutomationProperties.AutomationId="Manual.AcceptCorrectedPoint"
+                      automation:AutomationProperties.Name="{DynamicResource Review.AcceptPoint}" />
               <Button x:Name="DeletePointButton"
                       Margin="0,0,6,6"
                       Command="{Binding DeletePointCommand}"
@@ -1449,7 +1475,7 @@
               </Grid.ColumnDefinitions>
               <StackPanel Grid.Column="0" Margin="0,0,4,0">
                 <TextBlock Text="{DynamicResource Manual.YMaximum}" />
-                <TextBox Text="{Binding ManualYMaximum, UpdateSourceTrigger=PropertyChanged}"
+                <TextBox Text="{Binding ManualYMaximumText, UpdateSourceTrigger=PropertyChanged}"
                          automation:AutomationProperties.AutomationId="Manual.YMaximum"
                          automation:AutomationProperties.Name="{DynamicResource Manual.YMaximum}" />
               </StackPanel>
@@ -1479,12 +1505,27 @@
               </StackPanel>
               <StackPanel Grid.Column="2" Margin="4,0,0,0">
                 <TextBlock Text="{Binding ManualFinalXLabel}" />
-                <TextBox Text="{Binding ManualXMaximum, UpdateSourceTrigger=PropertyChanged}"
+                <TextBox Text="{Binding ManualXMaximumText, UpdateSourceTrigger=PropertyChanged}"
                          automation:AutomationProperties.AutomationId="Manual.XMaximum"
                          automation:AutomationProperties.Name="{Binding ManualFinalXLabel}"
                          automation:AutomationProperties.HelpText="{Binding ManualXRangeHelp}" />
               </StackPanel>
             </Grid>
+            <TextBlock Margin="0,0,0,8" TextWrapping="Wrap"
+                       Foreground="{DynamicResource App.Brush.Danger}" Text="{DynamicResource Manual.YMaximum.Invalid}"
+                       automation:AutomationProperties.AutomationId="Manual.YMaximum.Validation"
+                       automation:AutomationProperties.Name="{DynamicResource Manual.YMaximum.Invalid}">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                  <Setter Property="Visibility" Value="Collapsed" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsManualYMaximumInputValid}" Value="False">
+                      <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
             <TextBlock Margin="0,0,0,8"
                        Foreground="{DynamicResource App.Brush.TextMuted}"
                        Text="{Binding ManualXRangeHelp}"

@@ -50,6 +50,9 @@ internal static class ReviewAuditEvidence
         return ForPhase(description, phase, phaseEvents);
     }
 
+    internal static string PhaseLabelEntity(PhaseRecord phase) =>
+        (phase.BoundaryLeftId ?? phase.PhaseId).Value.ToString("D");
+
     public static ExportReviewEvidence ForPhase(string pointActions, PhaseRecord? phase, IEnumerable<AuditEvent> events)
     {
         if (phase is null) return new(pointActions, "unknown", "unknown");
@@ -61,12 +64,22 @@ internal static class ReviewAuditEvidence
             PhaseSource.Manual => "manual",
             _ => "unknown",
         };
-        JsonElement? label = events.LastOrDefault(entry => entry.Kind == DomainEventKind.PhaseEdited &&
-            entry.Details is { } details && Text(details, "action") is "add" or "label")?.Details;
-        bool explicitLabel = phase.Source == PhaseSource.Manual && phase.UserConfirmed &&
-            label is { } evidence && Text(evidence, "code") == phase.Code && Text(evidence, "label") == phase.LabelText;
         return new(pointActions, source, !phase.UserConfirmed ? "unconfirmed" :
-            explicitLabel ? "explicit_label" : "recorded_confirmation_only");
+            HasExplicitLabel(phase, events) ? "explicit_label" : "recorded_confirmation_only");
+    }
+
+    internal static bool HasExplicitLabel(PhaseRecord phase, IEnumerable<AuditEvent> events)
+    {
+        if (phase.Source != PhaseSource.Manual || !phase.UserConfirmed) return false;
+        JsonElement? label = events.LastOrDefault(entry => entry.Kind == DomainEventKind.PhaseEdited &&
+            entry.Details is { } details && (Text(details, "action") switch
+            {
+                "add" or "label" => phase.BoundaryLeftId is not null,
+                "verify_label" => entry.EventId == phase.LabelVerificationEventId &&
+                    Text(details, "phase_id") == phase.PhaseId.Value.ToString("D"),
+                _ => false,
+            }))?.Details;
+        return label is { } evidence && Text(evidence, "code") == phase.Code && Text(evidence, "label") == phase.LabelText;
     }
 
     private static string? Text(JsonElement element, string key) =>

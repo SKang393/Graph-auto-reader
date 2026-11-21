@@ -99,17 +99,14 @@
               CornerRadius="{DynamicResource App.CornerRadius.Medium}"
               AutomationProperties.Name="{DynamicResource Magnifier.Viewport.AutomationName}">
         <Grid>
-          <Image x:Name="ViewportImage"
-                 Stretch="Uniform"
-                 SnapsToDevicePixels="True"
-                 RenderOptions.BitmapScalingMode="NearestNeighbor"
-                 RenderTransformOrigin="{Binding CrosshairPosition, ElementName=Root}">
-            <Image.RenderTransform>
-              <ScaleTransform ScaleX="{Binding ZoomLevel, ElementName=Root}"
-                              ScaleY="{Binding ZoomLevel, ElementName=Root}" />
-            </Image.RenderTransform>
-          </Image>
-          <controls:CrosshairOverlay Position="{Binding CrosshairPosition, ElementName=Root}"
+          <Canvas x:Name="LensViewport" ClipToBounds="True" SizeChanged="OnLensViewportSizeChanged">
+            <Image x:Name="ViewportImage" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor">
+              <Image.RenderTransform>
+                <MatrixTransform x:Name="LensTransform" />
+              </Image.RenderTransform>
+            </Image>
+          </Canvas>
+          <controls:CrosshairOverlay Position="0.5,0.5"
                                      Stroke="{DynamicResource App.Brush.Primary}"
                                      AutomationProperties.Name="{DynamicResource Magnifier.Crosshair.AutomationName}">
             <controls:CrosshairOverlay.Style>
